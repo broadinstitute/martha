@@ -34,7 +34,7 @@ jobs:
       - run: sudo /opt/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
       - run:
           name: deploy martha
-          command: gcloud beta functions deploy martha_v1 \
+          command: sudo /opt/google-cloud-sdk/bin/gcloud beta functions deploy martha_v1 \
                      --source https://source.developers.google.com/projects/broad-dsde-staging/repos/martha/moveable-aliases/dev \
                      --trigger-http
 
