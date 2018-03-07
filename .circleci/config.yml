@@ -23,3 +23,30 @@ jobs:
       - run:
           command: npm test
 
+  deploy-staging:
+    machine: true
+    steps:
+      # see https://cloud.google.com/sdk/gcloud/reference
+      - run: sudo /opt/google-cloud-sdk/bin/gcloud components update --quiet
+      - run: sudo /opt/google-cloud-sdk/bin/gcloud components install beta --quiet
+      - run: sudo /opt/google-cloud-sdk/bin/gcloud config set project broad-dsde-staging
+      - run: echo $GCLOUD_SERVICE_KEY | base64 --decode --ignore-garbage > ${HOME}/gcloud-service-key.json
+      - run: sudo /opt/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
+      - run:
+          name: deploy martha
+          command: gcloud beta functions deploy martha_v1 \
+                     --source https://source.developers.google.com/projects/broad-dsde-staging/repos/martha/moveable-aliases/dev \
+                     --trigger-http
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build
+      - deploy-staging:
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - dev

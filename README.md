@@ -6,7 +6,7 @@
 A Google Cloud Function.
 For a more general overview of Google Cloud Functions as DSP uses them please look [here](https://docs.google.com/document/d/1VZIFVdu77fNs0MVKLY8QNqiVWza71ED0Bf1Fj8CRNGs/edit#).
 Martha is an “external” service that can be deployed independently from the rest of Firecloud.
-Martha accepts a “DOS” URI, uses it to retrieve a data object, unpacks it, and returns the “gs://” link (by default). Optionally can look for another link or return the whole data object using the “pattern” parameter. If “all” is passed to pattern, it will return the whole data object, if anything else is passed, the pattern is used to find a matching url.
+Martha accepts two params: a “DOS” URI and a regex pattern, uses DOS URI to retrieve a data object, unpacks it, and returns the first link to match the regex pattern. 
 
 
 Development: 
