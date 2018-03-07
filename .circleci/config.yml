@@ -40,6 +40,8 @@ jobs:
       - run:
           command: npm install
       - run:
+          command: export BASE_URL=$STAGING_BASE_URL
+      - run:
           command: npm run-script smoketest
 
   deploy-prod:
@@ -58,6 +60,8 @@ jobs:
       - checkout
       - run:
           command: npm install
+      - run:
+          command: export BASE_URL=$PROD_BASE_URL
       - run:
           command: npm run-script smoketest
 
