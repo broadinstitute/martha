@@ -11,9 +11,10 @@
     "axios": "~0.18.0",
     "firebase-functions": "^0.8.1",
     "nock": "^9.2.3",
+    "npm-shrinkwrap": "^6.1.0",
     "sinon": "^4.4.2",
-    "supertest": "^3.0.0",
-    "superagent": "latest"
+    "superagent": "latest",
+    "supertest": "^3.0.0"
   },
   "devDependencies": {
     "superagent-mock": "^3.7.0"
