@@ -64,6 +64,7 @@ test(`should return error if no pattern param given`, t => {
 
 //smoketests
 test.cb(`smoketest return gs link`, t => {
+    console.log(`base url: ${process.env.BASE_URL}`);
     supertest
         .get(`/martha_v1`)
         //TODO: set up URL we control for this test
