@@ -42,7 +42,7 @@ jobs:
       # see https://cloud.google.com/sdk/gcloud/reference
       - run: sudo /opt/google-cloud-sdk/bin/gcloud components update --quiet
       - run: sudo /opt/google-cloud-sdk/bin/gcloud components install beta --quiet
-      - run: sudo /opt/google-cloud-sdk/bin/gcloud config set project broad-dsde-staging
+      - run: sudo /opt/google-cloud-sdk/bin/gcloud config set project broad-dsde-prod
       - run: echo $GCLOUD_FUNCTIONS_PROD_KEY | base64 --decode --ignore-garbage > ${HOME}/gcloud-service-key.json
       - run: sudo /opt/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
       - run:
