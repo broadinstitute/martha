@@ -85,5 +85,3 @@ test.cb(`smoketest return error if url passed is not good`, t => {
         .end(t.end);
 
 });
-
-
