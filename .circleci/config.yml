@@ -25,6 +25,7 @@ jobs:
 
   deploy-staging:
     machine: true
+    working_directory: ~/repo
     steps:
       # see https://cloud.google.com/sdk/gcloud/reference
       - run: sudo /opt/google-cloud-sdk/bin/gcloud components update --quiet
@@ -35,9 +36,15 @@ jobs:
       - run:
           name: deploy martha
           command: sudo /opt/google-cloud-sdk/bin/gcloud beta functions deploy martha_v1 --source https://source.developers.google.com/projects/broad-dsde-staging/repos/martha/moveable-aliases/dev --trigger-http
+      - checkout
+      - run:
+          command: npm install
+      - run:
+          command: npm run-script smoketest
 
   deploy-prod:
     machine: true
+    working_directory: ~/repo
     steps:
       # see https://cloud.google.com/sdk/gcloud/reference
       - run: sudo /opt/google-cloud-sdk/bin/gcloud components update --quiet
@@ -48,6 +55,11 @@ jobs:
       - run:
           name: deploy martha
           command: sudo /opt/google-cloud-sdk/bin/gcloud beta functions deploy martha_v1 --source https://source.developers.google.com/projects/broad-dsde-prod/repos/martha/moveable-aliases/master --trigger-http
+      - checkout
+      - run:
+          command: npm install
+      - run:
+          command: npm run-script smoketest
 
 workflows:
   version: 2
