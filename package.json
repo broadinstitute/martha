@@ -4,7 +4,8 @@
   "description": "Data Object GUID Resolution",
   "private": true,
   "scripts": {
-    "test": "ava"
+    "test": "ava -m !smoketest*",
+    "smoketest" : "ava -m smoketest*"
   },
   "dependencies": {
     "ava": "^0.25.0",
