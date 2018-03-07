@@ -10,7 +10,7 @@ exports.martha_v1 = (req, res) => {
         .end(function(err, response) {
             if(err){
                 console.error(err);
-                res.status(400).send(err);
+                res.status(502).send(err);
                 return;
             };
             // console.log(response);
@@ -23,12 +23,14 @@ exports.martha_v1 = (req, res) => {
             };
             var allData = parsedData["data_object"];
             if (!allData) {
-                res.status(404).send(`No data received from ${req.body.url}`);
-            } else if (req.body.pattern == 'all') {
-                res.status(200).send(allData);
+                res.status(400).send(`No data received from ${req.body.url}`);
             } else {
                 var urls = allData["urls"];
-                var pattern = (req.body.pattern || 'gs://');
+                var pattern = (req.body.pattern);
+                if (!pattern) {
+                    res.status(400).send(`No pattern param specified`);
+                    return;
+                }
                 for (var url in urls) {
                     var currentUrl = urls[url]["url"];
                     if (currentUrl.startsWith(pattern)) {
@@ -38,7 +40,7 @@ exports.martha_v1 = (req, res) => {
                 }
                 //gone through all urls, no match found
                 if (!correctUrl) {
-                    res.status(417).send(`No ${pattern} link found`);
+                    res.status(404).send(`No ${pattern} link found`);
                 }
                 ;
             }
