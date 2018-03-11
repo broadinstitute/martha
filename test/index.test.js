@@ -67,6 +67,7 @@ test.cb(`smoketest return gs link`, t => {
     console.log(`base url: ${process.env.BASE_URL}`);
     supertest
         .get(`/martha_v1`)
+        .set('Content-Type', 'application/json')
         //TODO: set up URL we control for this test
         .send({"url" : "https://spbnq0bc10.execute-api.us-west-2.amazonaws.com/api/ga4gh/dos/v1/dataobjects/ed703a5d-4705-49a8-9429-5169d9225bbd", "pattern" : "gs://"})
         .expect((response) => {
@@ -79,6 +80,7 @@ test.cb(`smoketest return gs link`, t => {
 test.cb(`smoketest return error if url passed is not good`, t => {
     supertest
         .get(`/martha_v1`)
+        .set('Content-Type', 'application/json')
         .send({"url" : "somethingNotValidURL"})
         .expect(response => {
             t.is(response.statusCode, 502);
