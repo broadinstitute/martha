@@ -1,5 +1,5 @@
 ﻿Martha v1
- =========
+=========
 
 ![alt text](https://raw.githubusercontent.com/broadinstitute/martha/dev/images/doctor_martha_jones_and_the_tardis.jpg)
 
@@ -7,7 +7,7 @@ A Google Cloud Function.
 For a more general overview of Google Cloud Functions as DSP uses them please look [here](https://docs.google.com/document/d/1VZIFVdu77fNs0MVKLY8QNqiVWza71ED0Bf1Fj8CRNGs/edit#).
 Martha is an “external” service that can be deployed independently from the rest of Firecloud.
 Martha accepts two params: a “DOS” URI and a regex pattern, uses DOS URI to retrieve a data object, unpacks it, and returns the first link to match the regex pattern. 
-
+For more details look [here](https://docs.google.com/document/d/1AyyI6L43te_DFWh8dXAiX0Qx-8f3JLKUIZe6xFwKMb0/edit#)
 
 Development: 
 * Github and Google Cloud repos will be kept in sync by Google 
@@ -23,7 +23,7 @@ Development:
 * To deploy locally (for testing purposes) AFTER starting emulator
    * functions deploy martha_v<versionNumber> --trigger-http 
 * To call locally
-   * functions call martha_v<versionNumber> --data ‘{"url": "www.example.com", "pattern" : "gs://"}’
+   * functions call martha_v<versionNumber> --data ‘{"url": "dos.url.here", "pattern" : "gs://"}’
 * To read logs
    * functions logs read
 * To run tests
