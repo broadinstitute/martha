@@ -10,12 +10,7 @@ exports.martha_v1 = (req, res) => {
     var orig_url = req.body.url;
     var parsed_url = url.parse(orig_url);
     var orig_path = parsed_url.path;
-    var new_path = '/api/ga4gh/dos/v1/data/objects';
-    if(orig_path.includes(new_path)){
-        new_path = orig_path;
-    } else {
-        new_path = new_path + orig_path;
-    }
+    var new_path = '/api/ga4gh/dos/v1/data/objects' + orig_path;
     parsed_url.protocol = 'https';
     parsed_url.path = new_path;
     parsed_url.pathname = new_path;
@@ -27,7 +22,6 @@ exports.martha_v1 = (req, res) => {
                 res.status(502).send(err);
                 return;
             };
-            // console.log(response);
             try {
                 var parsedData = JSON.parse(response.text);
             } catch(e) {
