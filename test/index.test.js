@@ -69,7 +69,7 @@ test.cb(`smoketest return gs link`, t => {
         .post(`/martha_v1`)
         .set('Content-Type', 'application/json')
         //TODO: set up URL we control for this test
-        .send({"url" : "https://spbnq0bc10.execute-api.us-west-2.amazonaws.com/api/ga4gh/dos/v1/dataobjects/ed703a5d-4705-49a8-9429-5169d9225bbd", "pattern" : "gs://"})
+        .send({"url" : "dos://spbnq0bc10.execute-api.us-west-2.amazonaws.com/ed703a5d-4705-49a8-9429-5169d9225bbd", "pattern" : "gs://"})
         .expect((response) => {
             t.is(response.statusCode, 200);
             t.deepEqual(response.text, "gs://commons-dss-commons/blobs/64573c6a0c75993c16e313f819fa71b8571b86de75b7523ae8677a92172ea2ba.9976538e92c4f12aebfea277ecaef9fc5b54c732.594f5f1a316e9ccfb38d02a345c86597-293.41a4b033");
