@@ -22,7 +22,6 @@ exports.martha_v1 = (req, res) => {
                 res.status(502).send(err);
                 return;
             };
-            // console.log(response);
             try {
                 var parsedData = JSON.parse(response.text);
             } catch(e) {
