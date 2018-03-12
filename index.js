@@ -4,9 +4,14 @@
  */
 
 const superagent = require('superagent');
+const url = require('url')
 
 exports.martha_v1 = (req, res) => {
-    superagent.get(req.body.url)
+    var orig_url = req.body.url;
+    var parsed_url = url.parse(orig_url);
+    parsed_url.protocol = 'https';
+    var http_url = url.format(parsed_url);
+    superagent.get(http_url)
         .end(function(err, response) {
             if(err){
                 console.error(err);
