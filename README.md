@@ -23,7 +23,7 @@ Development:
 * To deploy locally (for testing purposes) AFTER starting emulator
    * functions deploy martha_v<versionNumber> --trigger-http 
 * To call locally
-   * functions call martha_v<versionNumber> --data ‘<payload>’
+   * functions call martha_v<versionNumber> --data ‘{"url": "www.example.com", "pattern" : "gs://"}’
 * To read logs
    * functions logs read
 * To run tests
@@ -31,8 +31,8 @@ Development:
 
 
 Deployment:
-* Deploy off master branch
-* To deploy:  `gcloud beta functions deploy <NAME> --source https://source.developers.google.com/projects/<PROJECT_ID>/repos/<REPOSITORY_ID>/moveable-aliases/master/paths/<SOURCE> <TRIGGER>`
+Any merge to dev will be deployed to the broad-dsde-staging.
+Any merge to master will be deployed to broad-dsde-production.
 
 
 Logs (for live app):
