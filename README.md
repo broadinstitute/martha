@@ -9,6 +9,11 @@ Martha is an “external” service that can be deployed independently from the 
 Martha accepts two params: a “DOS” URI and a regex pattern, uses DOS URI to retrieve a data object, unpacks it, and returns the first link to match the regex pattern. 
 For more details look [here](https://docs.google.com/document/d/1AyyI6L43te_DFWh8dXAiX0Qx-8f3JLKUIZe6xFwKMb0/edit#)
 
+Staging url:
+    https://us-central1-broad-dsde-staging.cloudfunctions.net/martha_v1  
+Production url:
+    https://us-central1-broad-dsde-prod.cloudfunctions.net/martha_v1  
+    
 Development: 
 * Github and Google Cloud repos will be kept in sync by Google 
 * IntelliJ does have a NodeJS plugin.
