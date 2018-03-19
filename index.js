@@ -12,6 +12,7 @@ exports.martha_v1 = (req, res) => {
     console.log(req.headers);
     console.log(req.method);
     console.log(res);
+    console.log(res.headers);
     var orig_url = req.body.url;
     console.log(req.body);
     console.log(req.body.url);
