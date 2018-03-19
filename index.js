@@ -11,8 +11,11 @@ exports.martha_v1 = (req, res) => {
   if (req.method === `OPTIONS`) {
     res.set("Access-Control-Allow-Origin", "*");
   }
+    console.log(req.method);
+    console.log(res);
     var orig_url = req.body.url;
     console.log(req.body);
+    console.log(req.body.url);
     var parsed_url = url.parse(orig_url);
     var orig_path = parsed_url.path;
     var new_path = '/api/ga4gh/dos/v1/dataobjects' + orig_path;
