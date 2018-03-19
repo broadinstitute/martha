@@ -11,6 +11,7 @@ exports.martha_v1 = (req, res) => {
   if (req.method === `OPTIONS`) {
     res.set("Access-Control-Allow-Origin", "*");
   }
+    console.log(req.headers);
     console.log(req.method);
     console.log(res);
     var orig_url = req.body.url;
