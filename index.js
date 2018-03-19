@@ -8,9 +8,7 @@ const url = require('url')
 
 exports.martha_v1 = (req, res) => {
   //allow browser to request this from another app
-  if (req.method === `OPTIONS`) {
     res.set("Access-Control-Allow-Origin", "*");
-  }
     console.log(req.headers);
     console.log(req.method);
     console.log(res);
