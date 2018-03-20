@@ -15,8 +15,9 @@ exports.martha_v1 = (req, res) => {
     console.log("res");
     console.log(res);
   }
-  console.log(`req body: ${req.body}`);
-  var orig_url = req.body["url"];
+  var body_string = JSON.stringify(req.body);
+  var parsed_body = JSON.parse(body_string);
+  var orig_url = parsed_body["url"];
   console.log(`orig url: ${orig_url}`);
   var parsed_url = url.parse(orig_url);
   var orig_path = parsed_url.path;
