@@ -11,7 +11,7 @@ exports.martha_v1 = (req, res) => {
   console.log("req whatever");
   console.log(req.headers);
   console.log("req body");
-  console.log(req.body);
+  console.log(req.body.url);
   if(req.headers && req.headers.hasOwnProperty('origin')) {
     res.setHeader('Access-Control-Allow-Origin', "*broadinstitute\.org")
   }
