@@ -7,7 +7,7 @@ const superagent = require('superagent');
 const url = require('url')
 
 exports.martha_v1 = (req, res) => {
-  //allow browser to request this from another app
+  //allow browser to request this from broad sites
   if(req.headers && req.headers.hasOwnProperty('origin')) {
     res.setHeader('Access-Control-Allow-Origin', "*broadinstitute\.org")
   }
