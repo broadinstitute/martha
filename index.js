@@ -8,14 +8,10 @@ const url = require('url')
 
 exports.martha_v1 = (req, res) => {
   //allow browser to request this from another app
-  console.log("req whatever");
-  console.log(req.headers);
-  console.log("req body");
-  console.log(req.body.url);
   if(req.headers && req.headers.hasOwnProperty('origin')) {
     res.setHeader('Access-Control-Allow-Origin', "*broadinstitute\.org")
   }
-  var orig_url = req.body.url;
+  var orig_url = req.body.url.toString();
   var parsed_url = url.parse(orig_url);
   var orig_path = parsed_url.path;
   var new_path = '/api/ga4gh/dos/v1/dataobjects' + orig_path;
