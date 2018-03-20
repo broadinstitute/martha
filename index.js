@@ -13,12 +13,15 @@ exports.martha_v1 = (req, res) => {
     res.setHeader('Access-Control-Allow-Methods', ["POST", "GET"]);
     console.log("set res header");
   }
+  console.log(req.body);
   var body_string = JSON.stringify(req.body);
   console.log(`body_string: ${body_string}`);
   var parsed_body = JSON.parse(body_string);
   console.log(`parsed_body: ${parsed_body}`);
   var orig_url = parsed_body['url'];
   console.log(`orig url: ${orig_url}`);
+  console.log(`req.body.url ${req.body.url}`);
+  console.log(`req.body['url']: ${req.body['url']}`);
   var parsed_url = url.parse(orig_url);
   var orig_path = parsed_url.path;
   var new_path = '/api/ga4gh/dos/v1/dataobjects' + orig_path;
