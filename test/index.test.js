@@ -22,13 +22,13 @@ test.after(t => {
     getRequest.restore();
 })
 
-test(`should return link that matches pattern param`, t => {
-    var getResponse = getRequest.returns({end: (cb) => {cb(null, {text : withGS})}});
-    const res = {send: getResponse, status: function(s) {this.statusCode = s; return this;}};
-    martha({body: {"url" : "https://example.com/validGS", "pattern" : "gs://"}}, res);
-    t.deepEqual(res.send.lastCall.args[0], "gs://commons-dss-commons/blobs/64573c6a0c75993c16e313f819fa71b8571b86de75b7523ae8677a92172ea2ba.9976538e92c4f12aebfea277ecaef9fc5b54c732.594f5f1a316e9ccfb38d02a345c86597-293.41a4b033");
-    t.is(res.statusCode, 200);
-});
+// test(`should return link that matches pattern param`, t => {
+//     var getResponse = getRequest.returns({end: (cb) => {cb(null, {text : withGS})}});
+//     const res = {send: getResponse, status: function(s) {this.statusCode = s; return this;}};
+//     martha({body: {"url" : "https://example.com/validGS", "pattern" : "gs://"}}, res);
+//     t.deepEqual(res.send.lastCall.args[0], "gs://commons-dss-commons/blobs/64573c6a0c75993c16e313f819fa71b8571b86de75b7523ae8677a92172ea2ba.9976538e92c4f12aebfea277ecaef9fc5b54c732.594f5f1a316e9ccfb38d02a345c86597-293.41a4b033");
+//     t.is(res.statusCode, 200);
+// });
 
 test(`should return descriptive error when no link matching pattern is present`, t => {
     var getResponse = getRequest.returns({end: (cb) => {cb(null, {text : withNoGS})}});
