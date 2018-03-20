@@ -12,8 +12,8 @@ exports.martha_v1 = (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', "*broadinstitute\.org")
   }
   console.log(`body: ${req.body}`);
-  console.log(`url? ${req.body.url}`);
-  var orig_url = req.body.url.toString();
+  console.log(`url? ${req.body["url"]}`);
+  var orig_url = req.body["url"];
   var parsed_url = url.parse(orig_url);
   var orig_path = parsed_url.path;
   var new_path = '/api/ga4gh/dos/v1/dataobjects' + orig_path;
