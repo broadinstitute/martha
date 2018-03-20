@@ -8,7 +8,8 @@ const url = require('url')
 
 exports.martha_v1 = (req, res) => {
   //allow browser to request this from another app
-  console.log(res.req.headers);
+  console.log("req whatever");
+  console.log(req.headers);
   var orig_url = req.body.url;
   var parsed_url = url.parse(orig_url);
   var orig_path = parsed_url.path;
