@@ -8,6 +8,7 @@ const url = require('url')
 
 exports.martha_v1 = (req, res) => {
   //allow browser to request this from another app
+  console.log(res.req.headers);
   var orig_url = req.body.url;
   var parsed_url = url.parse(orig_url);
   var orig_path = parsed_url.path;
@@ -44,7 +45,6 @@ exports.martha_v1 = (req, res) => {
             var currentUrl = urls[url]["url"];
             if (currentUrl.startsWith(pattern)) {
               var correctUrl = currentUrl;
-              console.log(res.req.headers);
               res.status(200).send(correctUrl);
             }
           }
