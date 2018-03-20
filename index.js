@@ -9,10 +9,11 @@ const url = require('url')
 exports.martha_v1 = (req, res) => {
   //allow browser to request this from broad sites
   if(req.headers && req.headers.hasOwnProperty('origin')) {
-    res.setHeader('Access-Control-Allow-Origin', "*broadinstitute\.org")
+    console.log("setting header");
+    res.setHeader('Access-Control-Allow-Origin', "*broadinstitute\.org");
+    console.log("res");
+    console.log(res);
   }
-  console.log(`body: ${req.body}`);
-  console.log(`url? ${req.body["url"]}`);
   var orig_url = req.body["url"];
   var parsed_url = url.parse(orig_url);
   var orig_path = parsed_url.path;
