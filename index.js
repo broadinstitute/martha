@@ -45,7 +45,7 @@ exports.martha_v1 = (req, res) => {
             var currentUrl = urls[url]["url"];
             if (currentUrl.startsWith(pattern)) {
               var correctUrl = currentUrl;
-              res.setHeader('Access-Control-Allow-Origin', "*");
+              console.log(res.req.headers);
               res.status(200).send(correctUrl);
             }
           }
