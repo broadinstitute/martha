@@ -10,6 +10,8 @@ exports.martha_v1 = (req, res) => {
   //allow browser to request this from another app
   console.log("req whatever");
   console.log(req.headers);
+  console.log("req body");
+  console.log(req.body);
   if(req.headers && req.headers.hasOwnProperty('origin')) {
     res.setHeader('Access-Control-Allow-Origin', "*broadinstitute\.org")
   }
