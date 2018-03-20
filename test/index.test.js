@@ -30,37 +30,37 @@ test.after(t => {
 //     t.is(res.statusCode, 200);
 // });
 
-test(`should return descriptive error when no link matching pattern is present`, t => {
-    var getResponse = getRequest.returns({end: (cb) => {cb(null, {text : withNoGS})}});
-    const res = {send: getResponse, status: function(s) {this.statusCode = s; return this;}};
-    martha({body: {"url" : "https://example.com/noGSlink", "pattern" : "gs://"}}, res);
-    t.is(res.send.lastCall.args[0], "No gs:// link found");
-    t.is(res.statusCode, 404);
-});
-
-test(`should return no data found if returned data object is empty`, t => {
-    var getResponse = getRequest.returns({end: (cb) => {cb(null, {text : noData })}});
-    const res = {send: getResponse, status: function(s) {this.statusCode = s; return this;}};
-    martha({body: {"url" : "https://example.com/noData", "pattern" : "gs://"}}, res);
-    t.is(res.send.lastCall.args[0], "No data received from https://example.com/noData");
-    t.is(res.statusCode, 400);
-});
-
-test(`should return error if data object is bad`, t => {
-    var getResponse = getRequest.returns({end: (cb) => {cb(null, {text : badData})}});
-    const res = {send: getResponse, status: function(s) {this.statusCode = s; return this;}};
-    martha({body: {"url" : "https://example.com/badData", "pattern" : "gs://"}}, res);
-    t.is(res.send.lastCall.args[0], "Data returned not in correct format");
-    t.is(res.statusCode, 400);
-});
-
-test(`should return error if no pattern param given`, t => {
-    var getResponse = getRequest.returns({end: (cb) => {cb(null, {text : withGS})}});
-    var res = {send: getResponse, status: function(s){this.statusCode = s; return this;}};
-    martha({body: {"url" : "https://example.com/noData"}}, res);
-    t.is(res.send.lastCall.args[0], "No pattern param specified");
-    t.is(res.statusCode, 400);
-});
+// test(`should return descriptive error when no link matching pattern is present`, t => {
+//     var getResponse = getRequest.returns({end: (cb) => {cb(null, {text : withNoGS})}});
+//     const res = {send: getResponse, status: function(s) {this.statusCode = s; return this;}};
+//     martha({body: {"url" : "https://example.com/noGSlink", "pattern" : "gs://"}}, res);
+//     t.is(res.send.lastCall.args[0], "No gs:// link found");
+//     t.is(res.statusCode, 404);
+// });
+//
+// test(`should return no data found if returned data object is empty`, t => {
+//     var getResponse = getRequest.returns({end: (cb) => {cb(null, {text : noData })}});
+//     const res = {send: getResponse, status: function(s) {this.statusCode = s; return this;}};
+//     martha({body: {"url" : "https://example.com/noData", "pattern" : "gs://"}}, res);
+//     t.is(res.send.lastCall.args[0], "No data received from https://example.com/noData");
+//     t.is(res.statusCode, 400);
+// });
+//
+// test(`should return error if data object is bad`, t => {
+//     var getResponse = getRequest.returns({end: (cb) => {cb(null, {text : badData})}});
+//     const res = {send: getResponse, status: function(s) {this.statusCode = s; return this;}};
+//     martha({body: {"url" : "https://example.com/badData", "pattern" : "gs://"}}, res);
+//     t.is(res.send.lastCall.args[0], "Data returned not in correct format");
+//     t.is(res.statusCode, 400);
+// });
+//
+// test(`should return error if no pattern param given`, t => {
+//     var getResponse = getRequest.returns({end: (cb) => {cb(null, {text : withGS})}});
+//     var res = {send: getResponse, status: function(s){this.statusCode = s; return this;}};
+//     martha({body: {"url" : "https://example.com/noData"}}, res);
+//     t.is(res.send.lastCall.args[0], "No pattern param specified");
+//     t.is(res.statusCode, 400);
+// });
 
 //smoketests
 test.cb(`smoketest return gs link`, t => {
