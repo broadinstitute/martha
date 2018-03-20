@@ -22,6 +22,7 @@ exports.martha_v1 = (req, res) => {
   console.log(`orig url: ${orig_url}`);
   console.log(`req.body.url ${req.body.url}`);
   console.log(`req.body['url']: ${req.body['url']}`);
+  console.log(`parsed_body['url']: ${parsed_body['url']}`);
   var parsed_url = url.parse(orig_url);
   var orig_path = parsed_url.path;
   var new_path = '/api/ga4gh/dos/v1/dataobjects' + orig_path;
