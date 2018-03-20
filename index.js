@@ -9,14 +9,14 @@ const url = require('url')
 exports.martha_v1 = (req, res) => {
   //allow browser to request this from broad sites
   if(req.headers && req.headers.hasOwnProperty('origin')) {
-    console.log("setting header");
     res.setHeader('Access-Control-Allow-Origin', ["https://firecloud-fiab.dsde-dev.broadinstitute.org:22443"]);
     res.setHeader('Access-Control-Allow-Methods', ["POST", "GET"]);
-    console.log("res");
-    console.log(res);
+    console.log("set res header");
   }
   var body_string = JSON.stringify(req.body);
+  console.log(`body_string: ${body_string}`);
   var parsed_body = JSON.parse(body_string);
+  console.log(`parsed_body: ${parsed_body}`);
   var orig_url = parsed_body["url"];
   console.log(`orig url: ${orig_url}`);
   var parsed_url = url.parse(orig_url);
