@@ -43,7 +43,6 @@ exports.martha_v1 = (req, res) => {
                 res.status(400).send(`No data received from ${req.body.url}`);
             } else {
                 var urls = allData["urls"];
-                var pattern = (req.body.pattern);
                 if (!pattern) {
                     res.status(400).send(`No pattern param specified`);
                     return;
