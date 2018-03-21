@@ -16,7 +16,7 @@ exports.martha_v1 = (req, res) => {
   }
   //allow browser to request this from broad sites
   if(req.headers && req.headers.hasOwnProperty('origin')) {
-    res.setHeader('Access-Control-Allow-Origin', ["https://firecloud-fiab.dsde-dev.broadinstitute.org:22443"]);
+    res.setHeader('Access-Control-Allow-Origin', ["https://firecloud-fiab.dsde-dev.broadinstitute.org:22443", "http://local.broadinstitute.org"]);
     res.setHeader('Access-Control-Allow-Methods', ["POST", "GET"]);
     console.log("set res header");
   }
