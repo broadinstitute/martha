@@ -8,6 +8,7 @@ const superagent = require('superagent');
 const url = require('url');
 
 exports.martha_v1 = (req, res) => {
+  console.log(req.body);
   console.log(Type(req.body.url));
   console.log(req.body.url);
   var orig_url = req.body.url;
