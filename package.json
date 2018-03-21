@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "test": "ava -m !smoketest*",
-    "smoketest" : "ava -m smoketest*"
+    "smoketest": "ava -m smoketest*"
   },
   "dependencies": {
     "ava": "^0.25.0",
@@ -15,7 +15,8 @@
     "npm-shrinkwrap": "^6.1.0",
     "sinon": "^4.4.2",
     "superagent": "latest",
-    "supertest": "^3.0.0"
+    "supertest": "^3.0.0",
+    "type-of-is": "^3.5.1"
   },
   "devDependencies": {
     "superagent-mock": "^3.7.0"

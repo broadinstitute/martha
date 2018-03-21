@@ -2,17 +2,15 @@
  * Google Cloud Function for GUID resolution
  * written by Ursa S 02/18
  */
+var Type = require('type-of-is');
 
 const superagent = require('superagent');
-const url = require('url')
+const url = require('url');
 
 exports.martha_v1 = (req, res) => {
-  console.log(req.body);
-  var body_string = JSON.stringify(req.body);
-  console.log(body_string);
-  var parsed_body = JSON.parse(body_string);
-  console.log(parsed_body);
-  var orig_url = parsed_body['url'];
+  console.log(Type(req.body.url));
+  console.log(req.body.url);
+  var orig_url = req.body.url;
   console.log(orig_url);
   //allow browser to request this from broad sites
   if(req.headers && req.headers.hasOwnProperty('origin')) {
