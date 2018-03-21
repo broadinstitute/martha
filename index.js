@@ -8,7 +8,10 @@ const superagent = require('superagent');
 const url = require('url');
 
 exports.martha_v1 = (req, res) => {
-  var orig_url = JSON.parse(req.body.toString()).url;
+  var orig_url = req.body.url;
+  if(!orig_url){
+    orig_url = JSON.parse(req.body.toString()).url;
+  }
   //allow browser to request this from broad sites
   if(req.headers && req.headers.hasOwnProperty('origin')) {
     res.setHeader('Access-Control-Allow-Origin', ["https://firecloud-fiab.dsde-dev.broadinstitute.org:22443"]);
