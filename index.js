@@ -9,7 +9,9 @@ const url = require('url');
 
 exports.martha_v1 = (req, res) => {
   var orig_url = req.body.url;
+  var pattern = req.body.pattern;
   if(!orig_url){
+    pattern = JSON.parse(req.body.toString()).pattern;
     orig_url = JSON.parse(req.body.toString()).url;
   }
   //allow browser to request this from broad sites
@@ -35,16 +37,16 @@ exports.martha_v1 = (req, res) => {
         try {
           var parsedData = JSON.parse(response.text);
         } catch(e) {
-          // console.error(e);
+          console.error(e);
           res.status(400).send(`Data returned not in correct format`);
           return;
         };
         var allData = parsedData["data_object"];
         if (!allData) {
+          console.error(`No data received`);
           res.status(400).send(`No data received from ${req.body.url}`);
         } else {
           var urls = allData["urls"];
-          var pattern = (req.body.pattern);
           if (!pattern) {
             res.status(400).send(`No pattern param specified`);
             return;
