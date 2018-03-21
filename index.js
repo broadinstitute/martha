@@ -7,15 +7,19 @@ const superagent = require('superagent');
 const url = require('url')
 
 exports.martha_v1 = (req, res) => {
+  console.log(req.body);
+  var body_string = JSON.stringify(req.body);
+  console.log(body_string);
+  var parsed_body = JSON.parse(body_string);
+  console.log(parsed_body);
+  var orig_url = parsed_body['url'];
+  console.log(orig_url);
   //allow browser to request this from broad sites
   if(req.headers && req.headers.hasOwnProperty('origin')) {
     res.setHeader('Access-Control-Allow-Origin', ["https://firecloud-fiab.dsde-dev.broadinstitute.org:22443"]);
     res.setHeader('Access-Control-Allow-Methods', ["POST", "GET"]);
     console.log("set res header");
   }
-  var body_string = JSON.stringify(req.body);
-  var parsed_body = JSON.parse(body_string);
-  var orig_url = parsed_body['url'];
   var parsed_url = url.parse(orig_url);
   var orig_path = parsed_url.path;
   var new_path = '/api/ga4gh/dos/v1/dataobjects' + orig_path;
