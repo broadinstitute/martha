@@ -15,7 +15,7 @@ exports.martha_v1 = (req, res) => {
     }
     if(req.headers && req.headers.hasOwnProperty('origin')) {
       res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methos', ["POST", "GET"]);
+      res.setHeader('Access-Control-Allow-Methods', ["POST", "GET"]);
     }
     var parsed_url = url.parse(orig_url);
     var orig_path = parsed_url.path;
