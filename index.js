@@ -8,6 +8,15 @@ const url = require('url')
 
 exports.martha_v1 = (req, res) => {
     var orig_url = req.body.url;
+    var pattern = req.body.pattern;
+    if(!orig_url) {
+      orig_url = JSON.parse(req.body.toString()).url;
+      pattern = JSON.parse(req.body.toString()).pattern;
+    }
+    if(req.headers && req.headers.hasOwnProperty('origin')) {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', ["POST", "GET"]);
+    }
     var parsed_url = url.parse(orig_url);
     var orig_path = parsed_url.path;
     var new_path = '/api/ga4gh/dos/v1/dataobjects' + orig_path;
@@ -34,7 +43,6 @@ exports.martha_v1 = (req, res) => {
                 res.status(400).send(`No data received from ${req.body.url}`);
             } else {
                 var urls = allData["urls"];
-                var pattern = (req.body.pattern);
                 if (!pattern) {
                     res.status(400).send(`No pattern param specified`);
                     return;
