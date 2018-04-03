@@ -68,7 +68,6 @@ test.cb(`smoketest return gs link`, t => {
     supertest
         .post(`/martha_v1`)
         .set('Content-Type', 'application/json')
-        //TODO: set up URL we control for this test
         .send({"url" : "dos://broad-dsp-dos.storage.googleapis.com/dos.json", "pattern" : "gs://"})
         .expect((response) => {
             t.is(response.statusCode, 200);
