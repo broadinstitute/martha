@@ -19,14 +19,10 @@ exports.martha_v1 = (req, res) => {
     }
     var parsed_url = url.parse(orig_url);
     var orig_path = parsed_url.pathname;
-    console.log(orig_path);
     var new_path = '/ga4gh/dos/v1/dataobjects' + orig_path;
-    console.log(new_path);
     parsed_url.protocol = 'https';
     parsed_url.path = new_path;
     parsed_url.pathname = new_path;
-    console.log(parsed_url);
-    console.log(parsed_url.toString);
     var http_url = url.format(parsed_url);
 
     console.log(http_url);

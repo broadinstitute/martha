@@ -69,7 +69,7 @@ test.cb(`smoketest return gs link`, t => {
         .post(`/martha_v1`)
         .set('Content-Type', 'application/json')
         //TODO: set up URL we control for this test
-        .send({"url" : "dos://dos-dss.ucsc-cgp-dev.org/60936d97-6358-4ce3-8136-d5776186ee21?version=2018-03-23T123738.145535Z", "pattern" : "gs://"})
+        .send({"url" : "dos://broad-dsp-dos.storage.googleapis.com/dos.json", "pattern" : "gs://"})
         .expect((response) => {
             t.is(response.statusCode, 200);
             t.deepEqual(response.text, "gs://broad-public-datasets/NA12878_downsampled_for_testing/unmapped/H06JUADXX130110.1.ATCACGAT.20k_reads.bam");
