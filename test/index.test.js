@@ -69,10 +69,10 @@ test.cb(`smoketest return gs link`, t => {
         .post(`/martha_v1`)
         .set('Content-Type', 'application/json')
         //TODO: set up URL we control for this test
-        .send({"url" : "dos://spbnq0bc10.execute-api.us-west-2.amazonaws.com/ed703a5d-4705-49a8-9429-5169d9225bbd", "pattern" : "gs://"})
+        .send({"url" : "dos://dos-dss.ucsc-cgp-dev.org/60936d97-6358-4ce3-8136-d5776186ee21?version=2018-03-23T123738.145535Z", "pattern" : "gs://"})
         .expect((response) => {
             t.is(response.statusCode, 200);
-            t.deepEqual(response.text, "gs://commons-dss-commons/blobs/64573c6a0c75993c16e313f819fa71b8571b86de75b7523ae8677a92172ea2ba.9976538e92c4f12aebfea277ecaef9fc5b54c732.594f5f1a316e9ccfb38d02a345c86597-293.41a4b033");
+            t.deepEqual(response.text, "gs://broad-public-datasets/NA12878_downsampled_for_testing/unmapped/H06JUADXX130110.1.ATCACGAT.20k_reads.bam");
         })
         .end(t.end);
 });
