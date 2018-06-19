@@ -5,17 +5,15 @@
 
 const superagent = require('superagent');
 const url = require('url')
+const cors = require("cors");
+const corsMiddleware = cors();
 
-exports.martha_v1 = (req, res) => {
+const handler = (req, res) => {
     var orig_url = req.body.url;
     var pattern = req.body.pattern;
     if(!orig_url) {
       orig_url = JSON.parse(req.body.toString()).url;
       pattern = JSON.parse(req.body.toString()).pattern;
-    }
-    if(req.headers && req.headers.hasOwnProperty('origin')) {
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', ["POST", "GET"]);
     }
     var parsed_url = url.parse(orig_url);
     var orig_path = parsed_url.pathname;
@@ -67,4 +65,8 @@ exports.martha_v1 = (req, res) => {
             }
             ;
         });
+};
+
+exports.martha_v1 = (req, res) => {
+  corsMiddleware(req, res, () => handler(req, res));
 };

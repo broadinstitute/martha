@@ -5,12 +5,13 @@
   "private": true,
   "scripts": {
     "test": "ava -m !smoketest*",
-    "smoketest" : "ava -m smoketest*"
+    "smoketest": "ava -m smoketest*"
   },
   "dependencies": {
     "ava": "^0.25.0",
     "axios": "~0.18.0",
     "firebase-functions": "^0.8.1",
+    "cors": "^2.8.4",
     "nock": "^9.2.3",
     "npm-shrinkwrap": "^6.1.0",
     "sinon": "^4.4.2",
