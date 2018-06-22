@@ -8,6 +8,26 @@ const url = require('url')
 const cors = require("cors");
 const corsMiddleware = cors();
 
+function dosToHttps(dosUri) {
+    var parsed_url = url.parse(dosUri);
+    var orig_path = parsed_url.pathname;
+    var new_path = '/ga4gh/dos/v1/dataobjects' + orig_path;
+
+    // special case for hostless dos uris which will be better supported in martha v2
+    if (parsed_url.host.startsWith("dg.")) {
+        new_path = '/ga4gh/dos/v1/dataobjects/' + parsed_url.hostname + orig_path;
+        parsed_url.host = "dcp.bionimbus.org";
+    }
+
+    console.log(new_path);
+    parsed_url.protocol = 'https';
+    parsed_url.path = new_path;
+    parsed_url.pathname = new_path;
+    console.log(parsed_url);
+    console.log(parsed_url.toString);
+    return url.format(parsed_url);
+}
+
 const handler = (req, res) => {
     var orig_url = req.body.url;
     var pattern = req.body.pattern;
@@ -15,16 +35,8 @@ const handler = (req, res) => {
       orig_url = JSON.parse(req.body.toString()).url;
       pattern = JSON.parse(req.body.toString()).pattern;
     }
-    var parsed_url = url.parse(orig_url);
-    var orig_path = parsed_url.pathname;
-    var new_path = '/ga4gh/dos/v1/dataobjects' + orig_path;
-    console.log(new_path);
-    parsed_url.protocol = 'https';
-    parsed_url.path = new_path;
-    parsed_url.pathname = new_path;
-    console.log(parsed_url);
-    console.log(parsed_url.toString);
-    var http_url = url.format(parsed_url);
+
+    var http_url = dosToHttps(orig_url)
 
     console.log(http_url);
     superagent.get(http_url)
@@ -70,3 +82,5 @@ const handler = (req, res) => {
 exports.martha_v1 = (req, res) => {
   corsMiddleware(req, res, () => handler(req, res));
 };
+
+exports.dosToHttps = dosToHttps
