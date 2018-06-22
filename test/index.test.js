@@ -1,6 +1,7 @@
 const test = require(`ava`);
 const sinon = require(`sinon`);
 const martha = require('..').martha_v1;
+const dosToHttps = require('..').dosToHttps
 const superagent = require('superagent');
 const Supertest = require(`supertest`);
 const supertest = Supertest(process.env.BASE_URL);
@@ -77,6 +78,14 @@ test(`should return error if no pattern param given`, t => {
     martha(mockRequest({body: {"url" : "https://example.com/noData"}}), res);
     t.is(res.send.lastCall.args[0], "No pattern param specified");
     t.is(res.statusCode, 400);
+});
+
+test(`should parse dos uri`, t => {
+    t.is(dosToHttps("dos://foo/bar"), "https://foo/ga4gh/dos/v1/dataobjects/bar");
+});
+
+test(`should parse dg dos uri`, t => {
+    t.is(dosToHttps("dos://dg.2345/bar"), "https://dcp.bionimbus.org/ga4gh/dos/v1/dataobjects/dg.2345/bar");
 });
 
 //smoketests
