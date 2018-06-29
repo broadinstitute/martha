@@ -19,8 +19,13 @@ Production url:
 * IntelliJ does have a NodeJS plugin.
 
 ## Setup
-* Install [Node v6.14.0](https://nodejs.org/en/blog/release/v6.14.0).  Google Cloud Functions (GCF) follow Node LTS 
-releases as described [here](https://cloud.google.com/functions/docs/writing/#the_cloud_functions_runtime). 
+* Install [Node v6.14.0](https://nodejs.org/en/blog/release/v6.14.0)
+   * Google Cloud Functions (GCF) follow Node LTS releases as described 
+   [here](https://cloud.google.com/functions/docs/writing/#the_cloud_functions_runtime) and v6.14.0 is the currently 
+   supported version.
+   * **MacOS** - Some issues were reported when installing Node directly from the Node website.  Therefore, it is 
+   recommended that you install Node using [Homebrew](https://brew.sh/), or a version manager like 
+   [nodenv](https://github.com/nodenv/nodenv) or [nvm](https://github.com/creationix/nvm)
 * Install GCF emulator with: `npm install -g @google-cloud/functions-emulator` (Note: you may need to run this command 
 with `sudo`)
 * `cd` to the Martha root directory 
