@@ -15,7 +15,7 @@
     "nock": "^9.3.3",
     "npm-shrinkwrap": "^6.1.0",
     "sinon": "^4.5.0",
-    "superagent": "latest",
+    "superagent": "^3.8.3",
     "supertest": "^3.1.0"
   },
   "devDependencies": {

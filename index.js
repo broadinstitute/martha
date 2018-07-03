@@ -30,9 +30,14 @@ function dosToHttps(dosUri) {
 }
 
 const martha_v1_handler = (req, res) => {
+    var orig_url = req.body.url;
     var pattern = req.body.pattern;
-    var dos_url = extract_dos_url_from_request(req)
-    var http_url = dosToHttps(dos_url)
+    if(!orig_url) {
+      orig_url = JSON.parse(req.body.toString()).url;
+      pattern = JSON.parse(req.body.toString()).pattern;
+    }
+
+    var http_url = dosToHttps(orig_url)
 
     console.log(http_url);
     superagent.get(http_url)
@@ -75,42 +80,13 @@ const martha_v1_handler = (req, res) => {
         });
 };
 
-function extract_dos_url_from_request(req) {
+const martha_v2_handler = (req, res) => {
     var orig_url = req.body.url;
-    if (!orig_url) {
+    if(!orig_url) {
         orig_url = JSON.parse(req.body.toString()).url;
     }
-    return orig_url;
-}
 
-function do_bond_stuff(req, err, res, parsedData) {
-    return "I_AM_CREDENTIALS"
-    // TODO: Make this work with Bond
-    superagent
-        .get(`${config.bondBaseUrl}/link/v1/fence/serviceaccount/key`)
-        .set('authorization', req.get("authorization"))
-        .end(function (bondErr, bondResponse) {
-            if (bondErr) {
-                console.error(err);
-                res.status(502).send(err);
-                return;
-            }
-            ;
-            try {
-                var parsedServiceAccountKey = JSON.parse(bondResponse.text);
-            } catch (e) {
-                res.status(500).send(`Service account key not in correct format`);
-                return;
-            }
-            ;
-            res.status(200).send({'dos': parsedData, 'credentials': parsedServiceAccountKey})
-        });
-}
-
-const martha_v2_handler = (req, res) => {
-    var pattern = req.body.pattern;
-    var dos_url = extract_dos_url_from_request(req);
-    var http_url = dosToHttps(dos_url)
+    var http_url = dosToHttps(orig_url);
 
     console.log(http_url);
     superagent.get(http_url)
@@ -119,37 +95,30 @@ const martha_v2_handler = (req, res) => {
                 console.error(err);
                 res.status(502).send(err);
                 return;
-            };
+            }
             try {
                 var parsedData = JSON.parse(response.text);
             } catch(e) {
                 res.status(400).send(`Data returned not in correct format`);
                 return;
-            };
-            var allData = parsedData["data_object"];
-            if (!allData) {
-                res.status(400).send(`No data received from ${req.body.url}`);
-            } else {
-                var urls = allData["urls"];
-                if (!pattern) {
-                    res.status(400).send(`No pattern param specified`);
-                    return;
-                }
-                for (var url in urls) {
-                    var currentUrl = urls[url]["url"];
-                    if (currentUrl.startsWith(pattern)) {
-                        var correctUrl = currentUrl;
-                        var creds = do_bond_stuff(req, err, res, parsedData);
-                        res.status(200).send({dos: correctUrl, credentials: creds});
-                    }
-                }
-                //gone through all urls, no match found
-                if (!correctUrl) {
-                    res.status(404).send(`No ${pattern} link found`);
-                }
-                ;
             }
-
+            superagent
+                .get(`${config.bondBaseUrl}/api/link/v1/fence/serviceaccount/key`)
+                .set('authorization', req.get("authorization"))
+                .end(function(bondErr, bondResponse) {
+                    if(bondErr) {
+                        console.error(err);
+                        res.status(502).send(err);
+                        return;
+                    }
+                    try {
+                        var parsedServiceAccountKey = JSON.parse(bondResponse.text);
+                    } catch(e) {
+                        res.status(500).send(`Service account key not in correct format`);
+                        return;
+                    }
+                    res.status(200).send({'dos': parsedData, 'credentials': parsedServiceAccountKey["data"]});
+                });
         });
 };
 

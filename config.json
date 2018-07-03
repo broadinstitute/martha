@@ -1,4 +1,4 @@
 {
   "dosResolutionHost": "dcp.bionimbus.org",
-  "bondBaseUrl": ""
+  "bondBaseUrl": "localhost:8080"
 }
