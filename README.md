@@ -23,12 +23,11 @@ Production url:
    * Google Cloud Functions (GCF) follow Node LTS releases as described 
    [here](https://cloud.google.com/functions/docs/writing/#the_cloud_functions_runtime) and v6.14.0 is the currently 
    supported version.
-   * **MacOS** - Some issues were reported when installing Node directly from the Node website.  Therefore, it is 
-   recommended that you install Node using [Homebrew](https://brew.sh/), or a version manager like 
+   * **MacOS** - It is recommended that you install Node using [Homebrew](https://brew.sh/), or a version manager like 
    [nodenv](https://github.com/nodenv/nodenv) or [nvm](https://github.com/creationix/nvm)
-* Install GCF emulator with: `npm install -g @google-cloud/functions-emulator` (Note: you may need to run this command 
-with `sudo`)
+* Clone the Martha git repository
 * `cd` to the Martha root directory 
+* Install GCF emulator with: `npm install -g @google-cloud/functions-emulator`
 * Install dependencies: `npm install`
 * Start the GCF emulator: `functions start`
 * Deploy Martha to your local GCF emulator: `functions deploy martha_v<versionNumber> --trigger-http`
@@ -46,12 +45,12 @@ with `sudo`)
 
 `npm test`
 
-#Deployment
-Any merge to dev will be deployed to the broad-dsde-staging.
-Any merge to master will be deployed to broad-dsde-production.
+## Deployment
+* Any merge to dev will be deployed to the broad-dsde-staging.
+* Any merge to master will be deployed to broad-dsde-production.
 
 
-Logs (for live app):
+## Logs (for live app)
 * Can be viewed on Google Cloud Platform
    * Go to console.cloud.google.com
    * Select Cloud Functions from the main (on the left side) menu
