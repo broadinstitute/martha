@@ -1,4 +1,4 @@
 {
   "dosResolutionHost": "dcp.bionimbus.org",
-  "bondBaseUrl": "localhost:8080"
+  "bondBaseUrl":  "broad-bond-dev.appspot.com"
 }
