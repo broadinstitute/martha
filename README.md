@@ -4,15 +4,30 @@
 ![alt text](https://raw.githubusercontent.com/broadinstitute/martha/dev/images/doctor_martha_jones_and_the_tardis.jpg)
 
 A Google Cloud Function.
-For a more general overview of Google Cloud Functions as DSP uses them please look [here](https://docs.google.com/document/d/1VZIFVdu77fNs0MVKLY8QNqiVWza71ED0Bf1Fj8CRNGs/edit#).
-Martha is an “external” service that can be deployed independently from the rest of Firecloud.
-Martha accepts two params: a “DOS” URI and a regex pattern, uses DOS URI to retrieve a data object, unpacks it, and returns the first link to match the regex pattern. 
-For more details look [here](https://docs.google.com/document/d/1AyyI6L43te_DFWh8dXAiX0Qx-8f3JLKUIZe6xFwKMb0/edit#)
+For a more general overview of Google Cloud Functions as DSP uses them please look 
+[here](https://docs.google.com/document/d/1VZIFVdu77fNs0MVKLY8QNqiVWza71ED0Bf1Fj8CRNGs/edit#).  Martha is an "external" 
+service that can be deployed independently from the rest of Firecloud.  
 
-Staging url:
-    https://us-central1-broad-dsde-staging.cloudfunctions.net/martha_v1  
-Production url:
-    https://us-central1-broad-dsde-prod.cloudfunctions.net/martha_v1  
+# Martha v1
+To call `martha_v1`, perform an HTTP `POST` to the appropriate URL.  The body of the request must be a JSON Object with 
+two values: a [DOS](https://data-object-service.readthedocs.io/en/latest/) URL and a regex pattern.  Martha uses the DOS
+URL to retrieve a data object, unpacks it, and returns the first link that matches the specified regex pattern.  For 
+more details look [here](https://docs.google.com/document/d/1AyyI6L43te_DFWh8dXAiX0Qx-8f3JLKUIZe6xFwKMb0/edit#).
+
+Staging: https://us-central1-broad-dsde-staging.cloudfunctions.net/martha_v1  
+Production: https://us-central1-broad-dsde-prod.cloudfunctions.net/martha_v1  
+
+# Martha v2
+To call `martha_v2`, perform an HTTP `POST` to the appropriate URL.  The body of the request must be a JSON Object with 
+one value: a [DOS](https://data-object-service.readthedocs.io/en/latest/) URL.  You must also specify an `Authorization` 
+header on the request with a valid OAuth bearer token.  Martha uses the DOS URL to retrieve a data object, unpacks it, 
+and returns a JSON Object containing two values: the list of URIs where the underlying resource may be accessed, and the
+private key information for the 
+[Google Service Account](https://cloud.google.com/iam/docs/understanding-service-accounts) that you may use to access
+the underlying resource. 
+
+Staging: https://us-central1-broad-dsde-staging.cloudfunctions.net/martha_v2  
+Production: https://us-central1-broad-dsde-prod.cloudfunctions.net/martha_v2  
 
 # Development: 
 * Github and Google Cloud repos will be kept in sync by Google 
@@ -52,7 +67,7 @@ Production url:
 
 ## Logs (for live app)
 * Can be viewed on Google Cloud Platform
-   * Go to console.cloud.google.com
+   * Go to [console.cloud.google.com](https://console.cloud.google.com/)
    * Select Cloud Functions from the main (on the left side) menu
    * Find the version of the function you want to check
-   * Click the vertical three dots and choose “view logs”
+   * Click the vertical three dots and choose "view logs"
