@@ -1,4 +1,4 @@
 {
-  "dosResolutionHost": {{if eq (env "ENVIRONMENT") "prod"}} "dcp.bionimbus.org" {{else}} "staging.dcp.bionimbus.org" {{end}},
-  "bondBaseUrl": {{if eq (env "ENVIRONMENT") "prod"}} "broad-bond-prod.appspot.com" {{else}} "broad-bond-staging.appspot.com" {{end}}
+    "dosResolutionHost": {{if eq (env "ENVIRONMENT") "prod"}} "dcp.bionimbus.org" {{else}} "dcp.bionimbus.org" {{end}},
+    "bondBaseUrl": {{if eq (env "ENVIRONMENT") "prod"}} "broad-bond-prod.appspot.com" {{else}} "broad-bond-staging.appspot.com" {{end}}
 }
