@@ -7,19 +7,24 @@ GIT_BRANCH=$2
 
 if [ "$GIT_BRANCH" == "dev" ]; then
     ENVIRONMENT="staging"
+    PROJECT_NAME="broad-dsde-staging"
 elif [ "$GIT_BRANCH" == "master" ]; then
     ENVIRONMENT="prod"
+    PROJECT_NAME="broad-dsde-prod"
 else
     echo "Git branch '$GIT_BRANCH' is not configured to automatically deploy to a target environment"
     exit 1
 fi
 
-# pull the credentials for the service account
-# Commented out for now as there is not any data we need out of vault
-# docker run --rm -e VAULT_TOKEN=$VAULT_TOKEN broadinstitute/dsde-toolbox vault read --format=json "secret/dsde/martha/$ENVIRONMENT/deploy-account.json" | jq .data > deploy_account.json
+SERVICE_ACCT_KEY_FILE="deploy_account.json"
+# Get the tier specific credentials for the service account out of Vault
+# Put key into SERVICE_ACCT_KEY_FILE
+# TODO: Need to populate Vault with correct/valid keys
+docker run --rm -e VAULT_TOKEN=${VAULT_TOKEN} broadinstitute/dsde-toolbox vault read --format=json "secret/dsde/martha/${ENVIRONMENT}/deploy-account.json" | jq .data > ${SERVICE_ACCT_KEY_FILE}
+
 
 MARTHA_PATH=/martha
-# Process all consul .ctmpl files
+# Process all Consul .ctmpl files
 # Vault token is required by the docker image regardless of whether you having any data in Vault or not
 docker run -v $PWD:${MARTHA_PATH} \
   -e INPUT_PATH=${MARTHA_PATH} \
@@ -27,3 +32,12 @@ docker run -v $PWD:${MARTHA_PATH} \
   -e ENVIRONMENT=${ENVIRONMENT} \
   -e VAULT_TOKEN=${VAULT_TOKEN} \
   broadinstitute/dsde-toolbox render-templates.sh
+
+# Build the Docker image that we can use to deploy Martha
+docker build -f docker/Dockerfile -t broadinstitute/martha:deploy .
+
+docker run -v $PWD:${MARTHA_PATH} \
+    broadinstitute/martha:deploy /bin/bash -c \
+    "gcloud config set project ${PROJECT_NAME};
+     cat ${MARTHA_PATH}/${SERVICE_ACCT_KEY_FILE};"
+#     gcloud auth activate-service-account --key-file ${MARTHA_PATH}/${SERVICE_ACCT_KEY_FILE};"

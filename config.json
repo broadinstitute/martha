@@ -1,4 +1,4 @@
 {
-  "dosResolutionHost": "dcp.bionimbus.org",
-  "bondBaseUrl":  "broad-bond-dev.appspot.com"
+  "dosResolutionHost":  "staging.dcp.bionimbus.org" ,
+  "bondBaseUrl":  "broad-bond-staging.appspot.com" 
 }
