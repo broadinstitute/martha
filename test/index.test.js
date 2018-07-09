@@ -108,7 +108,7 @@ test.cb(`smoketest return error if url passed is not good`, t => {
         .set('Content-Type', 'application/json')
         .send({"url" : "somethingNotValidURL"})
         .expect(response => {
-            t.is(response.statusCode, 502);
+            t.is(response.statusCode, 500);
         })
         .end(t.end);
 

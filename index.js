@@ -107,8 +107,8 @@ const martha_v2_handler = (req, res) => {
                 .set('authorization', req.get("authorization"))
                 .end(function(bondErr, bondResponse) {
                     if(bondErr) {
-                        console.error(err);
-                        res.status(502).send(err);
+                        console.error(bondErr);
+                        res.status(502).send(bondErr);
                         return;
                     }
                     try {
