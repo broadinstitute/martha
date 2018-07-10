@@ -6,22 +6,24 @@ VAULT_TOKEN=$1
 GIT_BRANCH=$2
 
 if [ "$GIT_BRANCH" == "dev" ]; then
+    ENVIRONMENT="dev"
+elif [ "$GIT_BRANCH" == "alpha" ]; then
+    ENVIRONMENT="alpha"
+elif [ "$GIT_BRANCH" == "staging" ]; then
     ENVIRONMENT="staging"
-    PROJECT_NAME="broad-dsde-staging"
 elif [ "$GIT_BRANCH" == "master" ]; then
     ENVIRONMENT="prod"
-    PROJECT_NAME="broad-dsde-prod"
 else
     echo "Git branch '$GIT_BRANCH' is not configured to automatically deploy to a target environment"
     exit 1
 fi
 
+PROJECT_NAME="broad-dsde-${ENVIRONMENT}"
+
 SERVICE_ACCT_KEY_FILE="deploy_account.json"
 # Get the tier specific credentials for the service account out of Vault
 # Put key into SERVICE_ACCT_KEY_FILE
-# TODO: Need to populate Vault with correct/valid keys
 docker run --rm -e VAULT_TOKEN=${VAULT_TOKEN} broadinstitute/dsde-toolbox vault read --format=json "secret/dsde/martha/${ENVIRONMENT}/deploy-account.json" | jq .data > ${SERVICE_ACCT_KEY_FILE}
-
 
 MARTHA_PATH=/martha
 # Process all Consul .ctmpl files
@@ -42,6 +44,10 @@ docker run --rm -v $PWD:${MARTHA_PATH} \
     "gcloud config set project ${PROJECT_NAME};
      gcloud auth activate-service-account --key-file ${MARTHA_PATH}/${SERVICE_ACCT_KEY_FILE};
      cd ${MARTHA_PATH};
-     gcloud beta functions deploy martha_v2 --trigger-http;
-     npm install;
-     npm run-script smoketest;"
+     echo 'The End! (but only temporarily while testing)';"
+
+# TODO: Don't forget to uncomment the following lines, they're off for now for testing
+#     gcloud beta functions deploy martha_v1 --trigger-http;
+#     gcloud beta functions deploy martha_v2 --trigger-http;
+#     npm install;
+#     npm run-script smoketest;"

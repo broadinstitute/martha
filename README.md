@@ -61,8 +61,11 @@ Production: https://us-central1-broad-dsde-prod.cloudfunctions.net/martha_v2
 `npm test`
 
 ## Deployment
-* Any merge to dev will be deployed to the broad-dsde-staging.
-* Any merge to master will be deployed to broad-dsde-production.
+Deployments occur automatically whenever code is merged into specifically named branches in git:
+* Any merge to `dev`, `staging`, or `alpha` branches will be deployed to the corresponding `broad-dsde-[env]` project.
+* Any merge to `master` will be deployed to `broad-dsde-production`.
+
+**NOTE:** Each deployment will redeploy all supported versions of `martha_v#` functions.
 
 
 ## Logs (for live app)
