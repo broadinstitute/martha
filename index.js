@@ -117,7 +117,7 @@ const martha_v2_handler = (req, res) => {
                         res.status(500).send(`Service account key not in correct format`);
                         return;
                     }
-                    res.status(200).send({'dos': parsedData, 'credentials': parsedServiceAccountKey["data"]});
+                    res.status(200).send({'dos': parsedData, 'googleServiceAccount': parsedServiceAccountKey["data"]});
                 });
         });
 };
