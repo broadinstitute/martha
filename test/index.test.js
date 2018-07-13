@@ -1,7 +1,7 @@
 const test = require(`ava`);
 const sinon = require(`sinon`);
 const martha = require('..').martha_v1;
-const dosToHttps = require('..').dosToHttps
+const dosToHttps = require('..').dosToHttps;
 const superagent = require('superagent');
 const Supertest = require(`supertest`);
 const supertest = Supertest(process.env.BASE_URL);
@@ -38,7 +38,7 @@ test.before(t => {
 
 test.after(t => {
     getRequest.restore();
-})
+});
 
 test(`should return link that matches pattern param`, t => {
     getRequest.returns({end: (cb) => {cb(null, {text : withGS});}});
