@@ -13,16 +13,11 @@ const martha_v1_handler = (req, res) => {
 
     console.log(http_url);
     superagent.get(http_url)
-        .end(function (err, response) {
-            if (err) {
-                console.error(err);
-                res.status(502).send(err);
-                return;
-            }
+        .then(function (response) {
             try {
                 var parsedData = JSON.parse(response.text);
             } catch (e) {
-                // console.error(e);
+                console.error(e);
                 res.status(400).send(`Data returned not in correct format`);
                 return;
             }
@@ -47,6 +42,11 @@ const martha_v1_handler = (req, res) => {
                     res.status(404).send(`No ${pattern} link found`);
                 }
             }
+        })
+        .catch(function(err) {
+            // TODO: this error condition has never been tested, write a test for it
+            console.error(err);
+            res.status(502).send(err);
         });
 };
 
