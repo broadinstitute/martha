@@ -21,4 +21,9 @@ function dosToHttps(dosUri) {
     return url.format(parsed_url);
 }
 
+function bondBaseUrl() {
+    return config.bondBaseUrl;
+}
+
 exports.dosToHttps = dosToHttps;
+exports.bondBaseUrl = bondBaseUrl;
