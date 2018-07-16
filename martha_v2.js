@@ -20,7 +20,14 @@ function martha_v2_handler(req, res) {
         return;
     }
 
-    let dos_url = helpers.dosToHttps(orig_url);
+    let dos_url;
+    try {
+        dos_url = helpers.dosToHttps(orig_url);
+    } catch (e) {
+        console.error(e);
+        res.status(400).send('The specified URL is invalid');
+        return;
+    }
 
     console.log(dos_url);
 

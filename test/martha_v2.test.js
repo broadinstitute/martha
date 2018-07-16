@@ -37,6 +37,7 @@ let get_text_from_api_method_name = 'get_text_from';
 let sandbox = sinon.createSandbox();
 
 test.serial.beforeEach(t => {
+    sandbox.restore(); // If one test fails, the .afterEach() block will not execute, so always clean the slate here
     get_text_from_api_stub = sandbox.stub(api_adapters, get_text_from_api_method_name);
     get_text_from_api_stub.onFirstCall().resolves(JSON.stringify(dos_object));
     get_text_from_api_stub.onSecondCall().resolves(JSON.stringify(google_sa_key_object));
@@ -67,6 +68,12 @@ test.serial('martha_v2 resolves successfully and ignores extra data submitted be
 test.serial('martha_v2 should return 400 if not given a url', async t => {
     const response = mockResponse();
     await martha_v2(mockRequest({body: {"uri" : "https://example.com/validGS"}}), response);
+    t.is(response.statusCode, 400);
+});
+
+test.serial('martha_v2 should return 400 if given a "url" with an invalid value', async t => {
+    const response = mockResponse();
+    await martha_v2(mockRequest({body: {url : "Not a valid URI"}}), response);
     t.is(response.statusCode, 400);
 });
 
