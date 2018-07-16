@@ -24,12 +24,13 @@ function martha_v2_handler(req, res) {
 
     console.log(dos_url);
 
-    let dos_promise = api_adapter.resolve_dos(dos_url);
-    let bond_promise = api_adapter.talk_to_bond(req.headers.authorization);
+    let dos_promise = api_adapter.get_text_from(dos_url);
+    let bond_promise = api_adapter.get_text_from(`${helpers.bondBaseUrl()}/api/link/v1/fence/serviceaccount/key`, req.headers.authorization);
 
     return Promise.all([dos_promise, bond_promise])
-        .then((result) => {
-            res.status(200).send({'dos': result[0], 'googleServiceAccount': result[1]});
+        .then((raw_results) => {
+            const parsed_results = raw_results.map((str) => JSON.parse(str));
+            res.status(200).send({'dos': parsed_results[0], 'googleServiceAccount': parsed_results[1]});
         })
         .catch((err) => {
            console.error(err);
