@@ -1,52 +1,40 @@
-const superagent = require('superagent');
 const helpers = require('./helpers');
+const api_adapter = require('./api_adapter');
 
-const martha_v2_handler = (req, res) => {
-    // res.status(200).send("headers are: " + JSON.stringify(req.headers.authorization));
-    var orig_url = req.body.url;
+function parse_request(req) {
+    let orig_url = req.body.url;
     if (!orig_url) {
-        orig_url = JSON.parse(req.body.toString()).url;
+        try {
+            orig_url = JSON.parse(req.body.toString()).url;
+        } catch (e) {
+            console.error(new Error(`Request did not specify a valid url:\n${JSON.stringify(req)}\n${e}`));
+        }
+    }
+    return orig_url;
+}
+
+function martha_v2_handler(req, res) {
+    let orig_url = parse_request(req);
+    if (!orig_url) {
+        res.status(400).send('You must specify the URL of a DOS object');
+        return;
     }
 
-    var http_url = helpers.dosToHttps(orig_url);
+    let dos_url = helpers.dosToHttps(orig_url);
 
-    console.log(http_url);
-    superagent.get(http_url)
-        .then(function (response) {
-            try {
-                var parsedData = JSON.parse(response.text);
-            } catch (e) {
-                res.status(400).send(`Data returned not in correct format`);
-                return;
-            }
-            superagent
-                .get(`${helpers.bondBaseUrl()}/api/link/v1/fence/serviceaccount/key`)
-                .set('authorization', req.headers.authorization)
-                .then(function (bondResponse) {
-                    // if (bondErr) {
-                    //     console.error(new Error(bondErr));
-                    //     res.status(502).send(bondErr);
-                    //     return;
-                    // }
-                    try {
-                        var parsedServiceAccountKey = JSON.parse(bondResponse.text);
-                    } catch (e) {
-                        console.log(bondResponse);
-                        console.error(new Error(e));
-                        res.status(500).send(`Service account key not in correct format`);
-                        return;
-                    }
-                    res.status(200).send({'dos': parsedData, 'googleServiceAccount': parsedServiceAccountKey["data"]});
-                })
-                .catch(function (bondErr) {
-                    console.error(new Error(bondErr));
-                    res.status(502).send(bondErr);
-                });
+    console.log(dos_url);
+
+    let dos_promise = api_adapter.resolve_dos(dos_url);
+    let bond_promise = api_adapter.talk_to_bond(req.headers.authorization);
+
+    return Promise.all([dos_promise, bond_promise])
+        .then((result) => {
+            res.status(200).send({'dos': result[0], 'googleServiceAccount': result[1]});
         })
-        .catch(function (err) {
-            console.error(new Error(err));
-            res.status(502).send(err);
+        .catch((err) => {
+           console.error(err);
+           res.status(502).send(err);
         });
-};
+}
 
 exports.martha_v2_handler = martha_v2_handler;
