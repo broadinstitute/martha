@@ -12,6 +12,11 @@
 # below:
 .git
 .gitignore
-
+.circleci
+docker
+hooks
 node_modules
+test
+deploy_account.json
+
 #!include:.gitignore
