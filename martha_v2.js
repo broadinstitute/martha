@@ -1,7 +1,7 @@
 const helpers = require("./helpers");
 const apiAdapter = require("./api_adapter");
 
-function parse_request(req) {
+function parseRequest(req) {
     let origUrl = req.body.url;
     if (!origUrl) {
         try {
@@ -14,7 +14,7 @@ function parse_request(req) {
 }
 
 function martha_v2_handler(req, res) {
-    let origUrl = parse_request(req);
+    let origUrl = parseRequest(req);
     if (!origUrl) {
         res.status(400).send("You must specify the URL of a DOS object");
         return;

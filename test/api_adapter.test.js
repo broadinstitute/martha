@@ -9,7 +9,7 @@ function mockResponseToGet(textValue) {
             return cb({text : textValue});
         },
         set: sinon.stub()
-    }
+    };
 }
 
 let getRequest;
@@ -31,12 +31,12 @@ test("api_adapter.getTextFrom should get the value of the text field from the re
 
 test("api_adapter.getTextFrom should append an authorization header when passed an authorization string", async (t) => {
     let someText = "Some special text";
-    let authz_str = "abc123";
+    let authzStr = "abc123";
     let mockGet = mockResponseToGet(someText);
     getRequest.returns(mockGet);
-    const result = await apiAdapter.getTextFrom("Irrelevant URL", authz_str);
+    const result = await apiAdapter.getTextFrom("Irrelevant URL", authzStr);
     t.is(result, someText);
-    t.deepEqual(mockGet.set.firstCall.args, ["authorization", authz_str]);
+    t.deepEqual(mockGet.set.firstCall.args, ["authorization", authzStr]);
 });
 
 test("api_adapter.getTextFrom should NOT append an authorization header when not passed an authorization string", async (t) => {
