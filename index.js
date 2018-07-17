@@ -3,9 +3,7 @@
  * written by Ursa S 02/18
  */
 
-const cors = require("cors");
-const corsMiddleware = cors();
-
+const corsMiddleware = require("cors")();
 const martha_v1 = require("./martha_v1");
 const martha_v2 = require("./martha_v2");
 
@@ -16,6 +14,3 @@ exports.martha_v1 = (req, res) => {
 exports.martha_v2 = (req, res) => {
     corsMiddleware(req, res, () => martha_v2.martha_v2_handler(req, res));
 };
-
-const helpers = require("./helpers");
-exports.dosToHttps = helpers.dosToHttps;
