@@ -36,18 +36,18 @@ let getTextFromApiStub;
 let getTextFromApiMethodName = "getTextFrom";
 let sandbox = sinon.createSandbox();
 
-test.serial.beforeEach(t => {
+test.serial.beforeEach((t) => {
     sandbox.restore(); // If one test fails, the .afterEach() block will not execute, so always clean the slate here
     getTextFromApiStub = sandbox.stub(apiAdapter, getTextFromApiMethodName);
     getTextFromApiStub.onFirstCall().resolves(JSON.stringify(dosObject));
     getTextFromApiStub.onSecondCall().resolves(JSON.stringify(googleSAKeyObject));
 });
 
-test.serial.afterEach(t => {
+test.serial.afterEach((t) => {
     sandbox.restore();
 });
 
-test.serial("martha_v2 resolves a valid url into a dos object and google service account key", async t => {
+test.serial("martha_v2 resolves a valid url into a dos object and google service account key", async (t) => {
     const response = mockResponse();
     await martha_v2(mockRequest({body: {"url" : "https://example.com/validGS"}}), response);
     const result = response.send.lastCall.args[0];
@@ -56,7 +56,7 @@ test.serial("martha_v2 resolves a valid url into a dos object and google service
     t.is(response.statusCode, 200);
 });
 
-test.serial("martha_v2 resolves successfully and ignores extra data submitted besides a 'url'", async t => {
+test.serial("martha_v2 resolves successfully and ignores extra data submitted besides a 'url'", async (t) => {
     const response = mockResponse();
     await martha_v2(mockRequest({body: {url : "https://example.com/validGS", pattern: "gs://", foo: "bar"}}), response);
     const result = response.send.lastCall.args[0];
@@ -65,19 +65,19 @@ test.serial("martha_v2 resolves successfully and ignores extra data submitted be
     t.is(response.statusCode, 200);
 });
 
-test.serial("martha_v2 should return 400 if not given a url", async t => {
+test.serial("martha_v2 should return 400 if not given a url", async (t) => {
     const response = mockResponse();
     await martha_v2(mockRequest({body: {"uri" : "https://example.com/validGS"}}), response);
     t.is(response.statusCode, 400);
 });
 
-test.serial("martha_v2 should return 400 if given a 'url' with an invalid value", async t => {
+test.serial("martha_v2 should return 400 if given a 'url' with an invalid value", async (t) => {
     const response = mockResponse();
     await martha_v2(mockRequest({body: {url : "Not a valid URI"}}), response);
     t.is(response.statusCode, 400);
 });
 
-test.serial("martha_v2 should return 502 if dos resolution fails", async t => {
+test.serial("martha_v2 should return 502 if dos resolution fails", async (t) => {
     getTextFromApiStub.restore();
     sandbox.stub(apiAdapter, getTextFromApiMethodName).rejects(new Error("DOS Resolution forced to fail by testing stub"));
     const response = mockResponse();
@@ -87,7 +87,7 @@ test.serial("martha_v2 should return 502 if dos resolution fails", async t => {
     t.is(response.statusCode, 502);
 });
 
-test.serial("martha_v2 should return 502 if key retrieval from bond fails", async t => {
+test.serial("martha_v2 should return 502 if key retrieval from bond fails", async (t) => {
     getTextFromApiStub.restore();
     sandbox.stub(apiAdapter, getTextFromApiMethodName).rejects(new Error("Bond key lookup forced to fail by testing stub"));
     const response = mockResponse();

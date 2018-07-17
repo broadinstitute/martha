@@ -8,7 +8,7 @@
 const test = require("ava");
 const supertest = require("supertest")(process.env.BASE_URL);
 
-test.cb("smoketest_v1 return gs link", t => {
+test.cb("smoketest_v1 return gs link", (t) => {
     console.log(`base url: ${process.env.BASE_URL}`);
     supertest
         .post("/martha_v1")
@@ -21,7 +21,7 @@ test.cb("smoketest_v1 return gs link", t => {
         .end(t.end);
 });
 
-test.cb("smoketest_v1 return error if url passed is not good", t => {
+test.cb("smoketest_v1 return error if url passed is not good", (t) => {
     supertest
         .post("/martha_v1")
         .set("Content-Type", "application/json")
