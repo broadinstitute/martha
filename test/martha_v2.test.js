@@ -7,10 +7,10 @@
  * https://github.com/avajs/ava/issues/1066
  */
 
-const test = require(`ava`);
-const sinon = require(`sinon`);
-const martha_v2 = require('../martha_v2').martha_v2_handler;
-const api_adapters = require('../api_adapter');
+const test = require("ava");
+const sinon = require("sinon");
+const martha_v2 = require("../martha_v2").martha_v2_handler;
+const apiAdapter = require("../api_adapter");
 
 const mockRequest = (req) => {
     req.method = "POST";
@@ -29,57 +29,57 @@ const mockResponse = () => {
     };
 };
 
-const dos_object = {fake: "A fake dos object"};
-const google_sa_key_object = {key: "A Google Service Account private key json object"};
+const dosObject = {fake: "A fake dos object"};
+const googleSAKeyObject = {key: "A Google Service Account private key json object"};
 
-let get_text_from_api_stub;
-let get_text_from_api_method_name = 'get_text_from';
+let getTextFromApiStub;
+let getTextFromApiMethodName = 'getTextFrom';
 let sandbox = sinon.createSandbox();
 
 test.serial.beforeEach(t => {
     sandbox.restore(); // If one test fails, the .afterEach() block will not execute, so always clean the slate here
-    get_text_from_api_stub = sandbox.stub(api_adapters, get_text_from_api_method_name);
-    get_text_from_api_stub.onFirstCall().resolves(JSON.stringify(dos_object));
-    get_text_from_api_stub.onSecondCall().resolves(JSON.stringify(google_sa_key_object));
+    getTextFromApiStub = sandbox.stub(apiAdapter, getTextFromApiMethodName);
+    getTextFromApiStub.onFirstCall().resolves(JSON.stringify(dosObject));
+    getTextFromApiStub.onSecondCall().resolves(JSON.stringify(googleSAKeyObject));
 });
 
 test.serial.afterEach(t => {
     sandbox.restore();
 });
 
-test.serial('martha_v2 resolves a valid url into a dos object and google service account key', async t => {
+test.serial("martha_v2 resolves a valid url into a dos object and google service account key", async t => {
     const response = mockResponse();
     await martha_v2(mockRequest({body: {"url" : "https://example.com/validGS"}}), response);
     const result = response.send.lastCall.args[0];
-    t.deepEqual(result.dos, dos_object);
-    t.deepEqual(result.googleServiceAccount, google_sa_key_object);
+    t.deepEqual(result.dos, dosObject);
+    t.deepEqual(result.googleServiceAccount, googleSAKeyObject);
     t.is(response.statusCode, 200);
 });
 
-test.serial('martha_v2 resolves successfully and ignores extra data submitted besides a "url"', async t => {
+test.serial("martha_v2 resolves successfully and ignores extra data submitted besides a 'url'", async t => {
     const response = mockResponse();
     await martha_v2(mockRequest({body: {url : "https://example.com/validGS", pattern: "gs://", foo: "bar"}}), response);
     const result = response.send.lastCall.args[0];
-    t.deepEqual(result.dos, dos_object);
-    t.deepEqual(result.googleServiceAccount, google_sa_key_object);
+    t.deepEqual(result.dos, dosObject);
+    t.deepEqual(result.googleServiceAccount, googleSAKeyObject);
     t.is(response.statusCode, 200);
 });
 
-test.serial('martha_v2 should return 400 if not given a url', async t => {
+test.serial("martha_v2 should return 400 if not given a url", async t => {
     const response = mockResponse();
     await martha_v2(mockRequest({body: {"uri" : "https://example.com/validGS"}}), response);
     t.is(response.statusCode, 400);
 });
 
-test.serial('martha_v2 should return 400 if given a "url" with an invalid value', async t => {
+test.serial("martha_v2 should return 400 if given a 'url' with an invalid value", async t => {
     const response = mockResponse();
     await martha_v2(mockRequest({body: {url : "Not a valid URI"}}), response);
     t.is(response.statusCode, 400);
 });
 
-test.serial('martha_v2 should return 502 if dos resolution fails', async t => {
-    get_text_from_api_stub.restore();
-    sandbox.stub(api_adapters, get_text_from_api_method_name).rejects(new Error("DOS Resolution forced to fail by testing stub"));
+test.serial("martha_v2 should return 502 if dos resolution fails", async t => {
+    getTextFromApiStub.restore();
+    sandbox.stub(apiAdapter, getTextFromApiMethodName).rejects(new Error("DOS Resolution forced to fail by testing stub"));
     const response = mockResponse();
     await martha_v2(mockRequest({body: {"url" : "https://example.com/validGS"}}), response);
     const result = response.send.lastCall.args[0];
@@ -87,9 +87,9 @@ test.serial('martha_v2 should return 502 if dos resolution fails', async t => {
     t.is(response.statusCode, 502);
 });
 
-test.serial('martha_v2 should return 502 if key retrieval from bond fails', async t => {
-    get_text_from_api_stub.restore();
-    sandbox.stub(api_adapters, get_text_from_api_method_name).rejects(new Error("Bond key lookup forced to fail by testing stub"));
+test.serial("martha_v2 should return 502 if key retrieval from bond fails", async t => {
+    getTextFromApiStub.restore();
+    sandbox.stub(apiAdapter, getTextFromApiMethodName).rejects(new Error("Bond key lookup forced to fail by testing stub"));
     const response = mockResponse();
     await martha_v2(mockRequest({body: {"url" : "https://example.com/validGS"}}), response);
     const result = response.send.lastCall.args[0];

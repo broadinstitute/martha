@@ -31,8 +31,8 @@ function martha_v2_handler(req, res) {
 
     console.log(dos_url);
 
-    let dos_promise = api_adapter.get_text_from(dos_url);
-    let bond_promise = api_adapter.get_text_from(`${helpers.bondBaseUrl()}/api/link/v1/fence/serviceaccount/key`, req.headers.authorization);
+    let dos_promise = api_adapter.getTextFrom(dos_url);
+    let bond_promise = api_adapter.getTextFrom(`${helpers.bondBaseUrl()}/api/link/v1/fence/serviceaccount/key`, req.headers.authorization);
 
     return Promise.all([dos_promise, bond_promise])
         .then((raw_results) => {
