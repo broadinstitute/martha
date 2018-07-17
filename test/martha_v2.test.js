@@ -33,7 +33,7 @@ const dosObject = {fake: "A fake dos object"};
 const googleSAKeyObject = {key: "A Google Service Account private key json object"};
 
 let getTextFromApiStub;
-let getTextFromApiMethodName = 'getTextFrom';
+let getTextFromApiMethodName = "getTextFrom";
 let sandbox = sinon.createSandbox();
 
 test.serial.beforeEach(t => {

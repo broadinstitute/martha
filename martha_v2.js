@@ -1,5 +1,5 @@
 const helpers = require("./helpers");
-const api_adapter = require("./api_adapter");
+const apiAdapter = require("./api_adapter");
 
 function parse_request(req) {
     let origUrl = req.body.url;
@@ -31,13 +31,13 @@ function martha_v2_handler(req, res) {
 
     console.log(dosUrl);
 
-    let dosPromise = api_adapter.getTextFrom(dosUrl);
-    let bondPromise = api_adapter.getTextFrom(`${helpers.bondBaseUrl()}/api/link/v1/fence/serviceaccount/key`, req.headers.authorization);
+    let dosPromise = apiAdapter.getTextFrom(dosUrl);
+    let bondPromise = apiAdapter.getTextFrom(`${helpers.bondBaseUrl()}/api/link/v1/fence/serviceaccount/key`, req.headers.authorization);
 
     return Promise.all([dosPromise, bondPromise])
-        .then((raw_results) => {
-            const parsed_results = raw_results.map((str) => JSON.parse(str));
-            res.status(200).send({dos: parsed_results[0], googleServiceAccount: parsed_results[1]});
+        .then((rawResults) => {
+            const parsedResults = rawResults.map((str) => JSON.parse(str));
+            res.status(200).send({dos: parsedResults[0], googleServiceAccount: parsedResults[1]});
         })
         .catch((err) => {
            console.error(err);

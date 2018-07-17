@@ -6,8 +6,7 @@
 */
 
 const test = require("ava");
-const Supertest = require("supertest");
-const supertest = Supertest(process.env.BASE_URL);
+const supertest = require("supertest")(process.env.BASE_URL);
 
 test.cb("smoketest_v1 return gs link", t => {
     console.log(`base url: ${process.env.BASE_URL}`);
