@@ -2,23 +2,23 @@ const url = require("url");
 const config = require("./config.json");
 
 function dosToHttps(dosUri) {
-    var parsed_url = url.parse(dosUri);
-    var orig_path = parsed_url.pathname;
-    var new_path = '/ga4gh/dos/v1/dataobjects' + orig_path;
+    const parsedUrl = url.parse(dosUri);
+    const origPath = parsedUrl.pathname;
+    let newPath = "/ga4gh/dos/v1/dataobjects" + origPath;
 
     // special case for hostless dos uris which will be better supported in martha v2
-    if (parsed_url.host.startsWith("dg.")) {
-        new_path = '/ga4gh/dos/v1/dataobjects/' + parsed_url.hostname + orig_path;
-        parsed_url.host = config.dosResolutionHost;
+    if (parsedUrl.host.startsWith("dg.")) {
+        newPath = "/ga4gh/dos/v1/dataobjects/" + parsedUrl.hostname + origPath;
+        parsedUrl.host = config.dosResolutionHost;
     }
 
-    console.log(new_path);
-    parsed_url.protocol = 'https';
-    parsed_url.path = new_path;
-    parsed_url.pathname = new_path;
-    console.log(parsed_url);
-    console.log(parsed_url.toString);
-    return url.format(parsed_url);
+    console.log(newPath);
+    parsedUrl.protocol = "https";
+    parsedUrl.path = newPath;
+    parsedUrl.pathname = newPath;
+    console.log(parsedUrl);
+    console.log(parsedUrl.toString);
+    return url.format(parsedUrl);
 }
 
 function bondBaseUrl() {

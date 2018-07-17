@@ -1,18 +1,19 @@
-// Run smoketests from the command line.  For example:
-//
-//    BASE_URL="https://us-central1-broad-dsde-dev.cloudfunctions.net" npm run-script smoketest_v1
-//
-// Run smoketests after a deployment to confirm that the functions deployed successfully
+/** Run smoketests from the command line.  For example:
+*
+*    BASE_URL="https://us-central1-broad-dsde-dev.cloudfunctions.net" npm run-script smoketest_v1
+*
+* Run smoketests after a deployment to confirm that the functions deployed successfully
+*/
 
-const test = require(`ava`);
-const Supertest = require(`supertest`);
+const test = require("ava");
+const Supertest = require("supertest");
 const supertest = Supertest(process.env.BASE_URL);
 
-test.cb(`smoketest_v1 return gs link`, t => {
+test.cb("smoketest_v1 return gs link", t => {
     console.log(`base url: ${process.env.BASE_URL}`);
     supertest
-        .post(`/martha_v1`)
-        .set('Content-Type', 'application/json')
+        .post("/martha_v1")
+        .set("Content-Type", "application/json")
         .send({"url" : "dos://broad-dsp-dos.storage.googleapis.com/dos.json", "pattern" : "gs://"})
         .expect((response) => {
             t.is(response.statusCode, 200);
@@ -21,10 +22,10 @@ test.cb(`smoketest_v1 return gs link`, t => {
         .end(t.end);
 });
 
-test.cb(`smoketest_v1 return error if url passed is not good`, t => {
+test.cb("smoketest_v1 return error if url passed is not good", t => {
     supertest
-        .post(`/martha_v1`)
-        .set('Content-Type', 'application/json')
+        .post("/martha_v1")
+        .set("Content-Type", "application/json")
         .send({"url" : "somethingNotValidURL"})
         .expect(response => {
             t.is(response.statusCode, 500);
