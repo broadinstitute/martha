@@ -1,4 +1,4 @@
-﻿Martha v1
+﻿Martha
 =========
 
 ![alt text](https://raw.githubusercontent.com/broadinstitute/martha/dev/images/doctor_martha_jones_and_the_tardis.jpg)
@@ -47,6 +47,9 @@ Production: https://us-central1-broad-dsde-prod.cloudfunctions.net/martha_v2
 * Start the GCF emulator: `functions start`
 * Deploy Martha to your local GCF emulator: `functions deploy martha_v<versionNumber> --trigger-http`
 * Test the function: `functions call martha_v<versionNumber> --data '{"url": "dos.url.here", "pattern" : "gs://"}'`
+* Testing functions that require you to include `header` information in the request (such as an `authorization` header)
+will require you to use a tool like `curl` to test the function.  To get the URL for the function running on your local
+emulator, run the command: `functions describe martha_v2`
 
 ## Google Cloud Functions (GCF) Emulator
 * See the [Setup](#Setup) section for installation and deployment instructions
