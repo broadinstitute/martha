@@ -65,9 +65,25 @@ test.serial("martha_v2 resolves successfully and ignores extra data submitted be
     t.is(response.statusCode, 200);
 });
 
+test.serial("martha_v2 resolves a valid url into a dos object without a service account key if no authorization header is provided", async (t) => {
+    const response = mockResponse();
+    const mockReq = mockRequest({body: {"url" : "https://example.com/validGS"}});
+    delete mockReq.headers.authorization;
+    await martha_v2(mockReq, response);
+    const result = response.send.lastCall.args[0];
+    t.is(response.statusCode, 200);
+    t.deepEqual(result.dos, dosObject);
+});
+
 test.serial("martha_v2 should return 400 if not given a url", async (t) => {
     const response = mockResponse();
     await martha_v2(mockRequest({body: {"uri" : "https://example.com/validGS"}}), response);
+    t.is(response.statusCode, 400);
+});
+
+test.serial("martha_v2 should return 400 if no data is posted with the request", async (t) => {
+    const response = mockResponse();
+    await martha_v2(mockRequest({}), response);
     t.is(response.statusCode, 400);
 });
 
