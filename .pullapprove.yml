@@ -20,8 +20,10 @@ groups:
     conditions:
       files:
         - ".pullapprove.yml"
-    teams:
-      - workbench-dev
+    users:
+      - gpolumbo-broad
+      - dvoet
+      - MatthewBemis
 
   deploy-dev:
     conditions:
@@ -49,4 +51,4 @@ groups:
       branches:
         - master
     teams:
-      - workbench-dev #should be broadsuitable or something else but for now this will suffice...
+      - workbench-dev
