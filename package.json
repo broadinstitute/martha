@@ -5,7 +5,9 @@
   "private": true,
   "scripts": {
     "test": "ava -m !smoketest*",
-    "smoketest": "ava -m smoketest*"
+    "smoketest": "ava -m smoketest*",
+    "smoketest_v1": "ava -m smoketest_v1*",
+    "smoketest_v2": "ava -m smoketest_v2*"
   },
   "dependencies": {
     "ava": "^0.25.0",

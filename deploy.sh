@@ -41,13 +41,10 @@ docker build -f docker/Dockerfile -t broadinstitute/martha:deploy .
 docker run --rm -v $PWD:${MARTHA_PATH} \
     -e BASE_URL="https://us-central1-broad-dsde-${ENVIRONMENT}.cloudfunctions.net" \
     broadinstitute/martha:deploy /bin/bash -c \
-    "gcloud config set project ${PROJECT_NAME};
-     gcloud auth activate-service-account --key-file ${MARTHA_PATH}/${SERVICE_ACCT_KEY_FILE};
-     cd ${MARTHA_PATH};
-     echo 'The End! (but only temporarily while testing)';"
-
-# TODO: Don't forget to uncomment the following lines, they're off for now for testing
-#     gcloud beta functions deploy martha_v1 --trigger-http;
-#     gcloud beta functions deploy martha_v2 --trigger-http;
-#     npm install;
-#     npm run-script smoketest;"
+    "gcloud config set project ${PROJECT_NAME} &&
+     gcloud auth activate-service-account --key-file ${MARTHA_PATH}/${SERVICE_ACCT_KEY_FILE} &&
+     cd ${MARTHA_PATH} &&
+     gcloud beta functions deploy martha_v1 --source=. --trigger-http &&
+     gcloud beta functions deploy martha_v2 --source=. --trigger-http &&
+     npm install &&
+     npm run-script smoketest"
