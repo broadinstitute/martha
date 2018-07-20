@@ -3,84 +3,14 @@
  * written by Ursa S 02/18
  */
 
-const superagent = require('superagent');
-const url = require('url')
-const cors = require("cors");
-const corsMiddleware = cors();
-
-function dosToHttps(dosUri) {
-    var parsed_url = url.parse(dosUri);
-    var orig_path = parsed_url.pathname;
-    var new_path = '/ga4gh/dos/v1/dataobjects' + orig_path;
-
-    // special case for hostless dos uris which will be better supported in martha v2
-    if (parsed_url.host.startsWith("dg.")) {
-        new_path = '/ga4gh/dos/v1/dataobjects/' + parsed_url.hostname + orig_path;
-        parsed_url.host = "dcp.bionimbus.org";
-    }
-
-    console.log(new_path);
-    parsed_url.protocol = 'https';
-    parsed_url.path = new_path;
-    parsed_url.pathname = new_path;
-    console.log(parsed_url);
-    console.log(parsed_url.toString);
-    return url.format(parsed_url);
-}
-
-const handler = (req, res) => {
-    var orig_url = req.body.url;
-    var pattern = req.body.pattern;
-    if(!orig_url) {
-      orig_url = JSON.parse(req.body.toString()).url;
-      pattern = JSON.parse(req.body.toString()).pattern;
-    }
-
-    var http_url = dosToHttps(orig_url)
-
-    console.log(http_url);
-    superagent.get(http_url)
-        .end(function(err, response) {
-            if(err){
-                console.error(err);
-                res.status(502).send(err);
-                return;
-            };
-            try {
-                var parsedData = JSON.parse(response.text);
-            } catch(e) {
-                // console.error(e);
-                res.status(400).send(`Data returned not in correct format`);
-                return;
-            };
-            var allData = parsedData["data_object"];
-            if (!allData) {
-                res.status(400).send(`No data received from ${req.body.url}`);
-            } else {
-                var urls = allData["urls"];
-                if (!pattern) {
-                    res.status(400).send(`No pattern param specified`);
-                    return;
-                }
-                for (var url in urls) {
-                    var currentUrl = urls[url]["url"];
-                    if (currentUrl.startsWith(pattern)) {
-                        var correctUrl = currentUrl;
-                        res.status(200).send(correctUrl);
-                    }
-                }
-                //gone through all urls, no match found
-                if (!correctUrl) {
-                    res.status(404).send(`No ${pattern} link found`);
-                }
-                ;
-            }
-            ;
-        });
-};
+const corsMiddleware = require("cors")();
+const martha_v1 = require("./martha_v1");
+const martha_v2 = require("./martha_v2");
 
 exports.martha_v1 = (req, res) => {
-  corsMiddleware(req, res, () => handler(req, res));
+    corsMiddleware(req, res, () => martha_v1.martha_v1_handler(req, res));
 };
 
-exports.dosToHttps = dosToHttps
+exports.martha_v2 = (req, res) => {
+    corsMiddleware(req, res, () => martha_v2.martha_v2_handler(req, res));
+};

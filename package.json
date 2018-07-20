@@ -1,22 +1,24 @@
 {
-  "name": "martha_v1",
+  "name": "martha",
   "version": "0.0.0",
   "description": "Data Object GUID Resolution",
   "private": true,
   "scripts": {
     "test": "ava -m !smoketest*",
-    "smoketest": "ava -m smoketest*"
+    "smoketest": "ava -m smoketest*",
+    "smoketest_v1": "ava -m smoketest_v1*",
+    "smoketest_v2": "ava -m smoketest_v2*"
   },
   "dependencies": {
     "ava": "^0.25.0",
     "axios": "~0.18.0",
-    "firebase-functions": "^0.8.1",
     "cors": "^2.8.4",
-    "nock": "^9.2.3",
+    "firebase-functions": "^0.8.2",
+    "nock": "^9.3.3",
     "npm-shrinkwrap": "^6.1.0",
-    "sinon": "^4.4.2",
-    "superagent": "latest",
-    "supertest": "^3.0.0"
+    "sinon": "^4.5.0",
+    "superagent": "^3.8.3",
+    "supertest": "^3.1.0"
   },
   "devDependencies": {
     "superagent-mock": "^3.7.0"
