@@ -9,7 +9,7 @@ const martha_v1_handler = (req, res) => {
         pattern = JSON.parse(req.body.toString()).pattern;
     }
 
-    var http_url = dosToHttps(orig_url);
+    const http_url = dosToHttps(orig_url);
 
     console.log(http_url);
     superagent.get(http_url)
