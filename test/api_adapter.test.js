@@ -14,11 +14,11 @@ function mockResponseToGet(textValue) {
 
 let getRequest;
 
-test.before((t) => {
+test.before(() => {
     getRequest = sinon.stub(superagent, 'get');
 });
 
-test.after((t) => {
+test.after(() => {
     getRequest.restore();
 });
 

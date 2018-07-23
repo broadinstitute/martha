@@ -33,8 +33,8 @@ const martha_v1_handler = (req, res) => {
                     res.status(400).send('No pattern param specified');
                     return;
                 }
-                for (const url in urls) {
-                    const currentUrl = urls[url]['url'];
+                for (const url of urls) {
+                    const currentUrl = url.url;
                     if (currentUrl.startsWith(pattern)) {
                         correctUrl = currentUrl;
                         res.status(200).send(currentUrl);

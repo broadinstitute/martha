@@ -36,14 +36,14 @@ let getTextFromApiStub;
 let getTextFromApiMethodName = 'getTextFrom';
 let sandbox = sinon.createSandbox();
 
-test.serial.beforeEach((t) => {
+test.serial.beforeEach(() => {
     sandbox.restore(); // If one test fails, the .afterEach() block will not execute, so always clean the slate here
     getTextFromApiStub = sandbox.stub(apiAdapter, getTextFromApiMethodName);
     getTextFromApiStub.onFirstCall().resolves(JSON.stringify(dosObject));
     getTextFromApiStub.onSecondCall().resolves(JSON.stringify(googleSAKeyObject));
 });
 
-test.serial.afterEach((t) => {
+test.serial.afterEach(() => {
     sandbox.restore();
 });
 
