@@ -16,3 +16,32 @@ jobs:
           command: npm install
       - run:
           command: npm test
+
+  tag:
+    docker:
+      - image: alpine/git
+
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "TODO"
+      - checkout
+      - run:
+          when: on_success
+          command: |
+            echo 'export TAG_NAME=dev_tests_passed_$(date +%s)' >> $BASH_ENV
+            source $BASH_ENV
+            git tag $TAG_NAME
+            git push origin $TAG_NAME
+
+workflows:
+  version: 2
+  test-and-tag:
+    jobs:
+      - build
+      - tag:
+          requires:
+            - build
+          filters:
+            branches:
+              only: dev
