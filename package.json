@@ -11,16 +11,11 @@
   },
   "dependencies": {
     "ava": "^0.25.0",
-    "axios": "~0.18.0",
     "cors": "^2.8.4",
-    "firebase-functions": "^0.8.2",
-    "nock": "^9.3.3",
-    "npm-shrinkwrap": "^6.1.0",
-    "sinon": "^4.5.0",
     "superagent": "^3.8.3",
     "supertest": "^3.1.0"
   },
   "devDependencies": {
-    "superagent-mock": "^3.7.0"
+    "sinon": "^6.1.4"
   }
 }
