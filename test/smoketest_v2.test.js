@@ -12,7 +12,7 @@ const supertest = require('supertest')(process.env.BASE_URL);
 // Because these smoketests are executed by a Google Service Account, we are unable to test martha_v2 (with Authz)
 // without first authenticating that service account with Fence.
 
-test.cb('smoketest_v2 responds with DOS object only when no \'authorization` header is provided', (t) => {
+test.cb('smoketest_v2 responds with DOS object only when no "authorization" header is provided', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')

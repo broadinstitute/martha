@@ -21,7 +21,7 @@ const martha_v1_handler = (req, res) => {
                 parsedData = JSON.parse(response.text);
             } catch (e) {
                 console.error(e);
-                res.status(400).send(`Data returned not in correct format`);
+                res.status(400).send('Data returned not in correct format');
                 return;
             }
             const allData = parsedData['data_object'];
@@ -30,7 +30,7 @@ const martha_v1_handler = (req, res) => {
             } else {
                 const urls = allData['urls'];
                 if (!pattern) {
-                    res.status(400).send(`No pattern param specified`);
+                    res.status(400).send('No pattern param specified');
                     return;
                 }
                 for (const url in urls) {

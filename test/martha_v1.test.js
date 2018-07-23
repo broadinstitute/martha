@@ -1,5 +1,5 @@
-const test = require(`ava`);
-const sinon = require(`sinon`);
+const test = require('ava');
+const sinon = require('sinon');
 const martha_v1 = require('../martha_v1').martha_v1_handler;
 const superagent = require('superagent');
 
@@ -49,7 +49,7 @@ function mockResponseToGet(text_value) {
     };
 }
 
-test(`should return link that matches pattern param`, (t) => {
+test('should return link that matches pattern param', (t) => {
     getRequest.returns(mockResponseToGet(withGS));
     const res = mockResponse();
     martha_v1(mockRequest({ body: { 'url': 'https://example.com/validGS', 'pattern': 'gs://' } }), res);
@@ -58,7 +58,7 @@ test(`should return link that matches pattern param`, (t) => {
     t.is(res.statusCode, 200);
 });
 
-test(`should return descriptive error when no link matching pattern is present`, (t) => {
+test('should return descriptive error when no link matching pattern is present', (t) => {
     getRequest.returns(mockResponseToGet(withNoGS));
     const res = mockResponse();
     martha_v1(mockRequest({ body: { 'url': 'https://example.com/noGSlink', 'pattern': 'gs://' } }), res);
@@ -66,7 +66,7 @@ test(`should return descriptive error when no link matching pattern is present`,
     t.is(res.statusCode, 404);
 });
 
-test(`should return no data found if returned data object is empty`, (t) => {
+test('should return no data found if returned data object is empty', (t) => {
     getRequest.returns(mockResponseToGet(noData));
     const res = mockResponse();
     martha_v1(mockRequest({ body: { 'url': 'https://example.com/noData', 'pattern': 'gs://' } }), res);
@@ -74,7 +74,7 @@ test(`should return no data found if returned data object is empty`, (t) => {
     t.is(res.statusCode, 400);
 });
 
-test(`should return error if data object is bad`, (t) => {
+test('should return error if data object is bad', (t) => {
     getRequest.returns(mockResponseToGet(badData));
     const res = mockResponse();
     martha_v1(mockRequest({ body: { 'url': 'https://example.com/badData', 'pattern': 'gs://' } }), res);
@@ -82,7 +82,7 @@ test(`should return error if data object is bad`, (t) => {
     t.is(res.statusCode, 400);
 });
 
-test(`should return error if no pattern param given`, (t) => {
+test('should return error if no pattern param given', (t) => {
     getRequest.returns(mockResponseToGet(withGS));
     const res = mockResponse();
     martha_v1(mockRequest({ body: { 'url': 'https://example.com/noData' } }), res);
