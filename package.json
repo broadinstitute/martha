@@ -10,6 +10,7 @@
     "smoketest_v2": "ava -m smoketest_v2*"
   },
   "dependencies": {
+    "@google-cloud/storage": "^1.7.0",
     "ava": "^0.25.0",
     "cors": "^2.8.4",
     "superagent": "^3.8.3",

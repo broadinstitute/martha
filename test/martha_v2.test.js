@@ -32,15 +32,15 @@ const mockResponse = () => {
 const dosObject = { fake: 'A fake dos object' };
 const googleSAKeyObject = { key: 'A Google Service Account private key json object' };
 
-let getTextFromApiStub;
-let getTextFromApiMethodName = 'getTextFrom';
+let getJsonFromApiStub;
+let getJsonFromApiMethodName = 'getJsonFrom';
 let sandbox = sinon.createSandbox();
 
 test.serial.beforeEach(() => {
     sandbox.restore(); // If one test fails, the .afterEach() block will not execute, so always clean the slate here
-    getTextFromApiStub = sandbox.stub(apiAdapter, getTextFromApiMethodName);
-    getTextFromApiStub.onFirstCall().resolves(JSON.stringify(dosObject));
-    getTextFromApiStub.onSecondCall().resolves(JSON.stringify(googleSAKeyObject));
+    getJsonFromApiStub = sandbox.stub(apiAdapter, getJsonFromApiMethodName);
+    getJsonFromApiStub.onFirstCall().resolves(dosObject);
+    getJsonFromApiStub.onSecondCall().resolves(googleSAKeyObject);
 });
 
 test.serial.afterEach(() => {
@@ -100,8 +100,8 @@ test.serial('martha_v2 should return 400 if given a \'url\' with an invalid valu
 });
 
 test.serial('martha_v2 should return 502 if dos resolution fails', async (t) => {
-    getTextFromApiStub.restore();
-    sandbox.stub(apiAdapter, getTextFromApiMethodName).rejects(new Error('DOS Resolution forced to fail by testing stub'));
+    getJsonFromApiStub.restore();
+    sandbox.stub(apiAdapter, getJsonFromApiMethodName).rejects(new Error('DOS Resolution forced to fail by testing stub'));
     const response = mockResponse();
     await martha_v2(mockRequest({ body: { 'url': 'https://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
@@ -110,8 +110,8 @@ test.serial('martha_v2 should return 502 if dos resolution fails', async (t) => 
 });
 
 test.serial('martha_v2 should return 502 if key retrieval from bond fails', async (t) => {
-    getTextFromApiStub.restore();
-    sandbox.stub(apiAdapter, getTextFromApiMethodName).rejects(new Error('Bond key lookup forced to fail by testing stub'));
+    getJsonFromApiStub.restore();
+    sandbox.stub(apiAdapter, getJsonFromApiMethodName).rejects(new Error('Bond key lookup forced to fail by testing stub'));
     const response = mockResponse();
     await martha_v2(mockRequest({ body: { 'url': 'https://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
