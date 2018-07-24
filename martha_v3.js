@@ -34,7 +34,7 @@ async function getGsObjectMetadata(gsUri, auth) {
         size: response['content-length'],
         // timeCreated: ,
         updated: response['last-modified'],
-        md5Hash: response['x-goog-hash'].substring(response['x-goog-hash'].indexOf('md5='))
+        md5Hash: response['x-goog-hash'].substring(response['x-goog-hash'].indexOf('md5=') + 4)
     };
 }
 
