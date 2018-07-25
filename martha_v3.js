@@ -78,7 +78,7 @@ async function martha_v3_handler(req, res) {
     const auth = req.headers.authorization;
 
     if (!origUrl) {
-        res.status(400).send('Request must specify the URL of a DOS or GS object');
+        res.status(400).send('Request must specify the URI of a DOS or GS object');
         return;
     } else if (!auth) {
         res.status(401).send('Request must contain a bearer token');

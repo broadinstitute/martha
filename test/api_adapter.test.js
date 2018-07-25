@@ -1,6 +1,6 @@
 const test = require('ava');
 const sinon = require('sinon');
-const { getJsonFrom } = require('../api_adapter');
+const { get } = require('../api_adapter');
 const superagent = require('superagent');
 
 function mockResponseToGet(textValue) {
@@ -22,19 +22,19 @@ test.after(() => {
     getRequest.restore();
 });
 
-test('api_adapter.getTextFrom should get the value of the text field from the response', async (t) => {
+test('api_adapter.get should get the value of the text field from the response', async (t) => {
     let someText = { body: 'Some special text' };
     getRequest.returns(mockResponseToGet(someText));
-    const result = await getJsonFrom('Irrelevant URL');
+    const result = (await get('get', 'Irrelevant URL')).body;
     t.is(result, someText);
 });
 
-test('api_adapter.getTextFrom should append an authorization header when passed an authorization string', async (t) => {
+test('api_adapter.get should append an authorization header when passed an authorization string', async (t) => {
     let someText = { body: 'Some special text' };
     let authzStr = 'abc123';
     let mockGet = mockResponseToGet(someText);
     getRequest.returns(mockGet);
-    const result = await getJsonFrom('Irrelevant URL', authzStr);
+    const result = (await get('get', 'Irrelevant URL', authzStr)).body;
     t.is(result, someText);
     t.deepEqual(mockGet.set.firstCall.args, ['authorization', authzStr]);
 });
@@ -43,7 +43,7 @@ test('api_adapter.getTextFrom should NOT append an authorization header when not
     let someText = { body: 'Some special text' };
     let mockGet = mockResponseToGet(someText);
     getRequest.returns(mockGet);
-    const result = await getJsonFrom('Irrelevant URL');
+    const result = (await get('get', 'Irrelevant URL')).body;
     t.is(result, someText);
     t.false(mockGet.set.called);
 });

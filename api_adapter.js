@@ -1,20 +1,20 @@
 const request = require('superagent');
 
-function getHeaders(method, url, authorization) {
+function get(method, url, authorization) {
     const req = request[method](url);
     if (authorization) {
         req.set('authorization', authorization);
     }
 
-    return req.then((response) => response.headers);
+    return req;
+}
+
+function getHeaders(method, url, authorization) {
+    return get(method, url, authorization).then((response) => response.headers);
 }
 
 function getJsonFrom(url, authorization) {
-    const getReq = request.get(url);
-    if (authorization) {
-        getReq.set('authorization', authorization);
-    }
-    return getReq.then((response) => response.body);
+    return get('get', url, authorization).then((response) => response.body);
 }
 
 function postJsonTo(url, authorization, payload) {
@@ -27,6 +27,7 @@ function postJsonTo(url, authorization, payload) {
     return postReq.then((response) => response.body);
 }
 
+exports.get = get;
 exports.getHeaders = getHeaders;
 exports.getJsonFrom = getJsonFrom;
 exports.postJsonTo = postJsonTo;
