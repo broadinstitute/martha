@@ -2,8 +2,6 @@ const url = require('url');
 const config = require('./config.json');
 
 function dosToHttps(dosUri) {
-    console.debug('Parsing:', dosUri);
-
     const parsedUrl = url.parse(dosUri);
 
     parsedUrl.protocol = 'https';

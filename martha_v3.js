@@ -6,7 +6,7 @@ const apiAdapter = require('./api_adapter');
 // See: https://cloud.google.com/functions/docs/writing/http#parsing_http_requests for more details
 
 function maybeTalkToBond(auth) {
-    return apiAdapter.getJsonFrom(`${helpers.bondBaseUrl()}/api/link/v1/fence/serviceaccount/key`, auth);
+    return apiAdapter.getJsonFrom(`${helpers.bondBaseUrl()}/api/link/v1/fence/serviceaccount/key`, auth).catch(e => Promise.resolve());
 }
 
 function maybeTalkToSam(auth) {
@@ -25,23 +25,26 @@ function parseGsUri(uri) {
 
 async function getGsObjectMetadata(gsUri, auth) {
     const token = await apiAdapter.postJsonTo(`${helpers.samBaseUrl()}/api/google/v1/user/petServiceAccount/token`, auth, '["https://www.googleapis.com/auth/devstorage.full_control"]');
-    const [bucket, object] = parseGsUri(gsUri);
+    const [bucket, name] = parseGsUri(gsUri);
 
-    const response = await apiAdapter.getHeaders('head', `https://${bucket}.storage.googleapis.com/${encodeURIComponent(object)}`, `Bearer ${token}`).catch(e => console.log(e));
+    const response = await apiAdapter.getHeaders('head', `https://${bucket}.storage.googleapis.com/${encodeURIComponent(name)}`, `Bearer ${token}`);
 
     return {
         contentType: response['content-type'],
-        size: response['content-length'],
+        size: parseInt(response['content-length']),
         // timeCreated: ,
         updated: response['last-modified'],
-        md5Hash: response['x-goog-hash'].substring(response['x-goog-hash'].indexOf('md5=') + 4)
+        md5Hash: response['x-goog-hash'].substring(response['x-goog-hash'].indexOf('md5=') + 4),
+        bucket,
+        name,
+        uri: gsUri
     };
 }
 
-function getServiceAccountKey(auth, isDos) {
+async function getServiceAccountKey(auth, isDos) {
     try {
         if (isDos) {
-            return maybeTalkToBond(auth);
+            return (await maybeTalkToBond(auth)).data;
         } else {
             return maybeTalkToSam(auth);
         }
@@ -50,13 +53,15 @@ function getServiceAccountKey(auth, isDos) {
     }
 }
 
+function getGsUriFromDos(dosMetadata) {
+    return dosMetadata.urls.find(e => e.url.startsWith('gs://')).url;
+}
+
 async function getMetadata(url, auth, isDos) {
     try {
-        if (isDos) {
-            return (await getDosObject(url)).data_object;
-        } else {
-            return getGsObjectMetadata(url, auth);
-        }
+        const uri = isDos ? getGsUriFromDos((await getDosObject(url)).data_object) : url;
+
+        return getGsObjectMetadata(uri, auth);
     } catch (e) {
         console.error('Metadata problems:', e);
     }
@@ -89,17 +94,9 @@ async function martha_v3_handler(req, res) {
         await getMetadata(origUrl, auth, isDos)
     ]);
 
-    const [bucket, object] = parseGsUri(isDos ? metadata.urls.find(e => e.url.startsWith('gs://')).url : origUrl);
-    metadata.bucket = bucket;
-    metadata.name = object;
-
-    console.log(metadata);
-
-    const signedUrl = await createSignedGsUrl(serviceAccountKey, metadata);
-
-    console.log(signedUrl);
-
-    metadata.signedUrl = signedUrl;
+    if (serviceAccountKey) {
+        metadata.signedUrl = await createSignedGsUrl(serviceAccountKey, metadata);
+    }
 
     res.status(200).send(metadata);
 }
