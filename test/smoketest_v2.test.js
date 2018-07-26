@@ -18,10 +18,7 @@ test.cb('smoketest_v2 responds with DOS object only when no "authorization" head
         .set('Content-Type', 'application/json')
         .send({ url: 'dos://broad-dsp-dos.storage.googleapis.com/dos.json' })
         .expect(200)
-        .expect((response) => {
-            const results = JSON.parse(response.text);
-            t.truthy(results.dos);
-        })
+        .expect((response) => t.truthy(response.body.dos))
         .end(t.end);
 });
 
@@ -29,7 +26,7 @@ test.cb('smoketest_v2 return error if url passed is malformed', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
-        .send({ 'url': 'somethingNotValidURL' })
+        .send({ url: 'somethingNotValidURL' })
         .expect(400)
         .end(t.end);
 });
@@ -38,7 +35,7 @@ test.cb('smoketest_v2 return error if url passed is not good', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
-        .send({ 'url': 'dos://broad-dsp-dos-TYPO.storage.googleapis.com/dos.json' })
+        .send({ url: 'dos://broad-dsp-dos-TYPO.storage.googleapis.com/dos.json' })
         .expect(502)
         .end(t.end);
 });

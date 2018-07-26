@@ -6,11 +6,17 @@ const apiAdapter = require('./api_adapter');
 // See: https://cloud.google.com/functions/docs/writing/http#parsing_http_requests for more details
 
 function maybeTalkToBond(auth) {
-    return apiAdapter.getJsonFrom(`${helpers.bondBaseUrl()}/api/link/v1/fence/serviceaccount/key`, auth).catch(e => Promise.resolve());
+    return apiAdapter.getJsonFrom(
+        `${helpers.bondBaseUrl()}/api/link/v1/fence/serviceaccount/key`,
+        auth
+    ).catch(() => Promise.resolve());
 }
 
 function maybeTalkToSam(auth) {
-    return apiAdapter.getJsonFrom(`${helpers.samBaseUrl()}/api/google/v1/user/petServiceAccount/key`, auth);
+    return apiAdapter.getJsonFrom(
+        `${helpers.samBaseUrl()}/api/google/v1/user/petServiceAccount/key`,
+        auth
+    );
 }
 
 function getDosObject(dosUri) {
@@ -24,10 +30,18 @@ function parseGsUri(uri) {
 }
 
 async function getGsObjectMetadata(gsUri, auth) {
-    const token = await apiAdapter.postJsonTo(`${helpers.samBaseUrl()}/api/google/v1/user/petServiceAccount/token`, auth, '["https://www.googleapis.com/auth/devstorage.full_control"]');
+    const token = await apiAdapter.postJsonTo(
+        `${helpers.samBaseUrl()}/api/google/v1/user/petServiceAccount/token`,
+        auth,
+        '["https://www.googleapis.com/auth/devstorage.full_control"]'
+    );
+
     const [bucket, name] = parseGsUri(gsUri);
 
-    const response = await apiAdapter.getHeaders('head', `https://${bucket}.storage.googleapis.com/${encodeURIComponent(name)}`, `Bearer ${token}`);
+    const response = await apiAdapter.getHeaders(
+        `https://${bucket}.storage.googleapis.com/${encodeURIComponent(name)}`,
+        `Bearer ${token}`
+    );
 
     return {
         contentType: response['content-type'],
@@ -59,7 +73,9 @@ function getGsUriFromDos(dosMetadata) {
 
 async function getMetadata(url, auth, isDos) {
     try {
-        const uri = isDos ? getGsUriFromDos((await getDosObject(url)).data_object) : url;
+        const uri = isDos ?
+            getGsUriFromDos((await getDosObject(url)).data_object) :
+            url;
 
         return getGsObjectMetadata(uri, auth);
     } catch (e) {
@@ -74,14 +90,14 @@ async function createSignedGsUrl(serviceAccountKey, { bucket, name }) {
 }
 
 async function martha_v3_handler(req, res) {
-    const origUrl = req.body.uri;
+    const origUrl = (req.body || {}).uri;
     const auth = req.headers.authorization;
 
     if (!origUrl) {
         res.status(400).send('Request must specify the URI of a DOS or GS object');
         return;
     } else if (!auth) {
-        res.status(401).send('Request must contain a bearer token');
+        res.status(401).send('Requests must contain a bearer token');
         return;
     }
 

@@ -9,8 +9,8 @@ function get(method, url, authorization) {
     return req;
 }
 
-function getHeaders(method, url, authorization) {
-    return get(method, url, authorization).then((response) => response.headers);
+function getHeaders(url, authorization) {
+    return get('head', url, authorization).then((response) => response.headers);
 }
 
 function getJsonFrom(url, authorization) {
