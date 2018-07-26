@@ -1,5 +1,5 @@
-const helpers = require("./helpers");
-const apiAdapter = require("./api_adapter");
+const helpers = require('./helpers');
+const apiAdapter = require('./api_adapter');
 
 // This function counts on the request posing  data as "application/json" content-type.
 // See: https://cloud.google.com/functions/docs/writing/http#parsing_http_requests for more details
@@ -26,7 +26,7 @@ function aggregateResponses(responses) {
         }
     });
 
-    const finalResult = {dos: parsedResults[0]};
+    const finalResult = { dos: parsedResults[0] };
     if (parsedResults[1]) {
         finalResult.googleServiceAccount = parsedResults[1];
     }
@@ -36,7 +36,7 @@ function aggregateResponses(responses) {
 function martha_v2_handler(req, res) {
     let origUrl = parseRequest(req);
     if (!origUrl) {
-        res.status(400).send("Request must specify the URL of a DOS object");
+        res.status(400).send('Request must specify the URL of a DOS object');
         return;
     }
 
@@ -45,7 +45,7 @@ function martha_v2_handler(req, res) {
         dosUrl = helpers.dosToHttps(origUrl);
     } catch (e) {
         console.error(e);
-        res.status(400).send("The specified URL is invalid");
+        res.status(400).send('The specified URL is invalid');
         return;
     }
 
@@ -58,8 +58,8 @@ function martha_v2_handler(req, res) {
             res.status(200).send(aggregateResponses(rawResults));
         })
         .catch((err) => {
-           console.error(err);
-           res.status(502).send(err);
+            console.error(err);
+            res.status(502).send(err);
         });
 }
 
