@@ -1,6 +1,6 @@
-const Storage = require('@google-cloud/storage');
-const helpers = require('./helpers');
-const apiAdapter = require('./api_adapter');
+const metadataApi = require('./metadata_api');
+const saKeys = require('./service_account_keys');
+const urlSigner = require('./urlSigner');
 
 // This function counts on the request posing data as "application/json" content-type.
 // See: https://cloud.google.com/functions/docs/writing/http#parsing_http_requests for more details
@@ -21,100 +21,22 @@ async function martha_v3_handler(req, res) {
 
     const isDos = origUrl.startsWith('dos://');
 
-    const maybeTalkToBond = async () => {
-        try {
-            return (await apiAdapter.getJsonFrom(
-                `${helpers.bondBaseUrl()}/api/link/v1/fence/serviceaccount/key`,
-                auth
-            )).data;
-        } catch (e) {
-            return undefined;
-        }
-    };
-
-    const maybeTalkToSam = () => {
-        return apiAdapter.getJsonFrom(
-            `${helpers.samBaseUrl()}/api/google/v1/user/petServiceAccount/key`,
-            auth
-        );
-    };
-
-    const getDosObject = () => {
-        const newUri = helpers.dosToHttps(origUrl);
-
-        return apiAdapter.getJsonFrom(newUri);
-    };
-
-    const parseGsUri = (uri) => {
-        return /gs:[/][/]([^/]+)[/](.+)/.exec(uri).slice(1);
-    };
-
-    const getGsObjectMetadata = async (gsUri) => {
-        const token = await apiAdapter.postJsonTo(
-            `${helpers.samBaseUrl()}/api/google/v1/user/petServiceAccount/token`,
-            auth,
-            '["https://www.googleapis.com/auth/devstorage.full_control"]'
-        );
-
-        const [bucket, name] = parseGsUri(gsUri);
-
-        const response = await apiAdapter.getHeaders(
-            `https://${bucket}.storage.googleapis.com/${encodeURIComponent(name)}`,
-            `Bearer ${token}`
-        );
-
-        return {
-            contentType: response['content-type'],
-            size: parseInt(response['content-length']),
-            // timeCreated: ,
-            updated: response['last-modified'],
-            md5Hash: response['x-goog-hash'].substring(response['x-goog-hash'].indexOf('md5=') + 4),
-            bucket,
-            name,
-            uri: gsUri
-        };
-    };
-
-    const getServiceAccountKey = () => isDos ? maybeTalkToBond() : maybeTalkToSam();
-
-    const getMetadata = async () => {
-        const uri = isDos ?
-            (await getDosObject().catch(() => Promise.reject('Couldn\'t resolve DOS object')))
-                .data_object.urls.find(e => e.url.startsWith('gs://')).url :
-            origUrl;
-
-        return getGsObjectMetadata(uri).catch(e => Promise.reject('Couldn\'t get metadata'));
-    };
-
-    try {
-        const [serviceAccountKey, metadata] = await Promise.all([
-            getServiceAccountKey().catch(e => {
-                res.status(e.status).send('Error talking to SAM');
-            }),
-            getMetadata()
-        ]);
-
-        if (!serviceAccountKey && !isDos) {
-            return;
-        }
-
-        const createSignedGsUrl = async () => {
-            const storage = new Storage({ credentials: serviceAccountKey });
-
-            return (await storage.bucket(metadata.bucket).file(metadata.name).getSignedUrl({
-                action: 'read',
-                expires: Date.now() + 36e5
-            }))[0];
-        };
+    return await Promise.all([
+        saKeys.getServiceAccountKey(auth, isDos),
+        metadataApi.getMetadata(origUrl, auth, isDos)
+    ]).then(async (results) => {
+        const [serviceAccountKey, metadata] = results;
 
         if (serviceAccountKey) {
-            metadata.signedUrl = await createSignedGsUrl(serviceAccountKey, metadata);
+            metadata.signedUrl = await urlSigner.createSignedGsUrl(serviceAccountKey, metadata);
         }
 
         res.status(200).send(metadata);
-    } catch (e) {
-        res.status(500).send('Error parsing URI');
-    }
+    }).catch((err) => {
+        // TODO - pretty print the error to logs like what gets sent in the response
+        console.error("Failed to get Service Account Key and/or object metadata");
+        res.status(502).send(err);
+    });
 }
 
 exports.martha_v3_handler = martha_v3_handler;
