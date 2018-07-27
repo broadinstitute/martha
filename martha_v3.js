@@ -1,15 +1,25 @@
 const metadataApi = require('./metadata_api');
 const saKeys = require('./service_account_keys');
 const urlSigner = require('./urlSigner');
+const url = require('url');
 
 // This function counts on the request posing data as "application/json" content-type.
 // See: https://cloud.google.com/functions/docs/writing/http#parsing_http_requests for more details
 
-async function martha_v3_handler(req, res) {
+function isValidProtocol(urlString) {
+    try {
+        return ["gs:", "dos:"].indexOf(url.parse(urlString).protocol) >= 0;
+    } catch(e) {
+        console.error(`URI must use 'gs:' or 'dos:' protocols: ${urlString}`);
+        return false;
+    }
+}
+
+function martha_v3_handler(req, res) {
     const origUrl = (req.body || {}).uri;
     const auth = req.headers.authorization;
 
-    if (!origUrl) {
+    if (!origUrl || !isValidProtocol(origUrl)) {
         res.status(400).send('Request must specify the URI of a DOS or GS object');
         return;
     } else if (!auth) {
@@ -21,7 +31,7 @@ async function martha_v3_handler(req, res) {
 
     const isDos = origUrl.startsWith('dos://');
 
-    return await Promise.all([
+    return Promise.all([
         saKeys.getServiceAccountKey(auth, isDos),
         metadataApi.getMetadata(origUrl, auth, isDos)
     ]).then(async (results) => {

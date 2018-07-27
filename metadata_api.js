@@ -33,7 +33,11 @@ function getPetTokenFromSam(bearerToken) {
     return apiAdapter.postJsonTo(
         `${helpers.samBaseUrl()}/api/google/v1/user/petServiceAccount/token`,
         bearerToken,
-        '["https://www.googleapis.com/auth/devstorage.full_control"]');
+        '["https://www.googleapis.com/auth/devstorage.full_control"]')
+        .catch((e) => {
+            console.error("Failed to get Pet Service Account Token from Sam");
+            throw e;
+        });
 }
 
 function getGsObjectMetadata(gsUri, auth) {
@@ -54,7 +58,7 @@ function getGsObjectMetadata(gsUri, auth) {
         };
     })
     .catch((e) => {
-        console.error("Failed to get Service Account Key from SAM");
+        console.error(`Failed to get metadata for: ${gsUri}`);
         throw e;
     });
 }
@@ -73,5 +77,4 @@ function getDosObject(dosUri) {
     return apiAdapter.getJsonFrom(newUri).catch((e) => console.error("Failed while trying to retrieve DOS object", e));
 }
 
-exports.getGsObjectMetadata = getGsObjectMetadata;
 exports.getMetadata = getMetadata;

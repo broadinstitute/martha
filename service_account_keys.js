@@ -6,7 +6,7 @@ function maybeTalkToBond(auth) {
         `${helpers.bondBaseUrl()}/api/link/v1/fence/serviceaccount/key`,
         auth
     ).catch((e) => {
-        console.error("Problem while trying to talk to Bond");
+        console.error("Unable to retrieve Service Account Key from Bond");
         throw e;
     });
 }
@@ -16,7 +16,7 @@ function maybeTalkToSam(auth) {
         `${helpers.samBaseUrl()}/api/google/v1/user/petServiceAccount/key`,
         auth
     ).catch((e) => {
-        console.error("Problem while trying to talk to Sam");
+        console.error("Unable to retrieve Pet Service Account Key from Sam");
         throw e;
     });
 }
