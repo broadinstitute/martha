@@ -15,6 +15,14 @@ function isValidProtocol(urlString) {
     }
 }
 
+/**
+ * Takes a uri for a DOS object or a GS object along with an authorization header.  This method will gather and return
+ * metadata for the object and will attempt to use the bearer token to generate a signed url
+ * (https://cloud.google.com/storage/docs/access-control/signed-urls) that will grant access to the object.
+ * @param req
+ * @param res
+ * @returns {Promise<any[]>}
+ */
 function martha_v3_handler(req, res) {
     const origUrl = (req.body || {}).uri;
     const auth = req.headers.authorization;
