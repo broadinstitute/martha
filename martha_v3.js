@@ -28,9 +28,11 @@ function martha_v3_handler(req, res) {
     const auth = req.headers.authorization;
 
     if (!origUrl || !isValidProtocol(origUrl)) {
+        console.error('Uri is missing or invalid');
         res.status(400).send('Request must specify the URI of a DOS or GS object');
         return;
     } else if (!auth) {
+        console.error('Request did not not specify an authorization header');
         res.status(401).send('Requests must contain a bearer token');
         return;
     }
