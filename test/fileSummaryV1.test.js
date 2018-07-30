@@ -9,7 +9,7 @@
 
 const test = require('ava');
 const sinon = require('sinon');
-const martha_v3 = require('../martha_v3').martha_v3_handler;
+const martha_v3 = require('../fileSummaryV1').fileSummaryV1Handler;
 const saKeys = require('../service_account_keys');
 const metadataApi = require('../metadata_api');
 const urlSigner = require('../urlSigner');
@@ -65,7 +65,7 @@ test.serial.afterEach(() => {
     sandbox.restore();
 });
 
-test.serial('martha_v3 resolves a valid gs url into a metadata and signed url', async (t) => {
+test.serial('fileSummaryV1Handler resolves a valid gs url into a metadata and signed url', async (t) => {
     const response = mockResponse();
     await martha_v3(mockRequest({ body: { uri: 'gs://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
@@ -75,7 +75,7 @@ test.serial('martha_v3 resolves a valid gs url into a metadata and signed url', 
     t.is(response.statusCode, 200);
 });
 
-test.serial('martha_v3 resolves a valid dos url into metadata and signed url', async (t) => {
+test.serial('fileSummaryV1Handler resolves a valid dos url into metadata and signed url', async (t) => {
     const response = mockResponse();
     await martha_v3(mockRequest({ body: { uri: 'dos://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
@@ -85,7 +85,7 @@ test.serial('martha_v3 resolves a valid dos url into metadata and signed url', a
     t.is(response.statusCode, 200);
 });
 
-test.serial('martha_v3 returns 401 when no authorization header is provided', async (t) => {
+test.serial('fileSummaryV1Handler returns 401 when no authorization header is provided', async (t) => {
     const response = mockResponse();
     const mockReq = mockRequest({ body: { uri: 'gs://example.com/validGS' } });
     delete mockReq.headers.authorization;
@@ -93,25 +93,25 @@ test.serial('martha_v3 returns 401 when no authorization header is provided', as
     t.is(response.statusCode, 401);
 });
 
-test.serial('martha_v3 should return 400 if not given a url', async (t) => {
+test.serial('fileSummaryV1Handler should return 400 if not given a url', async (t) => {
     const response = mockResponse();
     await martha_v3(mockRequest({ body: { 'foo': 'bar' } }), response);
     t.is(response.statusCode, 400);
 });
 
-test.serial('martha_v3 should return 400 if no data is posted with the request', async (t) => {
+test.serial('fileSummaryV1Handler should return 400 if no data is posted with the request', async (t) => {
     const response = mockResponse();
     await martha_v3(mockRequest({}), response);
     t.is(response.statusCode, 400);
 });
 
-test.serial('martha_v3 should return 400 if given a \'uri\' with an invalid value', async (t) => {
+test.serial('fileSummaryV1Handler should return 400 if given a \'uri\' with an invalid value', async (t) => {
     const response = mockResponse();
     await martha_v3(mockRequest({ body: { uri: 'Not a valid URI' } }), response);
     t.is(response.statusCode, 400);
 });
 
-test.serial('martha_v3 should return 502 if it is unable to retrieve a service account key', async (t) => {
+test.serial('fileSummaryV1Handler should return 502 if it is unable to retrieve a service account key', async (t) => {
     getServiceAccountKeyStub.restore();
     sandbox.stub(saKeys, getServiceAccountKeyMethodName).rejects(new Error('Stubbed error getting Service Account Key'));
     const response = mockResponse();
@@ -121,7 +121,7 @@ test.serial('martha_v3 should return 502 if it is unable to retrieve a service a
     t.is(response.statusCode, 502);
 });
 
-test.serial('martha_v3 should return 502 if it is unable to retrieve metadata for the object', async (t) => {
+test.serial('fileSummaryV1Handler should return 502 if it is unable to retrieve metadata for the object', async (t) => {
     getMetadataStub.restore();
     sandbox.stub(metadataApi, getMetadataMethodName).rejects(new Error('Stubbed error getting metadata for object'));
     const response = mockResponse();
@@ -131,7 +131,7 @@ test.serial('martha_v3 should return 502 if it is unable to retrieve metadata fo
     t.is(response.statusCode, 502);
 });
 
-test.serial('martha_v3 should return 502 if it is unable to sign a url for the object', async (t) => {
+test.serial('fileSummaryV1Handler should return 502 if it is unable to sign a url for the object', async (t) => {
     createSignedUrlStub.restore();
     sandbox.stub(urlSigner, createSignedUrlMethodName).rejects(new Error('Stubbed error trying to sign url'));
     const response = mockResponse();

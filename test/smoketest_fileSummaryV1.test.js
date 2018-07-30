@@ -8,13 +8,13 @@
 const test = require('ava');
 const supertest = require('supertest')(process.env.BASE_URL);
 
-// NOTE: We can only test failure cases of martha_v3.
-// Because these smoketests are executed by a Google Service Account, we are unable to test martha_v3 (with Authz)
+// NOTE: We can only test failure cases of fileSummaryV1Handler.
+// Because these smoketests are executed by a Google Service Account, we are unable to test fileSummaryV1Handler (with Authz)
 // without first authenticating that service account with Fence.
 
 test.cb('smoketest_v3 responds with 400 if a uri is not provided', (t) => {
     supertest
-        .post('/martha_v3')
+        .post('/fileSummaryV1Handler')
         .set('Content-Type', 'application/json')
         .send({ notValid: 'dos://broad-dsp-dos.storage.googleapis.com/dos.json' })
         .expect(400)
@@ -24,7 +24,7 @@ test.cb('smoketest_v3 responds with 400 if a uri is not provided', (t) => {
 
 test.cb('smoketest_v3 responds with 400 if uri passed is malformed', (t) => {
     supertest
-        .post('/martha_v3')
+        .post('/fileSummaryV1Handler')
         .set('Content-Type', 'application/json')
         .send({ uri: 'somethingNotValidURL' })
         .expect(400)
@@ -34,7 +34,7 @@ test.cb('smoketest_v3 responds with 400 if uri passed is malformed', (t) => {
 
 test.cb('smoketest_v3 responds with 400 if uri is valid but not authorization is provided', (t) => {
     supertest
-        .post('/martha_v3')
+        .post('/fileSummaryV1Handler')
         .set('Content-Type', 'application/json')
         .send({ uri: 'dos://broad-dsp-dos.storage.googleapis.com/dos.json' })
         .expect(401)

@@ -23,7 +23,7 @@ function isValidProtocol(urlString) {
  * @param res
  * @returns {Promise<any[]>}
  */
-function martha_v3_handler(req, res) {
+function fileSummaryV1Handler(req, res) {
     const origUrl = (req.body || {}).uri;
     const auth = req.headers.authorization;
 
@@ -59,4 +59,4 @@ function martha_v3_handler(req, res) {
     });
 }
 
-exports.martha_v3_handler = martha_v3_handler;
+exports.fileSummaryV1Handler = fileSummaryV1Handler;
