@@ -24,7 +24,7 @@ jobs:
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "TODO"
+            - "29:14:13:da:54:92:5d:7d:50:26:a2:96:40:fd:a9:ed"
       - checkout
       - run:
           when: on_success
