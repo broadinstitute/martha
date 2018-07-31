@@ -31,15 +31,24 @@ const mockResponse = () => {
     };
 };
 
-const gsObjectMetadata = {
-    contentType: 'application/json',
-    size: 1234,
-    updated: 'Mon, 16 Jul 2018 21:36:14 GMT',
-    md5Hash: 'abcdefg',
-    bucket: 'some.fake-location',
-    name: 'file.txt',
-    uri: 'gs://some.fake-location/file.txt'
+const gsObjectMetadata = () => {
+    return {
+        contentType: 'application/json',
+        size: 1234,
+        updated: 'Mon, 16 Jul 2018 21:36:14 GMT',
+        md5Hash: 'abcdefg',
+        bucket: 'some.fake-location',
+        name: 'file.txt',
+        uri: 'gs://some.fake-location/file.txt'
+    }
 };
+
+const fullExpectedResult = () => {
+    const expectedResult = gsObjectMetadata();
+    expectedResult.signedUrl = fakeSignedUrl;
+    return expectedResult;
+};
+
 const fakeSignedUrl = 'http://i.am.a.signed.url.com/totallyMadeUp';
 const fakeSAKey = {key: 'I am not real'};
 
@@ -56,7 +65,7 @@ test.serial.beforeEach(() => {
     getServiceAccountKeyStub = sandbox.stub(saKeys, getServiceAccountKeyMethodName);
     getServiceAccountKeyStub.resolves(fakeSAKey);
     getMetadataStub = sandbox.stub(metadataApi, getMetadataMethodName);
-    getMetadataStub.returns(gsObjectMetadata);
+    getMetadataStub.returns(gsObjectMetadata());
     createSignedUrlStub = sandbox.stub(urlSigner, createSignedUrlMethodName);
     createSignedUrlStub.returns(fakeSignedUrl);
 });
@@ -69,8 +78,7 @@ test.serial('fileSummaryV1Handler resolves a valid gs url into a metadata and si
     const response = mockResponse();
     await martha_v3(mockRequest({ body: { uri: 'gs://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
-    // TODO: The following assertion passes but it should not
-    t.deepEqual(result, gsObjectMetadata);
+    t.deepEqual(result, fullExpectedResult());
     t.truthy(result.signedUrl);
     t.is(response.statusCode, 200);
 });
@@ -79,21 +87,19 @@ test.serial('fileSummaryV1Handler resolves a valid dos url into metadata and sig
     const response = mockResponse();
     await martha_v3(mockRequest({ body: { uri: 'dos://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
-    // TODO: The following assertion passes but it should not
-    t.deepEqual(result, gsObjectMetadata);
+    t.deepEqual(result, fullExpectedResult());
     t.truthy(result.signedUrl);
     t.is(response.statusCode, 200);
 });
 
-test.skip('fileSummaryV1Handler resolves a valid dos url into metadata with no signed url when not linked to Fence', async (t) => {
+test.serial('fileSummaryV1Handler resolves a valid dos url into metadata with no signed url when not linked to Fence', async (t) => {
+    getServiceAccountKeyStub.restore();
+    sandbox.stub(saKeys, getServiceAccountKeyMethodName).resolves();
     const response = mockResponse();
     const mockReq = mockRequest({ body: { uri: 'dos://example.com/validGS' } });
-    getServiceAccountKeyStub.restore();
-    getServiceAccountKeyStub.resolves(false);
     await martha_v3(mockReq, response);
     const result = response.send.lastCall.args[0];
-    // TODO: The following assertion passes but it should not
-    t.deepEqual(result, gsObjectMetadata);
+    t.deepEqual(result, gsObjectMetadata());
     t.falsy(result.signedUrl);
     t.is(response.statusCode, 200);
 });
