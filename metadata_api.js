@@ -6,13 +6,10 @@ function getRawMetadata(token, bucket, name) {
         `https://${bucket}.storage.googleapis.com/${encodeURIComponent(name)}`,
         `Bearer ${token}`
     ).catch((e) => {
-        switch (e.status) {
-            case 403:
-                console.error('Permission denied for bucket object');
-                break;
-            default:
-                console.error('Unexpected error while trying to get headers for bucket object')
-        }
+        console.error(e.status === 403 ?
+            'Permission denied for bucket object' :
+            'Unexpected error while trying to get headers for bucket object'
+        );
         throw e;
     });
 }
@@ -32,23 +29,27 @@ function getGsObjectMetadata(gsUri, auth) {
     const [bucket, name] = parseGsUri(gsUri);
 
     return getPetTokenFromSam(auth)
-    .then((token) => getRawMetadata(token, bucket, name))
-    .then((response) => {
-        return {
-            contentType: response['content-type'],
-            size: parseInt(response['content-length']),
-            // timeCreated: ,
-            updated: response['last-modified'],
-            md5Hash: response['x-goog-hash'].substring(response['x-goog-hash'].indexOf('md5=') + 4),
-            bucket,
-            name,
-            uri: gsUri
-        };
-    })
-    .catch((e) => {
-        console.error(`Failed to get metadata for: ${gsUri}`);
-        throw e;
-    });
+        .then((token) => getRawMetadata(token, bucket, name))
+        .then((response) => {
+            const {
+                'content-type': contentType, 'content-length': contentLength,
+                'last-modified': lastModified, 'x-goog-hash': xGoogHash
+            } = response;
+
+            return {
+                contentType,
+                size: parseInt(contentLength),
+                updated: new Date(lastModified).toString(),
+                md5Hash: xGoogHash.substring(xGoogHash.indexOf('md5=') + 4),
+                bucket,
+                name,
+                gsUri
+            };
+        })
+        .catch((e) => {
+            console.error(`Failed to get metadata for: ${gsUri}`);
+            throw e;
+        });
 }
 
 function parseGsUri(uri) {
@@ -59,19 +60,40 @@ function getGsUriFromDos(dosMetadata) {
     return dosMetadata.urls.find((e) => e.url.startsWith('gs://')).url;
 }
 
-function getDosObject(dosUri) {
+function getDosObjectMetadata(dosUri) {
     const newUri = helpers.dosToHttps(dosUri);
 
-    return apiAdapter.getJsonFrom(newUri).catch((e) => console.error('Failed while trying to retrieve DOS object', e));
+    return apiAdapter.getJsonFrom(newUri)
+        .then((response) => response.data_object)
+        .then((metadata) => {
+            const { mime_type, size, created, updated, checksums } = metadata;
+            const gsUri = getGsUriFromDos(metadata);
+            const [bucket, name] = parseGsUri(gsUri);
+
+            return {
+                contentType: mime_type || 'application/octet-stream',
+                size,
+                timeCreated: created ? new Date(created).toString() : undefined,
+                updated: updated ? new Date(updated).toString() : undefined,
+                md5Hash: (checksums.find((e) => e.type === 'md5') || {}).checksum,
+                bucket,
+                name,
+                gsUri
+            };
+        })
+        .catch((e) => {
+            console.error(`Failed to get metadata for: ${dosUri}`);
+            throw e;
+        });
 }
 
 async function getMetadata(url, auth, isDos) {
     try {
-        const uri = isDos ?
-            getGsUriFromDos((await getDosObject(url)).data_object) :
-            url;
-
-        return getGsObjectMetadata(uri, auth);
+        if (isDos) {
+            return getDosObjectMetadata(url);
+        } else {
+            return getGsObjectMetadata(url, auth);
+        }
     } catch (e) {
         console.error('Metadata problems:', e);
     }
