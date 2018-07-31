@@ -89,11 +89,7 @@ function getDosObjectMetadata(dosUri) {
 
 async function getMetadata(url, auth, isDos) {
     try {
-        if (isDos) {
-            return getDosObjectMetadata(url);
-        } else {
-            return getGsObjectMetadata(url, auth);
-        }
+        return isDos ? getDosObjectMetadata(url) : getGsObjectMetadata(url, auth);
     } catch (e) {
         console.error('Metadata problems:', e);
     }
