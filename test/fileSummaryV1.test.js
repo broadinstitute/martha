@@ -9,7 +9,7 @@
 
 const test = require('ava');
 const sinon = require('sinon');
-const martha_v3 = require('../fileSummaryV1').fileSummaryV1Handler;
+const fileSummaryV1 = require('../fileSummaryV1').fileSummaryV1Handler;
 const saKeys = require('../service_account_keys');
 const metadataApi = require('../metadata_api');
 const urlSigner = require('../urlSigner');
@@ -40,17 +40,17 @@ const gsObjectMetadata = () => {
         bucket: 'some.fake-location',
         name: 'file.txt',
         uri: 'gs://some.fake-location/file.txt'
-    }
+    };
 };
+
+const fakeSignedUrl = 'http://i.am.a.signed.url.com/totallyMadeUp';
+const fakeSAKey = {key: 'I am not real'};
 
 const fullExpectedResult = () => {
     const expectedResult = gsObjectMetadata();
     expectedResult.signedUrl = fakeSignedUrl;
     return expectedResult;
 };
-
-const fakeSignedUrl = 'http://i.am.a.signed.url.com/totallyMadeUp';
-const fakeSAKey = {key: 'I am not real'};
 
 const getServiceAccountKeyMethodName = 'getServiceAccountKey';
 let getServiceAccountKeyStub;
@@ -76,7 +76,7 @@ test.serial.afterEach(() => {
 
 test.serial('fileSummaryV1Handler resolves a valid gs url into a metadata and signed url', async (t) => {
     const response = mockResponse();
-    await martha_v3(mockRequest({ body: { uri: 'gs://example.com/validGS' } }), response);
+    await fileSummaryV1(mockRequest({ body: { uri: 'gs://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
     t.deepEqual(result, fullExpectedResult());
     t.truthy(result.signedUrl);
@@ -85,7 +85,7 @@ test.serial('fileSummaryV1Handler resolves a valid gs url into a metadata and si
 
 test.serial('fileSummaryV1Handler resolves a valid dos url into metadata and signed url', async (t) => {
     const response = mockResponse();
-    await martha_v3(mockRequest({ body: { uri: 'dos://example.com/validGS' } }), response);
+    await fileSummaryV1(mockRequest({ body: { uri: 'dos://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
     t.deepEqual(result, fullExpectedResult());
     t.truthy(result.signedUrl);
@@ -97,7 +97,7 @@ test.serial('fileSummaryV1Handler resolves a valid dos url into metadata with no
     sandbox.stub(saKeys, getServiceAccountKeyMethodName).resolves();
     const response = mockResponse();
     const mockReq = mockRequest({ body: { uri: 'dos://example.com/validGS' } });
-    await martha_v3(mockReq, response);
+    await fileSummaryV1(mockReq, response);
     const result = response.send.lastCall.args[0];
     t.deepEqual(result, gsObjectMetadata());
     t.falsy(result.signedUrl);
@@ -108,25 +108,25 @@ test.serial('fileSummaryV1Handler returns 401 when no authorization header is pr
     const response = mockResponse();
     const mockReq = mockRequest({ body: { uri: 'gs://example.com/validGS' } });
     delete mockReq.headers.authorization;
-    await martha_v3(mockReq, response);
+    await fileSummaryV1(mockReq, response);
     t.is(response.statusCode, 401);
 });
 
 test.serial('fileSummaryV1Handler should return 400 if not given a url', async (t) => {
     const response = mockResponse();
-    await martha_v3(mockRequest({ body: { 'foo': 'bar' } }), response);
+    await fileSummaryV1(mockRequest({ body: { 'foo': 'bar' } }), response);
     t.is(response.statusCode, 400);
 });
 
 test.serial('fileSummaryV1Handler should return 400 if no data is posted with the request', async (t) => {
     const response = mockResponse();
-    await martha_v3(mockRequest({}), response);
+    await fileSummaryV1(mockRequest({}), response);
     t.is(response.statusCode, 400);
 });
 
 test.serial('fileSummaryV1Handler should return 400 if given a \'uri\' with an invalid value', async (t) => {
     const response = mockResponse();
-    await martha_v3(mockRequest({ body: { uri: 'Not a valid URI' } }), response);
+    await fileSummaryV1(mockRequest({ body: { uri: 'Not a valid URI' } }), response);
     t.is(response.statusCode, 400);
 });
 
@@ -134,7 +134,7 @@ test.serial('fileSummaryV1Handler should return 502 if it is unable to retrieve 
     getServiceAccountKeyStub.restore();
     sandbox.stub(saKeys, getServiceAccountKeyMethodName).rejects(new Error('Stubbed error getting Service Account Key'));
     const response = mockResponse();
-    await martha_v3(mockRequest({ body: { uri: 'dos://example.com/validGS' } }), response);
+    await fileSummaryV1(mockRequest({ body: { uri: 'dos://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
     t.true(result instanceof Error);
     t.is(response.statusCode, 502);
@@ -144,7 +144,7 @@ test.serial('fileSummaryV1Handler should return 502 if it is unable to retrieve 
     getMetadataStub.restore();
     sandbox.stub(metadataApi, getMetadataMethodName).rejects(new Error('Stubbed error getting metadata for object'));
     const response = mockResponse();
-    await martha_v3(mockRequest({ body: { uri: 'gs://example.com/validGS' } }), response);
+    await fileSummaryV1(mockRequest({ body: { uri: 'gs://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
     t.true(result instanceof Error);
     t.is(response.statusCode, 502);
@@ -154,7 +154,7 @@ test.serial('fileSummaryV1Handler should return 502 if it is unable to sign a ur
     createSignedUrlStub.restore();
     sandbox.stub(urlSigner, createSignedUrlMethodName).rejects(new Error('Stubbed error trying to sign url'));
     const response = mockResponse();
-    await martha_v3(mockRequest({ body: { uri: 'gs://example.com/validGS' } }), response);
+    await fileSummaryV1(mockRequest({ body: { uri: 'gs://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
     t.true(result instanceof Error);
     t.is(response.statusCode, 502);

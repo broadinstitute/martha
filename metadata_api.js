@@ -11,7 +11,7 @@ function getRawMetadata(token, bucket, name) {
                 console.error('Permission denied for bucket object');
                 break;
             default:
-                console.error('Unexpected error while trying to get headers for bucket object')
+                console.error('Unexpected error while trying to get headers for bucket object');
         }
         throw e;
     });
