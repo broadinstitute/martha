@@ -39,7 +39,7 @@ const gsObjectMetadata = () => {
         md5Hash: 'abcdefg',
         bucket: 'some.fake-location',
         name: 'file.txt',
-        uri: 'gs://some.fake-location/file.txt'
+        gsUri: 'gs://some.fake-location/file.txt'
     };
 };
 
