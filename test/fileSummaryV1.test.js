@@ -85,6 +85,19 @@ test.serial('fileSummaryV1Handler resolves a valid dos url into metadata and sig
     t.is(response.statusCode, 200);
 });
 
+test.skip('fileSummaryV1Handler resolves a valid dos url into metadata with no signed url when not linked to Fence', async (t) => {
+    const response = mockResponse();
+    const mockReq = mockRequest({ body: { uri: 'dos://example.com/validGS' } });
+    getServiceAccountKeyStub.restore();
+    getServiceAccountKeyStub.resolves(false);
+    await martha_v3(mockReq, response);
+    const result = response.send.lastCall.args[0];
+    // TODO: The following assertion passes but it should not
+    t.deepEqual(result, gsObjectMetadata);
+    t.falsy(result.signedUrl);
+    t.is(response.statusCode, 200);
+});
+
 test.serial('fileSummaryV1Handler returns 401 when no authorization header is provided', async (t) => {
     const response = mockResponse();
     const mockReq = mockRequest({ body: { uri: 'gs://example.com/validGS' } });
