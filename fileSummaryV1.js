@@ -8,8 +8,8 @@ const url = require('url');
 
 function isValidProtocol(urlString) {
     try {
-        return ["gs:", "dos:"].indexOf(url.parse(urlString).protocol) >= 0;
-    } catch(e) {
+        return ['gs:', 'dos:'].indexOf(url.parse(urlString).protocol) >= 0;
+    } catch (e) {
         console.error(`URI must use 'gs:' or 'dos:' protocols: ${urlString}`);
         return false;
     }
@@ -21,9 +21,8 @@ function isValidProtocol(urlString) {
  * (https://cloud.google.com/storage/docs/access-control/signed-urls) that will grant access to the object.
  * @param req
  * @param res
- * @returns {Promise<any[]>}
  */
-function fileSummaryV1Handler(req, res) {
+async function fileSummaryV1Handler(req, res) {
     const origUrl = (req.body || {}).uri;
     const auth = req.headers.authorization;
 
@@ -40,23 +39,24 @@ function fileSummaryV1Handler(req, res) {
     console.log('Input: ', origUrl);
 
     const isDos = origUrl.startsWith('dos://');
+    try {
 
-    return Promise.all([
-        saKeys.getServiceAccountKey(auth, isDos),
-        metadataApi.getMetadata(origUrl, auth, isDos)
-    ]).then(async (results) => {
-        const [serviceAccountKey, metadata] = results;
+        const [serviceAccountKey, metadata] = await Promise.all([
+            saKeys.getServiceAccountKey(auth, isDos),
+            metadataApi.getMetadata(origUrl, auth, isDos)
+        ]);
 
         if (serviceAccountKey) {
             metadata.signedUrl = await urlSigner.createSignedGsUrl(serviceAccountKey, metadata);
         }
 
         res.status(200).send(metadata);
-    }).catch((err) => {
+
+    } catch (err) {
         // TODO - pretty print the error to logs like what gets sent in the response
-        console.error("Failed to get Service Account Key and/or object metadata");
+        console.error('Failed to get Service Account Key and/or object metadata');
         res.status(502).send(err);
-    });
+    }
 }
 
 exports.fileSummaryV1Handler = fileSummaryV1Handler;

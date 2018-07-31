@@ -16,6 +16,6 @@ exports.martha_v2 = (req, res) => {
     corsMiddleware(req, res, () => martha_v2_handler(req, res));
 };
 
-exports.fileSummaryV1Handler = (req, res) => {
+exports.fileSummaryV1 = (req, res) => {
     corsMiddleware(req, res, () => fileSummaryV1Handler(req, res));
 };

@@ -5,9 +5,11 @@ function maybeTalkToBond(auth) {
     return apiAdapter.getJsonFrom(
         `${helpers.bondBaseUrl()}/api/link/v1/fence/serviceaccount/key`,
         auth
+    ).then(
+        (res) => res.data
     ).catch((e) => {
         console.error('Unable to retrieve Service Account Key from Bond');
-        throw e;
+        return Promise.resolve();
     });
 }
 
@@ -23,7 +25,7 @@ function maybeTalkToSam(auth) {
 
 function getServiceAccountKey(auth, isDos) {
     if (isDos) {
-        return maybeTalkToBond(auth).then((res) => res.data);
+        return maybeTalkToBond(auth);
     } else {
         return maybeTalkToSam(auth);
     }
