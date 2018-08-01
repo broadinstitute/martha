@@ -25,6 +25,10 @@ function getPetTokenFromSam(bearerToken) {
         });
 }
 
+function parseGsUri(uri) {
+    return /gs:[/][/]([^/]+)[/](.+)/.exec(uri).slice(1);
+}
+
 function getGsObjectMetadata(gsUri, auth) {
     const [bucket, name] = parseGsUri(gsUri);
 
@@ -50,10 +54,6 @@ function getGsObjectMetadata(gsUri, auth) {
             console.error(`Failed to get metadata for: ${gsUri}`);
             throw e;
         });
-}
-
-function parseGsUri(uri) {
-    return /gs:[/][/]([^/]+)[/](.+)/.exec(uri).slice(1);
 }
 
 function getGsUriFromDos(dosMetadata) {

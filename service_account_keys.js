@@ -7,7 +7,7 @@ function maybeTalkToBond(auth) {
         auth
     ).then(
         (res) => res.data
-    ).catch((e) => {
+    ).catch(() => {
         console.error('Unable to retrieve Service Account Key from Bond');
         return Promise.resolve();
     });
