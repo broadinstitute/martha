@@ -46,6 +46,6 @@ docker run --rm -v $PWD:${MARTHA_PATH} \
      cd ${MARTHA_PATH} &&
      gcloud beta functions deploy martha_v1 --source=. --trigger-http --runtime nodejs8 &&
      gcloud beta functions deploy martha_v2 --source=. --trigger-http --runtime nodejs8 &&
-     gcloud beta functions deploy fileSummaryV1Handler --source=. --runtime nodejs8 --trigger-http &&
+     gcloud beta functions deploy fileSummaryV1 --source=. --runtime nodejs8 --trigger-http &&
      npm install &&
      npm run-script smoketest"
