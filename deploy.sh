@@ -44,8 +44,8 @@ docker run --rm -v $PWD:${MARTHA_PATH} \
     "gcloud config set project ${PROJECT_NAME} &&
      gcloud auth activate-service-account --key-file ${MARTHA_PATH}/${SERVICE_ACCT_KEY_FILE} &&
      cd ${MARTHA_PATH} &&
-     gcloud beta functions deploy martha_v1 --source=. --trigger-http &&
-     gcloud beta functions deploy martha_v2 --source=. --trigger-http &&
-     gcloud beta functions deploy fileSummaryV1Handler --source=. --trigger-http &&
+     gcloud beta functions deploy martha_v1 --source=. --trigger-http --runtime nodejs8 &&
+     gcloud beta functions deploy martha_v2 --source=. --trigger-http --runtime nodejs8 &&
+     gcloud beta functions deploy fileSummaryV1Handler --source=. --runtime nodejs8 --trigger-http &&
      npm install &&
      npm run-script smoketest"
