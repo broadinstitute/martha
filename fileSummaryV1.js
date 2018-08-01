@@ -27,11 +27,11 @@ async function fileSummaryV1Handler(req, res) {
     const auth = req.headers.authorization;
 
     if (!origUrl || !isValidProtocol(origUrl)) {
-        console.error('Uri is missing or invalid');
+        console.error(new Error('Uri is missing or invalid'));
         res.status(400).send('Request must specify the URI of a DOS or GS object');
         return;
     } else if (!auth) {
-        console.error('Request did not not specify an authorization header');
+        console.error(new Error('Request did not not specify an authorization header'));
         res.status(401).send('Requests must contain a bearer token');
         return;
     }
@@ -54,7 +54,7 @@ async function fileSummaryV1Handler(req, res) {
 
     } catch (err) {
         // TODO - pretty print the error to logs like what gets sent in the response
-        console.error('Failed to get Service Account Key and/or object metadata');
+        console.error(new Error('Failed to get Service Account Key and/or object metadata'));
         res.status(502).send(err);
     }
 }
