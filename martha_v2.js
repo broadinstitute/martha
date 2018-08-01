@@ -12,7 +12,7 @@ function parseRequest(req) {
 function maybeTalkToBond(req) {
     let myPromise;
     if (req && req.headers && req.headers.authorization) {
-        myPromise = apiAdapter.getTextFrom(`${helpers.bondBaseUrl()}/api/link/v1/fence/serviceaccount/key`, req.headers.authorization);
+        myPromise = apiAdapter.getJsonFrom(`${helpers.bondBaseUrl()}/api/link/v1/fence/serviceaccount/key`, req.headers.authorization);
     } else {
         myPromise = Promise.resolve();
     }
@@ -20,21 +20,16 @@ function maybeTalkToBond(req) {
 }
 
 function aggregateResponses(responses) {
-    const parsedResults = responses.map(function (str) {
-        if (str) {
-            return JSON.parse(str);
-        }
-    });
-
-    const finalResult = { dos: parsedResults[0] };
-    if (parsedResults[1]) {
-        finalResult.googleServiceAccount = parsedResults[1];
+    const finalResult = { dos: responses[0] };
+    if (responses[1]) {
+        finalResult.googleServiceAccount = responses[1];
     }
+
     return finalResult;
 }
 
 function martha_v2_handler(req, res) {
-    let origUrl = parseRequest(req);
+    const origUrl = parseRequest(req);
     if (!origUrl) {
         res.status(400).send('Request must specify the URL of a DOS object');
         return;
@@ -49,8 +44,7 @@ function martha_v2_handler(req, res) {
         return;
     }
 
-    console.log(dosUrl);
-    const dosPromise = apiAdapter.getTextFrom(dosUrl);
+    const dosPromise = apiAdapter.getJsonFrom(dosUrl);
     const bondPromise = maybeTalkToBond(req);
 
     return Promise.all([dosPromise, bondPromise])
