@@ -1,29 +1,28 @@
-const url = require("url");
-const config = require("./config.json");
+const url = require('url');
+const config = require('./config.json');
 
 function dosToHttps(dosUri) {
     const parsedUrl = url.parse(dosUri);
-    const origPath = parsedUrl.pathname;
-    let newPath = "/ga4gh/dos/v1/dataobjects" + origPath;
 
-    // special case for hostless dos uris which will be better supported in martha v2
-    if (parsedUrl.host.startsWith("dg.")) {
-        newPath = "/ga4gh/dos/v1/dataobjects/" + parsedUrl.hostname + origPath;
+    parsedUrl.protocol = 'https';
+
+    if (parsedUrl.host.startsWith('dg.')) {
+        parsedUrl.pathname = `/ga4gh/dos/v1/dataobjects/${parsedUrl.hostname}${parsedUrl.pathname}`;
         parsedUrl.host = config.dosResolutionHost;
+    } else {
+        parsedUrl.pathname = `/ga4gh/dos/v1/dataobjects${parsedUrl.pathname}`;
     }
 
-    console.log(newPath);
-    parsedUrl.protocol = "https";
-    parsedUrl.path = newPath;
-    parsedUrl.pathname = newPath;
-    console.log(parsedUrl);
-    console.log(parsedUrl.toString);
-    return url.format(parsedUrl);
+    const output = url.format(parsedUrl);
+
+    console.debug('Parsed to:', output);
+    return output;
 }
 
-function bondBaseUrl() {
-    return config.bondBaseUrl;
-}
+const bondBaseUrl = () => config.bondBaseUrl;
+const samBaseUrl = () => config.samBaseUrl;
+
 
 exports.dosToHttps = dosToHttps;
 exports.bondBaseUrl = bondBaseUrl;
+exports.samBaseUrl = samBaseUrl;

@@ -7,20 +7,17 @@
     "test": "ava -m !smoketest*",
     "smoketest": "ava -m smoketest*",
     "smoketest_v1": "ava -m smoketest_v1*",
-    "smoketest_v2": "ava -m smoketest_v2*"
+    "smoketest_v2": "ava -m smoketest_v2*",
+    "smoketest_fileSummaryV1": "ava -m smoketest_fileSummaryV1*"
   },
   "dependencies": {
+    "@google-cloud/storage": "^1.7.0",
     "ava": "^0.25.0",
-    "axios": "~0.18.0",
     "cors": "^2.8.4",
-    "firebase-functions": "^0.8.2",
-    "nock": "^9.3.3",
-    "npm-shrinkwrap": "^6.1.0",
-    "sinon": "^4.5.0",
     "superagent": "^3.8.3",
     "supertest": "^3.1.0"
   },
   "devDependencies": {
-    "superagent-mock": "^3.7.0"
+    "sinon": "^6.1.4"
   }
 }

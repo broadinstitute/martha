@@ -1,13 +1,33 @@
-const request = require("superagent");
+const request = require('superagent');
 
-function getTextFrom(url, authorization = null) {
-    const getReq = request.get(url);
-    if (authorization != null) {
-        getReq.set("authorization", authorization);
+function get(method, url, authorization) {
+    const req = request[method](url);
+    if (authorization) {
+        req.set('authorization', authorization);
     }
-    return getReq.then(function (response) {
-            return response.text;
-        });
+
+    return req;
 }
 
-exports.getTextFrom = getTextFrom;
+function getHeaders(url, authorization) {
+    return get('head', url, authorization).then((response) => response.headers);
+}
+
+function getJsonFrom(url, authorization) {
+    return get('get', url, authorization).then((response) => response.body);
+}
+
+function postJsonTo(url, authorization, payload) {
+    const postReq = request.post(url, payload);
+    postReq.set('Content-Type', 'application/json');
+    if (authorization) {
+        postReq.set('authorization', authorization);
+    }
+
+    return postReq.then((response) => response.body);
+}
+
+exports.get = get;
+exports.getHeaders = getHeaders;
+exports.getJsonFrom = getJsonFrom;
+exports.postJsonTo = postJsonTo;
