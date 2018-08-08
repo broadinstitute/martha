@@ -9,6 +9,8 @@ if [ "$GIT_BRANCH" == "dev" ]; then
     ENVIRONMENT="dev"
 elif [ "$GIT_BRANCH" == "alpha" ]; then
     ENVIRONMENT="alpha"
+elif [ "$GIT_BRANCH" == "perf" ]; then
+	ENVIRONMENT="perf"
 elif [ "$GIT_BRANCH" == "staging" ]; then
     ENVIRONMENT="staging"
 elif [ "$GIT_BRANCH" == "master" ]; then
