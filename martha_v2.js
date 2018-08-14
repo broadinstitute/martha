@@ -1,5 +1,14 @@
 const helpers = require('./helpers');
 const apiAdapter = require('./api_adapter');
+const URL = require('url');
+
+const BondProviders = Object.freeze({
+    FENCE: 'fence',
+    DCF_FENCE: 'dcf-fence',
+    get default() {
+        return this.DCF_FENCE;
+    }
+});
 
 // This function counts on the request posing  data as "application/json" content-type.
 // See: https://cloud.google.com/functions/docs/writing/http#parsing_http_requests for more details
@@ -9,10 +18,19 @@ function parseRequest(req) {
     }
 }
 
-function maybeTalkToBond(req) {
+function determineBondProvider(urlString) {
+    const url = URL.parse(urlString);
+    if (url.host === 'dg.4503') {
+        return BondProviders.FENCE;
+    } else {
+        return BondProviders.default;
+    }
+}
+
+function maybeTalkToBond(req, provider = BondProviders.default) {
     let myPromise;
     if (req && req.headers && req.headers.authorization) {
-        myPromise = apiAdapter.getJsonFrom(`${helpers.bondBaseUrl()}/api/link/v1/fence/serviceaccount/key`, req.headers.authorization);
+        myPromise = apiAdapter.getJsonFrom(`${helpers.bondBaseUrl()}/api/link/v1/${provider}/serviceaccount/key`, req.headers.authorization);
     } else {
         myPromise = Promise.resolve();
     }
@@ -35,6 +53,7 @@ function martha_v2_handler(req, res) {
         return;
     }
 
+    console.log(`Received URL: ${origUrl}`);
     let dosUrl;
     try {
         dosUrl = helpers.dosToHttps(origUrl);
@@ -44,8 +63,10 @@ function martha_v2_handler(req, res) {
         return;
     }
 
+    const bondProvider = determineBondProvider(origUrl);
+
     const dosPromise = apiAdapter.getJsonFrom(dosUrl);
-    const bondPromise = maybeTalkToBond(req);
+    const bondPromise = maybeTalkToBond(req, bondProvider);
 
     return Promise.all([dosPromise, bondPromise])
         .then((rawResults) => {

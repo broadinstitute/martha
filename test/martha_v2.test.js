@@ -32,6 +32,8 @@ const mockResponse = () => {
 const dosObject = { fake: 'A fake dos object' };
 const googleSAKeyObject = { key: 'A Google Service Account private key json object' };
 
+const bondRegEx = /^([^/]+)\/api\/link\/v1\/([a-z-]+)\/serviceaccount\/key$/;
+
 let getJsonFromApiStub;
 let getJsonFromApiMethodName = 'getJsonFrom';
 let sandbox = sinon.createSandbox();
@@ -117,4 +119,26 @@ test.serial('martha_v2 should return 502 if key retrieval from bond fails', asyn
     const result = response.send.lastCall.args[0];
     t.true(result instanceof Error);
     t.is(response.statusCode, 502);
+});
+
+test.serial('martha_v2 calls bond Bond with the "dcf-fence" provider when the DOS URL host is not "dg.4503"', async (t) => {
+    const response = mockResponse();
+    await martha_v2(mockRequest({ body: { 'url': 'https://example.com/validGS' } }), response);
+    const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
+    const matches = requestedBondUrl.match(bondRegEx);
+    t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
+    const expectedProvider = 'dcf-fence';
+    const actualProvider = matches[2];
+    t.is(actualProvider, expectedProvider);
+});
+
+test.serial('martha_v2 calls bond Bond with the "fence" provider when the DOS URL host is "dg.4503"', async (t) => {
+    const response = mockResponse();
+    await martha_v2(mockRequest({ body: { 'url': 'dos://dg.4503/this_part_can_be_anything' } }), response);
+    const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
+    const matches = requestedBondUrl.match(bondRegEx);
+    t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
+    const expectedProvider = 'fence';
+    const actualProvider = matches[2];
+    t.is(actualProvider, expectedProvider);
 });
