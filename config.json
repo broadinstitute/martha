@@ -1,5 +1,5 @@
 {
-    "dosResolutionHost": "dcp.bionimbus.org",
+    "dosResolutionHost": "dataguids.org",
     "bondBaseUrl": "broad-bond-dev.appspot.com",
     "samBaseUrl": "https://sam.dsde-dev.broadinstitute.org"
 }
