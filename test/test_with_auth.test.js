@@ -1,13 +1,31 @@
+/**
+ *  Run real tests against Martha functions running at `baseUrl`
+ *
+ *  Pre-requisites:
+ *      Based on what you have specified as the `baseUrl`, the Martha functions at that location will be configured to
+ *      communicate with a specific instance of Bond.  You must ensure that you have linked your User account in that
+ *      Bond instance with all supported Providers on that instance.
+ *
+ *  To run these tests:
+ *
+ *      npm test test/test_with_auth.test.js
+ *
+ */
+
 
 const baseUrl = 'http://localhost:8010/gpolumbo-practice-project/us-central1';
 
 const test = require('ava');
 const supertest = require('supertest')(baseUrl);
+const superagent = require('superagent');
 const execSync = require('child_process').execSync;
+const helpers = require('../helpers');
 
 const currentUser = execSync('gcloud auth list --filter=status:ACTIVE --format="value(account)"');
-console.log(`Using access token for user: ${currentUser}`);
 const bearerToken = execSync('gcloud auth print-access-token').toString().trim();
+
+console.log(`Using access token for user: ${currentUser}`);
+console.log(`Testing Martha functions at: ${baseUrl}`);
 
 function assertDosObject(response, t) {
     t.truthy(response.body.dos);
