@@ -4,11 +4,12 @@
   "description": "Data Object GUID Resolution",
   "private": true,
   "scripts": {
-    "test": "ava -m !smoketest*",
+    "test": "ava -m !smoketest* -m !with_auth*",
     "smoketest": "ava -m smoketest*",
     "smoketest_v1": "ava -m smoketest_v1*",
     "smoketest_v2": "ava -m smoketest_v2*",
-    "smoketest_fileSummaryV1": "ava -m smoketest_fileSummaryV1*"
+    "smoketest_fileSummaryV1": "ava -m smoketest_fileSummaryV1*",
+    "with_auth": "ava -m with_auth*"
   },
   "dependencies": {
     "@google-cloud/storage": "^1.7.0",

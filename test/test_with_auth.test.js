@@ -8,7 +8,7 @@
  *
  *  To run these tests:
  *
- *      npm test test/test_with_auth.test.js
+ *      npm run with_auth
  *
  */
 
@@ -17,15 +17,10 @@ const baseUrl = 'http://localhost:8010/gpolumbo-practice-project/us-central1';
 
 const test = require('ava');
 const supertest = require('supertest')(baseUrl);
-const superagent = require('superagent');
 const execSync = require('child_process').execSync;
-const helpers = require('../helpers');
 
-const currentUser = execSync('gcloud auth list --filter=status:ACTIVE --format="value(account)"');
-const bearerToken = execSync('gcloud auth print-access-token').toString().trim();
-
-console.log(`Using access token for user: ${currentUser}`);
-console.log(`Testing Martha functions at: ${baseUrl}`);
+let currentUser;
+let bearerToken;
 
 function assertDosObject(response, t) {
     t.truthy(response.body.dos);
@@ -58,7 +53,14 @@ function handleResponse(err, response, t, skipGoogleServiceAccount = false) {
     t.end();
 }
 
-test.cb('martha_v2 responds with DOS object only when no "authorization" header is provided', (t) => {
+test.before(() => {
+    currentUser = execSync('gcloud auth list --filter=status:ACTIVE --format="value(account)"');
+    bearerToken = execSync('gcloud auth print-access-token').toString().trim();
+    console.log(`Using access token for user: ${currentUser}`);
+    console.log(`Testing Martha functions at: ${baseUrl}`);
+});
+
+test.cb('with_auth martha_v2 responds with DOS object only when no "authorization" header is provided', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
@@ -67,7 +69,7 @@ test.cb('martha_v2 responds with DOS object only when no "authorization" header 
         .end((err, response) => handleResponse(err, response, t, true));
 });
 
-test.failing.cb('martha_v2 responds with DOS object when "authorization" header is provided', (t) => {
+test.failing.cb('with_auth martha_v2 responds with DOS object when "authorization" header is provided', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
@@ -85,7 +87,7 @@ const dosUrls = [
 ];
 
 for (const dosUrl of dosUrls) {
-    test.cb(`Calling martha_v2 with URL: "${dosUrl}" without an Access Token resolves to a DOS object`, (t) => {
+    test.cb(`with_auth Calling martha_v2 with URL: "${dosUrl}" without an Access Token resolves to a DOS object`, (t) => {
         supertest
             .post('/martha_v2')
             .set('Content-Type', 'application/json')
@@ -98,7 +100,7 @@ for (const dosUrl of dosUrls) {
 // TODO: this slice should only be temporary until we can link accounts to the other DCF-Fence server
 const currentlyFailingUrls = dosUrls.slice(1, 4);
 for (const dosUrl of currentlyFailingUrls) {
-    test.failing.cb(`Calling martha_v2 with URL: "${dosUrl}" with an Access Token resolves to a DOS object and Google SA Key`, (t) => {
+    test.failing.cb(`with_auth Calling martha_v2 with URL: "${dosUrl}" with an Access Token resolves to a DOS object and Google SA Key`, (t) => {
         supertest
             .post('/martha_v2')
             .set('Content-Type', 'application/json')
@@ -110,4 +112,3 @@ for (const dosUrl of currentlyFailingUrls) {
 }
 
 // TODO: Test martha_v1 and fileSummaryV1
-// test
