@@ -3,7 +3,8 @@ Martha
 
 ![alt text](https://raw.githubusercontent.com/broadinstitute/martha/dev/images/doctor_martha_jones_and_the_tardis.jpg)
 
-A Google Cloud Function.
+Google Cloud Functions for resolving [DOS](https://data-object-service.readthedocs.io/en/latest/) URIs.
+
 For a more general overview of Google Cloud Functions as DSP uses them please look
 [here](https://docs.google.com/document/d/1VZIFVdu77fNs0MVKLY8QNqiVWza71ED0Bf1Fj8CRNGs/edit#).
 Martha is an "external" service that can be deployed independently from the rest of Firecloud.
@@ -93,6 +94,32 @@ Deployments occur automatically whenever code is merged into specifically named 
 * Any merge to `master` will be deployed to `broad-dsde-production`.
 
 **NOTE:** Each deployment will redeploy all supported versions of functions.
+
+## Docker
+
+The Dockerfile for Martha builds a Docker image that, when run, does the following:
+
+* Starts the [Google Cloud Functions Emulator](https://cloud.google.com/functions/docs/emulator)
+* Deploys all supported Martha functions to the emulator
+* Exposes ports: `8008` and `8010`
+* Handles `HTTP` requests to the REST API and Functions respectively on the exposed ports
+
+## Run the Docker Container
+
+To run the Martha container, whether you are running a locally built image or an image pulled from quay.io, you must
+start the container with appropriate port mappings between the host and the container.  You can choose whatever host
+ports you may require, in the following example ports `58010` and `58008` are used:
+
+`docker run -p 58010:8010 -p 58008:8008 quay.io/broadinstitute/martha:latest`
+
+## Building Docker Images
+
+Public images are published to [quay.io](https://quay.io/repository/broadinstitute/martha?tab=tags) for each branch.
+
+To build a new Docker image for Martha:
+
+1. `cd` to the root of the Martha codebase
+1. Run: `docker build -f docker/Dockerfile .`
 
 
 ## Logs (for live app)
