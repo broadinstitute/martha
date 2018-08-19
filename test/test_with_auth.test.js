@@ -2,9 +2,11 @@
  *  Run real tests against Martha functions running at `baseUrl`
  *
  *  Pre-requisites:
- *      Based on what you have specified as the `baseUrl`, the Martha functions at that location will be configured to
+ *   1. Based on what you have specified as the `baseUrl`, the Martha functions at that location will be configured to
  *      communicate with a specific instance of Bond.  You must ensure that you have linked your User account in that
  *      Bond instance with all supported Providers on that instance.
+ *   2. This test will make a system call to `gcloud auth print-access-token`, so on the command line, you will need to
+ *      ensure that you are logged in as the correct user that you linked in Bond in step 1.
  *
  *  To run these tests:
  *
@@ -13,7 +15,7 @@
  */
 
 
-const baseUrl = 'http://localhost:8010/gpolumbo-practice-project/us-central1';
+const baseUrl = 'http://localhost:8010/broad-dsde-dev/us-central1';
 
 const test = require('ava');
 const supertest = require('supertest')(baseUrl);
@@ -69,7 +71,7 @@ test.cb('with_auth martha_v2 responds with DOS object only when no "authorizatio
         .end((err, response) => handleResponse(err, response, t, true));
 });
 
-test.failing.cb('with_auth martha_v2 responds with DOS object when "authorization" header is provided', (t) => {
+test.cb('with_auth martha_v2 responds with DOS object when "authorization" header is provided', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
@@ -94,20 +96,6 @@ for (const dosUrl of dosUrls) {
             .send({url: dosUrl})
             .expect(200)
             .end((err, response) => handleResponse(err, response, t, true));
-    });
-}
-
-// TODO: this slice should only be temporary until we can link accounts to the other DCF-Fence server
-const currentlyFailingUrls = dosUrls.slice(1, 4);
-for (const dosUrl of currentlyFailingUrls) {
-    test.failing.cb(`with_auth Calling martha_v2 with URL: "${dosUrl}" with an Access Token resolves to a DOS object and Google SA Key`, (t) => {
-        supertest
-            .post('/martha_v2')
-            .set('Content-Type', 'application/json')
-            .set('Authorization', `bearer ${bearerToken}`)
-            .send({ url: dosUrl })
-            .expect(200)
-            .end((err, response) => handleResponse(err, response, t));
     });
 }
 
