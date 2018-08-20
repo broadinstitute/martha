@@ -43,7 +43,7 @@ function handleResponse(err, response, t, skipGoogleServiceAccount = false) {
     if (err) {
         let msg = err.message;
         if (response && response.text) {
-            msg = msg + '\n' + response.text
+            msg = msg + '\n' + response.text;
         }
         t.fail(msg);
     } else {
