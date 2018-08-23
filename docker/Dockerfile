@@ -19,7 +19,7 @@ RUN gcloud components update --quiet \
 
 # Home directory for Martha code
 RUN mkdir /martha
-WORKDIR martha/
+WORKDIR /martha
 
 # Install GCF Emulator and project dependencies
 # Do this prior to copying over source files to take advantage of Docker layer caching of npm dependencies
