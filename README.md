@@ -5,10 +5,6 @@ Martha
 
 Google Cloud Functions for resolving [DOS](https://data-object-service.readthedocs.io/en/latest/) URIs.
 
-For a more general overview of Google Cloud Functions as DSP uses them please look
-[here](https://docs.google.com/document/d/1VZIFVdu77fNs0MVKLY8QNqiVWza71ED0Bf1Fj8CRNGs/edit#).
-Martha is an "external" service that can be deployed independently from the rest of Firecloud.
-
 # Martha v1
 To call `martha_v1`, perform an HTTP `POST` to the appropriate URL. The body of the request must be a JSON Object with
 two values: a [DOS](https://data-object-service.readthedocs.io/en/latest/) URL and a regex pattern. Martha uses the
