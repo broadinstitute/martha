@@ -2,3 +2,4 @@
 .idea
 *.private.env.json
 deploy_account.json
+config.json
