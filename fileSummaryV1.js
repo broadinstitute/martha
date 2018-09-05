@@ -10,7 +10,7 @@ function isValidProtocol(urlString) {
     try {
         return ['gs:', 'dos:'].indexOf(url.parse(urlString).protocol) >= 0;
     } catch (e) {
-        console.error(`URI must use 'gs:' or 'dos:' protocols: ${urlString}`);
+        console.error(new Error(`URI must use 'gs:' or 'dos:' protocols: ${urlString}`));
         return false;
     }
 }
@@ -53,8 +53,12 @@ async function fileSummaryV1Handler(req, res) {
         res.status(200).send(metadata);
 
     } catch (err) {
-        // TODO - pretty print the error to logs like what gets sent in the response
         console.error(new Error('Failed to get Service Account Key and/or object metadata'));
+        if (err instanceof Error) {
+            console.error(err);
+        } else {
+            console.error(new Error(err));
+        }
         res.status(502).send(err);
     }
 }

@@ -8,7 +8,7 @@ function maybeTalkToBond(auth) {
     ).then(
         (res) => res.data
     ).catch(() => {
-        console.error('Unable to retrieve Service Account Key from Bond');
+        console.error(new Error('Unable to retrieve Service Account Key from Bond'));
         return Promise.resolve();
     });
 }
@@ -18,7 +18,7 @@ function maybeTalkToSam(auth) {
         `${helpers.samBaseUrl()}/api/google/v1/user/petServiceAccount/key`,
         auth
     ).catch((e) => {
-        console.error('Unable to retrieve Pet Service Account Key from Sam');
+        console.error(new Error('Unable to retrieve Pet Service Account Key from Sam'));
         throw e;
     });
 }

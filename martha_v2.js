@@ -58,7 +58,7 @@ function martha_v2_handler(req, res) {
     try {
         dosUrl = helpers.dosToHttps(origUrl);
     } catch (e) {
-        console.error(e);
+        console.error(new Error(e));
         res.status(400).send('The specified URL is invalid');
         return;
     }
@@ -73,7 +73,7 @@ function martha_v2_handler(req, res) {
             res.status(200).send(aggregateResponses(rawResults));
         })
         .catch((err) => {
-            console.error(err);
+            console.error(new Error(err));
             res.status(502).send(err);
         });
 }

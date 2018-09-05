@@ -15,7 +15,7 @@
  */
 
 
-const baseUrl = 'http://localhost:8010/broad-dsde-dev/us-central1';
+const baseUrl = process.env.BASE_URL || 'http://localhost:8010/broad-dsde-dev/us-central1';
 
 const test = require('ava');
 const supertest = require('supertest')(baseUrl);
