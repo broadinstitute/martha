@@ -1,6 +1,6 @@
 const test = require('ava');
 const sinon = require('sinon');
-const { get } = require('../common/api_adapter');
+const { get } = require('../../common/api_adapter');
 const superagent = require('superagent');
 
 function mockResponseToGet(textValue) {
