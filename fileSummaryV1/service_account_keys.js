@@ -1,5 +1,5 @@
-const helpers = require('./helpers');
-const apiAdapter = require('./api_adapter');
+const helpers = require('../common/helpers');
+const apiAdapter = require('../common/api_adapter');
 
 function maybeTalkToBond(auth) {
     return apiAdapter.getJsonFrom(

@@ -1,5 +1,5 @@
 const url = require('url');
-const config = require('./config.json');
+const config = require('../config.json');
 
 function dosToHttps(dosUri) {
     const parsedUrl = url.parse(dosUri);

@@ -1,6 +1,6 @@
 const test = require('ava');
 const sinon = require('sinon');
-const martha_v1 = require('../martha_v1').martha_v1_handler;
+const martha_v1 = require('../martha_v1/martha_v1').martha_v1_handler;
 const superagent = require('superagent');
 
 let getRequest;

@@ -1,5 +1,5 @@
 const test = require('ava');
-const { dosToHttps } = require('../helpers');
+const { dosToHttps } = require('../common/helpers');
 const config = require('../config.json');
 
 test('should parse dos uri', (t) => {
