@@ -4,24 +4,21 @@ const config = require('../config.json');
 function dosToHttps(dosUri) {
     const parsedUrl = url.parse(dosUri);
 
-    parsedUrl.protocol = 'https';
-
-    if (parsedUrl.host.startsWith('dg.')) {
-        parsedUrl.pathname = `/ga4gh/dos/v1/dataobjects/${parsedUrl.hostname}${parsedUrl.pathname}`;
-        parsedUrl.host = config.dosResolutionHost;
-    } else {
-        parsedUrl.pathname = `/ga4gh/dos/v1/dataobjects${parsedUrl.pathname}`;
+    if (!parsedUrl.protocol || !parsedUrl.host || !parsedUrl.pathname) {
+        throw new Error(`Invalid URL: "${dosUri}"`)
     }
 
-    const output = url.format(parsedUrl);
+    parsedUrl.protocol = 'https';
+    parsedUrl.host = config.dosResolutionHost;
+    parsedUrl.pathname = `/ga4gh/dos/v1/dataobjects${parsedUrl.pathname}`;
 
-    console.debug('Parsed to:', output);
+    const output = url.format(parsedUrl);
+    console.log(`${dosUri} -> ${output}`);
     return output;
 }
 
 const bondBaseUrl = () => config.bondBaseUrl;
 const samBaseUrl = () => config.samBaseUrl;
-
 
 exports.dosToHttps = dosToHttps;
 exports.bondBaseUrl = bondBaseUrl;
