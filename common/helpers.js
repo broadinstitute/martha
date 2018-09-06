@@ -1,5 +1,6 @@
 const url = require('url');
 const config = require('../config.json');
+const URL = require('url');
 
 function dosToHttps(dosUri) {
     const parsedUrl = url.parse(dosUri);
@@ -17,9 +18,24 @@ function dosToHttps(dosUri) {
     return output;
 }
 
+const BondProviders = Object.freeze({
+    FENCE: 'fence',
+    DCF_FENCE: 'dcf-fence',
+    get default() {
+        return this.DCF_FENCE;
+    }
+});
+
+function determineBondProvider(urlString) {
+    const url = URL.parse(urlString);
+    if (url.host === 'dg.4503') {
+        return BondProviders.FENCE;
+    } else {
+        return BondProviders.default;
+    }
+}
+
 const bondBaseUrl = () => config.bondBaseUrl;
 const samBaseUrl = () => config.samBaseUrl;
 
-exports.dosToHttps = dosToHttps;
-exports.bondBaseUrl = bondBaseUrl;
-exports.samBaseUrl = samBaseUrl;
+module.exports = {dosToHttps, bondBaseUrl, samBaseUrl, BondProviders, determineBondProvider};
