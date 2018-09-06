@@ -67,7 +67,6 @@ test.cb('with_auth fileSummaryV1 responds with 401 when no "authorization" heade
 
 // The resolved DOS objects in this list contain a 'gs://' url in the list of urls
 const dosUrlsWithGS = [
-    'dos://qa.dcf.planx-pla.net/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
     'dos://dos-dss.ucsc-cgp-dev.org/00e6cfa9-a183-42f6-bb44-b70347106bbe?version=2018-06-13T171629.981618Z%E2%80%8E'
 ];
 

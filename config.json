@@ -1,5 +1,5 @@
 {
-    "dosResolutionHost": "dataguids.org",
+    "dosResolutionHost": "broad-dsp-dos.storage.googleapis.com",
     "bondBaseUrl": "broad-bond-dev.appspot.com",
     "samBaseUrl": "https://sam.dsde-dev.broadinstitute.org"
 }
