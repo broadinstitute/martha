@@ -1,9 +1,10 @@
-const helpers = require('../common/helpers');
+const {bondBaseUrl, samBaseUrl, determineBondProvider} = require('../common/helpers');
 const apiAdapter = require('../common/api_adapter');
 
-function maybeTalkToBond(auth) {
+function maybeTalkToBond(auth, url) {
+    const provider = determineBondProvider(url);
     return apiAdapter.getJsonFrom(
-        `${helpers.bondBaseUrl()}/api/link/v1/fence/serviceaccount/key`,
+        `${bondBaseUrl()}/api/link/v1/${provider}/serviceaccount/key`,
         auth
     ).then(
         (res) => res.data
@@ -15,7 +16,7 @@ function maybeTalkToBond(auth) {
 
 function maybeTalkToSam(auth) {
     return apiAdapter.getJsonFrom(
-        `${helpers.samBaseUrl()}/api/google/v1/user/petServiceAccount/key`,
+        `${samBaseUrl()}/api/google/v1/user/petServiceAccount/key`,
         auth
     ).catch((e) => {
         console.error(new Error('Unable to retrieve Pet Service Account Key from Sam'));
@@ -23,9 +24,9 @@ function maybeTalkToSam(auth) {
     });
 }
 
-function getServiceAccountKey(auth, isDos) {
+function getServiceAccountKey(url, auth, isDos) {
     if (isDos) {
-        return maybeTalkToBond(auth);
+        return maybeTalkToBond(auth, url);
     } else {
         return maybeTalkToSam(auth);
     }

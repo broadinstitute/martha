@@ -42,7 +42,7 @@ async function fileSummaryV1Handler(req, res) {
     try {
 
         const [serviceAccountKey, metadata] = await Promise.all([
-            saKeys.getServiceAccountKey(auth, isDos),
+            saKeys.getServiceAccountKey(origUrl, auth, isDos),
             metadataApi.getMetadata(origUrl, auth, isDos)
         ]);
 
