@@ -6,7 +6,7 @@ function dosToHttps(dosUri) {
     const parsedUrl = url.parse(dosUri);
 
     if (!parsedUrl.protocol || !parsedUrl.host || !parsedUrl.pathname) {
-        throw new Error(`Invalid URL: "${dosUri}"`)
+        throw new Error(`Invalid URL: "${dosUri}"`);
     }
 
     parsedUrl.protocol = 'https';

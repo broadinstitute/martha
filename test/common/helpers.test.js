@@ -35,9 +35,9 @@ test('BondProviders should contain "dcf-fence" and "fence"', (t) => {
 });
 
 test('determineBondProvider should be "fence" if the URL host is "dg.4503"', (t) => {
-    t.is(determineBondProvider("dos://dg.4503/anything"), BondProviders.FENCE);
+    t.is(determineBondProvider('dos://dg.4503/anything'), BondProviders.FENCE);
 });
 
 test('determineBondProvider should return the default BondProvider if the URL host is NOT "dg.4503"', (t) => {
-    t.is(determineBondProvider("dos://some-host/anything"), BondProviders.default);
+    t.is(determineBondProvider('dos://some-host/anything'), BondProviders.default);
 });
