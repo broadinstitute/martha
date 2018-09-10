@@ -1,5 +1,5 @@
 {
-    "dosResolutionHost": {{if eq (env "ENVIRONMENT") "prod"}}"dcp.bionimbus.org"{{else if eq (env "ENVIRONMENT") "staging"}}"dcp.bionimbus.org"{{else}}"broad-dsp-dos.storage.googleapis.com"{{end}},
+    "dosResolutionHost": {{if eq (env "ENVIRONMENT") "prod"}}"dataguids.org"{{else if eq (env "ENVIRONMENT") "staging"}}"dataguids.org"{{else}}"broad-dsp-dos.storage.googleapis.com"{{end}},
     "bondBaseUrl": {{if eq (env "ENVIRONMENT") "prod"}}"broad-bond-prod.appspot.com"{{else if eq (env "ENVIRONMENT") "staging"}}"broad-bond-staging.appspot.com"{{else if eq (env "ENVIRONMENT") "alpha"}}"broad-bond-staging.appspot.com"{{else}}"broad-bond-dev.appspot.com"{{end}},
     "samBaseUrl": {{if eq (env "ENVIRONMENT") "prod"}}"https://sam.dsde-prod.broadinstitute.org"{{else if eq (env "ENVIRONMENT") "staging"}}"https://sam.dsde-staging.broadinstitute.org"{{else if eq (env "ENVIRONMENT") "alpha"}}"https://sam.dsde-alpha.broadinstitute.org"{{else}}"https://sam.dsde-dev.broadinstitute.org"{{end}}
 }
