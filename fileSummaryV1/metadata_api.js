@@ -1,15 +1,15 @@
-const helpers = require('./helpers');
-const apiAdapter = require('./api_adapter');
+const helpers = require('../common/helpers');
+const apiAdapter = require('../common/api_adapter');
 
 function getRawMetadata(token, bucket, name) {
     return apiAdapter.getHeaders(
         `https://${bucket}.storage.googleapis.com/${encodeURIComponent(name)}`,
         `Bearer ${token}`
     ).catch((e) => {
-        console.error(e.status === 403 ?
+        console.error(new Error(e.status === 403 ?
             'Permission denied for bucket object' :
             'Unexpected error while trying to get headers for bucket object'
-        );
+        ));
         throw e;
     });
 }
@@ -20,7 +20,7 @@ function getPetTokenFromSam(bearerToken) {
         bearerToken,
         '["https://www.googleapis.com/auth/devstorage.full_control"]')
         .catch((e) => {
-            console.error('Failed to get Pet Service Account Token from Sam');
+            console.error(new Error('Failed to get Pet Service Account Token from Sam'));
             throw e;
         });
 }
@@ -51,7 +51,7 @@ function getGsObjectMetadata(gsUri, auth) {
             };
         })
         .catch((e) => {
-            console.error(`Failed to get metadata for: ${gsUri}`);
+            console.error(new Error(`Failed to get metadata for: ${gsUri}`));
             throw e;
         });
 }
@@ -82,7 +82,7 @@ function getDosObjectMetadata(dosUri) {
             };
         })
         .catch((e) => {
-            console.error(`Failed to get metadata for: ${dosUri}`);
+            console.error(new Error(`Failed to get metadata for: ${dosUri} -> ${newUri}`));
             throw e;
         });
 }
@@ -91,7 +91,7 @@ async function getMetadata(url, auth, isDos) {
     try {
         return isDos ? getDosObjectMetadata(url) : getGsObjectMetadata(url, auth);
     } catch (e) {
-        console.error('Metadata problems:', e);
+        console.error(new Error('Metadata problems:'), e);
     }
 }
 

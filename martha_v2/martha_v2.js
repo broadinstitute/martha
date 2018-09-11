@@ -1,14 +1,5 @@
-const helpers = require('./helpers');
-const apiAdapter = require('./api_adapter');
-const URL = require('url');
-
-const BondProviders = Object.freeze({
-    FENCE: 'fence',
-    DCF_FENCE: 'dcf-fence',
-    get default() {
-        return this.DCF_FENCE;
-    }
-});
+const {dosToHttps, bondBaseUrl, determineBondProvider, BondProviders} = require('../common/helpers');
+const apiAdapter = require('../common/api_adapter');
 
 // This function counts on the request posing  data as "application/json" content-type.
 // See: https://cloud.google.com/functions/docs/writing/http#parsing_http_requests for more details
@@ -18,19 +9,10 @@ function parseRequest(req) {
     }
 }
 
-function determineBondProvider(urlString) {
-    const url = URL.parse(urlString);
-    if (url.host === 'dg.4503') {
-        return BondProviders.FENCE;
-    } else {
-        return BondProviders.default;
-    }
-}
-
 function maybeTalkToBond(req, provider = BondProviders.default) {
     let myPromise;
     if (req && req.headers && req.headers.authorization) {
-        myPromise = apiAdapter.getJsonFrom(`${helpers.bondBaseUrl()}/api/link/v1/${provider}/serviceaccount/key`, req.headers.authorization);
+        myPromise = apiAdapter.getJsonFrom(`${bondBaseUrl()}/api/link/v1/${provider}/serviceaccount/key`, req.headers.authorization);
     } else {
         myPromise = Promise.resolve();
     }
@@ -56,9 +38,9 @@ function martha_v2_handler(req, res) {
     console.log(`Received URL: ${origUrl}`);
     let dosUrl;
     try {
-        dosUrl = helpers.dosToHttps(origUrl);
+        dosUrl = dosToHttps(origUrl);
     } catch (e) {
-        console.error(e);
+        console.error(new Error(e));
         res.status(400).send('The specified URL is invalid');
         return;
     }
@@ -73,7 +55,7 @@ function martha_v2_handler(req, res) {
             res.status(200).send(aggregateResponses(rawResults));
         })
         .catch((err) => {
-            console.error(err);
+            console.error(new Error(err));
             res.status(502).send(err);
         });
 }

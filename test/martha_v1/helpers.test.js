@@ -1,6 +1,6 @@
 const test = require('ava');
-const { dosToHttps } = require('../helpers');
-const config = require('../config.json');
+const { dosToHttps } = require('../../martha_v1/helpers');
+const config = require('../../config.json');
 
 test('should parse dos uri', (t) => {
     t.is(dosToHttps('dos://foo/bar'), 'https://foo/ga4gh/dos/v1/dataobjects/bar');
