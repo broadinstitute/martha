@@ -37,12 +37,16 @@ docker run --rm -v $PWD:${MARTHA_PATH} \
   -e VAULT_TOKEN=${VAULT_TOKEN} \
   broadinstitute/dsde-toolbox render-templates.sh
 
+# TODO: Do not use the martha docker image for deployments, use https://hub.docker.com/r/google/cloud-sdk/ instead
 # Build the Docker image that we can use to deploy Martha
 docker build -f docker/Dockerfile -t broadinstitute/martha:deploy .
 
-docker run --rm -v $PWD:${MARTHA_PATH} \
+# Overriding ENTRYPOINT has some subtleties: https://medium.com/@oprearocks/how-to-properly-override-the-entrypoint-using-docker-run-2e081e5feb9d
+docker run --rm \
+    --entrypoint="/bin/bash" \
+    -v $PWD:${MARTHA_PATH} \
     -e BASE_URL="https://us-central1-broad-dsde-${ENVIRONMENT}.cloudfunctions.net" \
-    broadinstitute/martha:deploy /bin/bash -c \
+    broadinstitute/martha:deploy -c \
     "gcloud config set project ${PROJECT_NAME} &&
      gcloud auth activate-service-account --key-file ${MARTHA_PATH}/${SERVICE_ACCT_KEY_FILE} &&
      cd ${MARTHA_PATH} &&
