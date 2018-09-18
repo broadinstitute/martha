@@ -48,4 +48,5 @@ RUN functions start \
     && functions deploy fileSummaryV1 --trigger-http \
     && functions stop
 
-ENTRYPOINT ["functions", "start", "--tail=true"]
+ENTRYPOINT ["functions"]
+CMD ["start", "--tail=true"]

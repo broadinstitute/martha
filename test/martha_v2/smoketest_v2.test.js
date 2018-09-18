@@ -35,7 +35,7 @@ test.cb('smoketest_v2 return error if url passed is not good', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
-        .send({ url: 'dos://broad-dsp-dos-TYPO.storage.googleapis.com/dos.json' })
+        .send({ url: 'dos://broad-dsp-dos-TYPO.storage.googleapis.com/something-that-does-not-exist' })
         .expect(502)
         .end(t.end);
 });
