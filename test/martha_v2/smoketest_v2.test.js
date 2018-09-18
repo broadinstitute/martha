@@ -12,15 +12,20 @@ const supertest = require('supertest')(process.env.BASE_URL);
 // Because these smoketests are executed by a Google Service Account, we are unable to test martha_v2 (with Authz)
 // without first authenticating that service account with Fence.
 
-test.cb('smoketest_v2 responds with DOS object only when no "authorization" header is provided', (t) => {
-    supertest
-        .post('/martha_v2')
-        .set('Content-Type', 'application/json')
-        .send({ url: 'dos://broad-dsp-dos.storage.googleapis.com/dos.json' })
-        .expect(200)
-        .expect((response) => t.truthy(response.body.dos))
-        .end(t.end);
-});
+
+// Commented out this smoke test because on DEV and ALPHA environments we use a testing dos resolution host, but on
+// STAGING and PRODUCTION we use dataguids.org.  Our experience so far has been that we are unable to mint new DOS URIs
+// and the testing ones we have been provided have changed over time.  Until we have known/reliable DOS URIs that we can
+// configure in our testing google bucket and with dataguids.org, we need to remove this test
+// test.cb('smoketest_v2 responds with DOS object only when no "authorization" header is provided', (t) => {
+//     supertest
+//         .post('/martha_v2')
+//         .set('Content-Type', 'application/json')
+//         .send({ url: 'dos://broad-dsp-dos.storage.googleapis.com/dos.json' })
+//         .expect(200)
+//         .expect((response) => t.truthy(response.body.dos))
+//         .end(t.end);
+// });
 
 test.cb('smoketest_v2 return error if url passed is malformed', (t) => {
     supertest
