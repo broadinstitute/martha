@@ -35,6 +35,8 @@ docker run --rm -v $PWD:${MARTHA_PATH} \
   -e OUT_PATH=${MARTHA_PATH} \
   -e ENVIRONMENT=${ENVIRONMENT} \
   -e VAULT_TOKEN=${VAULT_TOKEN} \
+  -e RUN_CONTEXT=live \
+  -e DNS_DOMAIN=NULL
   broadinstitute/dsde-toolbox render-templates.sh
 
 # TODO: Do not use the martha docker image for deployments, use https://hub.docker.com/r/google/cloud-sdk/ instead
