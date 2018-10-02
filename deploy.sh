@@ -25,7 +25,7 @@ PROJECT_NAME="broad-dsde-${ENVIRONMENT}"
 SERVICE_ACCT_KEY_FILE="deploy_account.json"
 # Get the tier specific credentials for the service account out of Vault
 # Put key into SERVICE_ACCT_KEY_FILE
-docker run --rm -e VAULT_TOKEN=${VAULT_TOKEN} broadinstitute/dsde-toolbox vault read --format=json "secret/dsde/firecloud/${ENVIRONMENT}/common/cloud-function-deploy-account.json" | jq .data > ${SERVICE_ACCT_KEY_FILE}
+docker run --rm -e VAULT_TOKEN=${VAULT_TOKEN} broadinstitute/dsde-toolbox vault read --format=json "secret/dsde/martha/${ENVIRONMENT}/deploy-account.json" | jq .data > ${SERVICE_ACCT_KEY_FILE}
 
 MARTHA_PATH=/martha
 # Process all Consul .ctmpl files
