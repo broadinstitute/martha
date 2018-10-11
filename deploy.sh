@@ -4,19 +4,20 @@ set -x
 
 VAULT_TOKEN=$1
 GIT_BRANCH=$2
+TARGET_ENV=$3
 
-if [ "$GIT_BRANCH" == "dev" ]; then
+if [ "$TARGET_ENV" == "dev" ]; then
     ENVIRONMENT="dev"
-elif [ "$GIT_BRANCH" == "alpha" ]; then
+elif [ "$TARGET_ENV" == "alpha" ]; then
     ENVIRONMENT="alpha"
-elif [ "$GIT_BRANCH" == "perf" ]; then
+elif [ "$TARGET_ENV" == "perf" ]; then
 	ENVIRONMENT="perf"
-elif [ "$GIT_BRANCH" == "staging" ]; then
+elif [ "$TARGET_ENV" == "staging" ]; then
     ENVIRONMENT="staging"
-elif [ "$GIT_BRANCH" == "master" ]; then
+elif [ "$TARGET_ENV" == "prod" ]; then
     ENVIRONMENT="prod"
 else
-    echo "Git branch '$GIT_BRANCH' is not configured to automatically deploy to a target environment"
+    echo "Unknown environment: $TARGET_ENV - must be one of [dev, alpha, perf, staging, prod]"
     exit 1
 fi
 
@@ -39,16 +40,12 @@ docker run --rm -v $PWD:${MARTHA_PATH} \
   -e DNS_DOMAIN=NULL \
   broadinstitute/dsde-toolbox render-templates.sh
 
-# TODO: Do not use the martha docker image for deployments, use https://hub.docker.com/r/google/cloud-sdk/ instead
-# Build the Docker image that we can use to deploy Martha
-docker build -f docker/Dockerfile -t broadinstitute/martha:deploy .
-
 # Overriding ENTRYPOINT has some subtleties: https://medium.com/@oprearocks/how-to-properly-override-the-entrypoint-using-docker-run-2e081e5feb9d
 docker run --rm \
     --entrypoint="/bin/bash" \
     -v $PWD:${MARTHA_PATH} \
     -e BASE_URL="https://us-central1-broad-dsde-${ENVIRONMENT}.cloudfunctions.net" \
-    broadinstitute/martha:deploy -c \
+    google/cloud-sdk:218.0.0 -c \
     "gcloud config set project ${PROJECT_NAME} &&
      gcloud auth activate-service-account --key-file ${MARTHA_PATH}/${SERVICE_ACCT_KEY_FILE} &&
      cd ${MARTHA_PATH} &&
