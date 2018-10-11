@@ -40,12 +40,14 @@ docker run --rm -v $PWD:${MARTHA_PATH} \
   -e DNS_DOMAIN=NULL \
   broadinstitute/dsde-toolbox render-templates.sh
 
+MARTHA_IMAGE=quay.io/broadinstitute/martha:${GIT_BRANCH}
+
 # Overriding ENTRYPOINT has some subtleties: https://medium.com/@oprearocks/how-to-properly-override-the-entrypoint-using-docker-run-2e081e5feb9d
 docker run --rm \
     --entrypoint="/bin/bash" \
     -v $PWD:${MARTHA_PATH} \
     -e BASE_URL="https://us-central1-broad-dsde-${ENVIRONMENT}.cloudfunctions.net" \
-    google/cloud-sdk:218.0.0 -c \
+    ${MARTHA_IMAGE} -c \
     "gcloud config set project ${PROJECT_NAME} &&
      gcloud auth activate-service-account --key-file ${MARTHA_PATH}/${SERVICE_ACCT_KEY_FILE} &&
      cd ${MARTHA_PATH} &&
