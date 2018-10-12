@@ -7,8 +7,9 @@ GIT_BRANCH=$2
 TARGET_ENV=$3
 
 set +x
-#need to get the environment from the branch name
 if [ -z "$TARGET_ENV" ]; then
+    echo "TARGET_ENV argument not supplied; inferring from GIT_BRANCH '$GIT_BRANCH'."
+
     if [ "$GIT_BRANCH" == "dev" ]; then
         TARGET_ENV="dev"
     elif [ "$GIT_BRANCH" == "alpha" ]; then
@@ -20,7 +21,7 @@ if [ -z "$TARGET_ENV" ]; then
     elif [ "$GIT_BRANCH" == "master" ]; then
         TARGET_ENV="prod"
     else
-        echo "Invalid git branch ${GIT_BRANCH}"
+        echo "Git branch '$GIT_BRANCH' is not configured to automatically deploy to a target environment"
         exit 1
     fi
 fi
