@@ -6,20 +6,34 @@ VAULT_TOKEN=$1
 GIT_BRANCH=$2
 TARGET_ENV=$3
 
-if [ "$TARGET_ENV" == "dev" ]; then
-    ENVIRONMENT="dev"
-elif [ "$TARGET_ENV" == "alpha" ]; then
-    ENVIRONMENT="alpha"
-elif [ "$TARGET_ENV" == "perf" ]; then
-	ENVIRONMENT="perf"
-elif [ "$TARGET_ENV" == "staging" ]; then
-    ENVIRONMENT="staging"
-elif [ "$TARGET_ENV" == "prod" ]; then
-    ENVIRONMENT="prod"
+set +x
+#need to get the environment from the branch name
+if [ -z "$TARGET_ENV" ]; then
+    if [ "$GIT_BRANCH" == "dev" ]; then
+        TARGET_ENV="dev"
+    elif [ "$GIT_BRANCH" == "alpha" ]; then
+        TARGET_ENV="alpha"
+    elif [ "$GIT_BRANCH" == "perf" ]; then
+        TARGET_ENV="perf"
+    elif [ "$GIT_BRANCH" == "staging" ]; then
+        TARGET_ENV="staging"
+    elif [ "$GIT_BRANCH" == "master" ]; then
+        TARGET_ENV="prod"
+    else
+        echo "Invalid git branch ${GIT_BRANCH}"
+        exit 1
+    fi
+fi
+
+if [[ "$TARGET_ENV" =~ ^(dev|alpha|perf|staging|prod)$ ]]; then
+    ENVIRONMENT=${TARGET_ENV}
 else
     echo "Unknown environment: $TARGET_ENV - must be one of [dev, alpha, perf, staging, prod]"
     exit 1
 fi
+
+echo "Deploying branch '${GIT_BRANCH}' to ${ENVIRONMENT}"
+set -x
 
 PROJECT_NAME="broad-dsde-${ENVIRONMENT}"
 
