@@ -4,21 +4,37 @@ set -x
 
 VAULT_TOKEN=$1
 GIT_BRANCH=$2
+TARGET_ENV=$3
 
-if [ "$GIT_BRANCH" == "dev" ]; then
-    ENVIRONMENT="dev"
-elif [ "$GIT_BRANCH" == "alpha" ]; then
-    ENVIRONMENT="alpha"
-elif [ "$GIT_BRANCH" == "perf" ]; then
-	ENVIRONMENT="perf"
-elif [ "$GIT_BRANCH" == "staging" ]; then
-    ENVIRONMENT="staging"
-elif [ "$GIT_BRANCH" == "master" ]; then
-    ENVIRONMENT="prod"
+set +x
+if [ -z "$TARGET_ENV" ]; then
+    echo "TARGET_ENV argument not supplied; inferring from GIT_BRANCH '$GIT_BRANCH'."
+
+    if [ "$GIT_BRANCH" == "dev" ]; then
+        TARGET_ENV="dev"
+    elif [ "$GIT_BRANCH" == "alpha" ]; then
+        TARGET_ENV="alpha"
+    elif [ "$GIT_BRANCH" == "perf" ]; then
+        TARGET_ENV="perf"
+    elif [ "$GIT_BRANCH" == "staging" ]; then
+        TARGET_ENV="staging"
+    elif [ "$GIT_BRANCH" == "master" ]; then
+        TARGET_ENV="prod"
+    else
+        echo "Git branch '$GIT_BRANCH' is not configured to automatically deploy to a target environment"
+        exit 1
+    fi
+fi
+
+if [[ "$TARGET_ENV" =~ ^(dev|alpha|perf|staging|prod)$ ]]; then
+    ENVIRONMENT=${TARGET_ENV}
 else
-    echo "Git branch '$GIT_BRANCH' is not configured to automatically deploy to a target environment"
+    echo "Unknown environment: $TARGET_ENV - must be one of [dev, alpha, perf, staging, prod]"
     exit 1
 fi
+
+echo "Deploying branch '${GIT_BRANCH}' to ${ENVIRONMENT}"
+set -x
 
 PROJECT_NAME="broad-dsde-${ENVIRONMENT}"
 
@@ -39,16 +55,14 @@ docker run --rm -v $PWD:${MARTHA_PATH} \
   -e DNS_DOMAIN=NULL \
   broadinstitute/dsde-toolbox render-templates.sh
 
-# TODO: Do not use the martha docker image for deployments, use https://hub.docker.com/r/google/cloud-sdk/ instead
-# Build the Docker image that we can use to deploy Martha
-docker build -f docker/Dockerfile -t broadinstitute/martha:deploy .
+MARTHA_IMAGE=quay.io/broadinstitute/martha:${GIT_BRANCH}
 
 # Overriding ENTRYPOINT has some subtleties: https://medium.com/@oprearocks/how-to-properly-override-the-entrypoint-using-docker-run-2e081e5feb9d
 docker run --rm \
     --entrypoint="/bin/bash" \
     -v $PWD:${MARTHA_PATH} \
     -e BASE_URL="https://us-central1-broad-dsde-${ENVIRONMENT}.cloudfunctions.net" \
-    broadinstitute/martha:deploy -c \
+    ${MARTHA_IMAGE} -c \
     "gcloud config set project ${PROJECT_NAME} &&
      gcloud auth activate-service-account --key-file ${MARTHA_PATH}/${SERVICE_ACCT_KEY_FILE} &&
      cd ${MARTHA_PATH} &&
