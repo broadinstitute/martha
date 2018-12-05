@@ -56,7 +56,7 @@ jobs:
       - run:
           name: Run integration tests # this script will change to run the actual tests we want to run
           command: |
-            docker run --entrypoint /bin/bash --workdir "/martha" ${IMAGE_NAME}:${CIRCLE_BRANCH} -c "BASE_URL=\"http://0.0.0.0:8010/dockerized-martha\" npm run-script smoketest"
+            docker run --entrypoint /bin/bash --workdir "/martha" ${IMAGE_NAME}:${CIRCLE_BRANCH} -c "BASE_URL=\"http://0.0.0.0:8010\" npm run-script smoketest"
 
 #      - run:
 #          name: Push to quay # do i need to setup a robot?
