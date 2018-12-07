@@ -40,6 +40,7 @@ jobs:
 
     environment:
       IMAGE_NAME: quay.io/broadinstitute/martha
+      QUAY_USER: broadinstitute+martha_circle_bot
 
     steps:
       - checkout
@@ -58,9 +59,11 @@ jobs:
           command: |
             docker run --entrypoint /bin/bash --workdir "/martha" ${IMAGE_NAME}:${CIRCLE_BRANCH} -c "BASE_URL=\"http://0.0.0.0:8010/dockerized-martha/us-central1\" npm run-script smoketest"
 
-#      - run:
-#          name: Push to quay # do i need to setup a robot?
-#          command:
+      - run:
+          name: Push to quay
+          command: |
+            docker login -u="${QUAY_USER}" -p="${QUAY_USER_PW}" quay.io
+            docker push ${IMAGE_NAME}
 
 workflows:
   version: 2
