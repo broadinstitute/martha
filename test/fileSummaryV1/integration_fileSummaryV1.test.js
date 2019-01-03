@@ -17,12 +17,12 @@ let fenceAuthLink = 'https://bond-fiab.dsde-dev.broadinstitute.org:31443/api/lin
 
 test.before(async () => {
     unauthorizedToken = await new GoogleToken({
-        keyFile: '/Users/mtalbott/ws/broad/martha/firecloud-account.json', // TODO: change filepath to actual .pem key (need it to be .json?)
+        keyFile: 'target/firecloud-account.json', // TODO: change filepath to actual .pem key (need it to be .json?)
         sub: 'ron.weasley@test.firecloud.org',
         scope: 'profile email openid https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/cloud-platform'
     }).getToken();
     authorizedToken = await new GoogleToken({
-        keyFile: '/Users/mtalbott/ws/broad/martha/firecloud-account.json',
+        keyFile: 'target/firecloud-account.json',
         sub: 'hermione.owner@test.firecloud.org',
         scope: 'profile email openid https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/cloud-platform'
     }).getToken();

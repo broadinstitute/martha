@@ -54,10 +54,10 @@ jobs:
             docker build -t ${IMAGE_NAME}:${CIRCLE_BRANCH} -f docker/Dockerfile .
             if [[ ${CIRCLE_BRANCH} == "dev" ]]; then docker tag ${IMAGE_NAME}:${CIRCLE_BRANCH} ${IMAGE_NAME}:latest ; fi
 
-      - run:
-          name: Run integration tests # TODO: double check this base_url value
-          command: |
-            docker run --entrypoint /bin/bash --workdir "/martha" ${IMAGE_NAME}:${CIRCLE_BRANCH} -c "BASE_URL=\"https://martha-fiab.dsde-dev.broadinstitute.org:32443/dockerized-martha/us-central1\" npm run-script integration"
+#      - run:
+#          name: Run integration tests
+#          command: |
+#            docker run --entrypoint /bin/bash --workdir "/martha" ${IMAGE_NAME}:${CIRCLE_BRANCH} -c "BASE_URL=\"http://0.0.0.0:8010/dockerized-martha/us-central1\" npm run-script integration"
 
       - run:
           name: Push to quay
