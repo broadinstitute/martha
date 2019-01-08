@@ -23,11 +23,13 @@ let fenceAuthLink = 'https://bond-fiab.dsde-dev.broadinstitute.org:31443/api/lin
 test.before(async () => {
     unauthorizedToken = await new GoogleToken({
         keyFile: 'automation/firecloud-account.pem',
+        email: 'firecloud-dev@broad-dsde-dev.iam.gserviceaccount.com',
         sub: 'ron.weasley@test.firecloud.org',
         scope: 'profile email openid https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/cloud-platform'
     }).getToken();
     authorizedToken = await new GoogleToken({
         keyFile: 'automation/firecloud-account.pem',
+        email: 'firecloud-dev@broad-dsde-dev.iam.gserviceaccount.com',
         sub: 'hermione.owner@test.firecloud.org',
         scope: 'profile email openid https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/cloud-platform'
     }).getToken();
