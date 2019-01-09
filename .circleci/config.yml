@@ -4,7 +4,7 @@
 #
 version: 2
 jobs:
-  npm-test:
+  test:
     docker:
       - image: circleci/node:8.11
 
@@ -34,7 +34,7 @@ jobs:
             git tag $TAG_NAME
             git push origin $TAG_NAME
 
-  integration-test:
+  build-image:
     docker:
       - image: circleci/node:8.11
 
@@ -54,11 +54,6 @@ jobs:
             docker build -t ${IMAGE_NAME}:${CIRCLE_BRANCH} -f docker/Dockerfile .
             if [[ ${CIRCLE_BRANCH} == "dev" ]]; then docker tag ${IMAGE_NAME}:${CIRCLE_BRANCH} ${IMAGE_NAME}:latest ; fi
 
-#      - run:
-#          name: Run integration tests
-#          command: |
-#            docker run --entrypoint /bin/bash --workdir "/martha" ${IMAGE_NAME}:${CIRCLE_BRANCH} -c "BASE_URL=\"http://0.0.0.0:8010/dockerized-martha/us-central1\" npm run-script integration"
-
       - run:
           name: Push to quay
           command: |
@@ -69,12 +64,12 @@ workflows:
   version: 2
   test-and-tag:
     jobs:
-      - npm-test
-      - integration-test
+      - test
+      - build-image
       - tag:
           requires:
-            - npm-test
-            - integration-test
+            - test
+            - build-image
           filters:
             branches:
               only: dev

@@ -10,28 +10,34 @@ const supertest = require('supertest')(process.env.BASE_URL);
 const assert = require('assert');
 const { GoogleToken } = require('gtoken');
 const { postJsonTo } = require('../../common/api_adapter');
+
 let unauthorizedToken;
 let authorizedToken;
 
+let keyFile = 'automation/firecloud-account.pem';
+let serviceAccountEmail = 'firecloud-dev@broad-dsde-dev.iam.gserviceaccount.com';
+let scopes = 'email openid';
+let unauthorizedEmail = 'ron.weasley@test.firecloud.org';
+let authorizedEmail = 'hermione.owner@test.firecloud.org';
+
 let publicFenceUrl = 'dos://dg.4503/preview_dos.json';
 let protectedFenceUrl = 'dos://dg.4503/65e4cd14-f549-4a7f-ad0c-d29212ff6e46';
-let publicDcfFenceUrl = 'dos://wb-mock-drs-dev.storage.googleapis.com/preview_dos.json';
-let protectedDcfFenceUrl = 'dos://wb-mock-drs-dev.storage.googleapis.com/65e4cd14-f549-4a7f-ad0c-d29212ff6e46';
+// TODO: remove static link so bond host can be changed depending on env
 let fenceAuthLink = 'https://bond-fiab.dsde-dev.broadinstitute.org:31443/api/link/v1/fence/oauthcode?oauthcode=IgnoredByMockProvider&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback'
 
 
 test.before(async () => {
     unauthorizedToken = await new GoogleToken({
-        keyFile: 'automation/firecloud-account.pem',
-        email: 'firecloud-dev@broad-dsde-dev.iam.gserviceaccount.com',
-        sub: 'ron.weasley@test.firecloud.org',
-        scope: 'profile email openid https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/cloud-platform'
+        keyFile: keyFile,
+        email: serviceAccountEmail,
+        sub: unauthorizedEmail,
+        scope: scopes
     }).getToken();
     authorizedToken = await new GoogleToken({
-        keyFile: 'automation/firecloud-account.pem',
-        email: 'firecloud-dev@broad-dsde-dev.iam.gserviceaccount.com',
-        sub: 'hermione.owner@test.firecloud.org',
-        scope: 'profile email openid https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/cloud-platform'
+        keyFile: keyFile,
+        email: serviceAccountEmail,
+        sub: authorizedEmail,
+        scope: scopes
     }).getToken();
 
     await postJsonTo(fenceAuthLink, "Bearer " + authorizedToken);
@@ -75,7 +81,7 @@ test.cb('integration_v2 fails when "authorization" header is provided for a publ
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${unauthorizedToken}`)
-        .send({ url: publicDcfFenceUrl })
+        .send({ url: publicFenceUrl })
         .expect((response) => {
             assert.strictEqual(response.statusCode, 502, "Incorrect status code");
             assert.strictEqual(response.body.status, 400, "User should not be authorized with provider");
@@ -140,7 +146,7 @@ test.cb('integration_v2 fails when "authorization" header is provided for a prot
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${unauthorizedToken}`)
-        .send({ url: protectedDcfFenceUrl })
+        .send({ url: protectedFenceUrl })
         .expect((response) => {
             assert.strictEqual(response.statusCode, 502, "Incorrect status code");
             assert.strictEqual(response.body.status, 400, "User should not be authorized with provider");

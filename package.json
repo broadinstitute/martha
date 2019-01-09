@@ -4,7 +4,7 @@
   "description": "Data Object GUID Resolution",
   "private": true,
   "scripts": {
-    "test": "ava -m !smoketest* -m !with_auth*",
+    "test": "ava -m !smoketest* -m !with_auth* -m !integration*",
     "smoketest": "ava -m smoketest*",
     "smoketest_v1": "ava -m smoketest_v1*",
     "smoketest_v2": "ava -m smoketest_v2*",

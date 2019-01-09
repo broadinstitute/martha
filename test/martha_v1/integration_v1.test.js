@@ -10,7 +10,6 @@ const supertest = require('supertest')(process.env.BASE_URL);
 const assert = require('assert');
 
 test.cb('integration_v1 return gs link', (t) => {
-    console.log(`base url: ${process.env.BASE_URL}`);
     supertest
         .post('/martha_v1')
         .set('Content-Type', 'application/json')
@@ -32,6 +31,20 @@ test.cb('integration_v1 return error if url passed is not good', (t) => {
         .send({ 'url': 'somethingNotValidURL' })
         .expect((response) => {
             assert.strictEqual(response.statusCode, 500, "Incorrect status code");
+        })
+        .end((error, response) => {
+            if (error) { t.log(response.body) };
+            t.end(error);
+        });
+});
+
+test.cb('integration_v1 return 404 if no match is found', (t) => {
+    supertest
+        .post('/martha_v1')
+        .set('Content-Type', 'application/json')
+        .send({ 'url': 'dos://broad-dsp-dos.storage.googleapis.com/dos.json', 'pattern': 'bad:pattern//' })
+        .expect((response) => {
+            assert.strictEqual(response.statusCode, 404, "Incorrect status code");
         })
         .end((error, response) => {
             if (error) { t.log(response.body) };
