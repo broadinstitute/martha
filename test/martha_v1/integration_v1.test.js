@@ -15,11 +15,11 @@ test.cb('integration_v1 return gs link', (t) => {
         .set('Content-Type', 'application/json')
         .send({ 'url': 'dos://broad-dsp-dos.storage.googleapis.com/dos.json', 'pattern': 'gs://' })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 200, "Incorrect status code");
+            assert.strictEqual(response.statusCode, 200, 'Incorrect status code');
             assert.deepStrictEqual(response.text, 'gs://broad-public-datasets/NA12878_downsampled_for_testing/unmapped/H06JUADXX130110.1.ATCACGAT.20k_reads.bam');
         })
         .end((error, response) => {
-            if (error) { t.log(response.body) };
+            if (error) { t.log(response.body); }
             t.end(error);
         });
 });
@@ -30,10 +30,10 @@ test.cb('integration_v1 return error if url passed is not good', (t) => {
         .set('Content-Type', 'application/json')
         .send({ 'url': 'somethingNotValidURL' })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 500, "Incorrect status code");
+            assert.strictEqual(response.statusCode, 500, 'Incorrect status code');
         })
         .end((error, response) => {
-            if (error) { t.log(response.body) };
+            if (error) { t.log(response.body); }
             t.end(error);
         });
 });
@@ -44,10 +44,10 @@ test.cb('integration_v1 return 404 if no match is found', (t) => {
         .set('Content-Type', 'application/json')
         .send({ 'url': 'dos://broad-dsp-dos.storage.googleapis.com/dos.json', 'pattern': 'bad:pattern//' })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 404, "Incorrect status code");
+            assert.strictEqual(response.statusCode, 404, 'Incorrect status code');
         })
         .end((error, response) => {
-            if (error) { t.log(response.body) };
+            if (error) { t.log(response.body); }
             t.end(error);
         });
 });
