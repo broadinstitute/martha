@@ -4,7 +4,7 @@
 #
 version: 2
 jobs:
-  build:
+  test:
     docker:
       - image: circleci/node:8.11
 
@@ -34,14 +34,42 @@ jobs:
             git tag $TAG_NAME
             git push origin $TAG_NAME
 
+  build-image:
+    docker:
+      - image: circleci/node:8.11
+
+    environment:
+      IMAGE_NAME: quay.io/broadinstitute/martha
+      QUAY_USER: broadinstitute+martha_circle_bot
+
+    steps:
+      - checkout
+
+      - setup_remote_docker:
+          docker_layer_caching: true
+
+      - run:
+          name: Build image
+          command: |
+            docker build -t ${IMAGE_NAME}:${CIRCLE_BRANCH} -f docker/Dockerfile .
+            if [[ ${CIRCLE_BRANCH} == "dev" ]]; then docker tag ${IMAGE_NAME}:${CIRCLE_BRANCH} ${IMAGE_NAME}:latest ; fi
+
+      - run:
+          name: Push to quay
+          command: |
+            docker login -u="${QUAY_USER}" -p="${QUAY_USER_PW}" quay.io
+            docker push ${IMAGE_NAME}
+
 workflows:
   version: 2
   test-and-tag:
     jobs:
-      - build
+      - test
+      - build-image
       - tag:
           requires:
-            - build
+            - test
+            - build-image
           filters:
             branches:
               only: dev

@@ -4,17 +4,22 @@
   "description": "Data Object GUID Resolution",
   "private": true,
   "scripts": {
-    "test": "ava -m !smoketest* -m !with_auth*",
+    "test": "ava -m !smoketest* -m !with_auth* -m !integration*",
     "smoketest": "ava -m smoketest*",
     "smoketest_v1": "ava -m smoketest_v1*",
     "smoketest_v2": "ava -m smoketest_v2*",
     "smoketest_fileSummaryV1": "ava -m smoketest_fileSummaryV1*",
-    "with_auth": "ava -m with_auth*"
+    "with_auth": "ava -m with_auth*",
+    "integration": "ava -m integration*",
+    "integration_v1": "ava -m integration_v1*",
+    "integration_v2": "ava -m integration_v2*",
+    "integration_fileSummaryV1": "ava -m integration_fileSummaryV1*"
   },
   "dependencies": {
     "@google-cloud/storage": "^1.7.0",
     "ava": "^0.25.0",
     "cors": "^2.8.4",
+    "gtoken": "^2.3.0",
     "superagent": "^3.8.3",
     "supertest": "^3.1.0"
   },
