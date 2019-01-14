@@ -161,7 +161,7 @@ test.cb('integration_v2 fails when "authorization" header is provided for a prot
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
-        .set('Authorization', `Bearer badToken`)
+        .set('Authorization', 'Bearer badToken')
         .send({ url: protectedFenceUrl })
         .expect((response) => {
             assert.strictEqual(response.statusCode, 502, 'Incorrect status code');

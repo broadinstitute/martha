@@ -22,7 +22,7 @@ let authorizedEmail = 'hermione.owner@test.firecloud.org';
 
 let dosUri = 'dos://dg.4503/preview_dos.json';
 let gsUri = 'gs://wb-mock-drs-dev/public/dos_test.txt';
-// TODO: remove static link so bond host can be changed depending on env
+// TODO: GAWB-4053 -- remove static link so bond host can be changed depending on env
 let fenceAuthLink = 'https://bond-fiab.dsde-dev.broadinstitute.org:31443/api/link/v1/fence/oauthcode?oauthcode=IgnoredByMockProvider&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback';
 
 test.before(async () => {
@@ -125,7 +125,7 @@ test.cb('integration_fileSummaryV1 responds with 502 and unauthorized response i
     supertest
         .post('/fileSummaryV1')
         .set('Content-Type', 'application/json')
-        .set('Authorization', `Bearer badToken`)
+        .set('Authorization', 'Bearer badToken')
         .send({ uri: gsUri })
         .expect((response) => {
             assert.strictEqual(response.statusCode, 502, 'Incorrect status code');
