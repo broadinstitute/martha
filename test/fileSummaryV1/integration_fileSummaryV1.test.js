@@ -14,8 +14,8 @@ const { postJsonTo } = require('../../common/api_adapter');
 let unauthorizedToken;
 let authorizedToken;
 
-const myEnv = process.env.ENV ? process.env.ENV : "dev";
-const emailDomain = (myEnv === "qa" ? "quality" : "test") + ".firecloud.org";
+const myEnv = process.env.ENV ? process.env.ENV : 'dev';
+const emailDomain = (myEnv === 'qa' ? 'quality' : 'test') + '.firecloud.org';
 
 let keyFile = 'automation/firecloud-account.pem';
 let serviceAccountEmail = `firecloud-${myEnv}@broad-dsde-${myEnv}.iam.gserviceaccount.com`;
