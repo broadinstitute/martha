@@ -10,20 +10,24 @@ const supertest = require('supertest')(process.env.BASE_URL);
 const assert = require('assert');
 const { GoogleToken } = require('gtoken');
 const { postJsonTo } = require('../../common/api_adapter');
+const {samBaseUrl} = require('../../common/helpers');
 
 let unauthorizedToken;
 let authorizedToken;
 
+const myEnv = process.env.ENV ? process.env.ENV : "dev";
+const emailDomain = (myEnv === "qa" ? "quality" : myEnv) + ".firecloud.org";
+
 let keyFile = 'automation/firecloud-account.pem';
-let serviceAccountEmail = 'firecloud-dev@broad-dsde-dev.iam.gserviceaccount.com';
+let serviceAccountEmail = `firecloud-${myEnv}@broad-dsde-${myEnv}.iam.gserviceaccount.com`;
 let scopes = 'email openid';
-let unauthorizedEmail = 'ron.weasley@test.firecloud.org';
-let authorizedEmail = 'hermione.owner@test.firecloud.org';
+let unauthorizedEmail = `ron.weasley@${emailDomain}`;
+let authorizedEmail = `hermione.owner@${emailDomain}`;
 
 let dosUri = 'dos://dg.4503/preview_dos.json';
 let gsUri = 'gs://wb-mock-drs-dev/public/dos_test.txt';
 // TODO: GAWB-4053 -- remove static link so bond host can be changed depending on env
-let fenceAuthLink = 'https://bond-fiab.dsde-dev.broadinstitute.org:31443/api/link/v1/fence/oauthcode?oauthcode=IgnoredByMockProvider&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback';
+let fenceAuthLink = `${samBaseUrl()}:31443/api/link/v1/fence/oauthcode?oauthcode=IgnoredByMockProvider&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback`;
 
 test.before(async () => {
     unauthorizedToken = await new GoogleToken({
