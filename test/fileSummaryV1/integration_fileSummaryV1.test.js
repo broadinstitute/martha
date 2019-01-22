@@ -28,10 +28,6 @@ let gsUri = 'gs://wb-mock-drs-dev/public/dos_test.txt';
 // TODO: GAWB-4053 -- remove static link so bond host can be changed depending on env
 let fenceAuthLink = `https://bond-fiab.dsde-${myEnv}.broadinstitute.org:31443/api/link/v1/fence/oauthcode?oauthcode=IgnoredByMockProvider&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback`;
 
-console.log(`service account: ${serviceAccountEmail}`);
-console.log(`ron: ${unauthorizedEmail}`);
-console.log(`hermione: ${authorizedEmail}`);
-
 test.before(async () => {
     unauthorizedToken = await new GoogleToken({
         keyFile: keyFile,
