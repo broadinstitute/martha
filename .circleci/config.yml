@@ -13,7 +13,7 @@ jobs:
     steps:
       - checkout
       - run:
-          command: npm install
+          command: npm ci
       - run:
           command: npm test
 

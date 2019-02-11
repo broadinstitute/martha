@@ -24,8 +24,9 @@ WORKDIR /martha
 # Install GCF Emulator and project dependencies
 # Do this prior to copying over source files to take advantage of Docker layer caching of npm dependencies
 COPY package.json package.json
+COPY package-lock.json package-lock.json
 RUN npm install -g @google-cloud/functions-emulator \
-    && npm install
+    && npm ci
 
 # Copy Martha source code into image AFTER installing dependencies
 COPY . .
