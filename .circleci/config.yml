@@ -6,14 +6,14 @@ version: 2
 jobs:
   test:
     docker:
-      - image: circleci/node:8.11
+      - image: circleci/node:8.15
 
     working_directory: ~/repo
 
     steps:
       - checkout
       - run:
-          command: npm install
+          command: npm ci
       - run:
           command: npm test
 
@@ -36,7 +36,7 @@ jobs:
 
   build-image:
     docker:
-      - image: circleci/node:8.11
+      - image: circleci/node:8.15
 
     environment:
       IMAGE_NAME: quay.io/broadinstitute/martha
