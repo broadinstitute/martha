@@ -1,4 +1,4 @@
-const Storage = require('@google-cloud/storage');
+const { Storage } = require('@google-cloud/storage');
 
 async function createSignedGsUrl(serviceAccountKey, { bucket, name }) {
     const storage = new Storage({ credentials: serviceAccountKey });
