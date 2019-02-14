@@ -10,15 +10,25 @@
  *
  *  To run these tests:
  *
- *      npm run with_auth
+ *      npm run live_test_martha_v2 -- -- --env=[env] --mock --base_url=[https://...]
  *
+ *      There are 3 optional parameters you can pass:
+ *
+ *          env         - Can be one of ['dev', 'staging', 'alpha', 'perf', 'prod'].  Used to automatically determine
+ *                        the `base_url`.  Defaults to `local`.
+ *          mock        - If present or set to `true`, then tests will use DRS URLs that are resolvable by the mock-drs
+ *                        service.  If `mock` is absent or set to `false`, tests will use DRS URLs resolvable by the
+ *                        live/public DRS resolvers.
+ *          base_url    - The base URL (protocol and host) where the Martha functions will be called.  Set this option
+ *                        if you want to override the `base_url` derived from the `env` option.  Defaults to
+ *                        `http://localhost:8010/broad-dsde-dev/us-central1`.
  */
 
-
-const baseUrl = process.env.BASE_URL || 'http://localhost:8010/broad-dsde-dev/us-central1';
+const { MarthaLiveEnv } = require('../_marthaLiveEnv');
+const marthaLiveEnv = new MarthaLiveEnv(process.argv.slice(2));
 
 const test = require('ava');
-const supertest = require('supertest')(baseUrl);
+const supertest = require('supertest')(marthaLiveEnv.baseUrl);
 const execSync = require('child_process').execSync;
 
 let currentUser;
@@ -59,37 +69,31 @@ test.before(() => {
     currentUser = execSync('gcloud auth list --filter=status:ACTIVE --format="value(account)"');
     bearerToken = execSync('gcloud auth print-access-token').toString().trim();
     console.log(`Using access token for user: ${currentUser}`);
-    console.log(`Testing Martha functions at: ${baseUrl}`);
+    console.log(`Testing Martha functions at: ${marthaLiveEnv.baseUrl}`);
+    console.log(`Martha settings: ${JSON.stringify(marthaLiveEnv)}`);
 });
 
-test.cb('with_auth martha_v2 responds with DOS object only when no "authorization" header is provided', (t) => {
+test.cb('live_test martha_v2 responds with DOS object only when no "authorization" header is provided', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
-        .send({ url: 'dos://broad-dsp-dos.storage.googleapis.com/dos.json' })
+        .send({ url: marthaLiveEnv.dosUrls[0] })
         .expect(200)
         .end((err, response) => handleResponse(err, response, t, true));
 });
 
-test.cb('with_auth martha_v2 responds with DOS object when "authorization" header is provided', (t) => {
+test.cb('live_test martha_v2 responds with DOS object when "authorization" header is provided', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
         .set('Authorization', `bearer ${bearerToken}`)
-        .send({ url: 'dos://broad-dsp-dos.storage.googleapis.com/dos.json' })
+        .send({ url: marthaLiveEnv.dosUrls[0] })
         .expect(200)
         .end((err, response) => handleResponse(err, response, t));
 });
 
-const dosUrls = [
-    // 'dos://dg.4503/00082e1c-42f6-4850-b512-413752286593', // Old dos URL doesn't resolve anymore?
-    'dos://qa.dcf.planx-pla.net/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
-    'dos://nci-crdc-staging.datacommons.io/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
-    'dos://dataguids.org/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc'
-];
-
-for (const dosUrl of dosUrls) {
-    test.cb(`with_auth Calling martha_v2 with URL: "${dosUrl}" without an Access Token resolves to a DOS object`, (t) => {
+for (const dosUrl of marthaLiveEnv.dosUrls) {
+    test.cb(`live_test Calling martha_v2 with URL: "${dosUrl}" without an Access Token resolves to a DOS object`, (t) => {
         supertest
             .post('/martha_v2')
             .set('Content-Type', 'application/json')
@@ -98,5 +102,3 @@ for (const dosUrl of dosUrls) {
             .end((err, response) => handleResponse(err, response, t, true));
     });
 }
-
-// TODO: Test martha_v1 and fileSummaryV1
