@@ -24,7 +24,7 @@
  *                        `http://localhost:8010/broad-dsde-dev/us-central1`.
  */
 
-const { MarthaLiveEnv } = require("../_marthaLiveEnv");
+const { MarthaLiveEnv } = require('../_marthaLiveEnv');
 const marthaLiveEnv = new MarthaLiveEnv(process.argv.slice(2));
 
 const test = require('ava');

@@ -27,6 +27,14 @@ const _mockDosUrlsWithoutGS = [
 
 const _mockedDosUrls = _mockedDosUrlsWithGS.concat(_mockDosUrlsWithoutGS);
 
+function chooseBaseUrl(env) {
+    let baseUrl = 'http://localhost:8010/broad-dsde-dev/us-central1';
+    if (['dev', 'staging', 'alpha', 'perf', 'prod'].includes(env)) {
+        baseUrl = `https://us-central1-broad-dsde-${env}.cloudfunctions.net/`;
+    }
+    return baseUrl;
+}
+
 function marthaLiveEnv(args) {
     const parsedArgs = require('minimist')(args);
     this.env = parsedArgs.e || parsedArgs.env || 'local';
@@ -35,14 +43,6 @@ function marthaLiveEnv(args) {
     this.dosUrls = this.useMockDrs ? _mockedDosUrls : _publicDosUrls;
     this.dosUrlsWithGS = this.useMockDrs ? _mockedDosUrlsWithGS : _publicDosUrlsWithGS;
     this.dosUrlsWithoutGS = this.useMockDrs ? _mockDosUrlsWithoutGS : _publicDosUrlsWithoutGS;
-}
-
-function chooseBaseUrl(env) {
-    let baseUrl = 'http://localhost:8010/broad-dsde-dev/us-central1';
-    if (['dev', 'staging', 'alpha', 'perf', 'prod']) {
-        baseUrl = `https://us-central1-broad-dsde-${env}.cloudfunctions.net/`;
-    }
-    return baseUrl;
 }
 
 exports.MarthaLiveEnv = marthaLiveEnv;
