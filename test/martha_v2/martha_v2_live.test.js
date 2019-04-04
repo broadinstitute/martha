@@ -34,10 +34,10 @@ const execSync = require('child_process').execSync;
 let currentUser;
 let bearerToken;
 
-function assertDosObject(response, t) {
-    t.truthy(response.body.dos);
-    const dosObject = response.body.dos;
-    t.truthy(dosObject.data_object);
+function assertDrsObject(response, t) {
+    t.truthy(response.body.drs);
+    const drsObject = response.body.drs;
+    t.truthy(drsObject.data_object);
 }
 
 function assertGoogleServiceAccount(response, t) {
@@ -57,7 +57,7 @@ function handleResponse(err, response, t, skipGoogleServiceAccount = false) {
         }
         t.fail(msg);
     } else {
-        assertDosObject(response, t);
+        assertDrsObject(response, t);
         if (!skipGoogleServiceAccount) {
             assertGoogleServiceAccount(response, t);
         }
@@ -73,31 +73,31 @@ test.before(() => {
     console.log(`Martha settings: ${JSON.stringify(marthaLiveEnv)}`);
 });
 
-test.cb('live_test martha_v2 responds with DOS object only when no "authorization" header is provided', (t) => {
+test.cb('live_test martha_v2 responds with DRS object only when no "authorization" header is provided', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
-        .send({ url: marthaLiveEnv.dosUrls[0] })
+        .send({ url: marthaLiveEnv.drsUrls[0] })
         .expect(200)
         .end((err, response) => handleResponse(err, response, t, true));
 });
 
-test.cb('live_test martha_v2 responds with DOS object when "authorization" header is provided', (t) => {
+test.cb('live_test martha_v2 responds with DRS object when "authorization" header is provided', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
         .set('Authorization', `bearer ${bearerToken}`)
-        .send({ url: marthaLiveEnv.dosUrls[0] })
+        .send({ url: marthaLiveEnv.drsUrls[0] })
         .expect(200)
         .end((err, response) => handleResponse(err, response, t));
 });
 
-for (const dosUrl of marthaLiveEnv.dosUrls) {
-    test.cb(`live_test Calling martha_v2 with URL: "${dosUrl}" without an Access Token resolves to a DOS object`, (t) => {
+for (const drsUrl of marthaLiveEnv.drsUrls) {
+    test.cb(`live_test Calling martha_v2 with URL: "${drsUrl}" without an Access Token resolves to a DRS object`, (t) => {
         supertest
             .post('/martha_v2')
             .set('Content-Type', 'application/json')
-            .send({url: dosUrl})
+            .send({url: drsUrl})
             .expect(200)
             .end((err, response) => handleResponse(err, response, t, true));
     });

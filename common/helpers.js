@@ -2,19 +2,20 @@ const url = require('url');
 const config = require('../config.json');
 const URL = require('url');
 
-function dosToHttps(dosUri) {
-    const parsedUrl = url.parse(dosUri);
+function drsToHttps(drsUri) {
+    const parsedUrl = url.parse(drsUri);
 
     if (!parsedUrl.protocol || !parsedUrl.host || !parsedUrl.pathname) {
-        throw new Error(`Invalid URL: "${dosUri}"`);
+        throw new Error(`Invalid URL: "${drsUri}"`);
     }
 
     parsedUrl.protocol = 'https';
-    parsedUrl.host = config.dosResolutionHost;
+    parsedUrl.host = config.drsResolutionHost;
+    // NOTE: dataguids.org currently still uses "dos" in their path as shown below.  Don't be surprised if this changes to "drs" at some point
     parsedUrl.pathname = `/ga4gh/dos/v1/dataobjects${parsedUrl.pathname}`;
 
     const output = url.format(parsedUrl);
-    console.log(`${dosUri} -> ${output}`);
+    console.log(`${drsUri} -> ${output}`);
     return output;
 }
 
@@ -38,4 +39,4 @@ function determineBondProvider(urlString) {
 const bondBaseUrl = () => config.bondBaseUrl;
 const samBaseUrl = () => config.samBaseUrl;
 
-module.exports = {dosToHttps, bondBaseUrl, samBaseUrl, BondProviders, determineBondProvider};
+module.exports = {drsToHttps, bondBaseUrl, samBaseUrl, BondProviders, determineBondProvider};

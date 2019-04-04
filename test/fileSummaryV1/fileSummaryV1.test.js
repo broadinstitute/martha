@@ -83,20 +83,20 @@ test.serial('fileSummaryV1Handler resolves a valid gs url into a metadata and si
     t.is(response.statusCode, 200);
 });
 
-test.serial('fileSummaryV1Handler resolves a valid dos url into metadata and signed url', async (t) => {
+test.serial('fileSummaryV1Handler resolves a valid drs url into metadata and signed url', async (t) => {
     const response = mockResponse();
-    await fileSummaryV1(mockRequest({ body: { uri: 'dos://example.com/validGS' } }), response);
+    await fileSummaryV1(mockRequest({ body: { uri: 'drs://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
     t.deepEqual(result, fullExpectedResult());
     t.truthy(result.signedUrl);
     t.is(response.statusCode, 200);
 });
 
-test.serial('fileSummaryV1Handler resolves a valid dos url into metadata with no signed url when not linked to Fence', async (t) => {
+test.serial('fileSummaryV1Handler resolves a valid drs url into metadata with no signed url when not linked to Fence', async (t) => {
     getServiceAccountKeyStub.restore();
     sandbox.stub(saKeys, getServiceAccountKeyMethodName).resolves();
     const response = mockResponse();
-    const mockReq = mockRequest({ body: { uri: 'dos://example.com/validGS' } });
+    const mockReq = mockRequest({ body: { uri: 'drs://example.com/validGS' } });
     await fileSummaryV1(mockReq, response);
     const result = response.send.lastCall.args[0];
     t.deepEqual(result, gsObjectMetadata());
@@ -134,7 +134,7 @@ test.serial('fileSummaryV1Handler should return 502 if it is unable to retrieve 
     getServiceAccountKeyStub.restore();
     sandbox.stub(saKeys, getServiceAccountKeyMethodName).rejects(new Error('Stubbed error getting Service Account Key'));
     const response = mockResponse();
-    await fileSummaryV1(mockRequest({ body: { uri: 'dos://example.com/validGS' } }), response);
+    await fileSummaryV1(mockRequest({ body: { uri: 'drs://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
     t.true(result instanceof Error);
     t.is(response.statusCode, 502);

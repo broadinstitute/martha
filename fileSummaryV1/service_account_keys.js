@@ -24,8 +24,8 @@ function maybeTalkToSam(auth) {
     });
 }
 
-function getServiceAccountKey(url, auth, isDos) {
-    if (isDos) {
+function getServiceAccountKey(url, auth, isDrs) {
+    if (isDrs) {
         return maybeTalkToBond(auth, url);
     } else {
         return maybeTalkToSam(auth);

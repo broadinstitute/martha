@@ -1,19 +1,23 @@
 const test = require('ava');
-const {dosToHttps, bondBaseUrl, samBaseUrl, BondProviders, determineBondProvider} = require('../../common/helpers');
+const {drsToHttps, bondBaseUrl, samBaseUrl, BondProviders, determineBondProvider} = require('../../common/helpers');
 const config = require('../../config.json');
 
-test('dosToHttps should parse dos uri', (t) => {
-    t.is(dosToHttps('dos://foo/bar'), `https://${config.dosResolutionHost}/ga4gh/dos/v1/dataobjects/bar`);
+test('drsToHttps should parse dos uri', (t) => {
+    t.is(drsToHttps('dos://foo/bar'), `https://${config.drsResolutionHost}/ga4gh/dos/v1/dataobjects/bar`);
+});
+
+test('drsToHttps should parse drs uri', (t) => {
+    t.is(drsToHttps('drs://foo/bar'), `https://${config.drsResolutionHost}/ga4gh/dos/v1/dataobjects/bar`);
 });
 
 // This is a legacy test because martha_v1 treated dos urls with a "dg.*" host differently than other urls
-test('dosToHttps should parse dg dos uri to use dosResolutionHost', (t) => {
-    t.is(dosToHttps('dos://dg.2345/bar'), `https://${config.dosResolutionHost}/ga4gh/dos/v1/dataobjects/bar`);
+test('drsToHttps should parse dg dos uri to use drsResolutionHost', (t) => {
+    t.is(drsToHttps('dos://dg.2345/bar'), `https://${config.drsResolutionHost}/ga4gh/dos/v1/dataobjects/bar`);
 });
 
-test('dosToHttps should throw a Error when passed an invalid uri', (t) => {
+test('drsToHttps should throw a Error when passed an invalid uri', (t) => {
     t.throws(() => {
-        dosToHttps('A string that is not a valid URI');
+        drsToHttps('A string that is not a valid URI');
     }, Error);
 });
 
@@ -35,9 +39,9 @@ test('BondProviders should contain "dcf-fence" and "fence"', (t) => {
 });
 
 test('determineBondProvider should be "fence" if the URL host is "dg.4503"', (t) => {
-    t.is(determineBondProvider('dos://dg.4503/anything'), BondProviders.FENCE);
+    t.is(determineBondProvider('drs://dg.4503/anything'), BondProviders.FENCE);
 });
 
 test('determineBondProvider should return the default BondProvider if the URL host is NOT "dg.4503"', (t) => {
-    t.is(determineBondProvider('dos://some-host/anything'), BondProviders.default);
+    t.is(determineBondProvider('drs://some-host/anything'), BondProviders.default);
 });
