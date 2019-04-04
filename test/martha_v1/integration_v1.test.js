@@ -13,7 +13,7 @@ test.cb('integration_v1 return gs link', (t) => {
     supertest
         .post('/martha_v1')
         .set('Content-Type', 'application/json')
-        .send({ 'url': 'drs://broad-dsp-drs.storage.googleapis.com/drs.json', 'pattern': 'gs://' })
+        .send({ 'url': 'drs://broad-dsp-dos.storage.googleapis.com/dos.json', 'pattern': 'gs://' })
         .expect((response) => {
             assert.strictEqual(response.statusCode, 200, 'Incorrect status code');
             assert.deepStrictEqual(response.text, 'gs://broad-public-datasets/NA12878_downsampled_for_testing/unmapped/H06JUADXX130110.1.ATCACGAT.20k_reads.bam');
@@ -42,7 +42,7 @@ test.cb('integration_v1 return 404 if no match is found', (t) => {
     supertest
         .post('/martha_v1')
         .set('Content-Type', 'application/json')
-        .send({ 'url': 'drs://broad-dsp-drs.storage.googleapis.com/drs.json', 'pattern': 'bad:pattern//' })
+        .send({ 'url': 'drs://broad-dsp-dos.storage.googleapis.com/dos.json', 'pattern': 'bad:pattern//' })
         .expect((response) => {
             assert.strictEqual(response.statusCode, 404, 'Incorrect status code');
         })
