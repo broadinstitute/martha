@@ -1,4 +1,4 @@
-const {drsToHttps, bondBaseUrl, determineBondProvider, BondProviders} = require('../common/helpers');
+const {dataObjectUrlToHttps, bondBaseUrl, determineBondProvider, BondProviders} = require('../common/helpers');
 const apiAdapter = require('../common/api_adapter');
 
 // This function counts on the request posing  data as "application/json" content-type.
@@ -33,14 +33,14 @@ function aggregateResponses(responses) {
 function martha_v2_handler(req, res) {
     const origUrl = parseRequest(req);
     if (!origUrl) {
-        res.status(400).send('Request must specify the URL of a DRS object');
+        res.status(400).send('Request must specify the URL of a DOS object');
         return;
     }
 
     console.log(`Received URL: ${origUrl}`);
-    let drsUrl;
+    let dataObjectUrl;
     try {
-        drsUrl = drsToHttps(origUrl);
+        dataObjectUrl = dataObjectUrlToHttps(origUrl);
     } catch (e) {
         console.error(new Error(e));
         res.status(400).send('The specified URL is invalid');
@@ -49,10 +49,10 @@ function martha_v2_handler(req, res) {
 
     const bondProvider = determineBondProvider(origUrl);
 
-    const drsPromise = apiAdapter.getJsonFrom(drsUrl);
+    const dataObjectPromise = apiAdapter.getJsonFrom(dataObjectUrl);
     const bondPromise = maybeTalkToBond(req, bondProvider);
 
-    return Promise.all([drsPromise, bondPromise])
+    return Promise.all([dataObjectPromise, bondPromise])
         .then((rawResults) => {
             res.status(200).send(aggregateResponses(rawResults));
         })

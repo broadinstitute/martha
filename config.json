@@ -3,7 +3,7 @@
 
 
 {
-    "drsResolutionHost": "dataguids.org",
+    "dataObjectResolutionHost": "dataguids.org",
     "bondBaseUrl": "broad-bond-dev.appspot.com",
     "samBaseUrl": "https://sam.dsde-dev.broadinstitute.org"
 }

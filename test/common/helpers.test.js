@@ -1,23 +1,23 @@
 const test = require('ava');
-const {drsToHttps, bondBaseUrl, samBaseUrl, BondProviders, determineBondProvider} = require('../../common/helpers');
+const {dataObjectUrlToHttps, bondBaseUrl, samBaseUrl, BondProviders, determineBondProvider} = require('../../common/helpers');
 const config = require('../../config.json');
 
-test('drsToHttps should parse dos uri', (t) => {
-    t.is(drsToHttps('dos://foo/bar'), `https://${config.drsResolutionHost}/ga4gh/dos/v1/dataobjects/bar`);
+test('dataObjectUrlToHttps should parse dos:// Data Object uri', (t) => {
+    t.is(dataObjectUrlToHttps('dos://foo/bar'), `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/bar`);
 });
 
-test('drsToHttps should parse drs uri', (t) => {
-    t.is(drsToHttps('drs://foo/bar'), `https://${config.drsResolutionHost}/ga4gh/dos/v1/dataobjects/bar`);
+test('dataObjectUrlToHttps should parse drs:// Data Object uri', (t) => {
+    t.is(dataObjectUrlToHttps('drs://foo/bar'), `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/bar`);
 });
 
 // This is a legacy test because martha_v1 treated dos urls with a "dg.*" host differently than other urls
-test('drsToHttps should parse dg dos uri to use drsResolutionHost', (t) => {
-    t.is(drsToHttps('dos://dg.2345/bar'), `https://${config.drsResolutionHost}/ga4gh/dos/v1/dataobjects/bar`);
+test('dataObjectUrlToHttps should parse dg Data Object uri to use dataObjectResolutionHost', (t) => {
+    t.is(dataObjectUrlToHttps('dos://dg.2345/bar'), `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/bar`);
 });
 
-test('drsToHttps should throw a Error when passed an invalid uri', (t) => {
+test('dataObjectUrlToHttps should throw a Error when passed an invalid uri', (t) => {
     t.throws(() => {
-        drsToHttps('A string that is not a valid URI');
+        dataObjectUrlToHttps('A string that is not a valid URI');
     }, Error);
 });
 

@@ -83,7 +83,7 @@ test.serial('fileSummaryV1Handler resolves a valid gs url into a metadata and si
     t.is(response.statusCode, 200);
 });
 
-test.serial('fileSummaryV1Handler resolves a valid drs url into metadata and signed url', async (t) => {
+test.serial('fileSummaryV1Handler resolves a valid drs:// Data Object url into metadata and signed url', async (t) => {
     const response = mockResponse();
     await fileSummaryV1(mockRequest({ body: { uri: 'drs://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
@@ -92,7 +92,7 @@ test.serial('fileSummaryV1Handler resolves a valid drs url into metadata and sig
     t.is(response.statusCode, 200);
 });
 
-test.serial('fileSummaryV1Handler resolves a valid drs url into metadata with no signed url when not linked to Fence', async (t) => {
+test.serial('fileSummaryV1Handler resolves a valid drs:// Data Object url into metadata with no signed url when not linked to Fence', async (t) => {
     getServiceAccountKeyStub.restore();
     sandbox.stub(saKeys, getServiceAccountKeyMethodName).resolves();
     const response = mockResponse();

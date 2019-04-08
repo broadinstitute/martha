@@ -1,5 +1,5 @@
 const superagent = require('superagent');
-const { drsToHttps } = require('./helpers');
+const { dataObjectUrlToHttps } = require('./helpers');
 
 const martha_v1_handler = (req, res) => {
     let orig_url = req.body.url;
@@ -9,7 +9,7 @@ const martha_v1_handler = (req, res) => {
         pattern = JSON.parse(req.body.toString()).pattern;
     }
 
-    const http_url = drsToHttps(orig_url);
+    const http_url = dataObjectUrlToHttps(orig_url);
 
     console.log(http_url);
     superagent.get(http_url)

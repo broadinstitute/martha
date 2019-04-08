@@ -24,8 +24,8 @@ function maybeTalkToSam(auth) {
     });
 }
 
-function getServiceAccountKey(url, auth, isDrs) {
-    if (isDrs) {
+function getServiceAccountKey(url, auth, isDataObject) {
+    if (isDataObject) {
         return maybeTalkToBond(auth, url);
     } else {
         return maybeTalkToSam(auth);

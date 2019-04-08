@@ -29,7 +29,7 @@ const mockResponse = () => {
     };
 };
 
-const drsObject = { fake: 'A fake drs object' };
+const dataObject = { fake: 'A fake Data Object' };
 const googleSAKeyObject = { key: 'A Google Service Account private key json object' };
 
 const bondRegEx = /^([^/]+)\/api\/link\/v1\/([a-z-]+)\/serviceaccount\/key$/;
@@ -41,7 +41,7 @@ let sandbox = sinon.createSandbox();
 test.serial.beforeEach(() => {
     sandbox.restore(); // If one test fails, the .afterEach() block will not execute, so always clean the slate here
     getJsonFromApiStub = sandbox.stub(apiAdapter, getJsonFromApiMethodName);
-    getJsonFromApiStub.onFirstCall().resolves(drsObject);
+    getJsonFromApiStub.onFirstCall().resolves(dataObject);
     getJsonFromApiStub.onSecondCall().resolves(googleSAKeyObject);
 });
 
@@ -49,11 +49,11 @@ test.serial.afterEach(() => {
     sandbox.restore();
 });
 
-test.serial('martha_v2 resolves a valid url into a drs object and google service account key', async (t) => {
+test.serial('martha_v2 resolves a valid url into a Data Object and google service account key', async (t) => {
     const response = mockResponse();
     await martha_v2(mockRequest({ body: { 'url': 'https://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
-    t.deepEqual(result.dos, drsObject);
+    t.deepEqual(result.dos, dataObject);
     t.deepEqual(result.googleServiceAccount, googleSAKeyObject);
     t.is(response.statusCode, 200);
 });
@@ -68,19 +68,19 @@ test.serial('martha_v2 resolves successfully and ignores extra data submitted be
         }
     }), response);
     const result = response.send.lastCall.args[0];
-    t.deepEqual(result.dos, drsObject);
+    t.deepEqual(result.dos, dataObject);
     t.deepEqual(result.googleServiceAccount, googleSAKeyObject);
     t.is(response.statusCode, 200);
 });
 
-test.serial('martha_v2 resolves a valid url into a drs object without a service account key if no authorization header is provided', async (t) => {
+test.serial('martha_v2 resolves a valid url into a Data Object without a service account key if no authorization header is provided', async (t) => {
     const response = mockResponse();
     const mockReq = mockRequest({ body: { 'url': 'https://example.com/validGS' } });
     delete mockReq.headers.authorization;
     await martha_v2(mockReq, response);
     const result = response.send.lastCall.args[0];
     t.is(response.statusCode, 200);
-    t.deepEqual(result.dos, drsObject);
+    t.deepEqual(result.dos, dataObject);
 });
 
 test.serial('martha_v2 should return 400 if not given a url', async (t) => {
@@ -101,9 +101,9 @@ test.serial('martha_v2 should return 400 if given a \'url\' with an invalid valu
     t.is(response.statusCode, 400);
 });
 
-test.serial('martha_v2 should return 502 if drs resolution fails', async (t) => {
+test.serial('martha_v2 should return 502 if Data Object resolution fails', async (t) => {
     getJsonFromApiStub.restore();
-    sandbox.stub(apiAdapter, getJsonFromApiMethodName).rejects(new Error('DOS Resolution forced to fail by testing stub'));
+    sandbox.stub(apiAdapter, getJsonFromApiMethodName).rejects(new Error('Data Object Resolution forced to fail by testing stub'));
     const response = mockResponse();
     await martha_v2(mockRequest({ body: { 'url': 'https://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
@@ -121,7 +121,7 @@ test.serial('martha_v2 should return 502 if key retrieval from bond fails', asyn
     t.is(response.statusCode, 502);
 });
 
-test.serial('martha_v2 calls bond Bond with the "dcf-fence" provider when the DRS URL host is not "dg.4503"', async (t) => {
+test.serial('martha_v2 calls bond Bond with the "dcf-fence" provider when the Data Object URL host is not "dg.4503"', async (t) => {
     const response = mockResponse();
     await martha_v2(mockRequest({ body: { 'url': 'https://example.com/validGS' } }), response);
     const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
@@ -132,7 +132,7 @@ test.serial('martha_v2 calls bond Bond with the "dcf-fence" provider when the DR
     t.is(actualProvider, expectedProvider);
 });
 
-test.serial('martha_v2 calls bond Bond with the "fence" provider when the DRS URL host is "dg.4503"', async (t) => {
+test.serial('martha_v2 calls bond Bond with the "fence" provider when the Data Object URL host is "dg.4503"', async (t) => {
     const response = mockResponse();
     await martha_v2(mockRequest({ body: { 'url': 'drs://dg.4503/this_part_can_be_anything' } }), response);
     const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];

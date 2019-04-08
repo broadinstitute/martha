@@ -16,9 +16,9 @@
  *
  *          env         - Can be one of ['dev', 'staging', 'alpha', 'perf', 'prod'].  Used to automatically determine
  *                        the `base_url`.  Defaults to `local`.
- *          mock        - If present or set to `true`, then tests will use DRS URLs that are resolvable by the mock-drs
- *                        service.  If `mock` is absent or set to `false`, tests will use DRS URLs resolvable by the
- *                        live/public DRS resolvers.
+ *          mock        - If present or set to `true`, then tests will use Data Object URLs that are resolvable by the mock-drs
+ *                        service.  If `mock` is absent or set to `false`, tests will use Data Object URLs resolvable by the
+ *                        live/public Data Object resolvers.
  *          base_url    - The base URL (protocol and host) where the Martha functions will be called.  Set this option
  *                        if you want to override the `base_url` derived from the `env` option.  Defaults to
  *                        `http://localhost:8010/broad-dsde-dev/us-central1`.
@@ -34,10 +34,10 @@ const execSync = require('child_process').execSync;
 let currentUser;
 let bearerToken;
 
-function assertDrsObject(response, t) {
-    t.truthy(response.body.drs);
-    const drsObject = response.body.drs;
-    t.truthy(drsObject.data_object);
+function assertDataObject(response, t) {
+    t.truthy(response.body.dos);
+    const dataObject = response.body.dos;
+    t.truthy(dataObject.data_object);
 }
 
 function assertGoogleServiceAccount(response, t) {
@@ -57,7 +57,7 @@ function handleResponse(err, response, t, skipGoogleServiceAccount = false) {
         }
         t.fail(msg);
     } else {
-        assertDrsObject(response, t);
+        assertDataObject(response, t);
         if (!skipGoogleServiceAccount) {
             assertGoogleServiceAccount(response, t);
         }
@@ -73,31 +73,31 @@ test.before(() => {
     console.log(`Martha settings: ${JSON.stringify(marthaLiveEnv)}`);
 });
 
-test.cb('live_test martha_v2 responds with DRS object only when no "authorization" header is provided', (t) => {
+test.cb('live_test martha_v2 responds with Data Object only when no "authorization" header is provided', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
-        .send({ url: marthaLiveEnv.drsUrls[0] })
+        .send({ url: marthaLiveEnv.dataObjectUrls[0] })
         .expect(200)
         .end((err, response) => handleResponse(err, response, t, true));
 });
 
-test.cb('live_test martha_v2 responds with DRS object when "authorization" header is provided', (t) => {
+test.cb('live_test martha_v2 responds with Data Object when "authorization" header is provided', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
         .set('Authorization', `bearer ${bearerToken}`)
-        .send({ url: marthaLiveEnv.drsUrls[0] })
+        .send({ url: marthaLiveEnv.dataObjectUrls[0] })
         .expect(200)
         .end((err, response) => handleResponse(err, response, t));
 });
 
-for (const drsUrl of marthaLiveEnv.drsUrls) {
-    test.cb(`live_test Calling martha_v2 with URL: "${drsUrl}" without an Access Token resolves to a DRS object`, (t) => {
+for (const dataObjectUrl of marthaLiveEnv.dataObjectUrls) {
+    test.cb(`live_test Calling martha_v2 with URL: "${dataObjectUrl}" without an Access Token resolves to a Data Object`, (t) => {
         supertest
             .post('/martha_v2')
             .set('Content-Type', 'application/json')
-            .send({url: drsUrl})
+            .send({url: dataObjectUrl})
             .expect(200)
             .end((err, response) => handleResponse(err, response, t, true));
     });
