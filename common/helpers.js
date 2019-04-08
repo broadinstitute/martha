@@ -38,4 +38,4 @@ function determineBondProvider(urlString) {
 const bondBaseUrl = () => config.bondBaseUrl;
 const samBaseUrl = () => config.samBaseUrl;
 
-module.exports = {dataObjectUrlToHttps: dataObjectUrlToHttps, bondBaseUrl, samBaseUrl, BondProviders, determineBondProvider};
+module.exports = {dataObjectUrlToHttps, bondBaseUrl, samBaseUrl, BondProviders, determineBondProvider};
