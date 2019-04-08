@@ -1,5 +1,5 @@
 const superagent = require('superagent');
-const { dataObjectUrlToHttps } = require('./helpers');
+const { dataObjectUrlToHttps } = require('../common/helpers');
 
 const martha_v1_handler = (req, res) => {
     let orig_url = req.body.url;

@@ -2,18 +2,53 @@ const test = require('ava');
 const {dataObjectUrlToHttps, bondBaseUrl, samBaseUrl, BondProviders, determineBondProvider} = require('../../common/helpers');
 const config = require('../../config.json');
 
+/**
+ *Begin Scenario 1: data objects uri with non-dg host and path
+ */
 test('dataObjectUrlToHttps should parse dos:// Data Object uri', (t) => {
-    t.is(dataObjectUrlToHttps('dos://foo/bar'), `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/bar`);
+    t.is(dataObjectUrlToHttps('dos://foo/bar'), `https://foo/ga4gh/dos/v1/dataobjects/bar`);
 });
 
 test('dataObjectUrlToHttps should parse drs:// Data Object uri', (t) => {
-    t.is(dataObjectUrlToHttps('drs://foo/bar'), `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/bar`);
+    t.is(dataObjectUrlToHttps('drs://foo/bar'), `https://foo/ga4gh/dos/v1/dataobjects/bar`);
+});
+/**
+ * End Scenario 1
+ */
+
+/**
+ * Begin Scenario 2: data objects uri with dg host
+ */
+test('dataObjectUrlToHttps should parse "dos://dg." Data Object uri to use dataObjectResolutionHost', (t) => {
+    t.is(dataObjectUrlToHttps('dos://dg.2345/bar'), `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/dg.2345/bar`);
 });
 
-// This is a legacy test because martha_v1 treated dos urls with a "dg.*" host differently than other urls
-test('dataObjectUrlToHttps should parse dg Data Object uri to use dataObjectResolutionHost', (t) => {
-    t.is(dataObjectUrlToHttps('dos://dg.2345/bar'), `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/bar`);
+test('dataObjectUrlToHttps should parse "drs://dg." Data Object uri to use dataObjectResolutionHost', (t) => {
+    t.is(dataObjectUrlToHttps('drs://dg.2345/bar'), `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/dg.2345/bar`);
 });
+
+test('dataObjectUrlToHttps should throw an error when given a "dg.*" host with no path', (t) => {
+    t.throws(() => {
+        dataObjectUrlToHttps('dos://dg.4503');
+    }, Error);
+});
+/**
+ * End Scenario 2
+ */
+
+/**
+ * Begin Scenario 3: data objects uri with non-dg host and NO path
+ */
+test('should parse "dos://dg." Data Object uri with only a host part without a path', (t) => {
+    t.is(dataObjectUrlToHttps('dos://foo-bar-baz'), `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/foo-bar-baz`);
+});
+
+test('should parse "drs://dg." Data Object uri with only a host part without a path', (t) => {
+    t.is(dataObjectUrlToHttps('drs://foo-bar-baz'), `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/foo-bar-baz`);
+});
+/**
+ * End Scenario 3
+ */
 
 test('dataObjectUrlToHttps should throw a Error when passed an invalid uri', (t) => {
     t.throws(() => {
