@@ -2,33 +2,76 @@ const url = require('url');
 const config = require('../config.json');
 const URL = require('url');
 
-function dataObjectUrlToHttps(dataObjectUrl) {
-    const parsedUrl = url.parse(dataObjectUrl);
+const dataGuidsHostPrefix = 'dg.';
+const dataObjectPathPrefix = '/ga4gh/dos/v1/dataobjects/';
 
-    parsedUrl.protocol = 'https';
-
-    // 3 Scenarios we need to account for:
-    //      1. host part starts with "dg."
-    //      2. host part DOES NOT start with "dg." AND path part is FALSY
-    //      3. host part DOES NOT start with "dg." AND path part is TRUTHY
-    // TODO: This can be refactored to be simplified
-    if (parsedUrl.host.startsWith('dg.')) {
-        if (!parsedUrl.pathname) {
-            throw new Error(`Invalid URL: "${dataObjectUrl}"`);
-        }
-        // Note: The use of "dos" in the pathname might change to "drs" at some point and break things, so be on the lookout
-        parsedUrl.pathname = `/ga4gh/dos/v1/dataobjects/${parsedUrl.hostname}${parsedUrl.pathname}`;
-        parsedUrl.host = config.dataObjectResolutionHost;
-    } else if (parsedUrl.host && !parsedUrl.pathname) {
-        parsedUrl.pathname = `/ga4gh/dos/v1/dataobjects/${parsedUrl.hostname}`;
-        parsedUrl.host = config.dataObjectResolutionHost;
-    } else {
-        parsedUrl.pathname = `/ga4gh/dos/v1/dataobjects${parsedUrl.pathname}`;
+// 3 Scenarios we need to account for:
+//      1. host part starts with "dg."
+//      2. host part DOES NOT start with "dg." AND path part is FALSY
+//      3. host part DOES NOT start with "dg." AND path part is TRUTHY
+function dataObjectUriToHttps(dataObjectUri) {
+    const parsedUrl = url.parse(dataObjectUri);
+    if (parsedUrl.pathname === '/') {
+        parsedUrl.pathname = null;
     }
 
-    const output = url.format(parsedUrl);
-    console.log(`${dataObjectUrl} -> ${output}`);
+    validateDataObjectUrl(parsedUrl);
+
+    const resolutionUrlParts = {
+        protocol: 'https',
+        hostname: determineHostname(parsedUrl),
+        port: parsedUrl.port,
+        pathname: determinePathname(parsedUrl),
+        search: parsedUrl.search
+    };
+
+    const output = url.format(resolutionUrlParts);
+    console.log(`${dataObjectUri} -> ${output}`);
     return output;
+}
+
+function validateDataObjectUrl(someUrl) {
+    if (hasDataGuidsHost(someUrl) && !someUrl.pathname) {
+        throw new Error(`Data Object URIs with '${dataGuidsHostPrefix}*' host are required to have a path: "${url.format(someUrl)}"`);
+    }
+}
+
+function hasDataGuidsHost(someUrl) {
+    return someUrl.host.startsWith(dataGuidsHostPrefix);
+}
+
+function isDataGuidsUrl(someUrl) {
+    return hasDataGuidsHost(someUrl) || (someUrl.hostname && !someUrl.pathname);
+}
+
+function determineHostname(someUrl) {
+    return isDataGuidsUrl(someUrl) ? config.dataObjectResolutionHost : someUrl.hostname;
+}
+
+function determinePathname(someUrl) {
+    if (isDataGuidsUrl(someUrl)) {
+        return constructPath([dataObjectPathPrefix, someUrl.hostname, someUrl.pathname]);
+    } else {
+        return constructPath([dataObjectPathPrefix, someUrl.pathname]);
+    }
+}
+
+// Regex drops any leading or trailing "/" characters and gives the path out of capture group 1
+const pathSlashRegex = /^\/?([^/]+.*?)\/?$/;
+
+/**
+ *  Filter off the null entries first (because `regex.exec(null)` is TRUTHY, because of course it is)
+ *  Then run the regex to get the path part without leading or trailing slashes
+ *  Then filter out the null values that didn't match the regex
+ *  Then join the parts back together with "/"
+ */
+function constructPath(pathParts) {
+    const formattedParts = pathParts.filter(part => part)
+        .map(part => {
+            const matches = pathSlashRegex.exec(part);
+            return matches ? matches[1] : null;
+        }).filter(part => part);
+    return formattedParts.join('/');
 }
 
 const BondProviders = Object.freeze({
@@ -51,4 +94,4 @@ function determineBondProvider(urlString) {
 const bondBaseUrl = () => config.bondBaseUrl;
 const samBaseUrl = () => config.samBaseUrl;
 
-module.exports = {dataObjectUrlToHttps, bondBaseUrl, samBaseUrl, BondProviders, determineBondProvider};
+module.exports = {dataObjectUriToHttps, bondBaseUrl, samBaseUrl, BondProviders, determineBondProvider};
