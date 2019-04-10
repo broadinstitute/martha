@@ -6,17 +6,21 @@ const url = require('url');
 // This function counts on the request posing data as "application/json" content-type.
 // See: https://cloud.google.com/functions/docs/writing/http#parsing_http_requests for more details
 
+const dataObjectProtocols = ['dos:', 'drs:'];
+const gsProtocols = ['gs:'];
+
 function isValidProtocol(urlString) {
+    const validProtocols = dataObjectProtocols.concat(gsProtocols);
     try {
-        return ['gs:', 'dos:'].indexOf(url.parse(urlString).protocol) >= 0;
+        return validProtocols.includes(url.parse(urlString).protocol);
     } catch (e) {
-        console.error(new Error(`URI must use 'gs:' or 'dos:' protocols: ${urlString}`));
+        console.error(new Error(`URI protocols must be one of [${validProtocols.join(', ')}]: ${urlString}`));
         return false;
     }
 }
 
 /**
- * Takes a uri for a DOS object or a GS object along with an authorization header.  This method will gather and return
+ * Takes a uri for a Data Object or a GS object along with an authorization header.  This method will gather and return
  * metadata for the object and will attempt to use the bearer token to generate a signed url
  * (https://cloud.google.com/storage/docs/access-control/signed-urls) that will grant access to the object.
  * @param req
@@ -38,12 +42,13 @@ async function fileSummaryV1Handler(req, res) {
 
     console.log('Input: ', origUrl);
 
-    const isDos = origUrl.startsWith('dos://');
+    // URLs are either Data Object URLs or Google Bucket URLs
+    const isDataObjectUrl = dataObjectProtocols.includes(url.parse(origUrl).protocol);
     try {
 
         const [serviceAccountKey, metadata] = await Promise.all([
-            saKeys.getServiceAccountKey(origUrl, auth, isDos),
-            metadataApi.getMetadata(origUrl, auth, isDos)
+            saKeys.getServiceAccountKey(origUrl, auth, isDataObjectUrl),
+            metadataApi.getMetadata(origUrl, auth, isDataObjectUrl)
         ]);
 
         if (serviceAccountKey) {

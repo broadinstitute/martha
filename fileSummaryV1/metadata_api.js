@@ -56,18 +56,18 @@ function getGsObjectMetadata(gsUri, auth) {
         });
 }
 
-function getGsUriFromDos(dosMetadata) {
-    return dosMetadata.urls.find((e) => e.url.startsWith('gs://')).url;
+function getGsUriFromDataObject(dataObjectMetadata) {
+    return dataObjectMetadata.urls.find((e) => e.url.startsWith('gs://')).url;
 }
 
-function getDosObjectMetadata(dosUri) {
-    const newUri = helpers.dosToHttps(dosUri);
+function getDataObjectMetadata(dataObjectUri) {
+    const newUri = helpers.dataObjectUrlToHttps(dataObjectUri);
 
     return apiAdapter.getJsonFrom(newUri)
         .then((response) => response.data_object)
         .then((metadata) => {
             const { mime_type, size, created, updated, checksums } = metadata;
-            const gsUri = getGsUriFromDos(metadata);
+            const gsUri = getGsUriFromDataObject(metadata);
             const [bucket, name] = parseGsUri(gsUri);
 
             return {
@@ -82,14 +82,14 @@ function getDosObjectMetadata(dosUri) {
             };
         })
         .catch((e) => {
-            console.error(new Error(`Failed to get metadata for: ${dosUri} -> ${newUri}`));
+            console.error(new Error(`Failed to get metadata for: ${dataObjectUri} -> ${newUri}`));
             throw e;
         });
 }
 
-async function getMetadata(url, auth, isDos) {
+async function getMetadata(url, auth, isDataObjectUrl) {
     try {
-        return isDos ? getDosObjectMetadata(url) : getGsObjectMetadata(url, auth);
+        return isDataObjectUrl ? getDataObjectMetadata(url) : getGsObjectMetadata(url, auth);
     } catch (e) {
         console.error(new Error('Metadata problems:'), e);
     }

@@ -1,4 +1,4 @@
-const {dosToHttps, bondBaseUrl, determineBondProvider, BondProviders} = require('../common/helpers');
+const {dataObjectUrlToHttps, bondBaseUrl, determineBondProvider, BondProviders} = require('../common/helpers');
 const apiAdapter = require('../common/api_adapter');
 
 // This function counts on the request posing  data as "application/json" content-type.
@@ -20,6 +20,8 @@ function maybeTalkToBond(req, provider = BondProviders.default) {
 }
 
 function aggregateResponses(responses) {
+    // Note: for backwards compatibility, we are returning the DRS object with the key, "dos".  If we want to change this, we can add a new api version for Martha_v2.
+    // When/if we change this, we might want to consider replacing "dos" with "data_object" or something like that that is unlikely to change
     const finalResult = { dos: responses[0] };
     if (responses[1]) {
         finalResult.googleServiceAccount = responses[1];
@@ -36,9 +38,9 @@ function martha_v2_handler(req, res) {
     }
 
     console.log(`Received URL: ${origUrl}`);
-    let dosUrl;
+    let dataObjectUrl;
     try {
-        dosUrl = dosToHttps(origUrl);
+        dataObjectUrl = dataObjectUrlToHttps(origUrl);
     } catch (e) {
         console.error(new Error(e));
         res.status(400).send('The specified URL is invalid');
@@ -47,10 +49,10 @@ function martha_v2_handler(req, res) {
 
     const bondProvider = determineBondProvider(origUrl);
 
-    const dosPromise = apiAdapter.getJsonFrom(dosUrl);
+    const dataObjectPromise = apiAdapter.getJsonFrom(dataObjectUrl);
     const bondPromise = maybeTalkToBond(req, bondProvider);
 
-    return Promise.all([dosPromise, bondPromise])
+    return Promise.all([dataObjectPromise, bondPromise])
         .then((rawResults) => {
             res.status(200).send(aggregateResponses(rawResults));
         })

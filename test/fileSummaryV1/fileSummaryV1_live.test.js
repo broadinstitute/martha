@@ -16,9 +16,9 @@
  *
  *          env         - Can be one of ['dev', 'staging', 'alpha', 'perf', 'prod'].  Used to automatically determine
  *                        the `base_url`.  Defaults to `local`.
- *          mock        - If present or set to `true`, then tests will use DRS URLs that are resolvable by the mock-drs
- *                        service.  If `mock` is absent or set to `false`, tests will use DRS URLs resolvable by the
- *                        live/public DRS resolvers.
+ *          mock        - If present or set to `true`, then tests will use Data Object URLs that are resolvable by the mock-drs
+ *                        service.  If `mock` is absent or set to `false`, tests will use Data Object URLs resolvable by the
+ *                        live/public Data Object resolvers.
  *          base_url    - The base URL (protocol and host) where the Martha functions will be called.  Set this option
  *                        if you want to override the `base_url` derived from the `env` option.  Defaults to
  *                        `http://localhost:8010/broad-dsde-dev/us-central1`.
@@ -70,33 +70,33 @@ test.cb('live_test fileSummaryV1 responds with 401 when no "authorization" heade
     supertest
         .post('/fileSummaryV1')
         .set('Content-Type', 'application/json')
-        .send({ uri: marthaLiveEnv.dosUrls[0] })
+        .send({ uri: marthaLiveEnv.dataObjectUrls[0] })
         .expect(401)
         .end(t.end);
 });
 
-// The resolved DOS objects in this list contain a 'gs://' url in the list of urls
-for (const dosUrl of marthaLiveEnv.dosUrlsWithGS) {
-    test.cb(`live_test Calling fileSummaryV1 with URL: "${dosUrl}" with an Access Token returns metadata and signed url`, (t) => {
+// The resolved Data Objects in this list contain a 'gs://' url in the list of urls
+for (const dataObjectUrl of marthaLiveEnv.dataObjectUrlsWithGS) {
+    test.cb(`live_test Calling fileSummaryV1 with URL: "${dataObjectUrl}" with an Access Token returns metadata and signed url`, (t) => {
         supertest
             .post('/fileSummaryV1')
             .set('Content-Type', 'application/json')
             .set('Authorization', `bearer ${bearerToken}`)
-            .send({uri: dosUrl})
+            .send({uri: dataObjectUrl})
             .expect(200)
             .end((err, response) => handleResponse(err, response, t));
     });
 }
 
-// The resolved DOS objects in this list do not contain a 'gs://' url in the list of urls
+// The resolved Data Objects in this list do not contain a 'gs://' url in the list of urls
 // TODO: This error scenario is not good.  When there is no gs:// url, the response should be 400 and have a helpful message, not an empty 502
-for (const dosUrl of marthaLiveEnv.dosUrlsWithoutGS) {
-    test.cb(`live_test Calling fileSummaryV1 with URL: "${dosUrl}" with an Access Token returns an error because the dos object does not contain a 'gs://' url`, (t) => {
+for (const dataObjectUrl of marthaLiveEnv.dataObjectUrlsWithoutGS) {
+    test.cb(`live_test Calling fileSummaryV1 with URL: "${dataObjectUrl}" with an Access Token returns an error because the Data Object does not contain a 'gs://' url`, (t) => {
         supertest
             .post('/fileSummaryV1')
             .set('Content-Type', 'application/json')
             .set('Authorization', `bearer ${bearerToken}`)
-            .send({uri: dosUrl})
+            .send({uri: dataObjectUrl})
             .expect(502)
             .end(t.end);
     });

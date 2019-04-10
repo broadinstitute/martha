@@ -45,14 +45,14 @@ test.before(async () => {
     await postJsonTo(fenceAuthLink, 'Bearer ' + authorizedToken);
 });
 
-test.cb('integration_v2 responds with DOS object only when no "authorization" header is provided for a public url', (t) => {
+test.cb('integration_v2 responds with Data Object only when no "authorization" header is provided for a public url', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
         .send({ url: publicFenceUrl })
         .expect((response) => {
             assert.strictEqual(response.statusCode, 200, 'Incorrect status code'); // not using loose equality for now, but if type coercion is wanted use equal instead of strictEqual
-            assert(response.body.dos, 'No DOS object found');
+            assert(response.body.dos, 'No Data Object found');
             assert(!response.body.googleServiceAccount, 'Response should not have a Google Service Account');
         })
         .end((error, response) => {
@@ -61,7 +61,7 @@ test.cb('integration_v2 responds with DOS object only when no "authorization" he
         });
 });
 
-test.cb('integration_v2 responds with DOS object and service account when "authorization" header is provided for a public url', (t) => {
+test.cb('integration_v2 responds with Data Object and service account when "authorization" header is provided for a public url', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
@@ -69,7 +69,7 @@ test.cb('integration_v2 responds with DOS object and service account when "autho
         .send({ url: publicFenceUrl })
         .expect((response) => {
             assert.strictEqual(response.statusCode, 200, 'Incorrect status code');
-            assert(response.body.dos, 'No DOS object found');
+            assert(response.body.dos, 'No Data Object found');
             assert(response.body.googleServiceAccount, 'No Google Service Account found');
         })
         .end((error, response) => {
@@ -110,14 +110,14 @@ test.cb('integration_v2 fails when "authorization" header is provided for a publ
         });
 });
 
-test.cb('integration_v2 responds with DOS object only when no "authorization" header is provided for a protected url', (t) => {
+test.cb('integration_v2 responds with Data Object only when no "authorization" header is provided for a protected url', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
         .send({ url: protectedFenceUrl })
         .expect((response) => {
             assert.strictEqual(response.statusCode, 200, 'Incorrect status code');
-            assert(response.body.dos, 'No DOS object found');
+            assert(response.body.dos, 'No Data Object found');
             assert(!response.body.googleServiceAccount, 'Response should not have a Google Service Account');
         })
         .end((error, response) => {
@@ -126,7 +126,7 @@ test.cb('integration_v2 responds with DOS object only when no "authorization" he
         });
 });
 
-test.cb('integration_v2 responds with DOS object and service account when "authorization" header is provided for a protected url', (t) => {
+test.cb('integration_v2 responds with Data Object and service account when "authorization" header is provided for a protected url', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
@@ -134,7 +134,7 @@ test.cb('integration_v2 responds with DOS object and service account when "autho
         .send({ url: protectedFenceUrl })
         .expect((response) => {
             assert.strictEqual(response.statusCode, 200, 'Incorrect status code');
-            assert(response.body.dos, 'No DOS object found');
+            assert(response.body.dos, 'No Data Object found');
             assert(response.body.googleServiceAccount, 'No Google Service Account found');
         })
         .end((error, response) => {
