@@ -1,4 +1,4 @@
-const {dataObjectUrlToHttps, bondBaseUrl, determineBondProvider, BondProviders} = require('../common/helpers');
+const {dataObjectUriToHttps, bondBaseUrl, determineBondProvider, BondProviders} = require('../common/helpers');
 const apiAdapter = require('../common/api_adapter');
 
 // This function counts on the request posing  data as "application/json" content-type.
@@ -31,25 +31,25 @@ function aggregateResponses(responses) {
 }
 
 function martha_v2_handler(req, res) {
-    const origUrl = parseRequest(req);
-    if (!origUrl) {
+    const dataObjectUri = parseRequest(req);
+    if (!dataObjectUri) {
         res.status(400).send('Request must specify the URL of a DOS object');
         return;
     }
 
-    console.log(`Received URL: ${origUrl}`);
-    let dataObjectUrl;
+    console.log(`Received URL: ${dataObjectUri}`);
+    let dataObjectResolutionUrl;
     try {
-        dataObjectUrl = dataObjectUrlToHttps(origUrl);
+        dataObjectResolutionUrl = dataObjectUriToHttps(dataObjectUri);
     } catch (e) {
         console.error(new Error(e));
         res.status(400).send('The specified URL is invalid');
         return;
     }
 
-    const bondProvider = determineBondProvider(origUrl);
+    const bondProvider = determineBondProvider(dataObjectUri);
 
-    const dataObjectPromise = apiAdapter.getJsonFrom(dataObjectUrl);
+    const dataObjectPromise = apiAdapter.getJsonFrom(dataObjectResolutionUrl);
     const bondPromise = maybeTalkToBond(req, bondProvider);
 
     return Promise.all([dataObjectPromise, bondPromise])

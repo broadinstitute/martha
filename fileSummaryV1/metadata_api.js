@@ -61,7 +61,7 @@ function getGsUriFromDataObject(dataObjectMetadata) {
 }
 
 function getDataObjectMetadata(dataObjectUri) {
-    const newUri = helpers.dataObjectUrlToHttps(dataObjectUri);
+    const newUri = helpers.dataObjectUriToHttps(dataObjectUri);
 
     return apiAdapter.getJsonFrom(newUri)
         .then((response) => response.data_object)
