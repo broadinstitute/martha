@@ -19,6 +19,8 @@ function validateDataObjectUrl(someUrl) {
     }
 }
 
+// Regex drops any leading or trailing "/" characters and gives the path out of capture group 1
+const pathSlashRegex = /^\/?([^/]+.*?)\/?$/;
 /**
  *  Filter off the null entries first (because `regex.exec(null)` is TRUTHY, because of course it is)
  *  Then run the regex to get the path part without leading or trailing slashes
@@ -27,7 +29,7 @@ function validateDataObjectUrl(someUrl) {
  */
 function constructPath(pathParts) {
     const formattedParts = pathParts.filter((part) => part)
-        .map(part => {
+        .map((part) => {
             const matches = pathSlashRegex.exec(part);
             return matches ? matches[1] : null;
         }).filter((part) => part);
@@ -70,9 +72,6 @@ function dataObjectUriToHttps(dataObjectUri) {
     console.log(`${dataObjectUri} -> ${output}`);
     return output;
 }
-
-// Regex drops any leading or trailing "/" characters and gives the path out of capture group 1
-const pathSlashRegex = /^\/?([^/]+.*?)\/?$/;
 
 const BondProviders = Object.freeze({
     FENCE: 'fence',
