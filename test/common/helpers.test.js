@@ -6,23 +6,23 @@ const config = require('../../config.json');
  *Begin Scenario 1: data objects uri with non-dg host and path
  */
 test('dataObjectUriToHttps should parse dos:// Data Object uri', (t) => {
-    t.is(dataObjectUriToHttps('dos://foo/bar'), `https://foo/ga4gh/dos/v1/dataobjects/bar`);
+    t.is(dataObjectUriToHttps('dos://foo/bar'), 'https://foo/ga4gh/dos/v1/dataobjects/bar');
 });
 
 test('dataObjectUriToHttps should parse drs:// Data Object uri', (t) => {
-    t.is(dataObjectUriToHttps('drs://foo/bar'), `https://foo/ga4gh/dos/v1/dataobjects/bar`);
+    t.is(dataObjectUriToHttps('drs://foo/bar'), 'https://foo/ga4gh/dos/v1/dataobjects/bar');
 });
 
 test('dataObjectUriToHttps should parse drs:// Data Object uri with "/" path', (t) => {
-    t.is(dataObjectUriToHttps('drs://foo/bar/'), `https://foo/ga4gh/dos/v1/dataobjects/bar`);
+    t.is(dataObjectUriToHttps('drs://foo/bar/'), 'https://foo/ga4gh/dos/v1/dataobjects/bar');
 });
 
 test('dataObjectUriToHttps should parse drs:// Data Object uri with query part', (t) => {
-    t.is(dataObjectUriToHttps('drs://foo/bar?version=1&bananas=yummy'), `https://foo/ga4gh/dos/v1/dataobjects/bar?version=1&bananas=yummy`);
+    t.is(dataObjectUriToHttps('drs://foo/bar?version=1&bananas=yummy'), 'https://foo/ga4gh/dos/v1/dataobjects/bar?version=1&bananas=yummy');
 });
 
 test('dataObjectUriToHttps should parse drs:// Data Object uri when host includes a port number', (t) => {
-    t.is(dataObjectUriToHttps('drs://foo.com:1234/bar'), `https://foo.com:1234/ga4gh/dos/v1/dataobjects/bar`);
+    t.is(dataObjectUriToHttps('drs://foo.com:1234/bar'), 'https://foo.com:1234/ga4gh/dos/v1/dataobjects/bar');
 });
 /**
  * End Scenario 1
