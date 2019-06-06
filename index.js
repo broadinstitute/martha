@@ -7,6 +7,8 @@ const corsMiddleware = require('cors')();
 const { martha_v1_handler } = require('./martha_v1/martha_v1');
 const { martha_v2_handler } = require('./martha_v2/martha_v2');
 const { fileSummaryV1Handler } = require('./fileSummaryV1/fileSummaryV1');
+const resolveDataObjectUri = require('./handlers/resolveDataObjectUri');
+const getSignedUrl = require('./handlers/getSignedUrl');
 
 exports.martha_v1 = (req, res) => {
     corsMiddleware(req, res, () => martha_v1_handler(req, res));
@@ -18,4 +20,12 @@ exports.martha_v2 = (req, res) => {
 
 exports.fileSummaryV1 = (req, res) => {
     corsMiddleware(req, res, () => fileSummaryV1Handler(req, res));
+};
+
+exports.resolveDataObjectUri = (req, res) => {
+    corsMiddleware(req, res, () => resolveDataObjectUri(req, res));
+};
+
+exports.getSignedUrl = (req, res) => {
+    corsMiddleware(req, res, () => getSignedUrl(req, res));
 };
