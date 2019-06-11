@@ -10,7 +10,11 @@ const getSignedUrl = promiseHandler(async (req) => {
         await getJsonFrom(`${bondBaseUrl()}/api/link/v1/${provider}/serviceaccount/key`, auth) :
         await getJsonFrom(`${samBaseUrl()}/api/google/v1/user/petServiceAccount/key`, auth);
     const storage = new Storage({ credentials });
-    const [url] = await storage.bucket(bucket).file(object).getSignedUrl({ action: 'read', expires: Date.now() + 36e5 });
+    const [url] = await storage.bucket(bucket).file(object).getSignedUrl({
+        version: 'v4',
+        action: 'read',
+        expires: Date.now() + 36e5
+    });
     return new Response(200, { url });
 });
 
