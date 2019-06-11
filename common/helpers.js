@@ -100,8 +100,8 @@ class Response {
     }
 }
 
-const promiseHandler = fn => (req, res) => {
-    const handleValue = value => {
+const promiseHandler = (fn) => (req, res) => {
+    const handleValue = (value) => {
         if (value instanceof Response) {
             res.status(value.status).send(value.data);
         } else {

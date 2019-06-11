@@ -2,7 +2,7 @@ const { Storage } = require('@google-cloud/storage');
 const { getJsonFrom } = require('../common/api_adapter');
 const { bondBaseUrl, promiseHandler, Response, samBaseUrl } = require('../common/helpers');
 
-const getSignedUrl = promiseHandler(async req => {
+const getSignedUrl = promiseHandler(async (req) => {
     const { bucket, object, provider } = req.body || {};
     const auth = req.headers.authorization;
     const credentials = provider ?
