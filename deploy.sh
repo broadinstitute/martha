@@ -69,5 +69,7 @@ docker run --rm \
      gcloud beta functions deploy martha_v1 --source=. --trigger-http --runtime nodejs8 &&
      gcloud beta functions deploy martha_v2 --source=. --trigger-http --runtime nodejs8 &&
      gcloud beta functions deploy fileSummaryV1 --source=. --runtime nodejs8 --trigger-http &&
+     gcloud beta functions deploy resolveDataObjectUri --source=. --runtime nodejs8 --trigger-http &&
+     gcloud beta functions deploy getSignedUrl --source=. --runtime nodejs8 --trigger-http &&
      npm ci &&
      npm run-script smoketest"
