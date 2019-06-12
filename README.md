@@ -54,6 +54,20 @@ It will always return an object with the same properties:
  signedUrl:      string [absent for dos when caller is not linked in Bond]
 ```
 
+# Handlers
+## Get Signed Url
+Requires a bearer token in the `authorization` header.
+
+Expects JSON with the keys `bucket`, `object`, and optionally `dataObjectUri`.  
+Returns JSON with the key `url`.
+
+If present, `dataObjectUri` is used to determine a provider for Bond. Otherwise, a standard pet service account from Sam 
+is used.
+
+## Resolve Data Object URI
+Takes JSON with the key `uri`, and responds with an object with the key `url`, containing a link to the JSON descriptor.
+
+
 # Development
 ## Setup
 * Install Node 8, the current LTS
