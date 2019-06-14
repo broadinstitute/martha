@@ -76,6 +76,7 @@ function dataObjectUriToHttps(dataObjectUri) {
 const BondProviders = Object.freeze({
     FENCE: 'fence',
     DCF_FENCE: 'dcf-fence',
+    HCA: 'hca', // Human Cell Atlas
     get default() {
         return this.DCF_FENCE;
     }
@@ -85,6 +86,8 @@ function determineBondProvider(urlString) {
     const url = URL.parse(urlString);
     if (url.host === 'dg.4503') {
         return BondProviders.FENCE;
+    } else if (url.host.endswith('.humancellatlas.org')) {
+        return BondProviders.HCA;
     } else {
         return BondProviders.default;
     }
