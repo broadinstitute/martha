@@ -6,16 +6,25 @@ const getSignedUrl = promiseHandler(async (req) => {
     const { bucket, object, dataObjectUri } = req.body || {};
     const auth = req.headers.authorization;
     const provider = dataObjectUri && determineBondProvider(dataObjectUri);
-    const credentials = provider ?
-        await getJsonFrom(`${bondBaseUrl()}/api/link/v1/${provider}/serviceaccount/key`, auth) :
-        await getJsonFrom(`${samBaseUrl()}/api/google/v1/user/petServiceAccount/key`, auth);
-    const storage = new Storage({ credentials });
-    const [url] = await storage.bucket(bucket).file(object).getSignedUrl({
-        version: 'v4',
-        action: 'read',
-        expires: Date.now() + 36e5
-    });
-    return new Response(200, { url });
+    try {
+        const credentials = provider ?
+            await getJsonFrom(`${bondBaseUrl()}/api/link/v1/${provider}/serviceaccount/key`, auth) :
+            await getJsonFrom(`${samBaseUrl()}/api/google/v1/user/petServiceAccount/key`, auth);
+        const storage = new Storage({ credentials });
+        const [url] = await storage.bucket(bucket).file(object).getSignedUrl({
+            version: 'v4',
+            action: 'read',
+            expires: Date.now() + 36e5
+        });
+        return new Response(200, { url });
+    } catch (e) {
+        if (provider) {
+            const { error } = JSON.parse(e.response.text);
+            throw new Response(e.status, error);
+        } else {
+            throw e;
+        }
+    }
 });
 
 module.exports = getSignedUrl;
