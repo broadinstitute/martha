@@ -18,7 +18,7 @@ const getSignedUrl = promiseHandler(async (req) => {
         });
         return new Response(200, { url });
     } catch (e) {
-        if (provider) {
+        if (provider && e.response) {
             const { error } = JSON.parse(e.response.text);
             throw new Response(e.status, error);
         } else {
