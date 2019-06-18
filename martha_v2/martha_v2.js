@@ -13,7 +13,7 @@ function maybeTalkToBond(req, provider = BondProviders.default) {
     let myPromise;
     // Currently HCA data access does not require additional credentials.
     // The HCA checkout buckets allow object read access for GROUP_All_Users@firecloud.org.
-    if (req && req.headers && req.headers.authorization && provider != BondProviders.HCA) {
+    if (req && req.headers && req.headers.authorization && provider !== BondProviders.HCA) {
         myPromise = apiAdapter.getJsonFrom(`${bondBaseUrl()}/api/link/v1/${provider}/serviceaccount/key`, req.headers.authorization);
     } else {
         myPromise = Promise.resolve();
