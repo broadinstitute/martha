@@ -7,9 +7,9 @@ const getSignedUrlV1 = promiseHandler(async (req) => {
     const auth = req.headers.authorization;
     const provider = dataObjectUri && determineBondProvider(dataObjectUri);
     try {
-        const credentials = await (provider ?
-            getJsonFrom(`${bondBaseUrl()}/api/link/v1/${provider}/serviceaccount/key`, auth) :
-            getJsonFrom(`${samBaseUrl()}/api/google/v1/user/petServiceAccount/key`, auth));
+        const credentials = provider ?
+            (await getJsonFrom(`${bondBaseUrl()}/api/link/v1/${provider}/serviceaccount/key`, auth)).data :
+            await getJsonFrom(`${samBaseUrl()}/api/google/v1/user/petServiceAccount/key`, auth);
         const storage = new Storage({ credentials });
         const [url] = await storage.bucket(bucket).file(object).getSignedUrl({
             version: 'v4',

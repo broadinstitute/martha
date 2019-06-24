@@ -47,7 +47,6 @@ RUN functions start \
     && functions deploy martha_v1 --trigger-http \
     && functions deploy martha_v2 --trigger-http \
     && functions deploy fileSummaryV1 --trigger-http \
-    && functions deploy resolveDataObjectUriV1 --trigger-http \
     && functions deploy getSignedUrlV1 --trigger-http \
     && functions stop
 
