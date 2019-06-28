@@ -86,7 +86,7 @@ function determineBondProvider(urlString) {
     const url = URL.parse(urlString);
     if (url.host === 'dg.4503') {
         return BondProviders.FENCE;
-    } else if (url.host.endswith('.humancellatlas.org')) {
+    } else if (url.host.endsWith('.humancellatlas.org')) {
         return BondProviders.HCA;
     } else {
         return BondProviders.default;

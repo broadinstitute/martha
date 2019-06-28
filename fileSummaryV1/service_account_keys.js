@@ -3,15 +3,19 @@ const apiAdapter = require('../common/api_adapter');
 
 function maybeTalkToBond(auth, url) {
     const provider = determineBondProvider(url);
-    return apiAdapter.getJsonFrom(
-        `${bondBaseUrl()}/api/link/v1/${provider}/serviceaccount/key`,
-        auth
-    ).then(
-        (res) => res.data
-    ).catch(() => {
-        console.error(new Error('Unable to retrieve Service Account Key from Bond'));
+    if (provider === BondProviders.HCA) {
         return Promise.resolve();
-    });
+    } else {
+        return apiAdapter.getJsonFrom(
+            `${bondBaseUrl()}/api/link/v1/${provider}/serviceaccount/key`,
+            auth
+        ).then(
+            (res) => res.data
+        ).catch(() => {
+            console.error(new Error('Unable to retrieve Service Account Key from Bond'));
+            return Promise.resolve();
+        });
+    }
 }
 
 function maybeTalkToSam(auth) {
