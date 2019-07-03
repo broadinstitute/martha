@@ -142,3 +142,13 @@ test.serial('martha_v2 calls bond Bond with the "fence" provider when the Data O
     const actualProvider = matches[2];
     t.is(actualProvider, expectedProvider);
 });
+
+test.serial('martha_v2 does not call Bond or return SA key when the Data Object URL host endswith ".humancellatlas.org', async (t) => {
+    const response = mockResponse();
+    await martha_v2(mockRequest({ body: { 'url': 'drs://someservice.humancellatlas.org/this_part_can_be_anything' } }), response);
+    const result = response.send.lastCall.args[0];
+    t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
+    t.deepEqual(result.dos, dataObject);
+    t.is(result.googleServiceAccount, undefined);
+    t.is(response.statusCode, 200);
+});
