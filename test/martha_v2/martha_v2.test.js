@@ -149,6 +149,6 @@ test.serial('martha_v2 does not call Bond or return SA key when the Data Object 
     const result = response.send.lastCall.args[0];
     t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
     t.deepEqual(result.dos, dataObject);
-    t.is(result.googleServiceAccount, undefined);
+    t.falsy(result.googleServiceAccount);
     t.is(response.statusCode, 200);
 });
