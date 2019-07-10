@@ -51,7 +51,7 @@ test.serial.afterEach(() => {
 
 test.serial('Valid bucket and object(only) returns signed URL using SA key from SAM', async (t) => {
     getJsonFromApiStub.resolves(fakeSAKey);
-    getSignedUrlStub.resolves(fakeSignedUrl);
+    getSignedUrlStub.resolves([fakeSignedUrl]);
     const response = mockResponse();
     await getSignedUrlV1(mockRequest({
         body: {
@@ -67,7 +67,7 @@ test.serial('Valid bucket and object(only) returns signed URL using SA key from 
 
 test.serial('Valid bucket, object, and Data GUID dataObjectUri returns signed URL using SA key from Bond', async (t) => {
     getJsonFromApiStub.resolves(fakeSAKey);
-    getSignedUrlStub.resolves(fakeSignedUrl);
+    getSignedUrlStub.resolves([fakeSignedUrl]);
     const response = mockResponse();
     await getSignedUrlV1(mockRequest({
         body: {
@@ -84,7 +84,7 @@ test.serial('Valid bucket, object, and Data GUID dataObjectUri returns signed UR
 
 test.serial('Valid bucket, object, and HCA dataObjectUri returns signed URL using SA key from SAM', async (t) => {
     getJsonFromApiStub.resolves(fakeSAKey);
-    getSignedUrlStub.resolves(fakeSignedUrl);
+    getSignedUrlStub.resolves([fakeSignedUrl]);
     const response = mockResponse();
     await getSignedUrlV1(mockRequest({
         body: {
