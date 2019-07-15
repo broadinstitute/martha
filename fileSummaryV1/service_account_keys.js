@@ -1,8 +1,13 @@
-const {bondBaseUrl, samBaseUrl, determineBondProvider} = require('../common/helpers');
+const {bondBaseUrl, samBaseUrl, determineBondProvider, BondProviders} = require('../common/helpers');
 const apiAdapter = require('../common/api_adapter');
 
 function maybeTalkToBond(auth, url) {
     const provider = determineBondProvider(url);
+
+    if (provider === BondProviders.HCA) {
+        return Promise.resolve();
+    }
+
     return apiAdapter.getJsonFrom(
         `${bondBaseUrl()}/api/link/v1/${provider}/serviceaccount/key`,
         auth
