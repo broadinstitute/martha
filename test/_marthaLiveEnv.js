@@ -3,17 +3,17 @@
  * */
 
 const _publicDataObjectUrlsWithGS = [
-    'dos://dos-dss.ucsc-cgp-dev.org/00e6cfa9-a183-42f6-bb44-b70347106bbe',
-    'drs://dos-dss.ucsc-cgp-dev.org/00e6cfa9-a183-42f6-bb44-b70347106bbe'
+    // 'dos://dos-dss.ucsc-cgp-dev.org/00e6cfa9-a183-42f6-bb44-b70347106bbe',
+    // 'drs://dos-dss.ucsc-cgp-dev.org/00e6cfa9-a183-42f6-bb44-b70347106bbe'
 ];
 
 const _publicDataObjectUrlsWithoutGS = [
-    'dos://qa.dcf.planx-pla.net/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
+    // 'dos://qa.dcf.planx-pla.net/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
     'dos://nci-crdc-staging.datacommons.io/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
     'dos://dataguids.org/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
-    'drs://qa.dcf.planx-pla.net/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
+    // 'drs://qa.dcf.planx-pla.net/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
     'drs://nci-crdc-staging.datacommons.io/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
-    'drs://dataguids.org/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc'
+    // 'drs://dataguids.org/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc'
 ];
 
 const _publicDataObjectUrls = _publicDataObjectUrlsWithoutGS.concat(_publicDataObjectUrlsWithGS);
