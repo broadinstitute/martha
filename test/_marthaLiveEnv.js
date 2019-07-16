@@ -1,19 +1,33 @@
 /**
- * This file is named with a leading `_` to prevent Ava from processing this file and looking for tests within it
+ * This file is named with a leading `_` to prevent Ava from processing this file and looking for tests within it.
+ *
+ * One of the biggest challenges with testing Martha has been finding resolvable UUIDs/URIs.  Our collaborators have
+ * given us a spreadsheet of usable UUIDs that should be resolvable at Dataguids.org:
+ *
+ * https://docs.google.com/spreadsheets/d/1IxiwmEvHY7IpvsnRnnI59VYR7wjGGH0regy2_Cui2m0/edit?usp=sharing
+ * (I'm not sure how private or not this file is, so do not share it outside of the Broad)
+ *
+ * Note that the above spreadsheet seems to have public data as well as "mock" controlled data that should allow us to
+ * test protected data too.
+ *
+ * List of old/retired DOS/DRS URIs that worked at one point but stopped working at some point.  Do they work again now?
+ * Who knows?  Keeping them for posterity just in case someone needs them again for some reason:
+ *      - dos://dos-dss.ucsc-cgp-dev.org/00e6cfa9-a183-42f6-bb44-b70347106bbe
+ *      - dos://qa.dcf.planx-pla.net/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc
+ *      - drs://dataguids.org/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc
  * */
 
 const _publicDataObjectUrlsWithGS = [
-    // 'dos://dos-dss.ucsc-cgp-dev.org/00e6cfa9-a183-42f6-bb44-b70347106bbe',
-    // 'drs://dos-dss.ucsc-cgp-dev.org/00e6cfa9-a183-42f6-bb44-b70347106bbe'
+    'dos://dataguids.org/a41b0c4f-ebfb-4277-a941-507340dea85d',
+    'drs://dataguids.org/a41b0c4f-ebfb-4277-a941-507340dea85d',
+    'dos://dataguids.org/82447695-ce6f-4579-8067-42058a469f58',
+    'drs://dataguids.org/82447695-ce6f-4579-8067-42058a469f58'
 ];
 
 const _publicDataObjectUrlsWithoutGS = [
-    // 'dos://qa.dcf.planx-pla.net/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
     'dos://nci-crdc-staging.datacommons.io/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
     'dos://dataguids.org/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
-    // 'drs://qa.dcf.planx-pla.net/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
     'drs://nci-crdc-staging.datacommons.io/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
-    // 'drs://dataguids.org/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc'
 ];
 
 const _publicDataObjectUrls = _publicDataObjectUrlsWithoutGS.concat(_publicDataObjectUrlsWithGS);
