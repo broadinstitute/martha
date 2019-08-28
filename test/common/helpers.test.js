@@ -9,6 +9,11 @@ test('dataObjectUriToHttps should parse dos:// Data Object uri', (t) => {
     t.is(dataObjectUriToHttps('dos://foo/bar'), 'https://foo/ga4gh/dos/v1/dataobjects/bar');
 });
 
+test('dataObjectUriToHttps should parse dos:// Data Object uri and preserve case', (t) => {
+    console.log("I am the test here!!!!");
+    t.is(dataObjectUriToHttps('dos://FoO/BAR'), 'https://FoO/ga4gh/dos/v1/dataobjects/BAR');
+});
+
 test('dataObjectUriToHttps should parse drs:// Data Object uri', (t) => {
     t.is(dataObjectUriToHttps('drs://foo/bar'), 'https://foo/ga4gh/dos/v1/dataobjects/bar');
 });
@@ -33,6 +38,10 @@ test('dataObjectUriToHttps should parse drs:// Data Object uri when host include
  */
 test('dataObjectUriToHttps should parse "dos://dg." Data Object uri to use dataObjectResolutionHost', (t) => {
     t.is(dataObjectUriToHttps('dos://dg.2345/bar'), `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/dg.2345/bar`);
+});
+
+test('dataObjectUriToHttps should parse "dos://dg." Data Object uri to use dataObjectResolutionHost and preserve case', (t) => {
+    t.is(dataObjectUriToHttps('dos://dg.2345AbCdE/bAr'), `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/dg.2345AbCdE/bAr`);
 });
 
 test('dataObjectUriToHttps should parse "drs://dg." Data Object uri to use dataObjectResolutionHost', (t) => {
