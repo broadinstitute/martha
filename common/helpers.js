@@ -48,6 +48,18 @@ function determinePathname(someUrl) {
     }
 }
 
+/**
+ * URI Scheme and Host parts are case insensitive:  https://stackoverflow.com/questions/15641694/are-uris-case-insensitive
+ * When parsing a DOS URI into a resolvable HTTP URL, we use the Host part from the DOS URI in the Path part of the
+ * resolution URL and that requires that the case be preserved.
+ * @param parsedUrl
+ * @param rawUrl
+ */
+function preserveHostnameCase(parsedUrl, rawUrl) {
+    const hostnameRegExp = new RegExp(parsedUrl.hostname, 'i');
+    parsedUrl.hostname = hostnameRegExp.exec(rawUrl)[0]
+}
+
 // 3 Scenarios we need to account for:
 //      1. host part starts with "dg."
 //      2. host part DOES NOT start with "dg." AND path part is FALSY
@@ -57,6 +69,8 @@ function dataObjectUriToHttps(dataObjectUri) {
     if (parsedUrl.pathname === '/') {
         parsedUrl.pathname = null;
     }
+
+    preserveHostnameCase(parsedUrl, dataObjectUri);
 
     validateDataObjectUrl(parsedUrl);
 
