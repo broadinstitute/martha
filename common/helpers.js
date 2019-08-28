@@ -28,11 +28,9 @@ const pathSlashRegex = /^\/?([^/]+.*?)\/?$/;
  *  Then join the parts back together with "/"
  */
 function constructPath(pathParts) {
-    console.log(`pathParts = ${pathParts}`);
     const formattedParts = pathParts.filter((part) => part)
         .map((part) => {
             const matches = pathSlashRegex.exec(part);
-            console.log(`part = ${matches}`);
             return matches ? matches[1] : null;
         }).filter((part) => part);
     return formattedParts.join('/');
