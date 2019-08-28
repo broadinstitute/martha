@@ -38,15 +38,6 @@ function constructPath(pathParts) {
     return formattedParts.join('/');
 }
 
-// function determineHostname(someUrl, rawUrl) {
-//     if (isDataGuidsUrl(someUrl)) {
-//         return config.dataObjectResolutionHost
-//     } else {
-//         const hostnameRegExp = new RegExp(someUrl.hostname, 'i');
-//         return hostnameRegExp.exec(rawUrl)[0]
-//     }
-// }
-
 function determineHostname(someUrl) {
     return isDataGuidsUrl(someUrl) ? config.dataObjectResolutionHost : someUrl.hostname;
 }
