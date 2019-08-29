@@ -10,7 +10,6 @@ test('dataObjectUriToHttps should parse dos:// Data Object uri', (t) => {
 });
 
 test('dataObjectUriToHttps should parse dos:// Data Object uri and preserve case', (t) => {
-    console.log("I am the test here!!!!");
     t.is(dataObjectUriToHttps('dos://FoO/BAR'), 'https://FoO/ga4gh/dos/v1/dataobjects/BAR');
 });
 
