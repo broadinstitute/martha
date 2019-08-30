@@ -9,6 +9,10 @@ test('dataObjectUriToHttps should parse dos:// Data Object uri', (t) => {
     t.is(dataObjectUriToHttps('dos://foo/bar'), 'https://foo/ga4gh/dos/v1/dataobjects/bar');
 });
 
+test('dataObjectUriToHttps should parse dos:// Data Object uri and preserve case', (t) => {
+    t.is(dataObjectUriToHttps('dos://FoO/BAR'), 'https://FoO/ga4gh/dos/v1/dataobjects/BAR');
+});
+
 test('dataObjectUriToHttps should parse drs:// Data Object uri', (t) => {
     t.is(dataObjectUriToHttps('drs://foo/bar'), 'https://foo/ga4gh/dos/v1/dataobjects/bar');
 });
@@ -33,6 +37,10 @@ test('dataObjectUriToHttps should parse drs:// Data Object uri when host include
  */
 test('dataObjectUriToHttps should parse "dos://dg." Data Object uri to use dataObjectResolutionHost', (t) => {
     t.is(dataObjectUriToHttps('dos://dg.2345/bar'), `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/dg.2345/bar`);
+});
+
+test('dataObjectUriToHttps should parse "dos://dg." Data Object uri to use dataObjectResolutionHost and preserve case', (t) => {
+    t.is(dataObjectUriToHttps('dos://dg.2345AbCdE/bAr'), `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/dg.2345AbCdE/bAr`);
 });
 
 test('dataObjectUriToHttps should parse "drs://dg." Data Object uri to use dataObjectResolutionHost', (t) => {
@@ -103,6 +111,14 @@ test('BondProviders should contain "dcf-fence" and "fence"', (t) => {
 
 test('determineBondProvider should be "fence" if the URL host is "dg.4503"', (t) => {
     t.is(determineBondProvider('drs://dg.4503/anything'), BondProviders.FENCE);
+});
+
+test('determineBondProvider should be "fence" if the URL host is "dg.712C"', (t) => {
+    t.is(determineBondProvider('drs://dg.712C/anything'), BondProviders.FENCE);
+});
+
+test('determineBondProvider should be "dcf-fence" if the URL host is "dg.foo"', (t) => {
+    t.is(determineBondProvider('drs://dg.foo/anything'), BondProviders.DCF_FENCE);
 });
 
 test('determineBondProvider should be "HCA" if the URL host ends with ".humancellatlas.org"', (t) => {
