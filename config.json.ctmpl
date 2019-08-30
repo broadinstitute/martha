@@ -3,7 +3,7 @@
 {{with $dnsDomain := env "DNS_DOMAIN"}}
 
 {
-    "dataObjectResolutionHost": {{if eq $runContext "fiab"}}"wb-mock-drs-dev.storage.googleapis.com"{{else if eq $environment "prod"}}"datastage.io"{{else}}"staging.datastage.io"{{end}},
+    "dataObjectResolutionHost": {{if eq $runContext "fiab"}}"wb-mock-drs-dev.storage.googleapis.com"{{else if eq $environment "prod"}}"gen3.datastage.io"{{else}}"staging.datastage.io"{{end}},
     "bondBaseUrl": {{if eq $runContext "fiab"}}"bond-fiab.{{$dnsDomain}}"{{else}}"broad-bond-{{$environment}}.appspot.com"{{end}},
     "samBaseUrl": {{if eq $runContext "fiab"}}"https://sam-fiab.{{$dnsDomain}}"{{else}}"https://sam.dsde-{{$environment}}.broadinstitute.org"{{end}}
 }
