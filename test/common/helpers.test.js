@@ -113,6 +113,14 @@ test('determineBondProvider should be "fence" if the URL host is "dg.4503"', (t)
     t.is(determineBondProvider('drs://dg.4503/anything'), BondProviders.FENCE);
 });
 
+test('determineBondProvider should be "fence" if the URL host is "dg.712C"', (t) => {
+    t.is(determineBondProvider('drs://dg.712C/anything'), BondProviders.FENCE);
+});
+
+test('determineBondProvider should be "dcf-fence" if the URL host is "dg.foo"', (t) => {
+    t.is(determineBondProvider('drs://dg.foo/anything'), BondProviders.DCF_FENCE);
+});
+
 test('determineBondProvider should be "HCA" if the URL host ends with ".humancellatlas.org"', (t) => {
     t.is(determineBondProvider('drs://someservice.humancellatlas.org'), BondProviders.HCA);
 });
