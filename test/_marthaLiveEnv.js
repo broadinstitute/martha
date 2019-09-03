@@ -21,7 +21,12 @@ const _publicDataObjectUrlsWithGS = [
     'dos://dataguids.org/a41b0c4f-ebfb-4277-a941-507340dea85d',
     'drs://dataguids.org/a41b0c4f-ebfb-4277-a941-507340dea85d',
     'dos://dataguids.org/82447695-ce6f-4579-8067-42058a469f58',
-    'drs://dataguids.org/82447695-ce6f-4579-8067-42058a469f58'
+    'drs://dataguids.org/82447695-ce6f-4579-8067-42058a469f58',
+    // TODO: The rules for what we do for *.humancellatlas.org DOS URIs is slightly different, so these do not work in tests right now, but they should be resolvable manually
+    // 'dos://service.staging.explore.data.humancellatlas.org/033c9840-c5cd-438b-b0e4-8e4cd8fc8dc6?version=2019-07-04T104122.106166Z',
+    // 'dos://service.staging.explore.data.humancellatlas.org/4defa7b0-46c2-4053-8e99-b827eed1bc96?version=2019-07-04T104122.100969Z',
+    // 'dos://service.staging.explore.data.humancellatlas.org/de5dcfc1-5aea-41ba-a7ae-e72c416cb450?version=2019-07-04T104122.092788Z',
+    // 'dos://service.staging.explore.data.humancellatlas.org/16dea2c5-e2bd-45bc-b2fd-fcac0daafc48?version=2019-07-04T104122.060634Z'
 ];
 
 const _publicDataObjectUrlsWithoutGS = [
