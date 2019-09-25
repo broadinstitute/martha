@@ -96,21 +96,21 @@ is used.
 ## Deployment
 Deployments to the `dev` tier are triggered automatically whenever code is pushed/merged to the `dev` branch on github.
 
-Deployments to other tiers are triggered manually by running the 
-[Martha Manual Deploy](https://fc-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/martha-manual-deploy/)
-job on the DSP Jenkins instance.  You should follow these steps in order to deploy:
+- [ ] Deployments to other tiers are triggered manually by running the 
+      [Martha Manual Deploy](https://fc-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/martha-manual-deploy/)
+      job on the DSP Jenkins instance.  You should follow these steps in order to deploy:
 
-1. When the latest code passes tests in CircleCI, it is tagged `dev_tests_passed_[timestamp]` where `[timestamp]` is the
-epoch time when the tag was created.
-1. Create and push a new [semver](https://semver.org/) tag for this same commit.  You should look at the existing tags 
-to ensure that the tag is incremented properly based on the last released version.  Tags should be plain semver numbers 
-like `1.0.0` and should not have any additional prefix like `v1.0.0` or `releases/1.0.0`.  Suffixes are permitted so 
-long as they conform to the [semver spec](https://semver.org/).
-1. Navigate to 
-[Martha Manual Deploy](https://fc-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/martha-manual-deploy/)
-and click the "Build with Parameters" link.  Select the `TAG` that you just created and the tier to which you want to 
-deploy.
-1. You must deploy to each of the following tiers one-by-one and [manually test](#live-testing) each tier as you deploy to it:
+- [ ] When the latest code passes tests in CircleCI, it is tagged `dev_tests_passed_[timestamp]` where `[timestamp]` is the
+      epoch time when the tag was created.
+- [ ] Create and push a new [semver](https://semver.org/) tag for this same commit.  You should look at the existing tags 
+      to ensure that the tag is incremented properly based on the last released version.  Tags should be plain semver numbers 
+      like `1.0.0` and should not have any additional prefix like `v1.0.0` or `releases/1.0.0`.  Suffixes are permitted so 
+      long as they conform to the [semver spec](https://semver.org/).
+- [ ] Navigate to 
+      [Martha Manual Deploy](https://fc-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/martha-manual-deploy/)
+      and click the "Build with Parameters" link.  Select the `TAG` that you just created and the tier to which you want to 
+      deploy.
+- [ ] You must deploy to each of the following tiers one-by-one and [manually test](#live-testing) each tier as you deploy to       it:
     * `dev` - Technically, this same commit is already running on `dev` courtesy of the automatic deployment, but this
     is an important step to ensure that the tag can be deployed properly.
     * `alpha`
@@ -134,8 +134,8 @@ environment: `local, dev, alpha, perf, staging, prod`.
 
 ### Live Testing Pre-requisites
 1. Determine which environment (`env`) you want to run against.
-1. Ensure that you have established Bond links between your User account and all supported Providers on that `env`.  You
-   can set up these links using the Bond API or by navigating to your User Profile page in Firecloud UI.
+- [ ] Ensure that you have established Bond links between your User account and all supported Providers on that `env`.  You
+      can set up these links using the Bond API or by navigating to your User Profile page in Firecloud UI.
 1. This test will make a system call to `gcloud auth print-access-token`.  Therefore you will need to:
    1. Make sure you have the GCloud CLI installed.
    1. Ensure that you are logged into your `gcloud cli` as the same user that you linked in Bond in the previous step.
