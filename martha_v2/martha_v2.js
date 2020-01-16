@@ -59,7 +59,7 @@ function martha_v2_handler(req, res) {
             res.status(200).send(aggregateResponses(rawResults));
         })
         .catch((err) => {
-            console.error(new Error(err));
+            console.error(err);
             res.status(502).send(err);
         });
 }
