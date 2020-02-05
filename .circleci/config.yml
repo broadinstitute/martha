@@ -16,7 +16,7 @@ jobs:
           command: npm ci
       - run:
           name: Install git secrets and configure minnie-kenny.sh
-          command:  |
+          command: |
           git clone https://github.com/awslabs/git-secrets.git
           ./minnie-kenny.sh -f
       - run:
