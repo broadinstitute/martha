@@ -4,6 +4,12 @@
 #
 version: 2
 
+run_env_setup: &run_env_setup
+  run:
+    name: Setup Environment Variables
+    command: |
+      echo 'export PATH="${PATH}:${HOME}/martha/git-secrets"' >> $BASH_ENV
+
 run_secret_setup: &run_secret_setup
   run:
     name: Install git secrets and configure minnie-kenny.sh
@@ -11,6 +17,7 @@ run_secret_setup: &run_secret_setup
       git clone https://github.com/awslabs/git-secrets.git
       pushd git-secrets >/dev/null
       git checkout ad82d68ee924906a0401dfd48de5057731a9bc84
+      popd >/dev/null
       ./minnie-kenny.sh -f
 
 jobs:
@@ -22,6 +29,7 @@ jobs:
 
     steps:
       - checkout
+      - <<: *run_env_setup
       - <<: *run_secret_setup
       - run:
           command: npm ci
