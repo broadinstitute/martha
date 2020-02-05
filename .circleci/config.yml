@@ -18,7 +18,11 @@ jobs:
           name: Install git secrets and configure minnie-kenny.sh
           command: |
             git clone https://github.com/awslabs/git-secrets.git
+            cd git-secrets
+            make install
             echo 'export PATH="${PATH}:${HOME}/repo/git-secrets"' >> $BASH_ENV
+            cd ~/repo
+            git secrets --install
             ./minnie-kenny.sh -f
       - run:
           command: npm test
