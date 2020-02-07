@@ -1,6 +1,8 @@
 const request = require('superagent');
 
-const MAX_RETRY_ATTEMPTS = 3;
+const MAX_RETRY_ATTEMPTS = 5;
+const INITIAL_BACKOFF_DELAY = 1000;
+const BACKOFF_FACTOR = 2;
 
 function get(method, url, authorization) {
     const req = request[method](url);
@@ -23,7 +25,7 @@ async function getHeaders(url, authorization) {
     }
 }
 
-async function getJsonFrom(url, authorization, retryAttempt = 1, delay = 500) {
+async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL_BACKOFF_DELAY) {
     try {
         const {body} = await get('get', url, authorization);
 
@@ -52,9 +54,9 @@ async function getJsonFrom(url, authorization, retryAttempt = 1, delay = 500) {
         // if(error.status === 404) {
             if (retryAttempt < MAX_RETRY_ATTEMPTS) {
                 console.log(
-                    "YO YO YO YO YO YO YO YO YO YO YO YO YO YO YO " + "\n" +
-                    "Received error status:", error.status, ". Will retry after ", delay * 2 + "\n" +
-                    "YO YO YO YO YO YO YO YO YO YO YO YO YO YO YO "
+                    "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" + "\n" +
+                    "Received error status:", error.status, ". Will retry after ", delay * BACKOFF_FACTOR + "\n" +
+                    "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
                 );
 
                 // const pause = (duration) => new Promise(res => setTimeout(res, duration));
@@ -63,7 +65,7 @@ async function getJsonFrom(url, authorization, retryAttempt = 1, delay = 500) {
 
                 return new Promise(resolve => {
                     setTimeout(() => {
-                        getJsonFrom(url, authorization, retryAttempt + 1, delay * 2)
+                        getJsonFrom(url, authorization, retryAttempt + 1, delay * BACKOFF_FACTOR)
                             .then(resolve);
                     }, delay);
                 });
