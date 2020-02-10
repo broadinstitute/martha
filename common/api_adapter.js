@@ -37,6 +37,14 @@ async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL
 
         return body;
     } catch (error) {
+        console.log(
+            "*******************************" + "\n" +
+            "FOUND ERROR !!!" + "\n" +
+            "url- " + url + ", authorization- " + authorization, ", attempt- ", retryAttempt + "\n" +
+            "status: " + error.status + "\n" +
+            "*******************************" + "\n"
+        );
+
         console.error(error);
         // TODO: capture error here in order to give a more detailed idea of
         //  what went wrong where (see https://broadworkbench.atlassian.net/browse/WA-13)
@@ -50,10 +58,11 @@ async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL
                     "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
                 );
 
-                return new Promise(resolve => {
+                return new Promise((resolve, reject) => {
                     setTimeout(() => {
                         getJsonFrom(url, authorization, retryAttempt + 1, delay * BACKOFF_FACTOR)
-                            .then(resolve);
+                            .then(resolve)
+                            .catch(error => reject(error));
                     }, delay);
                 });
             }
