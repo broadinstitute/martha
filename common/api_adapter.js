@@ -4,6 +4,10 @@ const MAX_RETRY_ATTEMPTS = 5;
 const INITIAL_BACKOFF_DELAY = 1000;
 const BACKOFF_FACTOR = 2;
 
+const TOO_MANY_REQUESTS_CODE = 429;
+const SERVER_ERROR_CODE = 500;
+const NETWORK_AUTH_REQ_CODE = 511;
+
 function get(method, url, authorization) {
     const req = request[method](url);
     if (authorization) {
@@ -34,11 +38,12 @@ async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL
         // TODO: capture error here in order to give a more detailed idea of
         //  what went wrong where (see https://broadworkbench.atlassian.net/browse/WA-13)
 
-        if((error.status >= 500 && error.status <= 510) || error.status === 429) {
+        if((error.status >= SERVER_ERROR_CODE && error.status <= NETWORK_AUTH_REQ_CODE) ||
+            error.status === TOO_MANY_REQUESTS_CODE) {
             if (retryAttempt < MAX_RETRY_ATTEMPTS) {
                 let backOffDelay = delay * BACKOFF_FACTOR;
-                console.log("Failed to resolve url '" + url + "'. Attempt " + retryAttempt + ". Received error status: " + error.status +
-                    ". Will retry after " + backOffDelay + " ms.");
+                console.log("Failed to resolve url '" + url + "'. Attempt " + retryAttempt + ". Received error status: "
+                    + error.status + ". Will retry after " + backOffDelay + " ms.");
 
                 return new Promise((resolve, reject) => {
                     setTimeout(() => {
