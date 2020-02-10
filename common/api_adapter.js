@@ -41,27 +41,14 @@ async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL
         // TODO: capture error here in order to give a more detailed idea of
         //  what went wrong where (see https://broadworkbench.atlassian.net/browse/WA-13)
 
-        console.log(
-            "*******************************" + "\n" +
-            "FOUND ERROR !!!" + "\n" +
-            "url- " + url + ", authorization- " + authorization, ", attempt- ", retryAttempt + "\n" +
-            "status: " + error.status + "\n" +
-            "*******************************" + "\n"
-        );
-        console.log(error);
-
-        if((error.status >= 500 && error.status <= 510) || error.status === 429) {
-        // if(error.status === 404) {
+        // if((error.status >= 500 && error.status <= 510) || error.status === 429) {
+        if(error.status === 404) {
             if (retryAttempt < MAX_RETRY_ATTEMPTS) {
                 console.log(
                     "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" + "\n" +
                     "Received error status:", error.status, ". Will retry after ", delay * BACKOFF_FACTOR + "\n" +
                     "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
                 );
-
-                // const pause = (duration) => new Promise(res => setTimeout(res, duration));
-                // pause(delay).then(() => getJsonFrom(url, authorization, retryAttempt + 1, delay * 2));
-
 
                 return new Promise(resolve => {
                     setTimeout(() => {
