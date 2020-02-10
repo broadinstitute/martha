@@ -34,9 +34,9 @@ async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL
         const {body} = await get('get', url, authorization);
         return body;
     } catch (error) {
-        console.error(error);
-        // TODO: capture error here in order to give a more detailed idea of
+        // TODO: capture error on lines 56 and 58 in order to give a more detailed idea of
         //  what went wrong where (see https://broadworkbench.atlassian.net/browse/WA-13)
+        console.error(error);
 
         if((error.status >= SERVER_ERROR_CODE && error.status <= NETWORK_AUTH_REQ_CODE) ||
             error.status === TOO_MANY_REQUESTS_CODE) {
@@ -54,7 +54,8 @@ async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL
                 });
             }
             else throw error;
-        } else throw error;
+        }
+        else throw error;
     }
 }
 
