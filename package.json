@@ -4,7 +4,7 @@
   "description": "Data Object GUID Resolution",
   "private": true,
   "scripts": {
-    "test": "ava -m !smoketest* -m !live_test* -m !integration*",
+    "test": "./minnie-kenny.sh && ava -m !smoketest* -m !live_test* -m !integration*",
     "smoketest": "ava -m smoketest*",
     "smoketest_v1": "ava -m smoketest_v1*",
     "smoketest_v2": "ava -m smoketest_v2*",
