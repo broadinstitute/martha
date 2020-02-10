@@ -15,7 +15,9 @@ async function getHeaders(url, authorization) {
         return headers;
     } catch (error) {
         console.error(error);
-        return error;
+        // TODO: capture error here in order to give a more detailed idea of
+        //  what went wrong where (see https://broadworkbench.atlassian.net/browse/WA-13)
+        throw error;
     }
 }
 
@@ -25,7 +27,9 @@ async function getJsonFrom(url, authorization) {
         return body;
     } catch (error) {
         console.error(error);
-        return error;
+        // TODO: capture error here in order to give a more detailed idea of
+        //  what went wrong where (see https://broadworkbench.atlassian.net/browse/WA-13)
+        throw error;
     }
 }
 
