@@ -28,48 +28,28 @@ async function getHeaders(url, authorization) {
 async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL_BACKOFF_DELAY) {
     try {
         const {body} = await get('get', url, authorization);
-
-        console.log(
-            "############ INFO ###############" + "\n" +
-            "success!! Attempt- " + retryAttempt, " had to wait for " + delay, " before executing" + "\n" +
-            "#################################"
-        );
-
         return body;
     } catch (error) {
-        console.log(
-            "*******************************" + "\n" +
-            "FOUND ERROR !!!" + "\n" +
-            "url- " + url + ", authorization- " + authorization, ", attempt- ", retryAttempt + "\n" +
-            "status: " + error.status + "\n" +
-            "*******************************" + "\n"
-        );
-
         console.error(error);
         // TODO: capture error here in order to give a more detailed idea of
         //  what went wrong where (see https://broadworkbench.atlassian.net/browse/WA-13)
 
-        // if((error.status >= 500 && error.status <= 510) || error.status === 429) {
-        if(error.status === 404) {
+        if((error.status >= 500 && error.status <= 510) || error.status === 429) {
             if (retryAttempt < MAX_RETRY_ATTEMPTS) {
-                console.log(
-                    "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" + "\n" +
-                    "Received error status:", error.status, ". Will retry after ", delay * BACKOFF_FACTOR + "\n" +
-                    "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
-                );
+                let backOffDelay = delay * BACKOFF_FACTOR;
+                console.log("Failed to resolve url '" + url + "'. Attempt " + retryAttempt + ". Received error status: " + error.status +
+                    ". Will retry after " + backOffDelay + " ms.");
 
                 return new Promise((resolve, reject) => {
                     setTimeout(() => {
-                        getJsonFrom(url, authorization, retryAttempt + 1, delay * BACKOFF_FACTOR)
+                        getJsonFrom(url, authorization, retryAttempt + 1, backOffDelay)
                             .then(resolve)
                             .catch(error => reject(error));
                     }, delay);
                 });
             }
             else throw error;
-        } else {
-            throw error;
-        }
+        } else throw error;
     }
 }
 
