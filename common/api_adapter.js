@@ -9,12 +9,28 @@ function get(method, url, authorization) {
     return req;
 }
 
-function getHeaders(url, authorization) {
-    return get('head', url, authorization).then((response) => response.headers);
+async function getHeaders(url, authorization) {
+    try {
+        const {headers} = await get('head', url, authorization);
+        return headers;
+    } catch (error) {
+        console.error(error);
+        // TODO: capture error here in order to give a more detailed idea of
+        //  what went wrong where (see https://broadworkbench.atlassian.net/browse/WA-13)
+        throw error;
+    }
 }
 
-function getJsonFrom(url, authorization) {
-    return get('get', url, authorization).then((response) => response.body);
+async function getJsonFrom(url, authorization) {
+    try {
+        const {body} = await get('get', url, authorization);
+        return body;
+    } catch (error) {
+        console.error(error);
+        // TODO: capture error here in order to give a more detailed idea of
+        //  what went wrong where (see https://broadworkbench.atlassian.net/browse/WA-13)
+        throw error;
+    }
 }
 
 function postJsonTo(url, authorization, payload) {
