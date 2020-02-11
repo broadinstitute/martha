@@ -49,7 +49,7 @@ async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL
                     setTimeout(() => {
                         getJsonFrom(url, authorization, retryAttempt + 1, backOffDelay)
                             .then(resolve)
-                            .catch(error => { reject(error) });
+                            .catch((error) => { reject(error); });
                     }, delay);
                 });
             }
