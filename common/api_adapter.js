@@ -42,20 +42,20 @@ async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL
             error.status === TOO_MANY_REQUESTS_CODE) {
             if (retryAttempt < MAX_RETRY_ATTEMPTS) {
                 let backOffDelay = delay * BACKOFF_FACTOR;
-                console.log("Failed to resolve url '" + url + "'. Attempt " + retryAttempt + ". Received error status: "
-                    + error.status + ". Will retry after " + backOffDelay + " ms.");
+                console.log('Failed to resolve url ' + url + '. Attempt ' + retryAttempt + '. Received error status: '
+                    + error.status + '. Will retry after ' + backOffDelay + ' ms.');
 
                 return new Promise((resolve, reject) => {
                     setTimeout(() => {
                         getJsonFrom(url, authorization, retryAttempt + 1, backOffDelay)
                             .then(resolve)
-                            .catch(error => reject(error));
+                            .catch(error => { reject(error) });
                     }, delay);
                 });
             }
-            else throw error;
+            else { throw error; }
         }
-        else throw error;
+        else { throw error; }
     }
 }
 
