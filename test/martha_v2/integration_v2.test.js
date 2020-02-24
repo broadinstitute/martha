@@ -86,7 +86,7 @@ test.cb('integration_v2 fails when "authorization" header is provided for a publ
         .send({ url: publicFenceUrl })
         .expect((response) => {
             assert.strictEqual(response.statusCode, 502, 'Incorrect status code');
-            assert.strictEqual(response.body.status, 400, 'User should not be authorized with provider');
+            assert.strictEqual(response.body.status, 404, 'User should not be authorized with provider');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
@@ -151,7 +151,7 @@ test.cb('integration_v2 fails when "authorization" header is provided for a prot
         .send({ url: protectedFenceUrl })
         .expect((response) => {
             assert.strictEqual(response.statusCode, 502, 'Incorrect status code');
-            assert.strictEqual(response.body.status, 400, 'User should not be authorized with provider');
+            assert.strictEqual(response.body.status, 404, 'User should not be authorized with provider');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
