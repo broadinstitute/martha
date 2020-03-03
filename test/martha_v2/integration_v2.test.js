@@ -85,8 +85,7 @@ test.cb('integration_v2 fails when "authorization" header is provided for a publ
         .set('Authorization', `Bearer ${unauthorizedToken}`)
         .send({ url: publicFenceUrl })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 502, 'Incorrect status code');
-            assert.strictEqual(response.body.status, 400, 'User should not be authorized with provider');
+            assert.strictEqual(response.statusCode, 502, 'User should not be authorized with provider');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
@@ -101,8 +100,7 @@ test.cb('integration_v2 fails when "authorization" header is provided for a publ
         .set('Authorization', `Bearer badToken`)
         .send({ url: publicFenceUrl })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 502, 'Incorrect status code');
-            assert.strictEqual(response.body.status, 401, 'Bond should not have authenticated this token');
+            assert.strictEqual(response.statusCode, 502, 'Bond should not have authenticated this token');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
@@ -150,8 +148,7 @@ test.cb('integration_v2 fails when "authorization" header is provided for a prot
         .set('Authorization', `Bearer ${unauthorizedToken}`)
         .send({ url: protectedFenceUrl })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 502, 'Incorrect status code');
-            assert.strictEqual(response.body.status, 400, 'User should not be authorized with provider');
+            assert.strictEqual(response.statusCode, 502, 'User should not be authorized with provider');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
@@ -166,8 +163,7 @@ test.cb('integration_v2 fails when "authorization" header is provided for a prot
         .set('Authorization', 'Bearer badToken')
         .send({ url: protectedFenceUrl })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 502, 'Incorrect status code');
-            assert.strictEqual(response.body.status, 401, 'Bond should not have authenticated this token');
+            assert.strictEqual(response.statusCode, 502, 'Bond should not have authenticated this token');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
