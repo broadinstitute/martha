@@ -106,6 +106,10 @@ Deployments to the `dev` tier are triggered automatically whenever code is pushe
       to ensure that the tag is incremented properly based on the last released version.  Tags should be plain semver numbers 
       like `1.0.0` and should not have any additional prefix like `v1.0.0` or `releases/1.0.0`.  Suffixes are permitted so 
       long as they conform to the [semver spec](https://semver.org/).
+- [ ] In Jira, create a new "Release" named like: `martha-X.Y.Z` where `X.Y.Z` is the same semantic version number you created
+      in the previous step.
+- [ ] For each Jira Issue included in this release, set the "Fix Version" field to the release name you created in the
+      previous step.
 - [ ] Navigate to 
       [Martha Manual Deploy](https://fc-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/martha-manual-deploy/)
       and click the "Build with Parameters" link.  Select the `TAG` that you just created and the tier to which you want to 
