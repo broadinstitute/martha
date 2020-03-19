@@ -6,7 +6,7 @@ Martha
 Google Cloud Functions for resolving [DOS](https://data-object-service.readthedocs.io/en/latest/) URIs.
 
 # Martha v1
-Deprecated as of March 2020. Please use Martha v2.
+Removed as of March 2020. Please use Martha v2.
 
 # Martha v2
 To call `martha_v2`, perform an HTTP `POST` to the appropriate URL. The `content-type` of your request should be either
