@@ -66,7 +66,6 @@ docker run --rm \
     "gcloud config set project ${PROJECT_NAME} &&
      gcloud auth activate-service-account --key-file ${MARTHA_PATH}/${SERVICE_ACCT_KEY_FILE} &&
      cd ${MARTHA_PATH} &&
-     gcloud beta functions deploy martha_v1 --source=. --trigger-http --runtime nodejs8 &&
      gcloud beta functions deploy martha_v2 --source=. --trigger-http --runtime nodejs8 &&
      gcloud beta functions deploy fileSummaryV1 --source=. --runtime nodejs8 --trigger-http &&
      gcloud beta functions deploy getSignedUrlV1 --source=. --runtime nodejs8 --trigger-http &&
