@@ -1,4 +1,4 @@
-FROM node:8.15
+FROM node:12.16.1
 
 ## Prepare the image
 ENV DEBIAN_FRONTEND noninteractive

@@ -56,9 +56,11 @@ test('dataObjectUriToHttps should parse "drs://dg." Data Object uri with query p
 });
 
 test('dataObjectUriToHttps should throw an error when given a "dg.*" host with no path', (t) => {
-    t.throws(() => {
+    try {
         dataObjectUriToHttps('dos://dg.4503');
-    }, Error);
+    } catch(error) {
+        t.is(error.message, 'Data Object URIs with \'dg.*\' host are required to have a path: "dos://dg.4503"');
+    }
 });
 /**
  * End Scenario 2
@@ -87,9 +89,11 @@ test('should parse "drs://dg." Data Object uri with only a host part with a quer
  */
 
 test('dataObjectUriToHttps should throw a Error when passed an invalid uri', (t) => {
-    t.throws(() => {
+    try {
         dataObjectUriToHttps('A string that is not a valid URI');
-    }, Error);
+    } catch(error) {
+        t.is(error.message, 'Cannot read property \'0\' of null');
+    }
 });
 
 test('bondBaseUrl should come from the config json', (t) => {

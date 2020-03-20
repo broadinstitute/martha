@@ -59,7 +59,7 @@ is used.
 
 # Development
 ## Setup
-* Install Node 8, the current LTS
+* Install Node 12, the current LTS
   * Google Cloud Functions (GCF) follow Node LTS releases as described
   [here](https://cloud.google.com/functions/docs/writing/#the_cloud_functions_runtime).
   * **MacOS** - It is recommended that you install Node using [Homebrew](https://brew.sh/), or a version manager like
