@@ -33,7 +33,7 @@ async function getHeaders(url, authorization) {
 async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL_BACKOFF_DELAY) {
     try {
         const response = await get('get', url, authorization);
-        console.log("Response from GET " + url + ": " + JSON.stringify(response));
+        console.log('Response from GET ' + url + ': ' + JSON.stringify(response));
         return response.body;
     } catch (error) {
         // TODO: capture error on lines 56 and 58 in order to give a more detailed idea of
