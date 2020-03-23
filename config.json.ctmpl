@@ -4,7 +4,7 @@
 
 {
     "dataObjectResolutionHost": {{if eq $runContext "fiab"}}"wb-mock-drs-dev.storage.googleapis.com"{{else if eq $environment "prod"}}"gen3.biodatacatalyst.nhlbi.nih.gov"{{else}}"staging.gen3.biodatacatalyst.nhlbi.nih.gov"{{end}},
-    "bondBaseUrl": {{if eq $runContext "fiab"}}"bond-fiab.{{$dnsDomain}}"{{else}}"broad-bond-{{$environment}}.appspot.com"{{end}},
+    "bondBaseUrl": {{if eq $runContext "fiab"}}"bond-fiab.{{$dnsDomain}}"{{else}}"https://broad-bond-{{$environment}}.appspot.com"{{end}},
     "samBaseUrl": {{if eq $runContext "fiab"}}"https://sam-fiab.{{$dnsDomain}}"{{else}}"https://sam.dsde-{{$environment}}.broadinstitute.org"{{end}}
 }
 {{end}}{{end}}{{end}}
