@@ -9,16 +9,24 @@ function parseRequest(req) {
     }
 }
 
-function maybeTalkToBond(req, provider = BondProviders.default) {
-    let myPromise;
+async function maybeTalkToBond(req, provider = BondProviders.default) {
     // Currently HCA data access does not require additional credentials.
     // The HCA checkout buckets allow object read access for GROUP_All_Users@firecloud.org.
     if (req && req.headers && req.headers.authorization && provider !== BondProviders.HCA) {
-        myPromise = apiAdapter.getJsonFrom(`${bondBaseUrl()}/api/link/v1/${provider}/serviceaccount/key`, req.headers.authorization);
+        try {
+            const {body} = await apiAdapter.getJsonFrom(
+                `${bondBaseUrl()}/api/link/v1/${provider}/serviceaccount/key`,
+                req.headers.authorization
+            );
+            return body;
+        } catch (error) {
+            console.log(`Received error while fetching service account from Bond for provider '${provider}'.`);
+            console.error(error);
+            throw error;
+        }
     } else {
-        myPromise = Promise.resolve();
+        return Promise.resolve();
     }
-    return myPromise;
 }
 
 function aggregateResponses(responses) {
@@ -59,6 +67,7 @@ function martha_v2_handler(req, res) {
             res.status(200).send(aggregateResponses(rawResults));
         })
         .catch((err) => {
+            console.log(`martha_v2: Received error while either contacting Bond or resolving drs url.`);
             console.error(err);
             res.status(502).send(err);
         });

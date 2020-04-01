@@ -1,4 +1,5 @@
 const request = require('superagent');
+const {Response} = require('../common/helpers');
 
 const MAX_RETRY_ATTEMPTS = 5;
 const INITIAL_BACKOFF_DELAY = 1000;
@@ -32,10 +33,29 @@ async function getHeaders(url, authorization) {
 async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL_BACKOFF_DELAY) {
     try {
         const {body} = await get('get', url, authorization);
-        return body;
+
+        /*
+         handle the case when Martha receives empty JSON body. The reason behind forming a response with status 500
+         and throwing it in `try` is so that it can be caught locally and be retried.
+         */
+        if (Object.keys(body).length === 0) {
+            console.log(`Received an empty JSON body while trying to resolve url '${url}'. Creating a response with ` +
+            `status 500 and will retry.`);
+
+            const errorMsg = `Something went wrong while trying to resolve url '${url}'. It came back with empty JSON body!`;
+            const errorResponseObj = {
+                response: {
+                    status: 500,
+                    text: errorMsg
+                }
+            };
+            throw new Response(500, errorResponseObj);
+        }
+        else return body;
     } catch (error) {
         // TODO: capture error on lines 56 and 58 in order to give a more detailed idea of
         //  what went wrong where (see https://broadworkbench.atlassian.net/browse/WA-13)
+        console.log(`Received error for url '${url}'. Attempt ${retryAttempt}.`);
         console.error(error);
 
         if((error.status >= SERVER_ERROR_CODE && error.status <= NETWORK_AUTH_REQ_CODE) ||
