@@ -40,7 +40,7 @@ async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL
          */
         if (Object.keys(body).length === 0) {
             console.log(`Received an empty JSON body while trying to resolve url '${url}'. Creating a response with ` +
-            `status 500 and will retry.`);
+            'status 500 and will retry.');
 
             const errorMsg = `Something went wrong while trying to resolve url '${url}'. It came back with empty JSON body!`;
             const errorResponseObj = {
@@ -51,7 +51,7 @@ async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL
             };
             throw new Response(500, errorResponseObj);
         }
-        else return body;
+        else { return body; }
     } catch (error) {
         // TODO: capture error on lines 56 and 58 in order to give a more detailed idea of
         //  what went wrong where (see https://broadworkbench.atlassian.net/browse/WA-13)

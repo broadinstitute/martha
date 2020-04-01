@@ -67,7 +67,7 @@ function martha_v2_handler(req, res) {
             res.status(200).send(aggregateResponses(rawResults));
         })
         .catch((err) => {
-            console.log(`martha_v2: Received error while either contacting Bond or resolving drs url.`);
+            console.log('martha_v2: Received error while either contacting Bond or resolving drs url.');
             console.error(err);
             res.status(502).send(err);
         });
