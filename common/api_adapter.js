@@ -39,8 +39,8 @@ async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL
          and throwing it in `try` is so that it can be caught locally and be retried.
          */
         if (Object.keys(body).length === 0) {
-            console.log(`Received an empty JSON body while trying to resolve url '${url}'. Creating a response with ` +
-            'status 500 and will retry.');
+            console.log(`Received an empty JSON body while trying to resolve url '${url}'. Attempt ${retryAttempt}. ` +
+                'Creating a response with status 500.');
 
             const errorMsg = `Something went wrong while trying to resolve url '${url}'. It came back with empty JSON body!`;
             const errorResponseObj = {
