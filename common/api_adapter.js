@@ -51,7 +51,10 @@ async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL
             };
             throw new Response(500, errorResponseObj);
         }
-        else { return body; }
+        else {
+            console.log(`Successfully received response from url '${url}'.`);
+            return body;
+        }
     } catch (error) {
         // TODO: capture error on lines 56 and 58 in order to give a more detailed idea of
         //  what went wrong where (see https://broadworkbench.atlassian.net/browse/WA-13)
