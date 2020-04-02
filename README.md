@@ -90,32 +90,41 @@ is used.
 ## Deployment
 Deployments to the `dev` tier are triggered automatically whenever code is pushed/merged to the `dev` branch on github.
 
-- [ ] Deployments to other tiers are triggered manually by running the 
-      [Martha Manual Deploy](https://fc-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/martha-manual-deploy/)
-      job on the DSP Jenkins instance.  You should follow these steps in order to deploy:
+Deployments to other tiers are triggered manually by running the 
+[Martha Manual Deploy](https://fc-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/martha-manual-deploy/)
+job on the DSP Jenkins instance.  You should follow these steps in order to deploy:
 
+### Prepare the release
 - [ ] When the latest code passes tests in CircleCI, it is tagged `dev_tests_passed_[timestamp]` where `[timestamp]` is the
-      epoch time when the tag was created.
+      epoch time when the tag was created.  Confirm that this tag exists for the commit you want to deploy.
 - [ ] Create and push a new [semver](https://semver.org/) tag for this same commit.  You should look at the existing tags 
       to ensure that the tag is incremented properly based on the last released version.  Tags should be plain semver numbers 
       like `1.0.0` and should not have any additional prefix like `v1.0.0` or `releases/1.0.0`.  Suffixes are permitted so 
       long as they conform to the [semver spec](https://semver.org/).
-- [ ] In Jira, create a new "Release" named like: `martha-X.Y.Z` where `X.Y.Z` is the same semantic version number you created
-      in the previous step.
-- [ ] For each Jira Issue included in this release, set the "Fix Version" field to the release name you created in the
+- [ ] In Jira, create a new "Release" named like: `martha-X.Y.Z` where `X.Y.Z` is the same semantic version number 
+      created in the previous step.
+- [ ] For each Jira Issue included in this release, set the `Fix Version` field to the release name you created in the
       previous step.
-- [ ] Navigate to 
-      [Martha Manual Deploy](https://fc-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/martha-manual-deploy/)
-      and click the "Build with Parameters" link.  Select the `TAG` that you just created and the tier to which you want to 
-      deploy.
-- [ ] You must deploy to each of the following tiers one-by-one and [manually test](#live-testing) each tier as you deploy to       it:
-    * `dev` - Technically, this same commit is already running on `dev` courtesy of the automatic deployment, but this
-    is an important step to ensure that the tag can be deployed properly.
-    * `alpha`
-    * `perf`
-    * `staging`
-    * `prod` - In order to deploy to `prod`, you must be on the DSP Suitability Roster.  You will need to log into the 
-    production Jenkins instance and use the "Martha Manual Deploy" job to release the same tag to production.
+
+### Deploy the tag
+Deploy the tag to each environment: `dev`, `alpha`, `staging`, `prod`.  Navigate to the
+[Martha Manual Deploy](https://fc-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/martha-manual-deploy/)
+job and click the "Build with Parameters" link.  Select the `TAG` that you created during the 
+[Prepare Phase](#prepare-the-release) and the `TARGET` environment to which you want to deploy.  
+
+The tagged commit should already be running on `dev` courtesy of the automatic deployment, but it is recommended that 
+you deploy to `dev` following these steps to ensure that the deployment process is functioning properly before 
+proceeding.
+
+After deploying to each environment, you _*must*_ run the manual Data Interoperability Integration Test.  
+
+- [ ] `dev` - Deployed and tested 
+- [ ] `alpha` - Deployed and tested 
+- [ ] `staging` - Deployed and tested 
+- [ ] `prod`  - Deployed and tested 
+
+In order to deploy to `prod`, you must be on the DSP Suitability Roster.  You will need to log into the production 
+Jenkins instance and use the "Martha Manual Deploy" job to release the tag to production.
 
 **NOTE:** 
 * Each deployment will redeploy all supported versions of functions.
