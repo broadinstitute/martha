@@ -6,13 +6,7 @@ Martha
 Google Cloud Functions for resolving [DOS](https://data-object-service.readthedocs.io/en/latest/) URIs.
 
 # Martha v1
-To call `martha_v1`, perform an HTTP `POST` to the appropriate URL. The body of the request must be a JSON Object with
-two values: a [DOS](https://data-object-service.readthedocs.io/en/latest/) URL and a regex pattern. Martha uses the
-DOS URL to retrieve a data object, unpacks it, and returns the first link that matches the specified regex pattern.
-For more details look [here](https://docs.google.com/document/d/1AyyI6L43te_DFWh8dXAiX0Qx-8f3JLKUIZe6xFwKMb0/edit#).
-
-Staging: https://us-central1-broad-dsde-staging.cloudfunctions.net/martha_v1
-Production: https://us-central1-broad-dsde-prod.cloudfunctions.net/martha_v1
+Removed as of March 2020. Please use Martha v2.
 
 # Martha v2
 To call `martha_v2`, perform an HTTP `POST` to the appropriate URL. The `content-type` of your request should be either
@@ -65,7 +59,7 @@ is used.
 
 # Development
 ## Setup
-* Install Node 8, the current LTS
+* Install Node 12, the current LTS
   * Google Cloud Functions (GCF) follow Node LTS releases as described
   [here](https://cloud.google.com/functions/docs/writing/#the_cloud_functions_runtime).
   * **MacOS** - It is recommended that you install Node using [Homebrew](https://brew.sh/), or a version manager like

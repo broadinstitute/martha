@@ -1,4 +1,4 @@
-FROM node:8.15
+FROM node:12.16.1
 
 ## Prepare the image
 ENV DEBIAN_FRONTEND noninteractive
@@ -44,7 +44,6 @@ EXPOSE 8008 8010
 # Emulator must be started in order to deploy functions.  We will stop the server so that we can set the Dockerfile
 # ENTRYPOINT to be the the `functions start` command.  Deployed functions persist across emulator restarts.
 RUN functions start \
-    && functions deploy martha_v1 --trigger-http \
     && functions deploy martha_v2 --trigger-http \
     && functions deploy fileSummaryV1 --trigger-http \
     && functions deploy getSignedUrlV1 --trigger-http \

@@ -14,7 +14,7 @@ run_env_setup: &run_env_setup
 jobs:
   test:
     docker:
-      - image: circleci/node:8.15
+      - image: circleci/node:12.16.1
 
     working_directory: ~/repo
 
