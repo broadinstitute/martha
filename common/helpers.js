@@ -83,7 +83,7 @@ function dataObjectUriToHttps(dataObjectUri) {
     };
 
     const output = url.format(resolutionUrlParts);
-    console.log(`${dataObjectUri} -> ${output}`);
+    console.log(`Converting DRS URI to HTTPS: ${dataObjectUri} -> ${output}`);
     return output;
 }
 
