@@ -16,7 +16,7 @@
     "integration_fileSummaryV1": "ava -m integration_fileSummaryV1*"
   },
   "dependencies": {
-    "@google-cloud/storage": "^2.4.2",
+    "@google-cloud/storage": "^2.5.0",
     "cors": "^2.8.4",
     "gtoken": "^3.0.1",
     "superagent": "^3.8.3"
