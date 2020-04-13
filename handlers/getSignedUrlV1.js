@@ -1,6 +1,7 @@
-const { Storage } = require('@google-cloud/storage');
+const {Storage} = require('@google-cloud/storage');
 const apiAdapter = require('../common/api_adapter');
-const { bondBaseUrl, promiseHandler, Response, samBaseUrl, determineBondProvider, BondProviders } = require('../common/helpers');
+const {promiseHandler, Response, samBaseUrl} = require('../common/helpers');
+const {bondBaseUrl, determineBondProvider, BondProviders} = require('../common/bond');
 
 const getSignedUrlV1 = promiseHandler(async (req) => {
     const { bucket, object, dataObjectUri } = req.body || {};

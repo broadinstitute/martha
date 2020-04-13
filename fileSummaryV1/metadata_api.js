@@ -1,4 +1,4 @@
-const helpers = require('../common/helpers');
+const {dataObjectUriToHttps, samBaseUrl} = require('../common/helpers');
 const apiAdapter = require('../common/api_adapter');
 
 function getRawMetadata(token, bucket, name) {
@@ -16,7 +16,7 @@ function getRawMetadata(token, bucket, name) {
 
 function getPetTokenFromSam(bearerToken) {
     return apiAdapter.postJsonTo(
-        `${helpers.samBaseUrl()}/api/google/v1/user/petServiceAccount/token`,
+        `${samBaseUrl()}/api/google/v1/user/petServiceAccount/token`,
         bearerToken,
         '["https://www.googleapis.com/auth/devstorage.full_control"]')
         .catch((e) => {
@@ -61,7 +61,7 @@ function getGsUriFromDataObject(dataObjectMetadata) {
 }
 
 function getDataObjectMetadata(dataObjectUri) {
-    const newUri = helpers.dataObjectUriToHttps(dataObjectUri);
+    const newUri = dataObjectUriToHttps(dataObjectUri);
 
     return apiAdapter.getJsonFrom(newUri)
         .then((response) => response.data_object)

@@ -1,4 +1,5 @@
-const {dataObjectUriToHttps, bondBaseUrl, determineBondProvider, BondProviders} = require('../common/helpers');
+const {dataObjectUriToHttps} = require('../common/helpers');
+const {bondBaseUrl, determineBondProvider, BondProviders} = require('../common/bond');
 const apiAdapter = require('../common/api_adapter');
 
 // This function counts on the request posing  data as "application/json" content-type.

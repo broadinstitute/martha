@@ -9,7 +9,7 @@
 
 const test = require('ava');
 const sinon = require('sinon');
-const martha_v2 = require('../../martha_v2/martha_v2').martha_v2_handler;
+const martha_v2 = require('../../martha/martha_v2').martha_v2_handler;
 const apiAdapter = require('../../common/api_adapter');
 
 const mockRequest = (req) => {

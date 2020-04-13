@@ -4,7 +4,7 @@
  */
 
 const corsMiddleware = require('cors')();
-const { martha_v2_handler } = require('./martha_v2/martha_v2');
+const { martha_v2_handler } = require('./martha/martha_v2');
 const { fileSummaryV1Handler } = require('./fileSummaryV1/fileSummaryV1');
 const getSignedUrlV1 = require('./handlers/getSignedUrlV1');
 
