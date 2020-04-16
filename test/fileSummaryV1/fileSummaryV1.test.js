@@ -12,8 +12,9 @@ const sinon = require('sinon');
 const fileSummaryV1 = require('../../fileSummaryV1/fileSummaryV1').fileSummaryV1Handler;
 const saKeys = require('../../fileSummaryV1/service_account_keys');
 const metadataApi = require('../../fileSummaryV1/metadata_api');
-const urlSigner = require('../../fileSummaryV1/urlSigner');
+const urlSigner = require('fileSummaryV1/gcsUrlSigner');
 const apiAdapter = require('../../common/api_adapter');
+const helpers = require('../../common/helpers');
 
 const mockRequest = (req) => {
     req.method = 'POST';
@@ -32,6 +33,7 @@ const mockResponse = () => {
     };
 };
 
+// helpers.convertToFileInfoResponse (contentType, size, timeCreated, updated, md5Hash, bucket, name, gsUri, signedUrl)
 const gsObjectMetadata = () => {
     return {
         contentType: 'application/json',

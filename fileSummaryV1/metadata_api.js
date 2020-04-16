@@ -1,4 +1,4 @@
-const {dataObjectUriToHttps, samBaseUrl} = require('../common/helpers');
+const {dataObjectUriToHttps, convertToFileInfoResponse, samBaseUrl} = require('../common/helpers');
 const apiAdapter = require('../common/api_adapter');
 
 function getRawMetadata(token, bucket, name) {
@@ -40,15 +40,17 @@ function getGsObjectMetadata(gsUri, auth) {
                 'last-modified': lastModified, 'x-goog-hash': xGoogHash
             } = response;
 
-            return {
+            return convertToFileInfoResponse (
                 contentType,
-                size: parseInt(contentLength),
-                updated: new Date(lastModified).toString(),
-                md5Hash: xGoogHash.substring(xGoogHash.indexOf('md5=') + 4),
+                parseInt(contentLength),
+                new Date(lastModified).toString(),
+              undefined,
+                xGoogHash.substring(xGoogHash.indexOf('md5=') + 4),
                 bucket,
                 name,
-                gsUri
-            };
+                gsUri,
+              undefined
+          );
         })
         .catch((e) => {
             console.error(new Error(`Failed to get metadata for: ${gsUri}`));
@@ -70,16 +72,17 @@ function getDataObjectMetadata(dataObjectUri) {
             const gsUri = getGsUriFromDataObject(metadata);
             const [bucket, name] = parseGsUri(gsUri);
 
-            return {
-                contentType: mime_type || 'application/octet-stream',
+            return convertToFileInfoResponse(
+                mime_type || 'application/octet-stream',
                 size,
-                timeCreated: created ? new Date(created).toString() : undefined,
-                updated: updated ? new Date(updated).toString() : undefined,
-                md5Hash: (checksums.find((e) => e.type === 'md5') || {}).checksum,
+                created ? new Date(created).toString() : undefined,
+                updated ? new Date(updated).toString() : undefined,
+                (checksums.find((e) => e.type === 'md5') || {}).checksum,
                 bucket,
                 name,
-                gsUri
-            };
+                gsUri,
+              undefined
+            );
         })
         .catch((e) => {
             console.error(new Error(`Failed to get metadata for: ${dataObjectUri} -> ${newUri}`));

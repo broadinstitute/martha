@@ -86,7 +86,35 @@ function dataObjectUriToHttps(dataObjectUri) {
     return output;
 }
 
+function convertToFileInfoResponse (contentType, size, timeCreated, updated, md5Hash, bucket, name, gsUri, signedUrl) {
+    return new FileInfoResponse(
+      contentType,
+      size,
+      timeCreated,
+      updated,
+      md5Hash,
+      bucket,
+      name,
+      gsUri,
+      signedUrl
+    );
+}
+
 const samBaseUrl = () => config.samBaseUrl;
+
+class FileInfoResponse {
+    constructor(contentType, size, timeCreated, updated, md5Hash, bucket, name, gsUri, signedUrl) {
+        this.contentType = contentType || '';
+        this.size = size || 0;
+        this.timeCreated = timeCreated || '';
+        this.updated = updated || '';
+        this.md5Hash = md5Hash || '';
+        this.bucket = bucket || '';
+        this.name = name || '';
+        this.gsUri = gsUri || '';
+        this.signedUrl = signedUrl || '';
+    }
+}
 
 class Response {
     constructor(status, data) {
@@ -107,4 +135,4 @@ const promiseHandler = (fn) => (req, res) => {
     return fn(req, res).then(handleValue, handleValue);
 };
 
-module.exports = {dataObjectUriToHttps, samBaseUrl, Response, promiseHandler};
+module.exports = {dataObjectUriToHttps, convertToFileInfoResponse, samBaseUrl, Response, promiseHandler};
