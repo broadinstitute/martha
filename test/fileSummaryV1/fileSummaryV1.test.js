@@ -44,7 +44,7 @@ const gsObjectMetadata = () => {
         'some.fake-location',
         'file.txt',
         'gs://some.fake-location/file.txt',
-        undefined
+        null
     );
 };
 
@@ -55,7 +55,7 @@ const fullExpectedResult = () => {
     return helpers.convertToFileInfoResponse(
       'application/json',
       1234,
-      undefined,
+      null,
       'Mon, 16 Jul 2018 21:36:14 GMT',
       'abcdefg',
       'some.fake-location',

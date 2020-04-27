@@ -37,7 +37,7 @@ function aggregateResponses(responses) {
     return finalResult;
 }
 
-function martha_v2_handler(req, res) {
+function marthaV2Handler(req, res) {
     const dataObjectUri = parseRequest(req);
     if (!dataObjectUri) {
         res.status(400).send('Request must specify the URL of a DOS object');
@@ -70,4 +70,4 @@ function martha_v2_handler(req, res) {
         });
 }
 
-exports.martha_v2_handler = martha_v2_handler;
+exports.marthaV2Handler = marthaV2Handler;

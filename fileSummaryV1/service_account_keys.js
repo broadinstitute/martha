@@ -1,5 +1,5 @@
 const {samBaseUrl} = require('../common/helpers');
-const {determineBondProvider, BondProviders} = require('../common/bond');
+const {determineBondProvider, bondBaseUrl, BondProviders} = require('../common/bond');
 const apiAdapter = require('../common/api_adapter');
 
 function maybeTalkToBond(auth, url) {
