@@ -81,7 +81,7 @@ function getDataObjectMetadata(dataObjectUri) {
                 bucket,
                 name,
                 gsUri,
-              null
+                null
             );
         })
         .catch((e) => {

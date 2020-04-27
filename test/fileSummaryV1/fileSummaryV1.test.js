@@ -33,7 +33,6 @@ const mockResponse = () => {
     };
 };
 
-// helpers.convertToFileInfoResponse (contentType, size, timeCreated, updated, md5Hash, bucket, name, gsUri, signedUrl)
 const gsObjectMetadata = () => {
     return helpers.convertToFileInfoResponse(
         'application/json',
