@@ -1,4 +1,4 @@
-const helpers = require('../common/helpers');
+const {dataObjectUriToHttps, convertToFileInfoResponse, samBaseUrl} = require('../common/helpers');
 const apiAdapter = require('../common/api_adapter');
 
 function getRawMetadata(token, bucket, name) {
@@ -16,7 +16,7 @@ function getRawMetadata(token, bucket, name) {
 
 function getPetTokenFromSam(bearerToken) {
     return apiAdapter.postJsonTo(
-        `${helpers.samBaseUrl()}/api/google/v1/user/petServiceAccount/token`,
+        `${samBaseUrl()}/api/google/v1/user/petServiceAccount/token`,
         bearerToken,
         '["https://www.googleapis.com/auth/devstorage.full_control"]')
         .catch((e) => {
@@ -40,15 +40,17 @@ function getGsObjectMetadata(gsUri, auth) {
                 'last-modified': lastModified, 'x-goog-hash': xGoogHash
             } = response;
 
-            return {
+            return convertToFileInfoResponse (
                 contentType,
-                size: parseInt(contentLength),
-                updated: new Date(lastModified).toString(),
-                md5Hash: xGoogHash.substring(xGoogHash.indexOf('md5=') + 4),
+                parseInt(contentLength),
+                new Date(lastModified).toString(),
+                null,
+                xGoogHash.substring(xGoogHash.indexOf('md5=') + 4),
                 bucket,
                 name,
-                gsUri
-            };
+                gsUri,
+                null
+          );
         })
         .catch((e) => {
             console.error(new Error(`Failed to get metadata for: ${gsUri}`));
@@ -61,25 +63,26 @@ function getGsUriFromDataObject(dataObjectMetadata) {
 }
 
 function getDataObjectMetadata(dataObjectUri) {
-    const newUri = helpers.dataObjectUriToHttps(dataObjectUri);
+    const newUri = dataObjectUriToHttps(dataObjectUri);
 
     return apiAdapter.getJsonFrom(newUri)
         .then((response) => response.data_object)
         .then((metadata) => {
-            const { mime_type, size, created, updated, checksums } = metadata;
+            const { mimeType, size, created, updated, checksums } = metadata;
             const gsUri = getGsUriFromDataObject(metadata);
             const [bucket, name] = parseGsUri(gsUri);
 
-            return {
-                contentType: mime_type || 'application/octet-stream',
+            return convertToFileInfoResponse(
+                mimeType || 'application/octet-stream',
                 size,
-                timeCreated: created ? new Date(created).toString() : undefined,
-                updated: updated ? new Date(updated).toString() : undefined,
-                md5Hash: (checksums.find((e) => e.type === 'md5') || {}).checksum,
+                created ? new Date(created).toString() : null,
+                updated ? new Date(updated).toString() : null,
+                (checksums.find((e) => e.type === 'md5') || {}).checksum,
                 bucket,
                 name,
-                gsUri
-            };
+                gsUri,
+                null
+            );
         })
         .catch((e) => {
             console.error(new Error(`Failed to get metadata for: ${dataObjectUri} -> ${newUri}`));

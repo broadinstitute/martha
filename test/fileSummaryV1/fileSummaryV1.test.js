@@ -14,6 +14,7 @@ const saKeys = require('../../fileSummaryV1/service_account_keys');
 const metadataApi = require('../../fileSummaryV1/metadata_api');
 const urlSigner = require('../../fileSummaryV1/urlSigner');
 const apiAdapter = require('../../common/api_adapter');
+const {convertToFileInfoResponse} = require('../../common/helpers');
 
 const mockRequest = (req) => {
     req.method = 'POST';
@@ -33,24 +34,34 @@ const mockResponse = () => {
 };
 
 const gsObjectMetadata = () => {
-    return {
-        contentType: 'application/json',
-        size: 1234,
-        updated: 'Mon, 16 Jul 2018 21:36:14 GMT',
-        md5Hash: 'abcdefg',
-        bucket: 'some.fake-location',
-        name: 'file.txt',
-        gsUri: 'gs://some.fake-location/file.txt'
-    };
+    return convertToFileInfoResponse(
+        'application/json',
+        1234,
+        null,
+        'Mon, 16 Jul 2018 21:36:14 GMT',
+        'abcdefg',
+        'some.fake-location',
+        'file.txt',
+        'gs://some.fake-location/file.txt',
+        null
+    );
 };
 
 const fakeSignedUrl = 'http://i.am.a.signed.url.com/totallyMadeUp';
 const fakeSAKey = {key: 'I am not real'};
 
 const fullExpectedResult = () => {
-    const expectedResult = gsObjectMetadata();
-    expectedResult.signedUrl = fakeSignedUrl;
-    return expectedResult;
+    return convertToFileInfoResponse(
+      'application/json',
+      1234,
+      null,
+      'Mon, 16 Jul 2018 21:36:14 GMT',
+      'abcdefg',
+      'some.fake-location',
+      'file.txt',
+      'gs://some.fake-location/file.txt',
+      fakeSignedUrl
+    );
 };
 
 const getServiceAccountKeyMethodName = 'getServiceAccountKey';

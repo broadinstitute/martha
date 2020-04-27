@@ -9,7 +9,7 @@
 
 const test = require('ava');
 const sinon = require('sinon');
-const martha_v2 = require('../../martha_v2/martha_v2').martha_v2_handler;
+const marthaV2 = require('../../martha/martha_v2').marthaV2Handler;
 const apiAdapter = require('../../common/api_adapter');
 
 const mockRequest = (req) => {
@@ -51,7 +51,7 @@ test.serial.afterEach(() => {
 
 test.serial('martha_v2 resolves a valid url into a Data Object and google service account key', async (t) => {
     const response = mockResponse();
-    await martha_v2(mockRequest({ body: { 'url': 'https://example.com/validGS' } }), response);
+    await marthaV2(mockRequest({ body: { 'url': 'https://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
     t.deepEqual(result.dos, dataObject);
     t.deepEqual(result.googleServiceAccount, googleSAKeyObject);
@@ -60,7 +60,7 @@ test.serial('martha_v2 resolves a valid url into a Data Object and google servic
 
 test.serial('martha_v2 resolves successfully and ignores extra data submitted besides a \'url\'', async (t) => {
     const response = mockResponse();
-    await martha_v2(mockRequest({
+    await marthaV2(mockRequest({
         body: {
             url: 'https://example.com/validGS',
             pattern: 'gs://',
@@ -77,7 +77,7 @@ test.serial('martha_v2 resolves a valid url into a Data Object without a service
     const response = mockResponse();
     const mockReq = mockRequest({ body: { 'url': 'https://example.com/validGS' } });
     delete mockReq.headers.authorization;
-    await martha_v2(mockReq, response);
+    await marthaV2(mockReq, response);
     const result = response.send.lastCall.args[0];
     t.is(response.statusCode, 200);
     t.deepEqual(result.dos, dataObject);
@@ -85,19 +85,19 @@ test.serial('martha_v2 resolves a valid url into a Data Object without a service
 
 test.serial('martha_v2 should return 400 if not given a url', async (t) => {
     const response = mockResponse();
-    await martha_v2(mockRequest({ body: { 'uri': 'https://example.com/validGS' } }), response);
+    await marthaV2(mockRequest({ body: { 'uri': 'https://example.com/validGS' } }), response);
     t.is(response.statusCode, 400);
 });
 
 test.serial('martha_v2 should return 400 if no data is posted with the request', async (t) => {
     const response = mockResponse();
-    await martha_v2(mockRequest({}), response);
+    await marthaV2(mockRequest({}), response);
     t.is(response.statusCode, 400);
 });
 
 test.serial('martha_v2 should return 400 if given a \'url\' with an invalid value', async (t) => {
     const response = mockResponse();
-    await martha_v2(mockRequest({ body: { url: 'Not a valid URI' } }), response);
+    await marthaV2(mockRequest({ body: { url: 'Not a valid URI' } }), response);
     t.is(response.statusCode, 400);
 });
 
@@ -105,7 +105,7 @@ test.serial('martha_v2 should return 502 if Data Object resolution fails', async
     getJsonFromApiStub.restore();
     sandbox.stub(apiAdapter, getJsonFromApiMethodName).rejects(new Error('Data Object Resolution forced to fail by testing stub'));
     const response = mockResponse();
-    await martha_v2(mockRequest({ body: { 'url': 'https://example.com/validGS' } }), response);
+    await marthaV2(mockRequest({ body: { 'url': 'https://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
     t.true(result instanceof Error);
     t.is(response.statusCode, 502);
@@ -115,7 +115,7 @@ test.serial('martha_v2 should return 502 if key retrieval from bond fails', asyn
     getJsonFromApiStub.restore();
     sandbox.stub(apiAdapter, getJsonFromApiMethodName).rejects(new Error('Bond key lookup forced to fail by testing stub'));
     const response = mockResponse();
-    await martha_v2(mockRequest({ body: { 'url': 'https://example.com/validGS' } }), response);
+    await marthaV2(mockRequest({ body: { 'url': 'https://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
     t.true(result instanceof Error);
     t.is(response.statusCode, 502);
@@ -123,7 +123,7 @@ test.serial('martha_v2 should return 502 if key retrieval from bond fails', asyn
 
 test.serial('martha_v2 calls bond Bond with the "dcf-fence" provider when the Data Object URL host is not "dg.4503"', async (t) => {
     const response = mockResponse();
-    await martha_v2(mockRequest({ body: { 'url': 'https://example.com/validGS' } }), response);
+    await marthaV2(mockRequest({ body: { 'url': 'https://example.com/validGS' } }), response);
     const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
@@ -134,7 +134,7 @@ test.serial('martha_v2 calls bond Bond with the "dcf-fence" provider when the Da
 
 test.serial('martha_v2 calls bond Bond with the "fence" provider when the Data Object URL host is "dg.4503"', async (t) => {
     const response = mockResponse();
-    await martha_v2(mockRequest({ body: { 'url': 'drs://dg.4503/this_part_can_be_anything' } }), response);
+    await marthaV2(mockRequest({ body: { 'url': 'drs://dg.4503/this_part_can_be_anything' } }), response);
     const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
@@ -145,7 +145,7 @@ test.serial('martha_v2 calls bond Bond with the "fence" provider when the Data O
 
 test.serial('martha_v2 does not call Bond or return SA key when the Data Object URL host endswith ".humancellatlas.org', async (t) => {
     const response = mockResponse();
-    await martha_v2(mockRequest({ body: { 'url': 'drs://someservice.humancellatlas.org/this_part_can_be_anything' } }), response);
+    await marthaV2(mockRequest({ body: { 'url': 'drs://someservice.humancellatlas.org/this_part_can_be_anything' } }), response);
     const result = response.send.lastCall.args[0];
     t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
     t.deepEqual(result.dos, dataObject);

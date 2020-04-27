@@ -1,6 +1,5 @@
 const url = require('url');
 const config = require('../config.json');
-const URL = require('url');
 
 const dataGuidsHostPrefix = 'dg.';
 const dataObjectPathPrefix = '/ga4gh/dos/v1/dataobjects/';
@@ -87,33 +86,34 @@ function dataObjectUriToHttps(dataObjectUri) {
     return output;
 }
 
-const BondProviders = Object.freeze({
-    FENCE: 'fence',
-    DCF_FENCE: 'dcf-fence',
-    HCA: 'hca', // Human Cell Atlas
-    get default() {
-        return this.DCF_FENCE;
-    }
-});
-
-const PROD_DATASTAGE_NAMESPACE    = 'dg.4503';
-const STAGING_DATASTAGE_NAMESPACE = 'dg.712c';
-const DATASTAGE_NAMESPACES = [PROD_DATASTAGE_NAMESPACE, STAGING_DATASTAGE_NAMESPACE];
-
-// We are explicitly listing the DOS/DRS host/namespaces here for both production and staging environments.
-// At some point we expect to have a more sophisticated way to do this, but for now, we have to do it this way.
-function determineBondProvider(urlString) {
-    const url = URL.parse(urlString);
-    if (DATASTAGE_NAMESPACES.includes(url.hostname.toLowerCase())) {
-        return BondProviders.FENCE;
-    } else if (url.host.endsWith('.humancellatlas.org')) {
-        return BondProviders.HCA;
-    } else {
-        return BondProviders.default;
+class FileInfoResponse {
+    constructor(contentType, size, timeCreated, updated, md5Hash, bucket, name, gsUri, signedUrl) {
+        this.contentType = contentType || '';
+        this.size = size || 0;
+        this.timeCreated = timeCreated || '';
+        this.updated = updated || '';
+        this.md5Hash = md5Hash || '';
+        this.bucket = bucket || '';
+        this.name = name || '';
+        this.gsUri = gsUri || '';
+        this.signedUrl = signedUrl || '';
     }
 }
 
-const bondBaseUrl = () => config.bondBaseUrl;
+function convertToFileInfoResponse (contentType, size, timeCreated, updated, md5Hash, bucket, name, gsUri, signedUrl) {
+    return new FileInfoResponse(
+      contentType,
+      size,
+      timeCreated,
+      updated,
+      md5Hash,
+      bucket,
+      name,
+      gsUri,
+      signedUrl
+    );
+}
+
 const samBaseUrl = () => config.samBaseUrl;
 
 class Response {
@@ -135,4 +135,4 @@ const promiseHandler = (fn) => (req, res) => {
     return fn(req, res).then(handleValue, handleValue);
 };
 
-module.exports = {dataObjectUriToHttps, bondBaseUrl, samBaseUrl, BondProviders, determineBondProvider, Response, promiseHandler};
+module.exports = {dataObjectUriToHttps, convertToFileInfoResponse, samBaseUrl, Response, promiseHandler};
