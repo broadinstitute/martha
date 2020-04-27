@@ -44,12 +44,12 @@ function getGsObjectMetadata(gsUri, auth) {
                 contentType,
                 parseInt(contentLength),
                 new Date(lastModified).toString(),
-                undefined,
+                null,
                 xGoogHash.substring(xGoogHash.indexOf('md5=') + 4),
                 bucket,
                 name,
                 gsUri,
-                undefined
+                null
           );
         })
         .catch((e) => {
@@ -68,20 +68,20 @@ function getDataObjectMetadata(dataObjectUri) {
     return apiAdapter.getJsonFrom(newUri)
         .then((response) => response.data_object)
         .then((metadata) => {
-            const { mime_type, size, created, updated, checksums } = metadata;
+            const { mimeType, size, created, updated, checksums } = metadata;
             const gsUri = getGsUriFromDataObject(metadata);
             const [bucket, name] = parseGsUri(gsUri);
 
             return convertToFileInfoResponse(
-                mime_type || 'application/octet-stream',
+                mimeType || 'application/octet-stream',
                 size,
-                created ? new Date(created).toString() : undefined,
-                updated ? new Date(updated).toString() : undefined,
+                created ? new Date(created).toString() : null,
+                updated ? new Date(updated).toString() : null,
                 (checksums.find((e) => e.type === 'md5') || {}).checksum,
                 bucket,
                 name,
                 gsUri,
-              undefined
+              null
             );
         })
         .catch((e) => {
