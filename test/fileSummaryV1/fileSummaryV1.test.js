@@ -14,7 +14,7 @@ const saKeys = require('../../fileSummaryV1/service_account_keys');
 const metadataApi = require('../../fileSummaryV1/metadata_api');
 const urlSigner = require('../../fileSummaryV1/urlSigner');
 const apiAdapter = require('../../common/api_adapter');
-const helpers = require('../../common/helpers');
+const {convertToFileInfoResponse} = require('../../common/helpers');
 
 const mockRequest = (req) => {
     req.method = 'POST';
@@ -34,7 +34,7 @@ const mockResponse = () => {
 };
 
 const gsObjectMetadata = () => {
-    return helpers.convertToFileInfoResponse(
+    return convertToFileInfoResponse(
         'application/json',
         1234,
         null,
@@ -51,7 +51,7 @@ const fakeSignedUrl = 'http://i.am.a.signed.url.com/totallyMadeUp';
 const fakeSAKey = {key: 'I am not real'};
 
 const fullExpectedResult = () => {
-    return helpers.convertToFileInfoResponse(
+    return convertToFileInfoResponse(
       'application/json',
       1234,
       null,
