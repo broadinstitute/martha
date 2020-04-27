@@ -44,12 +44,12 @@ function getGsObjectMetadata(gsUri, auth) {
                 contentType,
                 parseInt(contentLength),
                 new Date(lastModified).toString(),
-              undefined,
+                undefined,
                 xGoogHash.substring(xGoogHash.indexOf('md5=') + 4),
                 bucket,
                 name,
                 gsUri,
-              undefined
+                undefined
           );
         })
         .catch((e) => {
