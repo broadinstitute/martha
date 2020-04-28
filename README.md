@@ -24,6 +24,9 @@ the underlying resource. The Google Service Account information will only be inc
 Staging: https://us-central1-broad-dsde-staging.cloudfunctions.net/martha_v2
 Production: https://us-central1-broad-dsde-prod.cloudfunctions.net/martha_v2
 
+# Martha v3
+Currently is in development stage. Please do not use it.
+
 # File Summary v1
 The file summary service will return metadata and a signed download URL good for one hour (in the case of a DOS URI,
 only if the caller is linked in Bond).
