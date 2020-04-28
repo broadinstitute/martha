@@ -4,13 +4,12 @@ const config = require('../config.json');
 const dataGuidsHostPrefix = 'dg.';
 const dosDataObjectPathPrefix = '/ga4gh/dos/v1/dataobjects/';
 const drsDataObjectPathPrefix = '/ga4gh/drs/v1/objects/';
-const jadeDataRepoHostRegex = /jade(-terra)?.datarepo-(dev|prod).broadinstitute.org/;
+const jadeDataRepoHostRegex = /jade.*\.datarepo-.*\.broadinstitute\.org/;
 
 // Regex drops any leading or trailing "/" characters and gives the path out of capture group 1
 const pathSlashRegex = /^\/?([^/]+.*?)\/?$/;
 
 const samBaseUrl = () => config.samBaseUrl;
-const jadeDataRepoUrl = () => config.jadeDataRepoBaseUrl;
 
 
 function hasDataGuidsHost(someUrl) {
@@ -18,7 +17,7 @@ function hasDataGuidsHost(someUrl) {
 }
 
 function hasJadeDataRepoHost(someUrl) {
-    return someUrl.host === jadeDataRepoUrl();
+    return jadeDataRepoHostRegex.test(someUrl.host);
 }
 
 function isDataGuidsUrl(someUrl) {
@@ -26,20 +25,8 @@ function isDataGuidsUrl(someUrl) {
 }
 
 function validateDataObjectUrl(someUrl) {
-    const hasJDRHost = hasJadeDataRepoHost(someUrl);
-
-    if ((hasDataGuidsHost(someUrl) || hasJDRHost) && !someUrl.pathname) {
-        throw new Error(`Data Object URIs with either '${dataGuidsHostPrefix}*' or '${jadeDataRepoUrl()}' as host are required to have a path: "${url.format(someUrl)}"`);
-    }
-
-    /*
-        This is to notify the user that they have passed data object with a JDR host not supported in this env. If we don't check this condition,
-        then in `determinePathname` function, since the host will not match to the JDR host supported by this env, it will form the HTTPS url with
-        dosDataObjectPathPrefix i.e https://jade-data-repo-host/ga4gh/dos/v1/dataobjects/url-here, and contact JDR eventually which will result in
-        an error. And it might be difficult for the user to understand the cause of this error.
-     */
-    if (jadeDataRepoHostRegex.test(someUrl.host) && !hasJDRHost) {
-        throw new Error(`Data Object URI belongs to a different Jade Data Repo host. This version supports '${jadeDataRepoUrl()}'. URL passed: '${url.format(someUrl)}'`);
+    if ((hasDataGuidsHost(someUrl) || hasJadeDataRepoHost(someUrl)) && !someUrl.pathname) {
+        throw new Error(`Data Object URIs with either '${dataGuidsHostPrefix}*' or '${jadeDataRepoHostRegex}' as host are required to have a path: "${url.format(someUrl)}"`);
     }
 }
 
@@ -167,4 +154,4 @@ const promiseHandler = (fn) => (req, res) => {
     return fn(req, res).then(handleValue, handleValue);
 };
 
-module.exports = {dataObjectUriToHttps, convertToFileInfoResponse, samBaseUrl, jadeDataRepoUrl, Response, promiseHandler, parseRequest};
+module.exports = {dataObjectUriToHttps, convertToFileInfoResponse, samBaseUrl, Response, promiseHandler, parseRequest};
