@@ -93,29 +93,29 @@ test('should parse "drs://dg." Data Object uri with only a host part with a quer
  */
 test('should parse Data Object uri with jade data repo as host', (t) => {
     t.is(
-        dataObjectUriToHttps(`drs://jade.datarepo-dev.broadinstitute.org/973b5e79-6433-40ce-bf38-686ab7f17820`),
-        `https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/973b5e79-6433-40ce-bf38-686ab7f17820`
+        dataObjectUriToHttps('drs://jade.datarepo-dev.broadinstitute.org/973b5e79-6433-40ce-bf38-686ab7f17820'),
+        'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/973b5e79-6433-40ce-bf38-686ab7f17820'
     );
 });
 
 test('should parse Data Object uri with jade data repo as host and path with snapshot id', (t) => {
     t.is(
-        dataObjectUriToHttps(`drs://jade.datarepo-dev.broadinstitute.org/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820`),
-        `https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820`
+        dataObjectUriToHttps('drs://jade.datarepo-dev.broadinstitute.org/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820'),
+        'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820'
     );
 });
 
 test('should throw error if Data Object uri belongs to jade data repo hosts but not the one mentioned in config', (t) => {
     try {
-        dataObjectUriToHttps(`drs://jade-terra.datarepo-prod.broadinstitute.org/anything`)
+        dataObjectUriToHttps('drs://jade-terra.datarepo-prod.broadinstitute.org/anything');
     } catch(error) {
-        t.is(error.message, 'Data Object URI belongs to a different Jade Data Repo host. This version supports \'jade.datarepo-dev.broadinstitute.org\'. URL passed: \'drs://jade-terra.datarepo-prod.broadinstitute.org/anything\'')
+        t.is(error.message, 'Data Object URI belongs to a different Jade Data Repo host. This version supports \'jade.datarepo-dev.broadinstitute.org\'. URL passed: \'drs://jade-terra.datarepo-prod.broadinstitute.org/anything\'');
     }
 });
 
 test('should throw error when given jade data repo host and no path', (t) => {
     try {
-        dataObjectUriToHttps(`drs://jade.datarepo-dev.broadinstitute.org/`);
+        dataObjectUriToHttps('drs://jade.datarepo-dev.broadinstitute.org/');
     } catch(error) {
         t.is(error.message, 'Data Object URIs with either \'dg.*\' or \'jade.datarepo-dev.broadinstitute.org\' as host are required to have a path: "drs://jade.datarepo-dev.broadinstitute.org"');
     }
@@ -123,8 +123,8 @@ test('should throw error when given jade data repo host and no path', (t) => {
 
 test('should parse Data Object uri with host that looks like jade data repo host and use dos object prefix', (t) => {
     t.is(
-        dataObjectUriToHttps(`drs://jade-data-repo.datarepo-dev.broadinstitute.org/v1_anything`),
-        `https://jade-data-repo.datarepo-dev.broadinstitute.org/ga4gh/dos/v1/dataobjects/v1_anything`
+        dataObjectUriToHttps('drs://jade-data-repo.datarepo-dev.broadinstitute.org/v1_anything'),
+        'https://jade-data-repo.datarepo-dev.broadinstitute.org/ga4gh/dos/v1/dataobjects/v1_anything'
     );
 });
 /**

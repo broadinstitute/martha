@@ -39,7 +39,7 @@ function validateDataObjectUrl(someUrl) {
         an error. And it might be difficult for the user to understand the cause of this error.
      */
     if (jadeDataRepoHostRegex.test(someUrl.host) && !hasJDRHost) {
-        throw new Error(`Data Object URI belongs to a different Jade Data Repo host. This version supports '${jadeDataRepoUrl()}'. URL passed: '${url.format(someUrl)}'`)
+        throw new Error(`Data Object URI belongs to a different Jade Data Repo host. This version supports '${jadeDataRepoUrl()}'. URL passed: '${url.format(someUrl)}'`);
     }
 }
 
@@ -66,7 +66,7 @@ function determinePathname(someUrl) {
     if (isDataGuidsUrl(someUrl)) {
         return constructPath([dosDataObjectPathPrefix, someUrl.hostname, someUrl.pathname]);
     } else if (hasJadeDataRepoHost(someUrl)) {
-        return constructPath([drsDataObjectPathPrefix, someUrl.pathname])
+        return constructPath([drsDataObjectPathPrefix, someUrl.pathname]);
     } else {
         return constructPath([dosDataObjectPathPrefix, someUrl.pathname]);
     }
