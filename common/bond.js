@@ -1,7 +1,7 @@
 const config = require('../config.json');
 const URL = require('url');
 const {hasJadeDataRepoHost} = require('../common/helpers.js');
-const {getJsonFrom} = require('../common/api_adapter');
+const apiAdapter = require('../common/api_adapter.js');
 
 const BondProviders = Object.freeze({
   FENCE: 'fence',
@@ -46,7 +46,11 @@ async function maybeTalkToBond(req, provider = BondProviders.default) {
       provider !== BondProviders.HCA &&
       provider !== BondProviders.JADE_DATA_REPO) {
     try {
-      return await getJsonFrom(`${bondBaseUrl()}/api/link/v1/${provider}/serviceaccount/key`, req.headers.authorization);
+      /*
+          For some reason, importing just `getJsonFrom` from api_adapter.js (at top) and replacing `apiAdapter.getJsonFrom` with
+          `getJsonFrom(...)` is breaking martha_v2.test.js and martha_v3.test.js(!!)
+       */
+      return await apiAdapter.getJsonFrom(`${bondBaseUrl()}/api/link/v1/${provider}/serviceaccount/key`, req.headers.authorization);
     } catch (error) {
       console.log(`Received error while fetching service account from Bond for provider '${provider}'.`);
       console.error(error);

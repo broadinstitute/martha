@@ -3,6 +3,22 @@ const {maybeTalkToBond, determineBondProvider, BondProviders} = require('../comm
 const apiAdapter = require('../common/api_adapter');
 
 
+function validateRequest(dataObjectUri, auth) {
+    if (!dataObjectUri) {
+        throw new Error('URL of a DRS object is missing.');
+    } else if (!auth) {
+        throw new Error('Authorization header is missing.');
+    }
+}
+
+function getDataObjectMetadata(dataObjectResolutionUrl, auth, bondProvider) {
+    if (bondProvider === BondProviders.JADE_DATA_REPO) {
+        return apiAdapter.getJsonFrom(dataObjectResolutionUrl, auth);
+    } else {
+        return apiAdapter.getJsonFrom(dataObjectResolutionUrl);
+    }
+}
+
 function aggregateResponses(responses) {
     // Note: for backwards compatibility, we are returning the DRS object with the key, "dos".  If we want to change this, we can add a new api version for Martha_v2.
     // When/if we change this, we might want to consider replacing "dos" with "data_object" or something like that that is unlikely to change
@@ -18,13 +34,11 @@ function marthaV3Handler(req, res) {
     const dataObjectUri = parseRequest(req);
     const auth = req.headers.authorization;
 
-    if (!dataObjectUri) {
-        console.error(new Error('Request did not specify the URL of a DRS object'));
-        res.status(400).send('Request must specify the URL of a DRS object');
-        return;
-    } else if (!auth) {
-        console.error(new Error('Request did not not specify an authorization header'));
-        res.status(400).send('Requests must contain a bearer token');
+    try {
+        validateRequest(dataObjectUri, auth);
+    } catch (error) {
+        console.error(error);
+        res.status(400).send(`Request is invalid. ${error.message}`);
         return;
     }
 
@@ -34,23 +48,12 @@ function marthaV3Handler(req, res) {
         dataObjectResolutionUrl = dataObjectUriToHttps(dataObjectUri);
     } catch (err) {
         console.error(err);
-        res.status(400).send('The specified URL is invalid');
+        res.status(400).send(`The specified URL '${dataObjectUri}' is invalid`);
         return;
     }
 
     const bondProvider = determineBondProvider(dataObjectUri);
-
-    console.log(`Bond provider for url '${dataObjectUri}' is '${bondProvider}'.`);
-
-    let dataObjectPromise;
-
-    if (bondProvider === BondProviders.JADE_DATA_REPO) {
-        dataObjectPromise = apiAdapter.getJsonFrom(dataObjectResolutionUrl, auth);
-    } else {
-        dataObjectPromise = apiAdapter.getJsonFrom(dataObjectResolutionUrl);
-    }
-
-
+    const dataObjectPromise = getDataObjectMetadata(dataObjectResolutionUrl, auth, bondProvider);
     const bondPromise = maybeTalkToBond(req, bondProvider);
 
     return Promise.all([dataObjectPromise, bondPromise])
