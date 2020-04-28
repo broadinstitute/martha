@@ -56,11 +56,14 @@ test('dataObjectUriToHttps should parse "drs://dg." Data Object uri with query p
 });
 
 test('dataObjectUriToHttps should throw an error when given a "dg.*" host with no path', (t) => {
-    try {
-        dataObjectUriToHttps('dos://dg.4503');
-    } catch(error) {
-        t.is(error.message, 'Data Object URIs with either \'dg.*\' or \'/jade.*\\.datarepo-.*\\.broadinstitute\\.org/\' as host are required to have a path: "dos://dg.4503"');
-    }
+    t.throws(
+        () => dataObjectUriToHttps('dos://dg.4503'),
+        {
+            instanceOf: Error,
+            message: 'Data Object URIs with either \'dg.*\' or \'/jade.*\\.datarepo-.*\\.broadinstitute\\.org/\' as host are required to have a path: "dos://dg.4503"'
+        },
+        'Should have thrown error but didnt!'
+    );
 });
 /**
  * End Scenario 2
@@ -113,11 +116,14 @@ test('should parse Data Object uri with jade data repo PROD as host', (t) => {
 });
 
 test('should throw error when given jade data repo host and no path', (t) => {
-    try {
-        dataObjectUriToHttps('drs://jade.datarepo-dev.broadinstitute.org/');
-    } catch(error) {
-        t.is(error.message, 'Data Object URIs with either \'dg.*\' or \'/jade.*\\.datarepo-.*\\.broadinstitute\\.org/\' as host are required to have a path: "drs://jade.datarepo-dev.broadinstitute.org"');
-    }
+    t.throws(
+        () => dataObjectUriToHttps('drs://jade.datarepo-dev.broadinstitute.org/'),
+        {
+            instanceOf: Error,
+            message: 'Data Object URIs with either \'dg.*\' or \'/jade.*\\.datarepo-.*\\.broadinstitute\\.org/\' as host are required to have a path: "drs://jade.datarepo-dev.broadinstitute.org"'
+        },
+        'Should have thrown error but didnt!'
+    );
 });
 
 test('should parse Data Object uri with host that looks like jade data repo host', (t) => {
@@ -131,11 +137,14 @@ test('should parse Data Object uri with host that looks like jade data repo host
  */
 
 test('dataObjectUriToHttps should throw a Error when passed an invalid uri', (t) => {
-    try {
-        dataObjectUriToHttps('A string that is not a valid URI');
-    } catch(error) {
-        t.is(error.message, 'Cannot read property \'0\' of null');
-    }
+    t.throws(
+        () => dataObjectUriToHttps('A string that is not a valid URI'),
+        {
+            instanceOf: Error,
+            message: 'Cannot read property \'0\' of null'
+        },
+        'Should have thrown error but didnt!'
+    );
 });
 
 test('samBaseUrl should come from the config json', (t) => {
