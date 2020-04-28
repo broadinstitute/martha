@@ -127,9 +127,8 @@ test('should parse Data Object uri with host that looks like jade data repo host
         `https://jade-data-repo.datarepo-dev.broadinstitute.org/ga4gh/dos/v1/dataobjects/v1_anything`
     );
 });
-
 /**
- * End Scenario 3
+ * End Scenario 4
  */
 
 test('dataObjectUriToHttps should throw a Error when passed an invalid uri', (t) => {
