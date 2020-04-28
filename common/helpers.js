@@ -98,7 +98,7 @@ function dataObjectUriToHttps(dataObjectUri) {
     return output;
 }
 
-// This function counts on the request posing  data as "application/json" content-type.
+// This function counts on the request posing data as "application/json" content-type.
 // See: https://cloud.google.com/functions/docs/writing/http#parsing_http_requests for more details
 function parseRequest(req) {
     if (req && req.body) {
