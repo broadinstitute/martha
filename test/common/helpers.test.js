@@ -1,5 +1,5 @@
 const test = require('ava');
-const {dataObjectUriToHttps, samBaseUrl} = require('../../common/helpers');
+const {dataObjectUriToHttps, samBaseUrl, jadeDataRepoUrl} = require('../../common/helpers');
 const config = require('../../config.json');
 
 /**
@@ -59,7 +59,7 @@ test('dataObjectUriToHttps should throw an error when given a "dg.*" host with n
     try {
         dataObjectUriToHttps('dos://dg.4503');
     } catch(error) {
-        t.is(error.message, 'Data Object URIs with \'dg.*\' host are required to have a path: "dos://dg.4503"');
+        t.is(error.message, 'Data Object URIs with either \'dg.*\' or \'jade.datarepo-dev.broadinstitute.org\' as host are required to have a path: "dos://dg.4503"');
     }
 });
 /**
@@ -88,6 +88,50 @@ test('should parse "drs://dg." Data Object uri with only a host part with a quer
  * End Scenario 3
  */
 
+/**
+ * Begin Scenario 4: data objects uri with jade data repo host
+ */
+test('should parse Data Object uri with jade data repo as host', (t) => {
+    t.is(
+        dataObjectUriToHttps(`drs://jade.datarepo-dev.broadinstitute.org/973b5e79-6433-40ce-bf38-686ab7f17820`),
+        `https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/973b5e79-6433-40ce-bf38-686ab7f17820`
+    );
+});
+
+test('should parse Data Object uri with jade data repo as host and path with snapshot id', (t) => {
+    t.is(
+        dataObjectUriToHttps(`drs://jade.datarepo-dev.broadinstitute.org/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820`),
+        `https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820`
+    );
+});
+
+test('should throw error if Data Object uri belongs to jade data repo hosts but not the one mentioned in config', (t) => {
+    try {
+        dataObjectUriToHttps(`drs://jade-terra.datarepo-prod.broadinstitute.org/anything`)
+    } catch(error) {
+        t.is(error.message, 'Data Object URI belongs to a different Jade Data Repo host. This version supports \'jade.datarepo-dev.broadinstitute.org\'. URL passed: \'drs://jade-terra.datarepo-prod.broadinstitute.org/anything\'')
+    }
+});
+
+test('should throw error when given jade data repo host and no path', (t) => {
+    try {
+        dataObjectUriToHttps(`drs://jade.datarepo-dev.broadinstitute.org/`);
+    } catch(error) {
+        t.is(error.message, 'Data Object URIs with either \'dg.*\' or \'jade.datarepo-dev.broadinstitute.org\' as host are required to have a path: "drs://jade.datarepo-dev.broadinstitute.org"');
+    }
+});
+
+test('should parse Data Object uri with host that looks like jade data repo host and use dos object prefix', (t) => {
+    t.is(
+        dataObjectUriToHttps(`drs://jade-data-repo.datarepo-dev.broadinstitute.org/v1_anything`),
+        `https://jade-data-repo.datarepo-dev.broadinstitute.org/ga4gh/dos/v1/dataobjects/v1_anything`
+    );
+});
+
+/**
+ * End Scenario 3
+ */
+
 test('dataObjectUriToHttps should throw a Error when passed an invalid uri', (t) => {
     try {
         dataObjectUriToHttps('A string that is not a valid URI');
@@ -98,4 +142,8 @@ test('dataObjectUriToHttps should throw a Error when passed an invalid uri', (t)
 
 test('samBaseUrl should come from the config json', (t) => {
     t.is(samBaseUrl(), config.samBaseUrl);
+});
+
+test('jade data repo base url should come from the config json', (t) => {
+    t.is(jadeDataRepoUrl(), config.jadeDataRepoBaseUrl);
 });

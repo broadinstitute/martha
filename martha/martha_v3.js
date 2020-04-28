@@ -30,10 +30,12 @@ function aggregateResponses(responses) {
     return finalResult;
 }
 
-function marthaV2Handler(req, res) {
+function marthaV3Handler(req, res) {
     const dataObjectUri = parseRequest(req);
+
     if (!dataObjectUri) {
-        res.status(400).send('Request must specify the URL of a DOS object');
+        console.error(new Error('Request did not specify the URL of a DRS object'));
+        res.status(400).send('Request must specify the URL of a DRS object');
         return;
     }
 
@@ -63,4 +65,4 @@ function marthaV2Handler(req, res) {
         });
 }
 
-exports.marthaV2Handler = marthaV2Handler;
+exports.marthaV3Handler = marthaV3Handler;
