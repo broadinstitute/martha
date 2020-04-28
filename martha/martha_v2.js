@@ -1,23 +1,7 @@
 const {dataObjectUriToHttps, parseRequest} = require('../common/helpers');
-const {bondBaseUrl, determineBondProvider, BondProviders} = require('../common/bond');
+const {maybeTalkToBond, determineBondProvider} = require('../common/bond');
 const apiAdapter = require('../common/api_adapter');
 
-
-async function maybeTalkToBond(req, provider = BondProviders.default) {
-    // Currently HCA data access does not require additional credentials.
-    // The HCA checkout buckets allow object read access for GROUP_All_Users@firecloud.org.
-    if (req && req.headers && req.headers.authorization && provider !== BondProviders.HCA) {
-        try {
-            return await apiAdapter.getJsonFrom(`${bondBaseUrl()}/api/link/v1/${provider}/serviceaccount/key`, req.headers.authorization);
-        } catch (error) {
-            console.log(`Received error while fetching service account from Bond for provider '${provider}'.`);
-            console.error(error);
-            throw error;
-        }
-    } else {
-        return Promise.resolve();
-    }
-}
 
 function aggregateResponses(responses) {
     // Note: for backwards compatibility, we are returning the DRS object with the key, "dos".  If we want to change this, we can add a new api version for Martha_v2.

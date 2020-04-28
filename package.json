@@ -13,6 +13,7 @@
     "live_test_fileSummaryV1": "ava test/fileSummaryV1/fileSummaryV1_live.test.js",
     "integration": "ava -m integration*",
     "integration_v2": "ava -m integration_v2*",
+    "integration_v3": "ava -m integration_v3*",
     "integration_fileSummaryV1": "ava -m integration_fileSummaryV1*"
   },
   "dependencies": {
