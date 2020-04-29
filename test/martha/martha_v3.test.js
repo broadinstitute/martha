@@ -73,14 +73,12 @@ test.serial('martha_v3 resolves successfully and ignores extra data submitted be
     t.is(response.statusCode, 200);
 });
 
-test.serial('martha_v3 resolves a valid url into a Data Object without a service account key if no authorization header is provided', async (t) => {
+test.serial('martha_v3 should return 400 if a Data Object without authorization header is provided', async (t) => {
     const response = mockResponse();
     const mockReq = mockRequest({ body: { 'url': 'dos://abc/123' } });
     delete mockReq.headers.authorization;
     await marthaV3(mockReq, response);
-    const result = response.send.lastCall.args[0];
-    t.is(response.statusCode, 200);
-    t.deepEqual(result.dos, dataObject);
+    t.is(response.statusCode, 400);
 });
 
 test.serial('martha_v3 should return 400 if not given a url', async (t) => {
@@ -146,6 +144,16 @@ test.serial('martha_v3 calls bond Bond with the "fence" provider when the Data O
 test.serial('martha_v3 does not call Bond or return SA key when the Data Object URL host endswith ".humancellatlas.org', async (t) => {
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'drs://someservice.humancellatlas.org/this_part_can_be_anything' } }), response);
+    const result = response.send.lastCall.args[0];
+    t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
+    t.deepEqual(result.dos, dataObject);
+    t.falsy(result.googleServiceAccount);
+    t.is(response.statusCode, 200);
+});
+
+test.serial('martha_v3 does not call Bond or return SA key when the host url is for jade data repo', async (t) => {
+    const response = mockResponse();
+    await marthaV3(mockRequest({ body: { 'url': 'drs://jade.datarepo-dev.broadinstitute.org/abc' } }), response);
     const result = response.send.lastCall.args[0];
     t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
     t.deepEqual(result.dos, dataObject);

@@ -15,6 +15,10 @@ test('BondProviders should contain "dcf-fence" and "fence"', (t) => {
   t.truthy(BondProviders.FENCE);
 });
 
+test('BondProviders should contain "jade-data-repo"', (t) => {
+  t.truthy(BondProviders.JADE_DATA_REPO);
+});
+
 test('determineBondProvider should be "fence" if the URL host is "dg.4503"', (t) => {
   t.is(determineBondProvider('drs://dg.4503/anything'), BondProviders.FENCE);
 });
@@ -38,4 +42,8 @@ test('determineBondProvider should return the default BondProvider if the URL ho
 
 test('determineBondProvider should return the default BondProvider if the URL host is NOT "dg.4503" or HCA', (t) => {
   t.is(determineBondProvider('drs://some-host/anything'), BondProviders.default);
+});
+
+test('determineBondProvider should return the "jade-data-repo" as the provider for JDR host"', (t) => {
+  t.is(determineBondProvider('drs://jade.datarepo-dev.broadinstitute.org/identifier'), BondProviders.JADE_DATA_REPO);
 });

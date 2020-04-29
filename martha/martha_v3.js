@@ -1,21 +1,21 @@
 const {dataObjectUriToHttps, parseRequest} = require('../common/helpers');
-const {bondBaseUrl, determineBondProvider, BondProviders} = require('../common/bond');
+const {maybeTalkToBond, determineBondProvider, BondProviders} = require('../common/bond');
 const apiAdapter = require('../common/api_adapter');
 
 
-async function maybeTalkToBond(req, provider = BondProviders.default) {
-    // Currently HCA data access does not require additional credentials.
-    // The HCA checkout buckets allow object read access for GROUP_All_Users@firecloud.org.
-    if (req && req.headers && req.headers.authorization && provider !== BondProviders.HCA) {
-        try {
-            return await apiAdapter.getJsonFrom(`${bondBaseUrl()}/api/link/v1/${provider}/serviceaccount/key`, req.headers.authorization);
-        } catch (error) {
-            console.log(`Received error while fetching service account from Bond for provider '${provider}'.`);
-            console.error(error);
-            throw error;
-        }
+function validateRequest(dataObjectUri, auth) {
+    if (!dataObjectUri) {
+        throw new Error('URL of a DRS object is missing.');
+    } else if (!auth) {
+        throw new Error('Authorization header is missing.');
+    }
+}
+
+function getDataObjectMetadata(dataObjectResolutionUrl, auth, bondProvider) {
+    if (bondProvider === BondProviders.JADE_DATA_REPO) {
+        return apiAdapter.getJsonFrom(dataObjectResolutionUrl, auth);
     } else {
-        return Promise.resolve();
+        return apiAdapter.getJsonFrom(dataObjectResolutionUrl);
     }
 }
 
@@ -32,10 +32,13 @@ function aggregateResponses(responses) {
 
 function marthaV3Handler(req, res) {
     const dataObjectUri = parseRequest(req);
+    const auth = req.headers.authorization;
 
-    if (!dataObjectUri) {
-        console.error(new Error('Request did not specify the URL of a DRS object'));
-        res.status(400).send('Request must specify the URL of a DRS object');
+    try {
+        validateRequest(dataObjectUri, auth);
+    } catch (error) {
+        console.error(error);
+        res.status(400).send(`Request is invalid. ${error.message}`);
         return;
     }
 
@@ -45,13 +48,12 @@ function marthaV3Handler(req, res) {
         dataObjectResolutionUrl = dataObjectUriToHttps(dataObjectUri);
     } catch (err) {
         console.error(err);
-        res.status(400).send('The specified URL is invalid');
+        res.status(400).send(`The specified URL '${dataObjectUri}' is invalid`);
         return;
     }
 
     const bondProvider = determineBondProvider(dataObjectUri);
-
-    const dataObjectPromise = apiAdapter.getJsonFrom(dataObjectResolutionUrl);
+    const dataObjectPromise = getDataObjectMetadata(dataObjectResolutionUrl, auth, bondProvider);
     const bondPromise = maybeTalkToBond(req, bondProvider);
 
     return Promise.all([dataObjectPromise, bondPromise])
