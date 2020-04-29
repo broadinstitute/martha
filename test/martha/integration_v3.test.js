@@ -35,13 +35,13 @@ const jdrDevTestUrl = 'drs://jade.datarepo-dev.broadinstitute.org/v1_93dc1e76-8f
 
 test.before(async () => {
     unauthorizedToken = await new GoogleToken({
-        keyFile: keyFile,
+        keyFile,
         email: serviceAccountEmail,
         sub: unauthorizedEmail,
         scope: scopes
     }).getToken();
     authorizedToken = await new GoogleToken({
-        keyFile: keyFile,
+        keyFile,
         email: serviceAccountEmail,
         sub: authorizedEmail,
         scope: scopes
@@ -133,7 +133,7 @@ test.cb('integration_v3 fails when "authorization" header is provided for a publ
     supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
-        .set('Authorization', `Bearer badToken`)
+        .set('Authorization', 'Bearer badToken')
         .send({ url: publicFenceUrl })
         .expect((response) => {
             assert.strictEqual(response.statusCode, 502, 'Bond should not have authenticated this token');
