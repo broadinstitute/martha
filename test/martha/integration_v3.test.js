@@ -218,7 +218,6 @@ test.cb('integration_v3 responds with Data Object for authorized user for jade d
         .expect((response) => {
             assert.strictEqual(response.statusCode, 200, 'Incorrect status code');
             assert(response.body.dos, 'No Data Object found');
-            assert.strictEqual(response.body.dos.size, 15601108255, 'Incorrect size for url');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }

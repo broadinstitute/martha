@@ -38,8 +38,8 @@ async function maybeTalkToBond(req, provider = BondProviders.default) {
   /*
       Currently HCA data access does not require additional credentials. HCA checkout buckets allow object
       read access for GROUP_All_Users@firecloud.org. Also for Jade Data Repo (JDR), we don't need to contact Bond to
-      check proper authorization. When a metadata retrieval request is made to JDR, we need to pass authorization
-      which is used to check permissions of that account.
+      check proper authorization. JDR itself checks for the proper authorization when a metadata retrieval request for
+      data object is made.
    */
   if (req && req.headers &&
       req.headers.authorization &&
@@ -47,8 +47,9 @@ async function maybeTalkToBond(req, provider = BondProviders.default) {
       provider !== BondProviders.JADE_DATA_REPO) {
     try {
       /*
-          For some reason, importing just `getJsonFrom` from api_adapter.js (at top) and replacing `apiAdapter.getJsonFrom` with
-          `getJsonFrom(...)` is breaking martha_v2.test.js and martha_v3.test.js(!!)
+          Importing just `getJsonFrom` from api_adapter.js (at top) and replacing `apiAdapter.getJsonFrom` with
+          `getJsonFrom(...)` is breaking martha_v2.test.js and martha_v3.test.js for some reason(!!). It might be the way
+          `getJsonFrom` is mocked in the tests. Please do not change the import at top for this reason.
        */
       return await apiAdapter.getJsonFrom(`${bondBaseUrl()}/api/link/v1/${provider}/serviceaccount/key`, req.headers.authorization);
     } catch (error) {
