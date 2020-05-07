@@ -2,10 +2,22 @@ const url = require('url');
 const config = require('../config.json');
 
 const dataGuidsHostPrefix = 'dg.';
-const dataObjectPathPrefix = '/ga4gh/dos/v1/dataobjects/';
+const dosDataObjectPathPrefix = '/ga4gh/dos/v1/dataobjects/';
+const drsDataObjectPathPrefix = '/ga4gh/drs/v1/objects/';
+const jadeDataRepoHostRegex = /jade.*\.datarepo-.*\.broadinstitute\.org/;
+
+// Regex drops any leading or trailing "/" characters and gives the path out of capture group 1
+const pathSlashRegex = /^\/?([^/]+.*?)\/?$/;
+
+const samBaseUrl = () => config.samBaseUrl;
+
 
 function hasDataGuidsHost(someUrl) {
     return someUrl.host.startsWith(dataGuidsHostPrefix);
+}
+
+function hasJadeDataRepoHost(someUrl) {
+    return jadeDataRepoHostRegex.test(someUrl.host);
 }
 
 function isDataGuidsUrl(someUrl) {
@@ -13,13 +25,11 @@ function isDataGuidsUrl(someUrl) {
 }
 
 function validateDataObjectUrl(someUrl) {
-    if (hasDataGuidsHost(someUrl) && !someUrl.pathname) {
-        throw new Error(`Data Object URIs with '${dataGuidsHostPrefix}*' host are required to have a path: "${url.format(someUrl)}"`);
+    if ((hasDataGuidsHost(someUrl) || hasJadeDataRepoHost(someUrl)) && !someUrl.pathname) {
+        throw new Error(`Data Object URIs with either '${dataGuidsHostPrefix}*' or '${jadeDataRepoHostRegex}' as host are required to have a path: "${url.format(someUrl)}"`);
     }
 }
 
-// Regex drops any leading or trailing "/" characters and gives the path out of capture group 1
-const pathSlashRegex = /^\/?([^/]+.*?)\/?$/;
 /**
  *  Filter off the null entries first (because `regex.exec(null)` is TRUTHY, because of course it is)
  *  Then run the regex to get the path part without leading or trailing slashes
@@ -41,9 +51,11 @@ function determineHostname(someUrl) {
 
 function determinePathname(someUrl) {
     if (isDataGuidsUrl(someUrl)) {
-        return constructPath([dataObjectPathPrefix, someUrl.hostname, someUrl.pathname]);
+        return constructPath([dosDataObjectPathPrefix, someUrl.hostname, someUrl.pathname]);
+    } else if (hasJadeDataRepoHost(someUrl)) {
+        return constructPath([drsDataObjectPathPrefix, someUrl.pathname]);
     } else {
-        return constructPath([dataObjectPathPrefix, someUrl.pathname]);
+        return constructPath([dosDataObjectPathPrefix, someUrl.pathname]);
     }
 }
 
@@ -86,6 +98,14 @@ function dataObjectUriToHttps(dataObjectUri) {
     return output;
 }
 
+// This function counts on the request posing data as "application/json" content-type.
+// See: https://cloud.google.com/functions/docs/writing/http#parsing_http_requests for more details
+function parseRequest(req) {
+    if (req && req.body) {
+        return req.body.url;
+    }
+}
+
 class FileInfoResponse {
     constructor(contentType, size, timeCreated, updated, md5Hash, bucket, name, gsUri, signedUrl) {
         this.contentType = contentType || '';
@@ -114,7 +134,6 @@ function convertToFileInfoResponse (contentType, size, timeCreated, updated, md5
     );
 }
 
-const samBaseUrl = () => config.samBaseUrl;
 
 class Response {
     constructor(status, data) {
@@ -135,4 +154,4 @@ const promiseHandler = (fn) => (req, res) => {
     return fn(req, res).then(handleValue, handleValue);
 };
 
-module.exports = {dataObjectUriToHttps, convertToFileInfoResponse, samBaseUrl, Response, promiseHandler};
+module.exports = {dataObjectUriToHttps, convertToFileInfoResponse, samBaseUrl, Response, promiseHandler, parseRequest, hasJadeDataRepoHost};

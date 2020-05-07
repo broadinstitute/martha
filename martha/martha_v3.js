@@ -1,7 +1,23 @@
 const {dataObjectUriToHttps, parseRequest} = require('../common/helpers');
-const {maybeTalkToBond, determineBondProvider} = require('../common/bond');
+const {maybeTalkToBond, determineBondProvider, BondProviders} = require('../common/bond');
 const apiAdapter = require('../common/api_adapter');
 
+
+function validateRequest(dataObjectUri, auth) {
+    if (!dataObjectUri) {
+        throw new Error('URL of a DRS object is missing.');
+    } else if (!auth) {
+        throw new Error('Authorization header is missing.');
+    }
+}
+
+function getDataObjectMetadata(dataObjectResolutionUrl, auth, bondProvider) {
+    if (bondProvider === BondProviders.JADE_DATA_REPO) {
+        return apiAdapter.getJsonFrom(dataObjectResolutionUrl, auth);
+    } else {
+        return apiAdapter.getJsonFrom(dataObjectResolutionUrl);
+    }
+}
 
 function aggregateResponses(responses) {
     // Note: for backwards compatibility, we are returning the DRS object with the key, "dos".  If we want to change this, we can add a new api version for Martha_v2.
@@ -14,10 +30,15 @@ function aggregateResponses(responses) {
     return finalResult;
 }
 
-function marthaV2Handler(req, res) {
+function marthaV3Handler(req, res) {
     const dataObjectUri = parseRequest(req);
-    if (!dataObjectUri) {
-        res.status(400).send('Request must specify the URL of a DOS object');
+    const auth = req.headers.authorization;
+
+    try {
+        validateRequest(dataObjectUri, auth);
+    } catch (error) {
+        console.error(error);
+        res.status(400).send(`Request is invalid. ${error.message}`);
         return;
     }
 
@@ -27,13 +48,12 @@ function marthaV2Handler(req, res) {
         dataObjectResolutionUrl = dataObjectUriToHttps(dataObjectUri);
     } catch (err) {
         console.error(err);
-        res.status(400).send('The specified URL is invalid');
+        res.status(400).send(`The specified URL '${dataObjectUri}' is invalid`);
         return;
     }
 
     const bondProvider = determineBondProvider(dataObjectUri);
-
-    const dataObjectPromise = apiAdapter.getJsonFrom(dataObjectResolutionUrl);
+    const dataObjectPromise = getDataObjectMetadata(dataObjectResolutionUrl, auth, bondProvider);
     const bondPromise = maybeTalkToBond(req, bondProvider);
 
     return Promise.all([dataObjectPromise, bondPromise])
@@ -47,4 +67,4 @@ function marthaV2Handler(req, res) {
         });
 }
 
-exports.marthaV2Handler = marthaV2Handler;
+exports.marthaV3Handler = marthaV3Handler;
