@@ -4,6 +4,6 @@
 
 {
     "dataObjectResolutionHost": "staging.gen3.biodatacatalyst.nhlbi.nih.gov",
-    "bondBaseUrl": "broad-bond-dev.appspot.com",
+    "bondBaseUrl": "https://broad-bond-dev.appspot.com",
     "samBaseUrl": "https://sam.dsde-dev.broadinstitute.org"
 }
