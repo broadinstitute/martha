@@ -29,7 +29,49 @@ const mockResponse = () => {
     };
 };
 
-const dataObject = { fake: 'A fake Data Object' };
+const dataRepositoryServiceObject = {
+    id: 'v1_93dc1e76-8f1c-4949-8f9b-07a087f3ce7b_8b07563a-542f-4b5c-9e00-e8fe6b1861de',
+    description: 'HG00096 BAM file',
+    name: 'HG00096.mapped.ILLUMINA.bwa.GBR.low_coverage.20120522.bam',
+    size: 15601108255,
+    created_time: '2020-04-27T15:56:09.696Z', // eslint-disable-line camelcase
+    updated_time: '2020-04-27T15:56:09.696Z', // eslint-disable-line camelcase
+    version: '0',
+    mime_type: 'application/octet-stream', // eslint-disable-line camelcase
+    checksums: [
+        {
+            checksum: '336ea55913bc261b72875bd259753046',
+            type: 'md5'
+        }
+    ],
+    access_methods: [ // eslint-disable-line camelcase
+        {
+            type: 'gs',
+            access_url: { // eslint-disable-line camelcase
+                url:
+                    'gs://broad-jade-dev-data-bucket/fd8d8492-ad02-447d-b54e-35a7ffd0e7a5/' +
+                    '8b07563a-542f-4b5c-9e00-e8fe6b1861de',
+            }
+        }
+    ]
+};
+
+const fullExpectedResult = (expectedGoogleServiceAccount) => {
+    return {
+        contentType: 'application/octet-stream',
+        size: 15601108255,
+        timeCreated: '2020-04-27T15:56:09.696Z',
+        updated: '2020-04-27T15:56:09.696Z',
+        md5Hash: '336ea55913bc261b72875bd259753046',
+        bucket: 'broad-jade-dev-data-bucket',
+        name: 'fd8d8492-ad02-447d-b54e-35a7ffd0e7a5/8b07563a-542f-4b5c-9e00-e8fe6b1861de',
+        gsUri:
+            'gs://broad-jade-dev-data-bucket/fd8d8492-ad02-447d-b54e-35a7ffd0e7a5/8b07563a-542f-4b5c-9e00-e8fe6b1861de',
+        googleServiceAccount: expectedGoogleServiceAccount,
+        signedUrl: '',
+    };
+};
+
 const googleSAKeyObject = { key: 'A Google Service Account private key json object' };
 
 const bondRegEx = /^([^/]+)\/api\/link\/v1\/([a-z-]+)\/serviceaccount\/key$/;
@@ -41,7 +83,7 @@ let sandbox = sinon.createSandbox();
 test.serial.beforeEach(() => {
     sandbox.restore(); // If one test fails, the .afterEach() block will not execute, so always clean the slate here
     getJsonFromApiStub = sandbox.stub(apiAdapter, getJsonFromApiMethodName);
-    getJsonFromApiStub.onFirstCall().resolves(dataObject);
+    getJsonFromApiStub.onFirstCall().resolves(dataRepositoryServiceObject);
     getJsonFromApiStub.onSecondCall().resolves(googleSAKeyObject);
 });
 
@@ -49,12 +91,11 @@ test.serial.afterEach(() => {
     sandbox.restore();
 });
 
-test.serial('martha_v3 resolves a valid url into a Data Object and google service account key', async (t) => {
+test.serial('martha_v3 resolves a valid url', async (t) => {
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
     const result = response.send.lastCall.args[0];
-    t.deepEqual(result.dos, dataObject);
-    t.deepEqual(result.googleServiceAccount, googleSAKeyObject);
+    t.deepEqual(Object.assign({}, result), fullExpectedResult(googleSAKeyObject));
     t.is(response.statusCode, 200);
 });
 
@@ -68,8 +109,7 @@ test.serial('martha_v3 resolves successfully and ignores extra data submitted be
         }
     }), response);
     const result = response.send.lastCall.args[0];
-    t.deepEqual(result.dos, dataObject);
-    t.deepEqual(result.googleServiceAccount, googleSAKeyObject);
+    t.deepEqual(Object.assign({}, result), fullExpectedResult(googleSAKeyObject));
     t.is(response.statusCode, 200);
 });
 
@@ -146,7 +186,7 @@ test.serial('martha_v3 does not call Bond or return SA key when the Data Object 
     await marthaV3(mockRequest({ body: { 'url': 'drs://someservice.humancellatlas.org/this_part_can_be_anything' } }), response);
     const result = response.send.lastCall.args[0];
     t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
-    t.deepEqual(result.dos, dataObject);
+    t.deepEqual(Object.assign({}, result), fullExpectedResult(null));
     t.falsy(result.googleServiceAccount);
     t.is(response.statusCode, 200);
 });
@@ -156,7 +196,7 @@ test.serial('martha_v3 does not call Bond or return SA key when the host url is 
     await marthaV3(mockRequest({ body: { 'url': 'drs://jade.datarepo-dev.broadinstitute.org/abc' } }), response);
     const result = response.send.lastCall.args[0];
     t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
-    t.deepEqual(result.dos, dataObject);
+    t.deepEqual(Object.assign({}, result), fullExpectedResult(null));
     t.falsy(result.googleServiceAccount);
     t.is(response.statusCode, 200);
 });

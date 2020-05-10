@@ -11,9 +11,9 @@
     "live_test": "ava -m live_test*",
     "live_test_martha_v2": "ava test/martha/martha_v2_live.test.js",
     "live_test_fileSummaryV1": "ava test/fileSummaryV1/fileSummaryV1_live.test.js",
-    "integration": "ava -m integration*",
+    "integration": "ava --timeout 10m --match integration*",
     "integration_v2": "ava -m integration_v2*",
-    "integration_v3": "ava -m integration_v3*",
+    "integration_v3": "ava --timeout 10m --match integration_v3*",
     "integration_fileSummaryV1": "ava -m integration_fileSummaryV1*"
   },
   "dependencies": {
