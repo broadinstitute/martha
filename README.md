@@ -59,12 +59,12 @@ It will always return an object with the same properties:
 **NOTE:**
 
 `martha_v3` only handles URLs for servers that support requests via the DRS v1.0 path-prefix
-`https://[hostname]/ga4gh/drs/v1/object/[path]`, and then return DRS v1.0 compatible json metadata.
+`https://[hostname]/ga4gh/drs/v1/object/[path]`, and then return DRS v1.0 compatible JSON metadata.
 
 There was an [early substitution recommendation to
 users](https://app.zenhub.com/workspaces/orange-5d680d7e3eeb5f1bbdf5668f/issues/databiosphere/azul/1115), instructing
 them to convert their URL schemes from "dos" to "drs". Some of the underlying servers hosting the DOS/DRS metadata have
-not yet been upgraded to support the DRS request path-prefix and DRS response json metadata, so `martha_v2` still
+not yet been upgraded to support the DRS request path-prefix and DRS response JSON metadata, so `martha_v2` still
 communicates with those servers using the older request/response format.
 
 At the same time, those server hosts are also working to submit test accounts for automated testing purposes. The final
