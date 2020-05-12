@@ -1,5 +1,6 @@
 const url = require('url');
 const config = require('../config.json');
+const { Storage } = require('@google-cloud/storage');
 
 const dataGuidsHostPrefix = 'dg.';
 const dosDataObjectPathPrefix = '/ga4gh/dos/v1/dataobjects/';
@@ -154,4 +155,10 @@ const promiseHandler = (fn) => (req, res) => {
     return fn(req, res).then(handleValue, handleValue);
 };
 
-module.exports = {dataObjectUriToHttps, convertToFileInfoResponse, samBaseUrl, Response, promiseHandler, parseRequest, hasJadeDataRepoHost};
+async function createSignedGsUrl(serviceAccountKey, bucket, object) {
+    const storage = new Storage({ credentials: serviceAccountKey });
+    const response = await storage.bucket(bucket).file(object).getSignedUrl({ action: 'read', expires: Date.now() + 36e5 });
+    return response[0];
+}
+
+module.exports = {dataObjectUriToHttps, convertToFileInfoResponse, createSignedGsUrl, samBaseUrl, Response, promiseHandler, parseRequest, hasJadeDataRepoHost};
