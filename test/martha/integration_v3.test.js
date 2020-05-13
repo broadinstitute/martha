@@ -16,6 +16,8 @@ let unauthorizedToken;
 let authorizedToken;
 
 const myEnv = process.env.ENV ? process.env.ENV : 'dev';
+const myBondBaseUrl = process.env.BOND_BASE_URL ? process.env.BOND_BASE_URL :
+    `https://bond-fiab.dsde-${myEnv}.broadinstitute.org:31443`;
 const emailDomain = (myEnv === 'qa' ? 'quality' : 'test') + '.firecloud.org';
 
 let keyFile = 'automation/firecloud-account.pem';
@@ -27,7 +29,10 @@ const authorizedEmail = `hermione.owner@${emailDomain}`;
 let publicFenceUrl = 'dos://dg.4503/preview_dos.json';
 let protectedFenceUrl = 'dos://dg.4503/65e4cd14-f549-4a7f-ad0c-d29212ff6e46';
 // TODO: remove static link so bond host can be changed depending on env
-const fenceAuthLink = `https://bond-fiab.dsde-${myEnv}.broadinstitute.org:31443/api/link/v1/fence/oauthcode?oauthcode=IgnoredByMockProvider&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback`;
+const fenceAuthLink =
+    `${myBondBaseUrl}/api/link/v1/fence/oauthcode` +
+    '?oauthcode=IgnoredByMockProvider' +
+    '&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback';
 
 // Dev Jade Data Repo url. Snapshot id is 93dc1e76-8f1c-4949-8f9b-07a087f3ce7b
 const jdrDevTestUrl = 'drs://jade.datarepo-dev.broadinstitute.org/v1_93dc1e76-8f1c-4949-8f9b-07a087f3ce7b_8b07563a-542f-4b5c-9e00-e8fe6b1861de';
@@ -97,7 +102,8 @@ test.cb('integration_v3 fails when no "authorization" header is provided for pub
         });
 });
 
-test.cb('integration_v3 responds with Data Object and service account for a public url', (t) => {
+// Skipping the test until dos://dg.XXXX supports DRS. WA-193
+test.cb.skip('integration_v3 responds with Data Object and service account for a public url', (t) => {
     supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
@@ -160,7 +166,8 @@ test.cb('integration_v3 fails when no "authorization" header is provided for a p
         });
 });
 
-test.cb('integration_v3 responds with Data Object and service account when "authorization" header is provided for a protected url', (t) => {
+// Skipping the test until dos://dg.XXXX supports DRS. WA-193
+test.cb.skip('integration_v3 responds with Data Object and service account when "authorization" header is provided for a protected url', (t) => {
     supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
@@ -217,7 +224,23 @@ test.cb('integration_v3 responds with Data Object for authorized user for jade d
         .send({ url: jdrDevTestUrl })
         .expect((response) => {
             assert.strictEqual(response.statusCode, 200, 'Incorrect status code');
-            assert(response.body.dos, 'No Data Object found');
+            assert.deepStrictEqual(
+                response.body,
+                {
+                    contentType: 'application/octet-stream',
+                    size: 15601108255,
+                    timeCreated: '2020-04-27T15:56:09.696Z',
+                    updated: '2020-04-27T15:56:09.696Z',
+                    md5Hash: '336ea55913bc261b72875bd259753046',
+                    bucket: 'broad-jade-dev-data-bucket',
+                    name: 'fd8d8492-ad02-447d-b54e-35a7ffd0e7a5/8b07563a-542f-4b5c-9e00-e8fe6b1861de',
+                    gsUri:
+                        'gs://broad-jade-dev-data-bucket/fd8d8492-ad02-447d-b54e-35a7ffd0e7a5/' +
+                        '8b07563a-542f-4b5c-9e00-e8fe6b1861de',
+                    googleServiceAccount: null,
+                    signedUrl: '',
+                }
+            );
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
@@ -226,6 +249,9 @@ test.cb('integration_v3 responds with Data Object for authorized user for jade d
 });
 
 test.cb('integration_v3 fails when unauthorized user is resolving jade data repo url', (t) => {
+    // JDR was returning slowly for this integration test. Give it a bit more time.
+    // And someday, when we have performance tests outside of prod, remove the line below! ;)
+    t.timeout(60*1000);
     supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')

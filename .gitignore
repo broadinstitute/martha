@@ -1,4 +1,5 @@
 /node_modules
 .idea
-*.private.env.json
-deploy_account.json
+**/*.private.env.json
+**/deploy_account.json
+**/*.pem

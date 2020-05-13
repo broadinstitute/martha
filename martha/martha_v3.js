@@ -1,4 +1,4 @@
-const {dataObjectUriToHttps, parseRequest} = require('../common/helpers');
+const {dataObjectUriToHttps, parseRequest, getFileInfoFromDrsResponse} = require('../common/helpers');
 const {maybeTalkToBond, determineBondProvider, BondProviders} = require('../common/bond');
 const apiAdapter = require('../common/api_adapter');
 
@@ -20,14 +20,9 @@ function getDataObjectMetadata(dataObjectResolutionUrl, auth, bondProvider) {
 }
 
 function aggregateResponses(responses) {
-    // Note: for backwards compatibility, we are returning the DRS object with the key, "dos".  If we want to change this, we can add a new api version for Martha_v2.
-    // When/if we change this, we might want to consider replacing "dos" with "data_object" or something like that that is unlikely to change
-    const finalResult = { dos: responses[0] };
-    if (responses[1]) {
-        finalResult.googleServiceAccount = responses[1];
-    }
-
-    return finalResult;
+    const drsResponse = responses[0];
+    const googleServiceAccount = responses[1];
+    return getFileInfoFromDrsResponse(drsResponse, googleServiceAccount);
 }
 
 function marthaV3Handler(req, res) {
