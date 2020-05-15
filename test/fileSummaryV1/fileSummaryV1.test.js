@@ -161,7 +161,7 @@ test.serial('fileSummaryV1Handler should return 400 if given a \'uri\' with an i
 
 test.serial('fileSummaryV1Handler should return 502 if it is unable to retrieve a service account key', async (t) => {
     getServiceAccountKeyStub.restore();
-    sandbox.stub(saKeys, getServiceAccountKeyMethodName).rejects(new Error('Stubbed error getting Service Account Key'));
+    await sandbox.stub(saKeys, getServiceAccountKeyMethodName).rejects(new Error('Stubbed error getting Service Account Key'));
     const response = mockResponse();
     await fileSummaryV1(mockRequest({ body: { uri: 'drs://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
@@ -171,7 +171,7 @@ test.serial('fileSummaryV1Handler should return 502 if it is unable to retrieve 
 
 test.serial('fileSummaryV1Handler should return 502 if it is unable to retrieve metadata for the object', async (t) => {
     getMetadataStub.restore();
-    sandbox.stub(metadataApi, getMetadataMethodName).rejects(new Error('Stubbed error getting metadata for object'));
+    await sandbox.stub(metadataApi, getMetadataMethodName).rejects(new Error('Stubbed error getting metadata for object'));
     const response = mockResponse();
     await fileSummaryV1(mockRequest({ body: { uri: 'gs://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
@@ -181,10 +181,10 @@ test.serial('fileSummaryV1Handler should return 502 if it is unable to retrieve 
 
 test.serial('fileSummaryV1Handler should return 502 if it is unable to sign a url for the object', async (t) => {
     createSignedUrlStub.restore();
-    sandbox.stub(createSignedGsUrl, createSignedUrlMethodName).rejects(new Error('Stubbed error trying to sign url'));
+    await sandbox.stub(helpers, createSignedUrlMethodName).rejects(new Error('Stubbed error trying to sign url'));
     const response = mockResponse();
     await fileSummaryV1(mockRequest({ body: { uri: 'gs://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
-    t.true(result instanceof Error);
+    t.true(result instanceof Error)
     t.is(response.statusCode, 502);
 });
