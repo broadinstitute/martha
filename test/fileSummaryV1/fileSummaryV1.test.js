@@ -42,6 +42,7 @@ const gsObjectMetadata = () => {
         'some.fake-location',
         'file.txt',
         'gs://some.fake-location/file.txt',
+        null,
         null
     );
 };
@@ -59,6 +60,7 @@ const fullExpectedResult = () => {
       'some.fake-location',
       'file.txt',
       'gs://some.fake-location/file.txt',
+      null,
       fakeSignedUrl
     );
 };

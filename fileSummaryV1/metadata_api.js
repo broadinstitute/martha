@@ -1,4 +1,5 @@
-const {dataObjectUriToHttps, convertToFileInfoResponse, samBaseUrl} = require('../common/helpers');
+const {dataObjectUriToHttps, convertToFileInfoResponse, samBaseUrl, getMd5Checksum, parseGsUri} =
+    require('../common/helpers');
 const apiAdapter = require('../common/api_adapter');
 
 function getRawMetadata(token, bucket, name) {
@@ -25,10 +26,6 @@ function getPetTokenFromSam(bearerToken) {
         });
 }
 
-function parseGsUri(uri) {
-    return /gs:[/][/]([^/]+)[/](.+)/.exec(uri).slice(1);
-}
-
 function getGsObjectMetadata(gsUri, auth) {
     const [bucket, name] = parseGsUri(gsUri);
 
@@ -49,6 +46,7 @@ function getGsObjectMetadata(gsUri, auth) {
                 bucket,
                 name,
                 gsUri,
+                null,
                 null
           );
         })
@@ -77,10 +75,11 @@ function getDataObjectMetadata(dataObjectUri) {
                 size,
                 created ? new Date(created).toString() : null,
                 updated ? new Date(updated).toString() : null,
-                (checksums.find((e) => e.type === 'md5') || {}).checksum,
+                getMd5Checksum(checksums),
                 bucket,
                 name,
                 gsUri,
+                null,
                 null
             );
         })

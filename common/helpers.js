@@ -108,7 +108,18 @@ function parseRequest(req) {
 }
 
 class FileInfoResponse {
-    constructor(contentType, size, timeCreated, updated, md5Hash, bucket, name, gsUri, signedUrl) {
+    constructor(
+        contentType,
+        size,
+        timeCreated,
+        updated,
+        md5Hash,
+        bucket,
+        name,
+        gsUri,
+        googleServiceAccount,
+        signedUrl,
+    ) {
         this.contentType = contentType || '';
         this.size = size || 0;
         this.timeCreated = timeCreated || '';
@@ -117,11 +128,23 @@ class FileInfoResponse {
         this.bucket = bucket || '';
         this.name = name || '';
         this.gsUri = gsUri || '';
+        this.googleServiceAccount = googleServiceAccount || null;
         this.signedUrl = signedUrl || '';
     }
 }
 
-function convertToFileInfoResponse (contentType, size, timeCreated, updated, md5Hash, bucket, name, gsUri, signedUrl) {
+function convertToFileInfoResponse (
+    contentType,
+    size,
+    timeCreated,
+    updated,
+    md5Hash,
+    bucket,
+    name,
+    gsUri,
+    googleServiceAccount,
+    signedUrl,
+) {
     return new FileInfoResponse(
       contentType,
       size,
@@ -131,6 +154,7 @@ function convertToFileInfoResponse (contentType, size, timeCreated, updated, md5
       bucket,
       name,
       gsUri,
+      googleServiceAccount,
       signedUrl
     );
 }
@@ -156,13 +180,117 @@ const promiseHandler = (fn) => (req, res) => {
 };
 
 async function createSignedGsUrl(serviceAccountKey, {bucket, object}) {
-
-    console.log('name:----------------')
-    console.log(object)
-
     const storage = new Storage({ credentials: serviceAccountKey });
     const response = await storage.bucket(bucket).file(object).getSignedUrl({ action: 'read', expires: Date.now() + 36e5 });
     return response[0];
 }
 
-module.exports = {dataObjectUriToHttps, convertToFileInfoResponse, createSignedGsUrl, samBaseUrl, Response, promiseHandler, parseRequest, hasJadeDataRepoHost};
+/**
+ * Extracts the bucket and path from a Google Cloud Storage URL
+ *
+ * @param uri The GCS url
+ * @returns {string[]} An array with the bucket and the path.
+ */
+function parseGsUri(uri) {
+    return /gs:[/][/]([^/]+)[/](.+)/.exec(uri).slice(1);
+}
+
+/**
+ * Retrieves the first md5 checksum from a DOS or DRS checksum array
+ *
+ * @param {Object[]} checksums The checksum of the drs object
+ * @param {string} checksums[].checksum The hex-string encoded checksum for the data
+ * @param {string} checksums[].type The digest method used to create the checksum
+ * @returns {string} The md5 checksum if found
+ */
+function getMd5Checksum(checksums) {
+    return (checksums.find((e) => e.type === 'md5') || {}).checksum;
+}
+
+/**
+ * Finds the GCS/GS access url if present in the DRS V1.x response
+ *
+ * @param {Object} drsResponse DRS v1.x response
+ * @param {Object[]} [drsResponse.access_methods] The list of access methods that can be used to fetch the drs object
+ * @param {Object} [drsResponse.access_methods[].access_url] An AccessURL that can be used to fetch the actual object
+ *     bytes
+ * @param {string} drsResponse.access_methods[].access_url.url A fully resolvable URL that can be used to fetch the
+ *     actual object bytes
+ * @returns {string} The gs access url if found
+ */
+function getGsUrlFromDrsObject(drsResponse) {
+    const accessMethods = drsResponse.access_methods || [];
+    const gsAccessMethod = accessMethods.find((e) => e.type === 'gs') || {};
+    const gsAccessUrl = gsAccessMethod.access_url || {};
+    return gsAccessUrl.url;
+}
+
+/**
+ * Parses the DRS V1.x response into a FileInfoResponse. NOTE: The response from this function is similar in syntax to
+ * the fileSummaryV1 response, however instead of formatting dates with the undefined format returned by
+ * Date.prototype.toString(), this function returns dates formatted using ISO 8601.
+ *
+ * Input fields are defined by:
+ *     https://ga4gh.github.io/data-repository-service-schemas/preview/release/drs-1.0.0/docs/
+ *
+ * @param {Object} drsResponse DRS v1.x response
+ * @param {Object[]} [drsResponse.access_methods] The list of access methods that can be used to fetch the drs object
+ * @param {Object} [drsResponse.access_methods[].access_url] An AccessURL that can be used to fetch the actual object
+ *     bytes
+ * @param {string} drsResponse.access_methods[].access_url.url A fully resolvable URL that can be used to fetch the
+ *     actual object bytes
+ * @param {string} drsResponse.access_methods[].type Type of the access method
+ * @param {Object[]} drsResponse.checksums The checksum of the drs object
+ * @param {string} drsResponse.checksums[].checksum The hex-string encoded checksum for the data
+ * @param {string} drsResponse.checksums[].type The digest method used to create the checksum
+ * @param {string} drsResponse.created_time Timestamp of content creation in RFC3339
+ * @param {string} [drsResponse.mime_type] A string providing the mime-type of the drs object
+ * @param {number} drsResponse.size The blob size in bytes
+ * @param {string} [drsResponse.updated_time] Timestamp of content update in RFC3339, identical to created_time in
+ *     systems that do not support updates
+ * @param {Object} [googleServiceAccount] A google service account json
+ * @returns {FileInfoResponse} The drs object converted to a martha file info response
+ */
+function getFileInfoFromDrsResponse(drsResponse, googleServiceAccount) {
+    const {
+        mime_type: mimeType = 'application/octet-stream',
+        size,
+        created_time: createdTime,
+        updated_time: updatedTime,
+        checksums,
+    } = drsResponse;
+
+    const createdTimeIso = createdTime ? new Date(createdTime).toISOString() : null;
+    const updatedTimeIso = updatedTime ? new Date(updatedTime).toISOString() : null;
+    const gsUrl = getGsUrlFromDrsObject(drsResponse);
+    const [bucket, name] = parseGsUri(gsUrl);
+    const md5Checksum = getMd5Checksum(checksums);
+    const signedUrl = null; // Not included currently when returning only the drs metadata
+
+    return convertToFileInfoResponse(
+        mimeType,
+        size,
+        createdTimeIso,
+        updatedTimeIso,
+        md5Checksum,
+        bucket,
+        name,
+        gsUrl,
+        googleServiceAccount,
+        signedUrl,
+    );
+}
+
+module.exports = {
+    dataObjectUriToHttps,
+    convertToFileInfoResponse,
+    samBaseUrl,
+    Response,
+    promiseHandler,
+    createSignedGsUrl,
+    parseRequest,
+    hasJadeDataRepoHost,
+    getMd5Checksum,
+    getFileInfoFromDrsResponse,
+    parseGsUri,
+};
