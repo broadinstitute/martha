@@ -92,6 +92,8 @@ test.serial.afterEach(() => {
 
 test.serial('fileSummaryV1Handler resolves a valid gs url into a metadata and signed url', async (t) => {
     const response = mockResponse();
+    getServiceAccountKeyStub.restore();
+    sandbox.stub(saKeys, getServiceAccountKeyMethodName).resolves();
     await fileSummaryV1(mockRequest({ body: { uri: 'gs://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
     t.deepEqual(result, fullExpectedResult());
@@ -100,8 +102,11 @@ test.serial('fileSummaryV1Handler resolves a valid gs url into a metadata and si
 });
 
 test.serial('fileSummaryV1Handler resolves a valid drs:// Data Object url into metadata and signed url', async (t) => {
+    getServiceAccountKeyStub.restore();
+    sandbox.stub(saKeys, getServiceAccountKeyMethodName).resolves();
     const response = mockResponse();
-    await fileSummaryV1(mockRequest({ body: { uri: 'drs://example.com/validGS' } }), response);
+    const mockReq = mockRequest({ body: { uri: 'drs://example.com/validGS' } });
+    await fileSummaryV1(mockReq, response);
     const result = response.send.lastCall.args[0];
     t.deepEqual(result, fullExpectedResult());
     t.truthy(result.signedUrl);
@@ -122,7 +127,6 @@ test.serial('fileSummaryV1Handler resolves a valid drs:// Data Object url into m
 
 test.serial('fileSummaryV1Handler resolves a valid HCA drs:// Data Object url into metadata with no signed url and no SA key', async (t) => {
     getServiceAccountKeyStub.restore();
-    sandbox.stub(saKeys, getServiceAccountKeyMethodName).callThrough();
     const response = mockResponse();
     const mockReq = mockRequest({ body: { uri: 'drs://someservice.humancellatlas.org/someObjectId' } });
     await fileSummaryV1(mockReq, response);
