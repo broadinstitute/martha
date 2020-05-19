@@ -63,33 +63,68 @@ It will always return an object with the same properties:
 
 There was an [early substitution recommendation to
 users](https://app.zenhub.com/workspaces/orange-5d680d7e3eeb5f1bbdf5668f/issues/databiosphere/azul/1115), instructing
-them to convert their URL schemes from "dos" to "drs". Some of the underlying servers hosting the DOS/DRS metadata have
-not yet been upgraded to support the DRS request path-prefix and DRS response JSON metadata, so `martha_v2` still
-communicates with those servers using the older request/response format.
+them to convert their URL schemes from "dos" to "drs". Some underlying servers hosting the DOS/DRS metadata have not yet
+upgraded to support the DRS request path-prefix and DRS response JSON metadata, so `martha_v2` still communicates with
+those servers using the older request/response format.
 
 At the same time, those server hosts are also working to submit test accounts for automated testing purposes. The final
 list of supported `martha_v3` servers is still being finalized while those test accounts are being created.
 
-The tested development servers verified to work with `martha_v3` are:
+Martha's `martha_v3` implementation translates requests-to and responses-from the following hosts:
 
-<!-- Formatted using https://www.tablesgenerator.com/markdown_tables -->
+- ✅ [Jade Data Repo](https://github.com/DataBiosphere/jade-data-repo#readme) (JDR)
+    - Prod host: `jade-terra.datarepo-prod.broadinstitute.org`
+    - Dev host: `jade.datarepo-dev.broadinstitute.org`
+    - Martha Testing: 🤖 Continuous Automated
+    - Returns Bond SA: No, Martha will not return a service account
+    - Requires OAuth for metadata: 🔐 Yes
+- ❌ [DataGuids.org](https://dataguids.org/) (ex: any dg.* other than dg.4503)
+    - Prod host: `gen3.biodatacatalyst.nhlbi.nih.gov`
+    - Dev host: `staging.gen3.biodatacatalyst.nhlbi.nih.gov`
+    - Martha testing: 🚫 No testing
+    - Returns Bond SA: Yes, via the [Data Commons Framework](https://datascience.cancer.gov/data-commons/data-commons-framework) (DCF)
+    - Requires OAuth for metadata: 🔓 No
+- ❌ [DataGuids.org](https://dataguids.org/) (ex: dg.4503)
+    - Prod host: `gen3.biodatacatalyst.nhlbi.nih.gov`
+    - Dev host: `staging.gen3.biodatacatalyst.nhlbi.nih.gov`
+    - Martha testing: 🖐 Manual
+    - Returns Bond SA: Yes, via the [Data Coordination Platform](https://data.humancellatlas.org/about) (DCP)
+    - Requires OAuth for metadata: 🔓 No
+- ❌ [Human Cell Atlas](https://github.com/HumanCellAtlas/data-store) (HCA)
+    - Prod host: `drs.data.humancellatlas.org`
+    - Dev host: _unknown_
+    - Martha testing: 🖐 Manual (in production)
+    - Returns Bond SA: No, Martha will not return a service account
+    - Requires OAuth for metadata: 🔓 No
+- ❌ [UCSC Single Cell Dev Server](https://drs.dev.singlecell.gi.ucsc.edu/)
+    - Prod host: _unknown_
+    - Dev host: `drs.dev.singlecell.gi.ucsc.edu`
+    - Martha testing: 🚫 No testing
+    - Returns Bond SA: No, Martha will not return a service account
+    - Requires OAuth for metadata: 🔐 Yes
+- ❌ [Analysis, Visualization and Informatics Lab-space](https://www.genome.gov/Funded-Programs-Projects/Computational-Genomics-and-Data-Science-Program/Genomic-Analysis-Visualization-Informatics-Lab-space-AnVIL) (AnVIL)
+    - Prod host: _unknown_
+    - Dev host: _unknown_
+    - Martha testing: 🚫 No testing
+    - Returns Bond SA: No, Martha will not return a service account
+    - Requires OAuth for metadata: 🔓 No
+- ❌ [Gabriella Miller Kids First Pediatric Data Resource](https://commonfund.nih.gov/kidsfirst/overview)
+    - Prod host: _unknown_
+    - Dev host: _unknown_
+    - Martha testing: 🚫 No testing
+    - Returns Bond SA: No, Martha will not return a service account
+    - Requires OAuth for metadata: _unknown_
 
-| Description                                           | Development Host                                 | Production Host                             | Testing            |
-|-------------------------------------------------------|--------------------------------------------------|---------------------------------------------|--------------------|
-| Jade Data Repo (JDR)                                  | jade.datarepo-dev.broadinstitute.org             | jade-terra.datarepo-prod.broadinstitute.org | 🤖 Continuous       |
+<sup>
+✅ = DRS v1.0 hosts tested with Martha's `martha_v3` endpoint<br/>
+❌ = Hosts that either a) don't support DRS v1.0, or b) haven't been tested with Martha's `martha_v3`
+</sup>
 
-<!-- Formatted using https://www.tablesgenerator.com/markdown_tables -->
-
-The servers that have not been verified to work with `martha_v3`, and should still use `martha_v2` are:
-
-<!-- Formatted using https://www.tablesgenerator.com/markdown_tables -->
-
-| Description                                           | Development Host                                 | Production Host                             | Testing            |
-|-------------------------------------------------------|--------------------------------------------------|---------------------------------------------|--------------------|
-| [DataGuids.org](https://dataguids.org/) (ex: dg.4503) | staging.gen3.biodatacatalyst.nhlbi.nih.gov       | gen3.biodatacatalyst.nhlbi.nih.gov          | 🖐 Manual           |
-| Human Cell Atlas (HCA)                                | **not tested before Martha `martha_v3` release** | drs.data.humancellatlas.org                 | 🖐 Manual (in prod) |
-
-<!-- Formatted using https://www.tablesgenerator.com/markdown_tables -->
+Other DRS servers might work with Martha's `martha_v3` enpoint, however only the servers above are officially supported.
+If you have an additional server you'd like to add to Martha, please store the test credentials in Vault and submit a PR
+with both the integration test and updated documentation. If you do not have direct acces to Vault, please contact us
+via [Jira](https://broadworkbench.atlassian.net/projects/WA/issues) to have your test credentials stored. NOTE: You will
+need to create a free account to access the Jira board.
 
 # File Summary v1
 The file summary service will return metadata and a signed download URL good for one hour (in the case of a DOS URI,
