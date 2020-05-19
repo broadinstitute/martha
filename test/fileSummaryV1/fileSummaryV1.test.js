@@ -12,8 +12,9 @@ const sinon = require('sinon');
 const fileSummaryV1 = require('../../fileSummaryV1/fileSummaryV1').fileSummaryV1Handler;
 const saKeys = require('../../fileSummaryV1/service_account_keys');
 const metadataApi = require('../../fileSummaryV1/metadata_api');
+const createSignedGsUrl = require('../../common/createSignedGsUrl');
 const apiAdapter = require('../../common/api_adapter');
-const helpers = require('../../common/helpers');
+const {convertToFileInfoResponse} = require('../../common/helpers');
 
 const mockRequest = (req) => {
     req.method = 'POST';
@@ -33,7 +34,7 @@ const mockResponse = () => {
 };
 
 const gsObjectMetadata = () => {
-    return helpers.convertToFileInfoResponse(
+    return convertToFileInfoResponse(
         'application/json',
         1234,
         null,
@@ -51,7 +52,7 @@ const fakeSignedUrl = 'http://i.am.a.signed.url.com/totallyMadeUp';
 const fakeSAKey = {key: 'I am not real'};
 
 const fullExpectedResult = () => {
-    return helpers.convertToFileInfoResponse(
+    return convertToFileInfoResponse(
       'application/json',
       1234,
       null,
@@ -81,7 +82,7 @@ test.serial.beforeEach(() => {
     getServiceAccountKeyStub.resolves(fakeSAKey);
     getMetadataStub = sandbox.stub(metadataApi, getMetadataMethodName);
     getMetadataStub.returns(gsObjectMetadata());
-    createSignedUrlStub = sandbox.stub(helpers, createSignedUrlMethodName);
+    createSignedUrlStub = sandbox.stub(createSignedGsUrl, createSignedUrlMethodName);
     createSignedUrlStub.returns(fakeSignedUrl);
     getJsonFromApiStub = sandbox.stub(apiAdapter, getJsonFromApiMethodName);
 });
@@ -92,8 +93,6 @@ test.serial.afterEach(() => {
 
 test.serial('fileSummaryV1Handler resolves a valid gs url into a metadata and signed url', async (t) => {
     const response = mockResponse();
-    getServiceAccountKeyStub.restore();
-    sandbox.stub(saKeys, getServiceAccountKeyMethodName).resolves();
     await fileSummaryV1(mockRequest({ body: { uri: 'gs://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
     t.deepEqual(result, fullExpectedResult());
@@ -102,8 +101,6 @@ test.serial('fileSummaryV1Handler resolves a valid gs url into a metadata and si
 });
 
 test.serial('fileSummaryV1Handler resolves a valid drs:// Data Object url into metadata and signed url', async (t) => {
-    getServiceAccountKeyStub.restore();
-    sandbox.stub(saKeys, getServiceAccountKeyMethodName).resolves();
     const response = mockResponse();
     const mockReq = mockRequest({ body: { uri: 'drs://example.com/validGS' } });
     await fileSummaryV1(mockReq, response);
@@ -127,6 +124,7 @@ test.serial('fileSummaryV1Handler resolves a valid drs:// Data Object url into m
 
 test.serial('fileSummaryV1Handler resolves a valid HCA drs:// Data Object url into metadata with no signed url and no SA key', async (t) => {
     getServiceAccountKeyStub.restore();
+    sandbox.stub(saKeys, getServiceAccountKeyMethodName).callThrough();
     const response = mockResponse();
     const mockReq = mockRequest({ body: { uri: 'drs://someservice.humancellatlas.org/someObjectId' } });
     await fileSummaryV1(mockReq, response);
@@ -165,7 +163,7 @@ test.serial('fileSummaryV1Handler should return 400 if given a \'uri\' with an i
 
 test.serial('fileSummaryV1Handler should return 502 if it is unable to retrieve a service account key', async (t) => {
     getServiceAccountKeyStub.restore();
-    await sandbox.stub(saKeys, getServiceAccountKeyMethodName).rejects(new Error('Stubbed error getting Service Account Key'));
+    sandbox.stub(saKeys, getServiceAccountKeyMethodName).rejects(new Error('Stubbed error getting Service Account Key'));
     const response = mockResponse();
     await fileSummaryV1(mockRequest({ body: { uri: 'drs://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
@@ -175,7 +173,7 @@ test.serial('fileSummaryV1Handler should return 502 if it is unable to retrieve 
 
 test.serial('fileSummaryV1Handler should return 502 if it is unable to retrieve metadata for the object', async (t) => {
     getMetadataStub.restore();
-    await sandbox.stub(metadataApi, getMetadataMethodName).rejects(new Error('Stubbed error getting metadata for object'));
+    sandbox.stub(metadataApi, getMetadataMethodName).rejects(new Error('Stubbed error getting metadata for object'));
     const response = mockResponse();
     await fileSummaryV1(mockRequest({ body: { uri: 'gs://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
@@ -185,10 +183,10 @@ test.serial('fileSummaryV1Handler should return 502 if it is unable to retrieve 
 
 test.serial('fileSummaryV1Handler should return 502 if it is unable to sign a url for the object', async (t) => {
     createSignedUrlStub.restore();
-    await sandbox.stub(helpers, createSignedUrlMethodName).rejects(new Error('Stubbed error trying to sign url'));
+    sandbox.stub(createSignedGsUrl, createSignedUrlMethodName).rejects(new Error('Stubbed error trying to sign url'));
     const response = mockResponse();
     await fileSummaryV1(mockRequest({ body: { uri: 'gs://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
-    t.true(result instanceof Error)
+    t.true(result instanceof Error);
     t.is(response.statusCode, 502);
 });

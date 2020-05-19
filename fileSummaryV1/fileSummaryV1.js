@@ -1,7 +1,7 @@
 const metadataApi = require('./metadata_api');
 const saKeys = require('./service_account_keys');
+const createSignedGsUrl = require('../common/createSignedGsUrl');
 const url = require('url');
-const { createSignedGsUrl } = require('../common/helpers');
 
 // This function counts on the request posing data as "application/json" content-type.
 // See: https://cloud.google.com/functions/docs/writing/http#parsing_http_requests for more details
@@ -52,7 +52,7 @@ async function fileSummaryV1Handler(req, res) {
         ]);
 
         if (serviceAccountKey) {
-            metadata.signedUrl = await createSignedGsUrl(serviceAccountKey, metadata);
+            metadata.signedUrl = await createSignedGsUrl.createSignedGsUrl(serviceAccountKey, metadata);
         }
 
         res.status(200).send(metadata);
