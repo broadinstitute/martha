@@ -78,17 +78,23 @@ Martha's `martha_v3` implementation translates requests-to and responses-from th
     - Martha Testing: 🤖 Continuous Automated
     - Returns Bond SA: No, Martha will not return a service account
     - Requires OAuth for metadata: 🔐 Yes
-- ❌ [DataGuids.org](https://dataguids.org/) (ex: any dg.* other than dg.4503)
+- ❌ [DataGuids.org](https://dataguids.org/) (ex: any drs://dg.* other than drs://dg.4503, and not drs://dataguids.org)
     - Prod host: `gen3.biodatacatalyst.nhlbi.nih.gov`
     - Dev host: `staging.gen3.biodatacatalyst.nhlbi.nih.gov`
-    - Martha testing: 🚫 No testing
+    - Martha testing: 🖐 Manual (in production)
     - Returns Bond SA: Yes, via the [Data Commons Framework](https://datascience.cancer.gov/data-commons/data-commons-framework) (DCF)
     - Requires OAuth for metadata: 🔓 No
-- ❌ [DataGuids.org](https://dataguids.org/) (ex: dg.4503)
+- ❌ [DataGuids.org](https://dataguids.org/) (ex: drs://dg.4503)
     - Prod host: `gen3.biodatacatalyst.nhlbi.nih.gov`
     - Dev host: `staging.gen3.biodatacatalyst.nhlbi.nih.gov`
     - Martha testing: 🖐 Manual
     - Returns Bond SA: Yes, via the [Data Coordination Platform](https://data.humancellatlas.org/about) (DCP)
+    - Requires OAuth for metadata: 🔓 No
+- ❌ [DataGuids.org](https://dataguids.org/) (ex: drs://dataguids.org, but not drs://dg.*)
+    - Prod host: `dataguids.org`
+    - Dev host: _unknown_
+    - Martha testing: 🚫 No testing
+    - Returns Bond SA: No, Martha will not return a service account
     - Requires OAuth for metadata: 🔓 No
 - ❌ [Human Cell Atlas](https://github.com/HumanCellAtlas/data-store) (HCA)
     - Prod host: `drs.data.humancellatlas.org`
