@@ -1,5 +1,5 @@
 const test = require('ava');
-const {bondBaseUrl, BondProviders, determineBondProvider} = require('../../common/bond');
+const { bondBaseUrl, BondProviders, determineBondProvider } = require('../../common/bond');
 const config = require('../../config.json');
 
 test('bondBaseUrl should come from the config json', (t) => {

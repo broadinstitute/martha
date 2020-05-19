@@ -1,6 +1,6 @@
-const {samBaseUrl} = require('../common/helpers');
-const {determineBondProvider, bondBaseUrl, BondProviders} = require('../common/bond');
-const apiAdapter = require('../common/api_adapter');
+const { samBaseUrl } = require('../common/helpers');
+const { determineBondProvider, bondBaseUrl, BondProviders } = require('../common/bond');
+const { getJsonFrom } = require('../common/api_adapter');
 
 function maybeTalkToBond(auth, url) {
     const provider = determineBondProvider(url);
@@ -9,7 +9,7 @@ function maybeTalkToBond(auth, url) {
         return Promise.resolve();
     }
 
-    return apiAdapter.getJsonFrom(
+    return getJsonFrom(
         `${bondBaseUrl()}/api/link/v1/${provider}/serviceaccount/key`,
         auth
     ).then(
@@ -21,7 +21,7 @@ function maybeTalkToBond(auth, url) {
 }
 
 function maybeTalkToSam(auth) {
-    return apiAdapter.getJsonFrom(
+    return getJsonFrom(
         `${samBaseUrl()}/api/google/v1/user/petServiceAccount/key`,
         auth
     ).catch((e) => {

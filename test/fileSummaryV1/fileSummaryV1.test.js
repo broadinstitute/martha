@@ -14,7 +14,7 @@ const saKeys = require('../../fileSummaryV1/service_account_keys');
 const metadataApi = require('../../fileSummaryV1/metadata_api');
 const createSignedGsUrl = require('../../common/createSignedGsUrl');
 const apiAdapter = require('../../common/api_adapter');
-const {convertToFileInfoResponse} = require('../../common/helpers');
+const { convertToFileInfoResponse } = require('../../common/helpers');
 
 const mockRequest = (req) => {
     req.method = 'POST';

@@ -1,5 +1,5 @@
-const {dataObjectUriToHttps, parseRequest, getFileInfoFromDrsResponse} = require('../common/helpers');
-const {maybeTalkToBond, determineBondProvider, BondProviders} = require('../common/bond');
+const { dataObjectUriToHttps, parseRequest, getFileInfoFromDrsResponse } = require('../common/helpers');
+const { maybeTalkToBond, determineBondProvider, BondProviders } = require('../common/bond');
 const apiAdapter = require('../common/api_adapter');
 
 

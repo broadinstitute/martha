@@ -1,5 +1,5 @@
 const test = require('ava');
-const {dataObjectUriToHttps, samBaseUrl} = require('../../common/helpers');
+const { dataObjectUriToHttps, samBaseUrl } = require('../../common/helpers');
 const config = require('../../config.json');
 
 /**
