@@ -52,7 +52,7 @@ async function fileSummaryV1Handler(req, res) {
         ]);
 
         if (serviceAccountKey) {
-            metadata.signedUrl = await createSignedGsUrl(serviceAccountKey, {bucket: metadata.bucket, object: metadata.name});
+            metadata.signedUrl = await createSignedGsUrl(serviceAccountKey, metadata);
         }
 
         res.status(200).send(metadata);

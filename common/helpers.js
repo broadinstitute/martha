@@ -179,9 +179,9 @@ const promiseHandler = (fn) => (req, res) => {
     return fn(req, res).then(handleValue, handleValue);
 };
 
-async function createSignedGsUrl(serviceAccountKey, {bucket, object}) {
+async function createSignedGsUrl(serviceAccountKey, {bucket, name}) {
     const storage = new Storage({ credentials: serviceAccountKey });
-    const response = await storage.bucket(bucket).file(object).getSignedUrl({ action: 'read', expires: Date.now() + 36e5 });
+    const response = await storage.bucket(bucket).file(name).getSignedUrl({ action: 'read', expires: Date.now() + 36e5 });
     return response[0];
 }
 
