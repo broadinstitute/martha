@@ -76,7 +76,7 @@ Martha's `martha_v3` implementation translates requests-to and responses-from th
     - Prod host: `jade-terra.datarepo-prod.broadinstitute.org`
     - Dev host: `jade.datarepo-dev.broadinstitute.org`
     - Martha Testing: 🤖 Continuous Automated
-    - Returns Bond SA: No, Martha will not return a service account
+    - Returns Bond SA: No
     - Requires OAuth for metadata: 🔐 Yes
 - ❌ [DataGuids.org](https://dataguids.org/) (ex: any drs://dg.* other than drs://dg.4503, and not drs://dataguids.org)
     - Prod host: `gen3.biodatacatalyst.nhlbi.nih.gov`
@@ -94,39 +94,39 @@ Martha's `martha_v3` implementation translates requests-to and responses-from th
     - Prod host: `dataguids.org`
     - Dev host: _unknown_
     - Martha testing: 🚫 No testing
-    - Returns Bond SA: No, Martha will not return a service account
+    - Returns Bond SA: No
     - Requires OAuth for metadata: 🔓 No
 - ❌ [Human Cell Atlas](https://github.com/HumanCellAtlas/data-store) (HCA)
     - Prod host: `drs.data.humancellatlas.org`
     - Dev host: _unknown_
     - Martha testing: 🖐 Manual (in production)
-    - Returns Bond SA: No, Martha will not return a service account
+    - Returns Bond SA: No
     - Requires OAuth for metadata: 🔓 No
 - ❌ [UCSC Single Cell Dev Server](https://drs.dev.singlecell.gi.ucsc.edu/)
     - Prod host: _unknown_
     - Dev host: `drs.dev.singlecell.gi.ucsc.edu`
     - Martha testing: 🚫 No testing
-    - Returns Bond SA: No, Martha will not return a service account
+    - Returns Bond SA: No
     - Requires OAuth for metadata: 🔐 Yes
 - ❌ [Analysis, Visualization and Informatics Lab-space](https://www.genome.gov/Funded-Programs-Projects/Computational-Genomics-and-Data-Science-Program/Genomic-Analysis-Visualization-Informatics-Lab-space-AnVIL) (AnVIL)
     - Prod host: _unknown_
     - Dev host: _unknown_
     - Martha testing: 🚫 No testing
-    - Returns Bond SA: No, Martha will not return a service account
+    - Returns Bond SA: No
     - Requires OAuth for metadata: 🔓 No
 - ❌ [Gabriella Miller Kids First Pediatric Data Resource](https://commonfund.nih.gov/kidsfirst/overview)
     - Prod host: _unknown_
     - Dev host: _unknown_
     - Martha testing: 🚫 No testing
-    - Returns Bond SA: No, Martha will not return a service account
+    - Returns Bond SA: No
     - Requires OAuth for metadata: _unknown_
 
 <sup>
 ✅ = DRS v1.0 hosts tested with Martha's `martha_v3` endpoint<br/>
-❌ = Hosts that either a) don't support DRS v1.0, or b) haven't been tested with Martha's `martha_v3`
+❌ = Hosts that either a) don't support DRS v1.0, or b) haven't been tested with Martha's `martha_v3` endpoint
 </sup>
 
-Other DRS servers might work with Martha's `martha_v3` enpoint, however only the servers above are officially supported.
+Other DRS servers might work with Martha's `martha_v3` endpoint, however only the servers above are officially supported.
 If you have an additional server you'd like to add to Martha, please store the test credentials in Vault and submit a PR
 with both the integration test and updated documentation. If you do not have direct acces to Vault, please contact us
 via [Jira](https://broadworkbench.atlassian.net/projects/WA/issues) to have your test credentials stored. NOTE: You will
