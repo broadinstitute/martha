@@ -1,5 +1,4 @@
-const {dataObjectUriToHttps, convertToFileInfoResponse, samBaseUrl, getMd5Checksum, parseGsUri} =
-    require('../common/helpers');
+const { dataObjectUriToHttps, convertToFileInfoResponse, samBaseUrl, getMd5Checksum, parseGsUri } = require('../common/helpers');
 const apiAdapter = require('../common/api_adapter');
 
 function getRawMetadata(token, bucket, name) {

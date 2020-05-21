@@ -1,6 +1,6 @@
 const metadataApi = require('./metadata_api');
 const saKeys = require('./service_account_keys');
-const urlSigner = require('./urlSigner');
+const createSignedGsUrl = require('../common/createSignedGsUrl');
 const url = require('url');
 
 // This function counts on the request posing data as "application/json" content-type.
@@ -52,7 +52,7 @@ async function fileSummaryV1Handler(req, res) {
         ]);
 
         if (serviceAccountKey) {
-            metadata.signedUrl = await urlSigner.createSignedGsUrl(serviceAccountKey, metadata);
+            metadata.signedUrl = await createSignedGsUrl.createSignedGsUrl(serviceAccountKey, metadata);
         }
 
         res.status(200).send(metadata);
