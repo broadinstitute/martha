@@ -82,13 +82,13 @@ Martha's `martha_v3` implementation translates requests-to and responses-from th
     - Prod host: `gen3.biodatacatalyst.nhlbi.nih.gov`
     - Dev host: `staging.gen3.biodatacatalyst.nhlbi.nih.gov`
     - Martha testing: 🖐 Manual (in production)
-    - Returns Bond SA: Yes, via the [Data Commons Framework](https://datascience.cancer.gov/data-commons/data-commons-framework) (DCF)
+    - Returns Bond SA: Yes, via the [Data Coordination Platform](https://data.humancellatlas.org/about) (DCP)
     - Requires OAuth for metadata: 🔓 No
 - ❌ [DataGuids.org](https://dataguids.org/) (ex: drs://dg.4503)
     - Prod host: `gen3.biodatacatalyst.nhlbi.nih.gov`
     - Dev host: `staging.gen3.biodatacatalyst.nhlbi.nih.gov`
     - Martha testing: 🖐 Manual
-    - Returns Bond SA: Yes, via the [Data Coordination Platform](https://data.humancellatlas.org/about) (DCP)
+    - Returns Bond SA: Yes, via the [Data Commons Framework](https://datascience.cancer.gov/data-commons/data-commons-framework) (DCF)
     - Requires OAuth for metadata: 🔓 No
 - ❌ [DataGuids.org](https://dataguids.org/) (ex: drs://dataguids.org, but not drs://dg.*)
     - Prod host: `dataguids.org`
