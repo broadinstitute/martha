@@ -70,8 +70,8 @@ MARTHA_IMAGE=quay.io/broadinstitute/martha:${GIT_BRANCH}
 #     --member=allUsers --role=roles/cloudfunctions.invoker \
 #     --project=broad-dsde-{ENVIRONMENT}
 #   ```
-# After an owner fixes the perms, the function contents may be overwritten by any editor, including the GCF-SA
-# `secret/dsde/martha/${ENVIRONMENT}/deploy-account.json`, and will stay public.
+# After an owner fixes the perms, the function contents may be overwritten by any editor, including the Google Cloud
+# Function service account stored in `secret/dsde/martha/${ENVIRONMENT}/deploy-account.json`, and will stay public.
 
 docker run --rm \
     --entrypoint="/bin/bash" \
