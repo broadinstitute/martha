@@ -58,6 +58,21 @@ docker run --rm -v $PWD:${MARTHA_PATH} \
 MARTHA_IMAGE=quay.io/broadinstitute/martha:${GIT_BRANCH}
 
 # Overriding ENTRYPOINT has some subtleties: https://medium.com/@oprearocks/how-to-properly-override-the-entrypoint-using-docker-run-2e081e5feb9d
+
+# > Note: As of January 15, 2020, HTTP functions require authentication by default.
+#
+# via: https://cloud.google.com/functions/docs/securing/managing-access-iam#allowing_unauthenticated_function_invocation
+#
+# For every new cloud functions deployed, across every environment, someone with owner access will need to run:
+#   ```
+#   gcloud beta functions \
+#     add-iam-policy-binding {FUNCTION_NAME} \
+#     --member=allUsers --role=roles/cloudfunctions.invoker \
+#     --project=broad-dsde-{ENVIRONMENT}
+#   ```
+# After an owner fixes the perms, the function contents may be overwritten by any editor, including the GCF-SA
+# `secret/dsde/martha/${ENVIRONMENT}/deploy-account.json`, and will stay public.
+
 docker run --rm \
     --entrypoint="/bin/bash" \
     -v $PWD:${MARTHA_PATH} \
@@ -67,6 +82,7 @@ docker run --rm \
      gcloud auth activate-service-account --key-file ${MARTHA_PATH}/${SERVICE_ACCT_KEY_FILE} &&
      cd ${MARTHA_PATH} &&
      gcloud beta functions deploy martha_v2 --source=. --trigger-http --runtime nodejs8 &&
+     gcloud beta functions deploy martha_v3 --source=. --runtime nodejs8 --trigger-http &&
      gcloud beta functions deploy fileSummaryV1 --source=. --runtime nodejs8 --trigger-http &&
      gcloud beta functions deploy getSignedUrlV1 --source=. --runtime nodejs8 --trigger-http &&
      npm ci &&
