@@ -63,15 +63,21 @@ MARTHA_IMAGE=quay.io/broadinstitute/martha:${GIT_BRANCH}
 #
 # via: https://cloud.google.com/functions/docs/securing/managing-access-iam#allowing_unauthenticated_function_invocation
 #
-# For every new cloud functions deployed, across every environment, someone with owner access will need to run:
+# For every new cloud function deployed, across every environment, someone with the `owner` role will need to run:
 #   ```
 #   gcloud beta functions \
 #     add-iam-policy-binding {FUNCTION_NAME} \
 #     --member=allUsers --role=roles/cloudfunctions.invoker \
 #     --project=broad-dsde-{ENVIRONMENT}
 #   ```
-# After an owner fixes the perms, the function contents may be overwritten by any editor, including the Google Cloud
-# Function service account stored in `secret/dsde/martha/${ENVIRONMENT}/deploy-account.json`, and will stay public.
+#
+# Until that function is run, `allUsers` will receive a permission denied error when invoking the new Google Cloud
+# Function.
+#
+# After an `owner` fixes the permissions using the above `gcloud` command, the function contents may be overwritten by
+# any `editor`, including the Google Cloud Function service account stored in
+# `secret/dsde/martha/${ENVIRONMENT}/deploy-account.json`. The Google Cloud Function will stay public to `allUsers` even
+# when redeployed by an `editor`.
 
 docker run --rm \
     --entrypoint="/bin/bash" \
