@@ -198,6 +198,7 @@ is used.
 
 ## Deployment
 Deployments to the `dev` tier are triggered automatically whenever code is pushed/merged to the `dev` branch on github.
+- [ ] [Terra-specific release checklist](docs/release-checklist.md)
 
 - [ ] Deployments to other tiers are triggered manually by running the 
       [Martha Manual Deploy](https://fc-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/martha-manual-deploy/)
