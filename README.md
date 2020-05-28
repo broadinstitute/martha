@@ -196,12 +196,12 @@ is used.
 
 `npm test`
 
-## Deployment
+## Deployment and Releasing
 * Deployments to the `dev` tier are triggered automatically whenever code is pushed/merged to the `dev` branch on github.
 
 * When the latest code passes tests in CircleCI, it is tagged `dev_tests_passed_[timestamp]` where `[timestamp]` is the epoch time when the tag was created.
 
-* [Terra-specific deploy/release checklist](docs/release-checklist.md)
+* [Terra-specific release checklist](docs/release-checklist.md)
 
 
 **NOTE:** 
