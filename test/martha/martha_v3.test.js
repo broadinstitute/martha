@@ -75,7 +75,6 @@ const fullExpectedResult = (expectedGoogleServiceAccount) => {
         gsUri:
             'gs://broad-jade-dev-data-bucket/fd8d8492-ad02-447d-b54e-35a7ffd0e7a5/8b07563a-542f-4b5c-9e00-e8fe6b1861de',
         googleServiceAccount: expectedGoogleServiceAccount,
-        signedUrl: '',
         hashes: {
             md5: '336ea55913bc261b72875bd259753046',
             sha256: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44',

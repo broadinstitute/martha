@@ -118,8 +118,7 @@ class CommonFileInfoResponse {
         bucket,
         name,
         gsUri,
-        googleServiceAccount,
-        signedUrl,
+        googleServiceAccount
     ) {
         this.contentType = contentType || '';
         this.size = size || 0;
@@ -129,7 +128,6 @@ class CommonFileInfoResponse {
         this.name = name || '';
         this.gsUri = gsUri || '';
         this.googleServiceAccount = googleServiceAccount || null;
-        this.signedUrl = signedUrl || '';
     }
 }
 
@@ -146,7 +144,6 @@ class MarthaV3Response extends CommonFileInfoResponse {
         name,
         gsUri,
         googleServiceAccount,
-        signedUrl,
         hashesMap
     ) {
         super(
@@ -157,8 +154,7 @@ class MarthaV3Response extends CommonFileInfoResponse {
             bucket,
             name,
             gsUri,
-            googleServiceAccount,
-            signedUrl
+            googleServiceAccount
         );
         this.hashes = hashesMap || {};
     }
@@ -188,10 +184,10 @@ class FileSummaryV1Response extends CommonFileInfoResponse {
             bucket,
             name,
             gsUri,
-            googleServiceAccount,
-            signedUrl
+            googleServiceAccount
         );
         this.md5Hash = hash || '';
+        this.signedUrl = signedUrl || '';
     }
 }
 
@@ -317,7 +313,6 @@ function convertToMarthaV3Response(drsResponse, googleServiceAccount) {
     const gsUrl = getGsUrlFromDrsObject(drsResponse);
     const [bucket, name] = parseGsUri(gsUrl);
     const hashesMap = getHashesMap(checksums);
-    const signedUrl = null; // Not included currently when returning only the drs metadata
 
     return new MarthaV3Response(
         mimeType,
@@ -328,7 +323,6 @@ function convertToMarthaV3Response(drsResponse, googleServiceAccount) {
         name,
         gsUrl,
         googleServiceAccount,
-        signedUrl,
         hashesMap
     );
 }

@@ -52,7 +52,6 @@ It will always return an object with the same properties:
  name:           string,
  gsUri:          string,
  googleServiceAccount: object, [null unless the DOS url belongs to a Bond supported host]
- signedUrl:      string [always the empty string ''],
  hashes:         object [contains the hashes type and their checksum value]
 ```
 
@@ -68,7 +67,6 @@ Example response for /martha_v3:
     "name": "dd3c716a-852f-4d74-9073-9920e835ec8a/f3b148ac-1802-4acc-a0b9-610ea266fb61",
     "gsUri": "gs://my-bucket/dd3c716a-852f-4d74-9073-9920e835ec8a/f3b148ac-1802-4acc-a0b9-610ea266fb61",
     "googleServiceAccount": null,
-    "signedUrl": "",
     "hashes": {
         "md5": "336ea55913bc261b72875bd259753046",
         "sha256": "f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44",
