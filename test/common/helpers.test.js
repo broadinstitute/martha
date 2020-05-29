@@ -156,7 +156,7 @@ test('samBaseUrl should come from the config json', (t) => {
  */
 
 test('getHashesMap should return empty object for empty checksums array', (t) => {
-    t.deepEqual(getHashesMap([]), {})
+    t.deepEqual(getHashesMap([]), {});
 });
 
 test('getHashesMap should return map with 1 entry for checksums array with 1 element', (t) => {
@@ -170,7 +170,7 @@ test('getHashesMap should return map with 1 entry for checksums array with 1 ele
         md5: '336ea55913bc261b72875bd259753046'
     };
 
-    t.deepEqual(getHashesMap(checksumArray), expectedChecksumMap)
+    t.deepEqual(getHashesMap(checksumArray), expectedChecksumMap);
 });
 
 test('getHashesMap should return map with multiple hashes for checksums array', (t) => {
@@ -194,7 +194,7 @@ test('getHashesMap should return map with multiple hashes for checksums array', 
         crc32c: '8a366443'
     };
 
-    t.deepEqual(getHashesMap(checksumArray), expectedChecksumMap)
+    t.deepEqual(getHashesMap(checksumArray), expectedChecksumMap);
 });
 
 test('getHashesMap should return map for checksums array containing multiple `checksum` for same `type`', (t) => {
@@ -217,5 +217,5 @@ test('getHashesMap should return map for checksums array containing multiple `ch
         sha256: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44'
     };
 
-    t.deepEqual(getHashesMap(checksumArray), expectedChecksumMap)
+    t.deepEqual(getHashesMap(checksumArray), expectedChecksumMap);
 });

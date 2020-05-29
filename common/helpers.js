@@ -68,7 +68,7 @@ function determinePathname(someUrl) {
  */
 function preserveHostnameCase(parsedUrl, rawUrl) {
     const hostnameRegExp = new RegExp(parsedUrl.hostname, 'i');
-    parsedUrl.hostname = hostnameRegExp.exec(rawUrl)[0]
+    parsedUrl.hostname = hostnameRegExp.exec(rawUrl)[0];
 }
 
 // 3 Scenarios we need to account for:
