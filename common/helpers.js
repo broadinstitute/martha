@@ -247,7 +247,7 @@ function getMd5Checksum(checksums) {
  */
 function getHashesMap(checksumArray) {
     /*
-        if there are more than 1 entry for same type of hash, the last hash value in the checksums array for that
+        if there are more than 1 checksum for same type of hash, the last hash value in the checksums array for that
         type will be taken
      */
     return checksumArray.reduce(function(map, obj){
