@@ -1,5 +1,5 @@
 const test = require('ava');
-const { dataObjectUriToHttps, samBaseUrl } = require('../../common/helpers');
+const { dataObjectUriToHttps, samBaseUrl, getHashesMap } = require('../../common/helpers');
 const config = require('../../config.json');
 
 /**
@@ -149,4 +149,73 @@ test('dataObjectUriToHttps should throw a Error when passed an invalid uri', (t)
 
 test('samBaseUrl should come from the config json', (t) => {
     t.is(samBaseUrl(), config.samBaseUrl);
+});
+
+/**
+ * Test the getHashesMap() function
+ */
+
+test('getHashesMap should return empty object for empty checksums array', (t) => {
+    t.deepEqual(getHashesMap([]), {})
+});
+
+test('getHashesMap should return map with 1 entry for checksums array with 1 element', (t) => {
+    const checksumArray = [
+        {
+            type: 'md5',
+            checksum: '336ea55913bc261b72875bd259753046'
+        }
+    ];
+    const expectedChecksumMap = {
+        md5: '336ea55913bc261b72875bd259753046'
+    };
+
+    t.deepEqual(getHashesMap(checksumArray), expectedChecksumMap)
+});
+
+test('getHashesMap should return map with multiple hashes for checksums array', (t) => {
+    const checksumArray = [
+        {
+            type: 'md5',
+            checksum: '336ea55913bc261b72875bd259753046'
+        },
+        {
+            type: 'sha256',
+            checksum: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44'
+        },
+        {
+            type: 'crc32c',
+            checksum: '8a366443'
+        },
+    ];
+    const expectedChecksumMap = {
+        md5: '336ea55913bc261b72875bd259753046',
+        sha256: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44',
+        crc32c: '8a366443'
+    };
+
+    t.deepEqual(getHashesMap(checksumArray), expectedChecksumMap)
+});
+
+test('getHashesMap should return map for checksums array containing multiple `checksum` for same `type`', (t) => {
+    const checksumArray = [
+        {
+            type: 'md5',
+            checksum: '336ea55913bc261b72875bd259753046'
+        },
+        {
+            type: 'sha256',
+            checksum: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44'
+        },
+        {
+            type: 'md5',
+            checksum: 'a06d435b61a55eb5c0f712c1d88ac782'
+        },
+    ];
+    const expectedChecksumMap = {
+        md5: 'a06d435b61a55eb5c0f712c1d88ac782',
+        sha256: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44'
+    };
+
+    t.deepEqual(getHashesMap(checksumArray), expectedChecksumMap)
 });

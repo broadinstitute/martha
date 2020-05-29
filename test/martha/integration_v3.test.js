@@ -231,7 +231,6 @@ test.cb('integration_v3 responds with Data Object for authorized user for jade d
                     size: 15601108255,
                     timeCreated: '2020-04-27T15:56:09.696Z',
                     updated: '2020-04-27T15:56:09.696Z',
-                    md5Hash: '336ea55913bc261b72875bd259753046',
                     bucket: 'broad-jade-dev-data-bucket',
                     name: 'fd8d8492-ad02-447d-b54e-35a7ffd0e7a5/8b07563a-542f-4b5c-9e00-e8fe6b1861de',
                     gsUri:
@@ -239,6 +238,10 @@ test.cb('integration_v3 responds with Data Object for authorized user for jade d
                         '8b07563a-542f-4b5c-9e00-e8fe6b1861de',
                     googleServiceAccount: null,
                     signedUrl: '',
+                    hashes: {
+                        md5: '336ea55913bc261b72875bd259753046',
+                        crc32c: 'ecb19226'
+                    }
                 }
             );
         })
