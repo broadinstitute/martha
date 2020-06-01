@@ -197,7 +197,7 @@ test('getHashesMap should return map with multiple hashes for checksums array', 
     t.deepEqual(getHashesMap(checksumArray), expectedChecksumMap);
 });
 
-test('getHashesMap should return map for checksums array containing multiple `checksum` for same `type`', (t) => {
+test('getHashesMap should throw error if the checksums array contains duplicate `checksum` values for same `type`', (t) => {
     const checksumArray = [
         {
             type: 'md5',
@@ -212,10 +212,13 @@ test('getHashesMap should return map for checksums array containing multiple `ch
             checksum: 'a06d435b61a55eb5c0f712c1d88ac782'
         },
     ];
-    const expectedChecksumMap = {
-        md5: 'a06d435b61a55eb5c0f712c1d88ac782',
-        sha256: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44'
-    };
 
-    t.deepEqual(getHashesMap(checksumArray), expectedChecksumMap);
+    t.throws(
+        () => getHashesMap(checksumArray),
+        {
+            instanceOf: Error,
+            message: 'Response from DRS Resolution server contained duplicate checksum values for hash type \'md5\' in checksums array!'
+        },
+        'Should have throw error but didnt!'
+    );
 });

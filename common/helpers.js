@@ -240,15 +240,15 @@ function getMd5Checksum(checksums) {
  * @param {string} checksums[].checksum The hex-string encoded checksum for the data
  * @param {string} checksums[].type The digest method used to create the checksum
  * @returns {Object} The checksum map as an object
+ * @throws {Error} throws an error if the checksums[] contains multiple checksum values for same hash type
  */
 function getHashesMap(checksumArray) {
-    /*
-        if there are more than 1 checksum for same type of hash, the last hash value in the checksums array for that
-        type will be taken
-     */
-    return checksumArray.reduce(function(map, obj){
-        map[obj.type] = obj.checksum;
-        return map;
+    return checksumArray.reduce(function(hashMapAsObj, checksumObj){
+        if (!hashMapAsObj.hasOwnProperty(checksumObj.type)) {
+            hashMapAsObj[checksumObj.type] = checksumObj.checksum;
+            return hashMapAsObj;
+        } else throw new Error("Response from DRS Resolution server contained duplicate checksum values for" +
+            ` hash type '${checksumObj.type}' in checksums array!`);
     }, {});
 }
 
