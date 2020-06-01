@@ -1,4 +1,4 @@
-const { dataObjectUriToHttps, parseRequest, getFileInfoFromDrsResponse } = require('../common/helpers');
+const { dataObjectUriToHttps, parseRequest, convertToMarthaV3Response } = require('../common/helpers');
 const { maybeTalkToBond, determineBondProvider, BondProviders } = require('../common/bond');
 const apiAdapter = require('../common/api_adapter');
 
@@ -22,7 +22,7 @@ function getDataObjectMetadata(dataObjectResolutionUrl, auth, bondProvider) {
 function aggregateResponses(responses) {
     const drsResponse = responses[0];
     const googleServiceAccount = responses[1];
-    return getFileInfoFromDrsResponse(drsResponse, googleServiceAccount);
+    return convertToMarthaV3Response(drsResponse, googleServiceAccount);
 }
 
 function marthaV3Handler(req, res) {

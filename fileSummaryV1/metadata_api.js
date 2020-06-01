@@ -1,4 +1,4 @@
-const { dataObjectUriToHttps, convertToFileInfoResponse, samBaseUrl, getMd5Checksum, parseGsUri } = require('../common/helpers');
+const { dataObjectUriToHttps, FileSummaryV1Response, samBaseUrl, getMd5Checksum, parseGsUri } = require('../common/helpers');
 const apiAdapter = require('../common/api_adapter');
 
 function getRawMetadata(token, bucket, name) {
@@ -36,18 +36,18 @@ function getGsObjectMetadata(gsUri, auth) {
                 'last-modified': lastModified, 'x-goog-hash': xGoogHash
             } = response;
 
-            return convertToFileInfoResponse (
+            return new FileSummaryV1Response(
                 contentType,
                 parseInt(contentLength),
                 new Date(lastModified).toString(),
                 null,
-                xGoogHash.substring(xGoogHash.indexOf('md5=') + 4),
                 bucket,
                 name,
                 gsUri,
                 null,
-                null
-          );
+                null,
+                xGoogHash.substring(xGoogHash.indexOf('md5=') + 4)
+            );
         })
         .catch((e) => {
             console.error(new Error(`Failed to get metadata for: ${gsUri}`));
@@ -69,17 +69,17 @@ function getDataObjectMetadata(dataObjectUri) {
             const gsUri = getGsUriFromDataObject(metadata);
             const [bucket, name] = parseGsUri(gsUri);
 
-            return convertToFileInfoResponse(
+            return new FileSummaryV1Response(
                 mimeType || 'application/octet-stream',
                 size,
                 created ? new Date(created).toString() : null,
                 updated ? new Date(updated).toString() : null,
-                getMd5Checksum(checksums),
                 bucket,
                 name,
                 gsUri,
                 null,
-                null
+                null,
+                getMd5Checksum(checksums)
             );
         })
         .catch((e) => {

@@ -48,12 +48,31 @@ It will always return an object with the same properties:
  size:           int,
  timeCreated:    string [the time created, formatted using ISO 8601],
  updated:        string [the time updated, formatted using ISO 8601, or the empty string '' if unknown],
- md5Hash:        string,
  bucket:         string,
  name:           string,
  gsUri:          string,
- googleServiceAccount: string, [null unless the DOS url belongs to a Bond supported host]
- signedUrl:      string [always the empty string '']
+ googleServiceAccount: object, [null unless the DOS url belongs to a Bond supported host]
+ hashes:         object [contains the hashes type and their checksum value]
+```
+
+Example response for /martha_v3:
+
+```
+{
+    "contentType": "application/octet-stream",
+    "size": 156018255,
+    "timeCreated": "2020-04-27T15:56:09.696Z",
+    "updated": "2020-04-27T15:56:09.696Z",
+    "bucket": "my-bucket",
+    "name": "dd3c716a-852f-4d74-9073-9920e835ec8a/f3b148ac-1802-4acc-a0b9-610ea266fb61",
+    "gsUri": "gs://my-bucket/dd3c716a-852f-4d74-9073-9920e835ec8a/f3b148ac-1802-4acc-a0b9-610ea266fb61",
+    "googleServiceAccount": null,
+    "hashes": {
+        "md5": "336ea55913bc261b72875bd259753046",
+        "sha256": "f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44",
+        "crc32c": "8a366443"
+    }
+}
 ```
 
 **NOTE:**

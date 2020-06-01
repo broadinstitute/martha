@@ -42,6 +42,14 @@ const dataRepositoryServiceObject = {
         {
             checksum: '336ea55913bc261b72875bd259753046',
             type: 'md5'
+        },
+        {
+            checksum: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44',
+            type: 'sha256'
+        },
+        {
+            checksum: '8a366443',
+            type: 'crc32c'
         }
     ],
     access_methods: [ // eslint-disable-line camelcase
@@ -62,13 +70,16 @@ const fullExpectedResult = (expectedGoogleServiceAccount) => {
         size: 15601108255,
         timeCreated: '2020-04-27T15:56:09.696Z',
         updated: '2020-04-27T15:56:09.696Z',
-        md5Hash: '336ea55913bc261b72875bd259753046',
         bucket: 'broad-jade-dev-data-bucket',
         name: 'fd8d8492-ad02-447d-b54e-35a7ffd0e7a5/8b07563a-542f-4b5c-9e00-e8fe6b1861de',
         gsUri:
             'gs://broad-jade-dev-data-bucket/fd8d8492-ad02-447d-b54e-35a7ffd0e7a5/8b07563a-542f-4b5c-9e00-e8fe6b1861de',
         googleServiceAccount: expectedGoogleServiceAccount,
-        signedUrl: '',
+        hashes: {
+            md5: '336ea55913bc261b72875bd259753046',
+            sha256: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44',
+            crc32c: '8a366443'
+        }
     };
 };
 
