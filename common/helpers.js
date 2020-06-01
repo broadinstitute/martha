@@ -68,7 +68,7 @@ function determinePathname(someUrl) {
  */
 function preserveHostnameCase(parsedUrl, rawUrl) {
     const hostnameRegExp = new RegExp(parsedUrl.hostname, 'i');
-    parsedUrl.hostname = hostnameRegExp.exec(rawUrl)[0]
+    parsedUrl.hostname = hostnameRegExp.exec(rawUrl)[0];
 }
 
 // 3 Scenarios we need to account for:
@@ -106,56 +106,89 @@ function parseRequest(req) {
     }
 }
 
-class FileInfoResponse {
+/**
+ * CommonFileInfoResponse contains the common properties for response between /martha_v3 and /fileSummaryV1
+ */
+class CommonFileInfoResponse {
     constructor(
         contentType,
         size,
         timeCreated,
         updated,
-        md5Hash,
         bucket,
         name,
         gsUri,
-        googleServiceAccount,
-        signedUrl,
+        googleServiceAccount
     ) {
         this.contentType = contentType || '';
         this.size = size || 0;
         this.timeCreated = timeCreated || '';
         this.updated = updated || '';
-        this.md5Hash = md5Hash || '';
         this.bucket = bucket || '';
         this.name = name || '';
         this.gsUri = gsUri || '';
         this.googleServiceAccount = googleServiceAccount || null;
-        this.signedUrl = signedUrl || '';
     }
 }
 
-function convertToFileInfoResponse (
-    contentType,
-    size,
-    timeCreated,
-    updated,
-    md5Hash,
-    bucket,
-    name,
-    gsUri,
-    googleServiceAccount,
-    signedUrl,
-) {
-    return new FileInfoResponse(
-      contentType,
-      size,
-      timeCreated,
-      updated,
-      md5Hash,
-      bucket,
-      name,
-      gsUri,
-      googleServiceAccount,
-      signedUrl
-    );
+/**
+ * Response class for /martha_v3
+ */
+class MarthaV3Response extends CommonFileInfoResponse {
+    constructor(
+        contentType,
+        size,
+        timeCreated,
+        updated,
+        bucket,
+        name,
+        gsUri,
+        googleServiceAccount,
+        hashesMap
+    ) {
+        super(
+            contentType,
+            size,
+            timeCreated,
+            updated,
+            bucket,
+            name,
+            gsUri,
+            googleServiceAccount
+        );
+        this.hashes = hashesMap || {};
+    }
+}
+
+/**
+ * Response class for /fileSummaryV1
+ */
+class FileSummaryV1Response extends CommonFileInfoResponse {
+    constructor(
+        contentType,
+        size,
+        timeCreated,
+        updated,
+        bucket,
+        name,
+        gsUri,
+        googleServiceAccount,
+        signedUrl,
+        hash
+    ) {
+        super(
+            contentType,
+            size,
+            timeCreated,
+            updated,
+            bucket,
+            name,
+            gsUri,
+            googleServiceAccount
+        );
+        this.md5Hash = hash || '';
+        this.signedUrl = signedUrl || '';
+    }
 }
 
 
@@ -201,6 +234,27 @@ function getMd5Checksum(checksums) {
 }
 
 /**
+ * Transforms the DOS or DRS checksum array into a map where `type` is key and `checksum` is value
+ *
+ * @param {Object[]} checksumArray The checksum of the drs object
+ * @param {string} checksums[].checksum The hex-string encoded checksum for the data
+ * @param {string} checksums[].type The digest method used to create the checksum
+ * @returns {Object} The checksum map as an object
+ * @throws {Error} throws an error if the checksums[] contains multiple checksum values for same hash type
+ */
+function getHashesMap(checksumArray) {
+    return checksumArray.reduce(function(hashMapAsObj, checksumObj){
+        if (!hashMapAsObj.hasOwnProperty(checksumObj.type)) {
+            hashMapAsObj[checksumObj.type] = checksumObj.checksum;
+            return hashMapAsObj;
+        } else {
+            throw new Error('Response from DRS Resolution server contained duplicate checksum values for' +
+                ` hash type '${checksumObj.type}' in checksums array!`);
+        }
+    }, {});
+}
+
+/**
  * Finds the GCS/GS access url if present in the DRS V1.x response
  *
  * @param {Object} drsResponse DRS v1.x response
@@ -219,9 +273,12 @@ function getGsUrlFromDrsObject(drsResponse) {
 }
 
 /**
- * Parses the DRS V1.x response into a FileInfoResponse. NOTE: The response from this function is similar in syntax to
- * the fileSummaryV1 response, however instead of formatting dates with the undefined format returned by
- * Date.prototype.toString(), this function returns dates formatted using ISO 8601.
+ * Parses the DRS V1.x response into a MarthaV3Response.
+ * NOTE: The response from this function is similar in syntax to the fileSummaryV1 response, however
+ *   - instead of formatting dates with the undefined format returned by Date.prototype.toString(), this function
+ *     returns dates formatted using ISO 8601.
+ *   - the checksums array is converted to a map where `checksums[].type` is the key and `checksums[].checksum`
+ *     becomes the value. This map is returned as an object through `hashes` property in the response
  *
  * Input fields are defined by:
  *     https://ga4gh.github.io/data-repository-service-schemas/preview/release/drs-1.0.0/docs/
@@ -242,9 +299,9 @@ function getGsUrlFromDrsObject(drsResponse) {
  * @param {string} [drsResponse.updated_time] Timestamp of content update in RFC3339, identical to created_time in
  *     systems that do not support updates
  * @param {Object} [googleServiceAccount] A google service account json
- * @returns {FileInfoResponse} The drs object converted to a martha file info response
+ * @returns {MarthaV3Response} The drs object converted to a martha file info response
  */
-function getFileInfoFromDrsResponse(drsResponse, googleServiceAccount) {
+function convertToMarthaV3Response(drsResponse, googleServiceAccount) {
     const {
         mime_type: mimeType = 'application/octet-stream',
         size,
@@ -257,32 +314,32 @@ function getFileInfoFromDrsResponse(drsResponse, googleServiceAccount) {
     const updatedTimeIso = updatedTime ? new Date(updatedTime).toISOString() : null;
     const gsUrl = getGsUrlFromDrsObject(drsResponse);
     const [bucket, name] = parseGsUri(gsUrl);
-    const md5Checksum = getMd5Checksum(checksums);
-    const signedUrl = null; // Not included currently when returning only the drs metadata
+    const hashesMap = getHashesMap(checksums);
 
-    return convertToFileInfoResponse(
+    return new MarthaV3Response(
         mimeType,
         size,
         createdTimeIso,
         updatedTimeIso,
-        md5Checksum,
         bucket,
         name,
         gsUrl,
         googleServiceAccount,
-        signedUrl,
+        hashesMap
     );
 }
 
 module.exports = {
     dataObjectUriToHttps,
-    convertToFileInfoResponse,
     samBaseUrl,
     Response,
     promiseHandler,
     parseRequest,
     hasJadeDataRepoHost,
     getMd5Checksum,
-    getFileInfoFromDrsResponse,
+    convertToMarthaV3Response,
     parseGsUri,
+    getHashesMap,
+    FileSummaryV1Response,
+    MarthaV3Response
 };

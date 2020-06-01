@@ -14,7 +14,7 @@ const saKeys = require('../../fileSummaryV1/service_account_keys');
 const metadataApi = require('../../fileSummaryV1/metadata_api');
 const createSignedGsUrl = require('../../common/createSignedGsUrl');
 const apiAdapter = require('../../common/api_adapter');
-const { convertToFileInfoResponse } = require('../../common/helpers');
+const { FileSummaryV1Response } = require('../../common/helpers');
 
 const mockRequest = (req) => {
     req.method = 'POST';
@@ -34,17 +34,17 @@ const mockResponse = () => {
 };
 
 const gsObjectMetadata = () => {
-    return convertToFileInfoResponse(
+    return new FileSummaryV1Response(
         'application/json',
         1234,
         null,
         'Mon, 16 Jul 2018 21:36:14 GMT',
-        'abcdefg',
         'some.fake-location',
         'file.txt',
         'gs://some.fake-location/file.txt',
         null,
-        null
+        null,
+        'abcdefg'
     );
 };
 
@@ -52,17 +52,17 @@ const fakeSignedUrl = 'http://i.am.a.signed.url.com/totallyMadeUp';
 const fakeSAKey = {key: 'I am not real'};
 
 const fullExpectedResult = () => {
-    return convertToFileInfoResponse(
+    return new FileSummaryV1Response(
       'application/json',
       1234,
       null,
       'Mon, 16 Jul 2018 21:36:14 GMT',
-      'abcdefg',
       'some.fake-location',
       'file.txt',
       'gs://some.fake-location/file.txt',
       null,
-      fakeSignedUrl
+      fakeSignedUrl,
+      'abcdefg'
     );
 };
 
