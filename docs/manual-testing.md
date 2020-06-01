@@ -1,4 +1,4 @@
-Martha Manual Test
+Martha in Terra Manual End-to-End Test
 =========
 
 ## Prerequisites
