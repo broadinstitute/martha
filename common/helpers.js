@@ -247,7 +247,7 @@ function getHashesMap(checksumArray) {
         if (!hashMapAsObj.hasOwnProperty(checksumObj.type)) {
             hashMapAsObj[checksumObj.type] = checksumObj.checksum;
             return hashMapAsObj;
-        } else throw new Error("Response from DRS Resolution server contained duplicate checksum values for" +
+        } else throw new Error('Response from DRS Resolution server contained duplicate checksum values for' +
             ` hash type '${checksumObj.type}' in checksums array!`);
     }, {});
 }
