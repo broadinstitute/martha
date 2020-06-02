@@ -1,5 +1,5 @@
 const request = require('superagent');
-const {Response} = require('../common/helpers');
+const { FailureResponse } = require('../common/helpers');
 
 const MAX_RETRY_ATTEMPTS = 5;
 const INITIAL_BACKOFF_DELAY = 1000;
@@ -25,8 +25,6 @@ async function getHeaders(url, authorization) {
         return headers;
     } catch (error) {
         console.error(error);
-        // TODO: capture error here in order to give a more detailed idea of
-        //  what went wrong where (see https://broadworkbench.atlassian.net/browse/WA-13)
         throw error;
     }
 }
@@ -44,21 +42,13 @@ async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL
                 'Creating a response with status 500.');
 
             const errorMsg = `Something went wrong while trying to resolve url '${url}'. It came back with empty JSON body!`;
-            const errorResponseObj = {
-                response: {
-                    status: 500,
-                    text: errorMsg
-                }
-            };
-            throw new Response(500, errorResponseObj);
+            throw new FailureResponse(500, errorMsg);
         }
         else {
             console.log(`Successfully received response from url '${url}'.`);
             return body;
         }
     } catch (error) {
-        // TODO: capture error on lines 56 and 58 in order to give a more detailed idea of
-        //  what went wrong where (see https://broadworkbench.atlassian.net/browse/WA-13)
         console.log(`Received error for url '${url}'. Attempt ${retryAttempt}.`);
         console.error(error);
 

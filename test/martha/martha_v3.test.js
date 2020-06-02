@@ -129,25 +129,37 @@ test.serial('martha_v3 should return 400 if a Data Object without authorization 
     const mockReq = mockRequest({ body: { 'url': 'dos://abc/123' } });
     delete mockReq.headers.authorization;
     await marthaV3(mockReq, response);
+    const result = response.send.lastCall.args[0];
     t.is(response.statusCode, 400);
+    t.is(result.status, 400);
+    t.is(result.response.text, 'Request is invalid. Authorization header is missing.');
 });
 
 test.serial('martha_v3 should return 400 if not given a url', async (t) => {
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'uri': 'dos://abc/123' } }), response);
+    const result = response.send.lastCall.args[0];
     t.is(response.statusCode, 400);
+    t.is(result.status, 400);
+    t.is(result.response.text, 'Request is invalid. URL of a DRS object is missing.');
 });
 
 test.serial('martha_v3 should return 400 if no data is posted with the request', async (t) => {
     const response = mockResponse();
     await marthaV3(mockRequest({}), response);
+    const result = response.send.lastCall.args[0];
     t.is(response.statusCode, 400);
+    t.is(result.status, 400);
+    t.is(result.response.text, 'Request is invalid. URL of a DRS object is missing.');
 });
 
 test.serial('martha_v3 should return 400 if given a \'url\' with an invalid value', async (t) => {
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { url: 'Not a valid URI' } }), response);
+    const result = response.send.lastCall.args[0];
     t.is(response.statusCode, 400);
+    t.is(result.status, 400);
+    t.is(result.response.text, 'The specified URL \'Not a valid URI\' is invalid');
 });
 
 test.serial('martha_v3 should return 502 if Data Object resolution fails', async (t) => {
@@ -156,8 +168,9 @@ test.serial('martha_v3 should return 502 if Data Object resolution fails', async
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
     const result = response.send.lastCall.args[0];
-    t.true(result instanceof Error);
-    t.is(response.statusCode, 502);
+    t.is(response.statusCode, 500);
+    t.is(result.status, 500);
+    t.is(result.response.text, 'Received error while resolving drs url. Data Object Resolution forced to fail by testing stub');
 });
 
 test.serial('martha_v3 should return 502 if key retrieval from bond fails', async (t) => {
@@ -166,8 +179,9 @@ test.serial('martha_v3 should return 502 if key retrieval from bond fails', asyn
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
     const result = response.send.lastCall.args[0];
-    t.true(result instanceof Error);
-    t.is(response.statusCode, 502);
+    t.is(response.statusCode, 500);
+    t.is(result.status, 500);
+    t.is(result.response.text, 'Received error while resolving drs url. Bond key lookup forced to fail by testing stub');
 });
 
 test.serial('martha_v3 calls bond Bond with the "dcf-fence" provider when the Data Object URL host is not "dg.4503"', async (t) => {
