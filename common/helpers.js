@@ -197,12 +197,12 @@ class FileSummaryV1Response extends CommonFileInfoResponse {
  * with additional response.headers and response.req information
  */
 class FailureResponse {
-    constructor(status, message) {
-        this.status = status;
+    constructor(statusCode, message) {
+        this.status = statusCode;
         this.response = {
-            status: status,
+            status: statusCode,
             text: message
-        }
+        };
     }
 }
 

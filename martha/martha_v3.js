@@ -65,7 +65,7 @@ function marthaV3Handler(req, res) {
             console.error(err);
 
             const errorStatusCode = err.status;
-            if (errorStatusCode === undefined) {
+            if (typeof errorStatusCode === 'undefined') {
                 const failureResponse = new FailureResponse(SERVER_ERROR_CODE, `Received error while resolving drs url. ${err.message}`);
                 res.status(SERVER_ERROR_CODE).send(failureResponse);
             } else {
