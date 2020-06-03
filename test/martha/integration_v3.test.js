@@ -78,7 +78,7 @@ test.cb('integration_v3 return error if url passed is not good', (t) => {
         .set('Authorization', `Bearer ${authorizedToken}`)
         .send({ url: 'dos://broad-dsp-dos-TYPO.storage.googleapis.com/something-that-does-not-exist' })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 502, 'Incorrect status code');
+            assert.strictEqual(response.statusCode, 404, 'Incorrect status code');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
@@ -127,7 +127,7 @@ test.cb('integration_v3 fails when "authorization" header is provided for a publ
         .set('Authorization', `Bearer ${unauthorizedToken}`)
         .send({ url: publicFenceUrl })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 502, 'User should not be authorized with provider');
+            assert.strictEqual(response.statusCode, 403, 'User should not be authorized with provider');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
@@ -142,7 +142,7 @@ test.cb('integration_v3 fails when "authorization" header is provided for a publ
         .set('Authorization', 'Bearer badToken')
         .send({ url: publicFenceUrl })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 502, 'Bond should not have authenticated this token');
+            assert.strictEqual(response.statusCode, 401, 'Bond should not have authenticated this token');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
@@ -191,7 +191,7 @@ test.cb('integration_v3 fails when "authorization" header is provided for a prot
         .set('Authorization', `Bearer ${unauthorizedToken}`)
         .send({ url: protectedFenceUrl })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 502, 'User should not be authorized with provider');
+            assert.strictEqual(response.statusCode, 403, 'User should not be authorized with provider');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
@@ -206,7 +206,7 @@ test.cb('integration_v3 fails when "authorization" header is provided for a prot
         .set('Authorization', 'Bearer badToken')
         .send({ url: protectedFenceUrl })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 502, 'Bond should not have authenticated this token');
+            assert.strictEqual(response.statusCode, 403, 'Bond should not have authenticated this token');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
@@ -260,7 +260,7 @@ test.cb('integration_v3 fails when unauthorized user is resolving jade data repo
         .set('Authorization', `Bearer ${unauthorizedToken}`)
         .send({ url: jdrDevTestUrl })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 502, 'This user should be unauthorized in Jade Data Repo');
+            assert.strictEqual(response.statusCode, 500, 'This user should be unauthorized in Jade Data Repo');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
