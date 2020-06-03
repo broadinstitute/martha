@@ -18,10 +18,10 @@ Martha Release Checklist
 1. Deploy and test on dev (including manual test)
     1. Go to the [Jenkins manual deploy project](https://fc-jenkins.dsp-techops.broadinstitute.org/job/martha-manual-deploy/) and click on the "Build with Parameters" link.  For the parameters, you want to select the tag you just created and "dev" as the TARGET.  Do not proceed until the job ends successfully.
         - You will need to be on the Broad network in order to have access.
-    1. [Run the full manual test on the dev environment](manual-testing.md)
+    1. [Run the full manual test on the dev environment](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng)
 1. Deploy and test on the other non-prod environments
     1. Go to the [Jenkins manual deploy project](https://fc-jenkins.dsp-techops.broadinstitute.org/job/martha-manual-deploy/) and click on the "Build with Parameters" link.  For the parameters, you want to select the tag you just created and "staging" as the TARGET.  Do not proceed until the job ends successfully.
-    1. Link your test account to your ERA Commons account on staging (see [the link your account directions](manual-testing.md#link-your-account)) and run the following commands in a terminal
+    1. Link your test account to your ERA Commons account on staging (see [the link your account directions within the manual test doc](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng)) and run the following commands in a terminal
          ```
          gcloud auth login <your test account email>
          curl -X POST https://us-central1-broad-dsde-staging.cloudfunctions.net/martha_v2 -H "Authorization: Bearer $(gcloud auth print-access-token)" -d '{"url": "drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0"}' -H "Content-Type: application/json" | jq
@@ -38,7 +38,7 @@ Martha Release Checklist
           } 
         }
     1. Go to the [Jenkins manual deploy project](https://fc-jenkins.dsp-techops.broadinstitute.org/job/martha-manual-deploy/) and click on the "Build with Parameters" link.  For the parameters, you want to select the tag you just created and "alpha" as the TARGET.  Do not proceed until the job ends successfully.
-    1. Link your test account to your ERA Commons account on alpha (see [the link your account directions](manual-testing.md#link-your-account)) and run the following commands in a terminal
+    1. Link your test account to your ERA Commons account on alpha (see [the link your account directions within the manual test doc](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng)) and run the following commands in a terminal
          ```
          gcloud auth login <your test account email>
          curl -X POST https://us-central1-broad-dsde-alpha.cloudfunctions.net/martha_v2 -H "Authorization: Bearer $(gcloud auth print-access-token)" -d '{"url": "drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0"}' -H "Content-Type: application/json" | jq
@@ -57,4 +57,4 @@ Martha Release Checklist
 1. Deploy and test on prod (including manual test)
      1. Go to the [Jenkins prod manual deploy project](https://fcprod-jenkins.dsp-techops.broadinstitute.org/job/martha-manual-deploy/) and click on the "Build with Parameters" link.  For the parameters, you want to select the tag you just created (you shouldn't have a choice for TARGET).  Do not proceed until the job ends successfully.
          - You will need to be on the Broad network in order to have access.
-     1. [Run the full manual test on the prod environment](manual-testing.md)
+     1. [Run the full manual test on the prod environment](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng)
