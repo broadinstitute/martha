@@ -162,7 +162,7 @@ test.serial('martha_v3 should return 400 if given a \'url\' with an invalid valu
     t.is(result.response.text, 'The specified URL \'Not a valid URI\' is invalid');
 });
 
-test.serial('martha_v3 should return 502 if Data Object resolution fails', async (t) => {
+test.serial('martha_v3 should return 500 if Data Object resolution fails', async (t) => {
     getJsonFromApiStub.restore();
     sandbox.stub(apiAdapter, getJsonFromApiMethodName).rejects(new Error('Data Object Resolution forced to fail by testing stub'));
     const response = mockResponse();
@@ -173,7 +173,7 @@ test.serial('martha_v3 should return 502 if Data Object resolution fails', async
     t.is(result.response.text, 'Received error while resolving drs url. Data Object Resolution forced to fail by testing stub');
 });
 
-test.serial('martha_v3 should return 502 if key retrieval from bond fails', async (t) => {
+test.serial('martha_v3 should return 500 if key retrieval from bond fails', async (t) => {
     getJsonFromApiStub.restore();
     sandbox.stub(apiAdapter, getJsonFromApiMethodName).rejects(new Error('Bond key lookup forced to fail by testing stub'));
     const response = mockResponse();

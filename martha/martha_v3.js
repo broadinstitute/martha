@@ -41,7 +41,7 @@ function marthaV3Handler(req, res) {
         return;
     }
 
-    console.log(`Received URL: ${dataObjectUri}`);
+    console.log(`Received URL '${dataObjectUri}' from IP '${req.ip}'`);
     let dataObjectResolutionUrl;
     try {
         dataObjectResolutionUrl = dataObjectUriToHttps(dataObjectUri);
