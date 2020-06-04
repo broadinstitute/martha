@@ -191,6 +191,21 @@ class FileSummaryV1Response extends CommonFileInfoResponse {
     }
 }
 
+/**
+ * Response class for errors. The purpose behind this class is to have a consistent response format when there is an
+ * error while resolving DRS uri. DRS servers and Bond usually return errors using the below format along
+ * with additional response.headers and response.req information
+ */
+class FailureResponse {
+    constructor(statusCode, message) {
+        this.status = statusCode;
+        this.response = {
+            status: statusCode,
+            text: message
+        };
+    }
+}
+
 
 class Response {
     constructor(status, data) {
@@ -341,5 +356,6 @@ module.exports = {
     parseGsUri,
     getHashesMap,
     FileSummaryV1Response,
-    MarthaV3Response
+    MarthaV3Response,
+    FailureResponse
 };

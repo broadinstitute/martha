@@ -1,6 +1,9 @@
-const { dataObjectUriToHttps, parseRequest, convertToMarthaV3Response } = require('../common/helpers');
+const { dataObjectUriToHttps, parseRequest, convertToMarthaV3Response, FailureResponse } = require('../common/helpers');
 const { maybeTalkToBond, determineBondProvider, BondProviders } = require('../common/bond');
 const apiAdapter = require('../common/api_adapter');
+
+const BAD_REQUEST_ERROR_CODE = 400;
+const SERVER_ERROR_CODE = 500;
 
 
 function validateRequest(dataObjectUri, auth) {
@@ -33,17 +36,19 @@ function marthaV3Handler(req, res) {
         validateRequest(dataObjectUri, auth);
     } catch (error) {
         console.error(error);
-        res.status(400).send(`Request is invalid. ${error.message}`);
+        const failureResponse = new FailureResponse(BAD_REQUEST_ERROR_CODE, `Request is invalid. ${error.message}`);
+        res.status(BAD_REQUEST_ERROR_CODE).send(failureResponse);
         return;
     }
 
-    console.log(`Received URL: ${dataObjectUri}`);
+    console.log(`Received URL '${dataObjectUri}' from IP '${req.ip}'`);
     let dataObjectResolutionUrl;
     try {
         dataObjectResolutionUrl = dataObjectUriToHttps(dataObjectUri);
     } catch (err) {
         console.error(err);
-        res.status(400).send(`The specified URL '${dataObjectUri}' is invalid`);
+        const failureResponse = new FailureResponse(BAD_REQUEST_ERROR_CODE, `The specified URL '${dataObjectUri}' is invalid`);
+        res.status(BAD_REQUEST_ERROR_CODE).send(failureResponse);
         return;
     }
 
@@ -58,7 +63,14 @@ function marthaV3Handler(req, res) {
         .catch((err) => {
             console.log('Received error while either contacting Bond or resolving drs url.');
             console.error(err);
-            res.status(502).send(err);
+
+            const errorStatusCode = err.status;
+            if (typeof errorStatusCode === 'undefined') {
+                const failureResponse = new FailureResponse(SERVER_ERROR_CODE, `Received error while resolving drs url. ${err.message}`);
+                res.status(SERVER_ERROR_CODE).send(failureResponse);
+            } else {
+                res.status(errorStatusCode).send(err);
+            }
         });
 }
 
