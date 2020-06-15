@@ -1,9 +1,11 @@
 const url = require('url');
 const config = require('../config.json');
+const request = require('superagent');
 
 const dataGuidsHostPrefix = 'dg.';
 const dosDataObjectPathPrefix = '/ga4gh/dos/v1/dataobjects/';
 const drsDataObjectPathPrefix = '/ga4gh/drs/v1/objects/';
+const dataObjectPathPrefixes = [drsDataObjectPathPrefix, dosDataObjectPathPrefix];
 const jadeDataRepoHostRegex = /jade.*\.datarepo-.*\.broadinstitute\.org/;
 
 // Regex drops any leading or trailing "/" characters and gives the path out of capture group 1
@@ -49,16 +51,6 @@ function determineHostname(someUrl) {
     return isDataGuidsUrl(someUrl) ? config.dataObjectResolutionHost : someUrl.hostname;
 }
 
-function determinePathname(someUrl) {
-    if (isDataGuidsUrl(someUrl)) {
-        return constructPath([dosDataObjectPathPrefix, someUrl.hostname, someUrl.pathname]);
-    } else if (hasJadeDataRepoHost(someUrl)) {
-        return constructPath([drsDataObjectPathPrefix, someUrl.pathname]);
-    } else {
-        return constructPath([dosDataObjectPathPrefix, someUrl.pathname]);
-    }
-}
-
 /**
  * URI Scheme and Host parts are case insensitive:  https://stackoverflow.com/questions/15641694/are-uris-case-insensitive
  * When parsing a DOS URI into a resolvable HTTP URL, we use the Host part from the DOS URI in the Path part of the
@@ -82,20 +74,31 @@ function dataObjectUriToHttps(dataObjectUri) {
     }
 
     preserveHostnameCase(parsedUrl, dataObjectUri);
-
     validateDataObjectUrl(parsedUrl);
 
     const resolutionUrlParts = {
         protocol: 'https',
         hostname: determineHostname(parsedUrl),
         port: parsedUrl.port,
-        pathname: determinePathname(parsedUrl),
         search: parsedUrl.search
     };
 
-    const output = url.format(resolutionUrlParts);
-    console.log(`Converting DRS URI to HTTPS: ${dataObjectUri} -> ${output}`);
-    return output;
+    // check all the possible dataObject paths and return a URL with the first one that works
+    for (let i = 0; i < dataObjectPathPrefixes.length; i++) {
+        const tryResolutionUrlParts = {
+            protocol: 'https',
+            hostname: determineHostname(parsedUrl),
+            port: parsedUrl.port,
+            pathname: dataObjectPathPrefixes[i],
+            search: parsedUrl.search
+        };
+
+        if (testUrlPath(url.format(tryResolutionUrlParts))) {
+            resolutionUrlParts.pathname = dataObjectPathPrefixes[i] + parsedUrl.pathname;
+        }
+    }
+
+    return url.format(resolutionUrlParts);
 }
 
 // This function counts on the request posing data as "application/json" content-type.
@@ -342,6 +345,23 @@ function convertToMarthaV3Response(drsResponse, googleServiceAccount) {
         googleServiceAccount,
         hashesMap
     );
+}
+
+async function testUrlPath(url) {
+    try {
+        const {status} = await request('get', url);
+
+        console.log('------------------------ status ------------')
+        console.log(status)
+
+        if (status == 200) {
+            return true;
+        }
+        return false;
+
+    } catch (err) {
+        console.error(err);
+    }
 }
 
 module.exports = {
