@@ -97,8 +97,9 @@ function dataObjectUriToHttps(dataObjectUri) {
             resolutionUrlParts.pathname = dataObjectPathPrefixes[i] + parsedUrl.pathname;
         }
     }
-
-    return url.format(resolutionUrlParts);
+    const output = url.format(resolutionUrlParts)
+    console.log(`Converting DRS URI to HTTPS: ${dataObjectUri} -> ${output}`);
+    return output;
 }
 
 // This function counts on the request posing data as "application/json" content-type.
@@ -350,10 +351,6 @@ function convertToMarthaV3Response(drsResponse, googleServiceAccount) {
 async function testUrlPath(url) {
     try {
         const {status} = await request('get', url);
-
-        console.log('------------------------ status ------------')
-        console.log(status)
-
         if (status == 200) {
             return true;
         }
