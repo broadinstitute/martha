@@ -360,7 +360,7 @@ async function getMetadataFromAllDataObjectPaths(dataObjectUri, auth) {
             protocol: 'https',
             hostname: determineHostname(parsedUrl),
             port: parsedUrl.port,
-            pathname: (dataObjectPathPrefixes[i] + parsedUrl.pathname).replace('//', '/'),
+            pathname: (dataObjectPathPrefixes[i] + parsedUrl.hostname + parsedUrl.pathname),
             search: parsedUrl.search
         };
         try {
