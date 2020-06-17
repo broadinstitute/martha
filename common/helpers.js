@@ -1,9 +1,11 @@
 const url = require('url');
 const config = require('../config.json');
+const { getJsonFrom } = require('./api_adapter');
 
 const dataGuidsHostPrefix = 'dg.';
 const dosDataObjectPathPrefix = '/ga4gh/dos/v1/dataobjects/';
 const drsDataObjectPathPrefix = '/ga4gh/drs/v1/objects/';
+const dataObjectPathPrefixes = [drsDataObjectPathPrefix, dosDataObjectPathPrefix];
 const jadeDataRepoHostRegex = /jade.*\.datarepo-.*\.broadinstitute\.org/;
 
 // Regex drops any leading or trailing "/" characters and gives the path out of capture group 1
@@ -344,6 +346,38 @@ function convertToMarthaV3Response(drsResponse, googleServiceAccount) {
     );
 }
 
+async function getMetadataFromAllDataObjectPaths(dataObjectUri, auth) {
+    const parsedUrl = url.parse(dataObjectUri);
+    if (parsedUrl.pathname === '/') {
+        parsedUrl.pathname = null;
+    }
+    preserveHostnameCase(parsedUrl, dataObjectUri);
+    validateDataObjectUrl(parsedUrl);
+
+    // check all the possible dataObject paths and return a URL with the first one that works
+    for (let i = 0; i < dataObjectPathPrefixes.length; i++) {
+        const resolutionUrlParts = {
+            protocol: 'https',
+            hostname: determineHostname(parsedUrl),
+            port: parsedUrl.port,
+            pathname: (dataObjectPathPrefixes[i] + parsedUrl.pathname).replace('//', '/'),
+            search: parsedUrl.search
+        };
+        try {
+            return await getJsonFrom(url.format(resolutionUrlParts), auth);
+        } catch (err) {
+            // if the response is 'not found' or this is the end of the for loop, don't try again
+            // otherwise, continue to the next dataObjectPathPrefix
+            if (err.status !== 404 || i === (dataObjectPathPrefixes.length - 1)) {
+                console.error(err);
+                throw err;
+            } else {
+                console.log('Got a 404 using dataObjectPathPrefix ' + dataObjectPathPrefixes[i] + ' and there are more paths to try.');
+            }
+        }
+    }
+}
+
 module.exports = {
     dataObjectUriToHttps,
     samBaseUrl,
@@ -355,6 +389,7 @@ module.exports = {
     convertToMarthaV3Response,
     parseGsUri,
     getHashesMap,
+    getMetadataFromAllDataObjectPaths,
     FileSummaryV1Response,
     MarthaV3Response,
     FailureResponse

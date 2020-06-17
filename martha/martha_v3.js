@@ -1,6 +1,5 @@
-const { dataObjectUriToHttps, parseRequest, convertToMarthaV3Response, FailureResponse } = require('../common/helpers');
+const { getMetadataFromAllDataObjectPaths, parseRequest, convertToMarthaV3Response, FailureResponse } = require('../common/helpers');
 const { maybeTalkToBond, determineBondProvider, BondProviders } = require('../common/bond');
-const apiAdapter = require('../common/api_adapter');
 
 const BAD_REQUEST_ERROR_CODE = 400;
 const SERVER_ERROR_CODE = 500;
@@ -14,11 +13,11 @@ function validateRequest(dataObjectUri, auth) {
     }
 }
 
-function getDataObjectMetadata(dataObjectResolutionUrl, auth, bondProvider) {
+function getDataObjectMetadata(dataObjectResolutionUri, auth, bondProvider) {
     if (bondProvider === BondProviders.JADE_DATA_REPO) {
-        return apiAdapter.getJsonFrom(dataObjectResolutionUrl, auth);
+        return getMetadataFromAllDataObjectPaths(dataObjectResolutionUri, auth);
     } else {
-        return apiAdapter.getJsonFrom(dataObjectResolutionUrl);
+        return getMetadataFromAllDataObjectPaths(dataObjectResolutionUri);
     }
 }
 
@@ -42,18 +41,9 @@ function marthaV3Handler(req, res) {
     }
 
     console.log(`Received URL '${dataObjectUri}' from IP '${req.ip}'`);
-    let dataObjectResolutionUrl;
-    try {
-        dataObjectResolutionUrl = dataObjectUriToHttps(dataObjectUri);
-    } catch (err) {
-        console.error(err);
-        const failureResponse = new FailureResponse(BAD_REQUEST_ERROR_CODE, `The specified URL '${dataObjectUri}' is invalid`);
-        res.status(BAD_REQUEST_ERROR_CODE).send(failureResponse);
-        return;
-    }
 
     const bondProvider = determineBondProvider(dataObjectUri);
-    const dataObjectPromise = getDataObjectMetadata(dataObjectResolutionUrl, auth, bondProvider);
+    const dataObjectPromise = getDataObjectMetadata(dataObjectUri, auth, bondProvider);
     const bondPromise = maybeTalkToBond(req, bondProvider);
 
     return Promise.all([dataObjectPromise, bondPromise])
