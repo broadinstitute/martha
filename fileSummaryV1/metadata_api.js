@@ -97,3 +97,4 @@ async function getMetadata(url, auth, isDataObjectUrl) {
 }
 
 exports.getMetadata = getMetadata;
+exports.getGsUriFromDataObject = getGsUriFromDataObject;

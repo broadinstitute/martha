@@ -1,11 +1,46 @@
 const url = require('url');
 const config = require('../config.json');
 const { getJsonFrom } = require('./api_adapter');
+const { getGsUriFromDataObject } = require('../fileSummaryV1/metadata_api')
 
 const dataGuidsHostPrefix = 'dg.';
 const dosDataObjectPathPrefix = '/ga4gh/dos/v1/dataobjects/';
 const drsDataObjectPathPrefix = '/ga4gh/drs/v1/objects/';
-const dataObjectPathPrefixes = [drsDataObjectPathPrefix, dosDataObjectPathPrefix];
+
+class ResponseStandard {
+    constructor(pathPrefix, converter) {
+        this.pathPrefix = pathPrefix;
+        this.converter = converter;
+    }
+}
+
+const drsConverter = async function(drsResponse) { return drsResponse; };
+
+const dosConverter = async function(dosResponse) {
+    const metadata = dosResponse.data_object;
+    const { mimeType, size, created, updated, checksums  } = metadata;
+    const gsUrl = getGsUriFromDataObject(metadata);
+    const [bucket, name] = parseGsUri(gsUrl);
+    const hashesMap = getHashesMap(checksums);
+
+    return new MarthaV3Response(
+        mimeType || 'application/octet-stream',
+        size,
+        created ? new Date(created).toString() : null,
+        updated ? new Date(updated).toString() : null,
+        bucket,
+        name,
+        gsUrl,
+        null,
+        hashesMap
+    );
+};
+
+const dataObjectStandards = [
+    new ResponseStandard(drsDataObjectPathPrefix, drsConverter),
+    new ResponseStandard(dosDataObjectPathPrefix, dosConverter)
+];
+
 const jadeDataRepoHostRegex = /jade.*\.datarepo-.*\.broadinstitute\.org/;
 
 // Regex drops any leading or trailing "/" characters and gives the path out of capture group 1
@@ -208,7 +243,6 @@ class FailureResponse {
     }
 }
 
-
 class Response {
     constructor(status, data) {
         this.status = status;
@@ -325,11 +359,12 @@ function convertToMarthaV3Response(drsResponse, googleServiceAccount) {
         created_time: createdTime,
         updated_time: updatedTime,
         checksums,
+        gsUri
     } = drsResponse;
 
     const createdTimeIso = createdTime ? new Date(createdTime).toISOString() : null;
     const updatedTimeIso = updatedTime ? new Date(updatedTime).toISOString() : null;
-    const gsUrl = getGsUrlFromDrsObject(drsResponse);
+    const gsUrl = gsUri || getGsUrlFromDrsObject(drsResponse);
     const [bucket, name] = parseGsUri(gsUrl);
     const hashesMap = getHashesMap(checksums);
 
@@ -348,31 +383,40 @@ function convertToMarthaV3Response(drsResponse, googleServiceAccount) {
 
 async function getMetadataFromAllDataObjectPaths(dataObjectUri, auth) {
     const parsedUrl = url.parse(dataObjectUri);
+    // let errorMessage = '';
     if (parsedUrl.pathname === '/') {
         parsedUrl.pathname = null;
     }
     preserveHostnameCase(parsedUrl, dataObjectUri);
     validateDataObjectUrl(parsedUrl);
 
+
     // check all the possible dataObject paths and return a URL with the first one that works
-    for (let i = 0; i < dataObjectPathPrefixes.length; i++) {
+    for (let i = 0; i < dataObjectStandards.length; i++) {
         const resolutionUrlParts = {
             protocol: 'https',
             hostname: determineHostname(parsedUrl),
             port: parsedUrl.port,
-            pathname: (dataObjectPathPrefixes[i] + parsedUrl.hostname + parsedUrl.pathname),
+            pathname: (dataObjectStandards[i].pathPrefix + parsedUrl.hostname + parsedUrl.pathname),
             search: parsedUrl.search
         };
         try {
-            return await getJsonFrom(url.format(resolutionUrlParts), auth);
+            // need to run data converter function on response to normalize
+            return await dataObjectStandards[i].converter(await getJsonFrom(url.format(resolutionUrlParts), auth));
         } catch (err) {
             // if the response is 'not found' or this is the end of the for loop, don't try again
             // otherwise, continue to the next dataObjectPathPrefix
-            if (err.status !== 404 || i === (dataObjectPathPrefixes.length - 1)) {
-                console.error(err);
+            if (err.status !== 404 || i === (dataObjectStandards.length - 1)) {
+                // if (err.message) {
+                //     err.message += errorMessage;
+                // }
+                // else {
+                //     err.message = errorMessage;
+                // }
                 throw err;
             } else {
-                console.log('Got a 404 using dataObjectPathPrefix ' + dataObjectPathPrefixes[i] + ' and there are more paths to try.');
+                // errorMessage += "Tried " + url.format(resolutionUrlParts) + " and could not find anything\n";
+                console.log('Got a 404 using dataObjectPathPrefix ' + dataObjectStandards[i] + ' and there are more paths to try.');
             }
         }
     }
