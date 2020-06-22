@@ -14,30 +14,44 @@ class ResponseStandard {
     }
 }
 
-const drsConverter = async function(drsResponse) { return drsResponse; };
+function convertToCommonResponse (response) {
+    const {access_methods, aliases, checksums, created_time, description, id, mime_type, name, self_uri, size, updated_time, version, gsUri} = response;
+    return {
+        access_methods,
+        aliases,
+        checksums,
+        created_time,
+        description,
+        id,
+        mime_type,
+        name,
+        self_uri,
+        size,
+        updated_time,
+        version,
+        gsUri
+    }
+}
 
 const dosConverter = async function(dosResponse) {
     const metadata = dosResponse.data_object;
-    const { mimeType, size, created, updated, checksums  } = metadata;
-    const gsUrl = getGsUriFromDataObject(metadata);
-    const [bucket, name] = parseGsUri(gsUrl);
-    const hashesMap = getHashesMap(checksums);
+    const { mimeType, size, created, updated, checksums, urls, version } = metadata;
+    const gsUri = getGsUriFromDataObject(metadata);
 
-    return new MarthaV3Response(
-        mimeType || 'application/octet-stream',
-        size,
-        created ? new Date(created).toString() : null,
-        updated ? new Date(updated).toString() : null,
-        bucket,
-        name,
-        gsUrl,
-        null,
-        hashesMap
-    );
+    return convertToCommonResponse({
+        mime_type: mimeType || 'application/octet-stream',
+        size: size,
+        created_time: created ? new Date(created).toString() : null,
+        updated_time: updated ? new Date(updated).toString() : null,
+        access_methods:  urls,
+        checksums:  checksums,
+        version: version,
+        gsUri: gsUri
+    });
 };
 
 const dataObjectStandards = [
-    new ResponseStandard(drsDataObjectPathPrefix, drsConverter),
+    new ResponseStandard(drsDataObjectPathPrefix, convertToCommonResponse),
     new ResponseStandard(dosDataObjectPathPrefix, dosConverter)
 ];
 
