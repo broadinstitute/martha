@@ -13,6 +13,9 @@ function validateRequest(dataObjectUri, auth) {
     }
 }
 
+/**
+ * Try DRS (and then DOS if that fails) and return a standard DRS response if found.
+ */
 function getDataObjectMetadata(dataObjectResolutionUri, auth, bondProvider) {
     if (bondProvider === BondProviders.JADE_DATA_REPO) {
         return getMetadataFromAllDataObjectPaths(dataObjectResolutionUri, auth);

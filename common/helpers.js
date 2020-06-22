@@ -14,49 +14,85 @@ class ResponseStandard {
     }
 }
 
-function convertToCommonResponse (response) {
-    const {access_methods, aliases, checksums, created_time, description, id, mime_type, name, self_uri, size, updated_time, version, gsUri} = response;
-    return {
-        access_methods,
-        aliases,
-        checksums,
-        created_time,
-        description,
-        id,
-        mime_type,
-        name,
-        self_uri,
-        size,
-        updated_time,
-        version,
-        gsUri
-    }
-}
+/**
+ *  This is a pass-through function to accommodate DOS responses that need to normalized
+ *  -- see dosConverter() below.
+ *
+ *  DRS response example:
+ *  {
+ *       access_methods: [ {
+ *          access_id: 'gs',
+ *          access_url: { url: 'gs://project/object/path' },
+ *          region: '',
+ *          type: 'gs'
+ *       } ],
+ *       aliases: [],
+ *       checksums: [ { checksum: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', type: 'md5' } ],
+ *       contents: [],
+ *       created_time: '2000-01-01T00:00:00.000000',
+ *       description: '',
+ *       id: 'dg.xxxxx/yyyyyy-zzzzzz',
+ *       mime_type: 'application/json',
+ *       name: null,
+ *       self_uri: 'drs://shost.com/dg.xxxxx/yyyyyy-zzzzzz',
+ *       size: 1000000,
+ *       updated_time: '2000-01-01T00:00:00.000000',
+ *       version: 'bbbbbbb'
+ *  }
+ */
+function drsConverter(response) { return response; }
 
-const dosConverter = async function(dosResponse) {
+/**
+ *  This function coverts that response to match what a DRS host will return --
+ *  see drsConverter() above for example.
+ *
+ *  DOS response example:
+ *   {
+ *       data_object: {
+ *           aliases: [],
+ *           checksums: [ { checksum: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', type: 'md5' } ],
+ *           created: '2000-01-01T00:00:00.000000',
+ *           description: '',
+ *           id: 'dg.xxxxx/yyyyyy-zzzzzz',
+ *           mime_type: '',
+ *           name: '',
+ *           size: 1000000,
+ *           updated: '2000-01-01T00:00:00.000000',
+ *           urls: [
+ *               {
+ *                   url: 'gs://project/object/path'
+ *               }
+ *           ],
+ *           version: 'bbbbbbb'
+ *       }
+ *   }
+ */
+function dosConverter(dosResponse) {
     const metadata = dosResponse.data_object;
-    const { mimeType, size, created, updated, checksums, urls, version } = metadata;
+    const { aliases, checksums, created, description, id, mime_type, name, size, updated, version } = metadata;
     const gsUri = getGsUriFromDataObject(metadata);
 
-    return convertToCommonResponse({
-        mime_type: mimeType || 'application/octet-stream',
-        size: size,
-        created_time: created ? new Date(created).toString() : null,
-        updated_time: updated ? new Date(updated).toString() : null,
-        access_methods:  urls,
-        checksums:  checksums,
-        version: version,
-        gsUri: gsUri
-    });
+    return {
+        aliases,
+        checksums,
+        created_time: created,
+        description,
+        gsUri,
+        id,
+        mime_type: mime_type,
+        name,
+        size,
+        updated_time: updated,
+        version,
+    };
 };
 
 const dataObjectStandards = [
-    new ResponseStandard(drsDataObjectPathPrefix, convertToCommonResponse),
+    new ResponseStandard(drsDataObjectPathPrefix, drsConverter),
     new ResponseStandard(dosDataObjectPathPrefix, dosConverter)
 ];
 
 const jadeDataRepoHostRegex = /jade.*\.datarepo-.*\.broadinstitute\.org/;
-
 // Regex drops any leading or trailing "/" characters and gives the path out of capture group 1
 const pathSlashRegex = /^\/?([^/]+.*?)\/?$/;
 
@@ -395,6 +431,9 @@ function convertToMarthaV3Response(drsResponse, googleServiceAccount) {
     );
 }
 
+/**
+ * Check all the possible dataObject paths and return the data converted to a DRS-style response.
+ */
 async function getMetadataFromAllDataObjectPaths(dataObjectUri, auth) {
     const parsedUrl = url.parse(dataObjectUri);
     // let errorMessage = '';
@@ -404,8 +443,6 @@ async function getMetadataFromAllDataObjectPaths(dataObjectUri, auth) {
     preserveHostnameCase(parsedUrl, dataObjectUri);
     validateDataObjectUrl(parsedUrl);
 
-
-    // check all the possible dataObject paths and return a URL with the first one that works
     for (let i = 0; i < dataObjectStandards.length; i++) {
         const resolutionUrlParts = {
             protocol: 'https',
@@ -415,12 +452,15 @@ async function getMetadataFromAllDataObjectPaths(dataObjectUri, auth) {
             search: parsedUrl.search
         };
         try {
-            // need to run data converter function on response to normalize
-            return await dataObjectStandards[i].converter(await getJsonFrom(url.format(resolutionUrlParts), auth));
+            return dataObjectStandards[i].converter(await getJsonFrom(url.format(resolutionUrlParts), auth));
         } catch (err) {
-            // if the response is 'not found' or this is the end of the for loop, don't try again
-            // otherwise, continue to the next dataObjectPathPrefix
-            if (err.status !== 404 || i === (dataObjectStandards.length - 1)) {
+            /**
+             *  if the response is 404 'not found' (or 403 in the case of drs.data.humancellatlas.org, which
+             *  does not support DRS, but is returning an HTTP 403 for the missing protocol prefix
+             *  implementation) or this is the end of the for loop, don't try again, otherwise, continue to
+             *  the next dataObjectPathPrefix
+             */
+            if ( [403, 404].includes(err.status) || i === (dataObjectStandards.length - 1)) {
                 // if (err.message) {
                 //     err.message += errorMessage;
                 // }
