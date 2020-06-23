@@ -320,7 +320,7 @@ module.exports = {
         ],
         "vars-on-top": "error",                      // require variable declarations to be at the top of their scope
         "wrap-iife": "error",                        // requires all immediately-invoked function expressions to be wrapped in parentheses
-        "wrap-regex": "error",                       // requires regex expressions to be wrapped using parentheses to make it more readable
+        "wrap-regex": "error",                       // requires regex expressions to be wrapped using parentheses to make them more readable
         "yield-star-spacing": "error",               // enforces spacing around the '*' in 'yield*' expressions. Default: {"before": false, "after": true}
         "yoda": [                                    // enforce consistent style of conditions which compare a variable to a literal value
             "error",
