@@ -20,14 +20,14 @@ function getDataObjectMetadata(dataObjectResolutionUrl, auth, bondProvider) {
 }
 
 function aggregateResponses(responses) {
-    const drsResponse = responses[0];
-    const googleServiceAccount = responses[1];
+    var drsResponse = responses[0];
+    var googleServiceAccount = responses[1];
     return convertToMarthaV3Response(drsResponse, googleServiceAccount);
 }
 
 function marthaV3Handler(req, res) {
-    const dataObjectUri = parseRequest(req);
-    const auth = req.headers.authorization;
+    var dataObjectUri = parseRequest(req)
+    var auth = req.headers.authorization
 
     try {
         validateRequest(dataObjectUri, auth);
