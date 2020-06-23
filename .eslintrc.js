@@ -76,7 +76,10 @@ module.exports = {
             "property"                               // property: dot in a member expression should be on the same line as the property portion
         ],
         "dot-notation": "error",                     // require dot notation over square bracket notation
-        "eol-last":["error", "always"],              // enforces at least one newline at the end of non-empty files
+        "eol-last": [                                // enforces at least one newline at the end of non-empty files
+            "error",
+            "always"
+        ],
         "eqeqeq": "error",                           // eliminates type-unsafe equality operators. Default: always
         "func-call-spacing": "error",                // disallow spacing between function identifiers and their invocations
         "func-name-matching": "error",               // require function names to match the name of the variable or property to which they are assigned

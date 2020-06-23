@@ -12,7 +12,7 @@
     "integration_v2": "ava -m integration_v2*",
     "integration_v3": "ava --timeout 10m --match integration_v3*",
     "integration_fileSummaryV1": "ava -m integration_fileSummaryV1*",
-    "lint": "eslint index.js common fileSummaryV1 handlers martha test"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@google-cloud/storage": "^2.5.0",
