@@ -12,20 +12,6 @@ run_env_setup: &run_env_setup
       source $BASH_ENV
 
 jobs:
-  lint:
-    docker:
-      - image: circleci/node:12.16.1
-
-    working_directory: ~/repo
-
-    steps:
-      - checkout
-      - run:
-          name: Run ESLint
-          command: |
-            npm install
-            npm run lint
-
   test:
     docker:
       - image: circleci/node:12.16.1
@@ -96,12 +82,10 @@ workflows:
   version: 2
   test-and-tag:
     jobs:
-      - lint
       - test
       - build-image
       - tag:
           requires:
-            - lint
             - test
             - build-image
           filters:
