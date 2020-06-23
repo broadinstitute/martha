@@ -203,6 +203,27 @@ is used.
   * Testing functions that require you to include `header` information in the request (such as an `authorization` header)
     will require you to use a tool like `curl` to test the function. To get the URL for the function running on your local
     emulator, run the command: `functions describe <service>`
+    
+## ESLint 
+ESLint is a tool for identifying and reporting on patterns found in ECMAScript/JavaScript code, with the goal of making code more consistent and avoiding bugs.
+More information can be found on it's [website](https://eslint.org/).
+
+### Installation and Usage
+Prerequisites: Node.js (^10.12.0, or >=12.0.0) built with SSL support
+* Install ESLint using npm or yarn:
+  `npm install eslint --save-dev`
+  or
+  `yarn add eslint --dev`
+* One can setup their own configuration file using `npx eslint --init` (and prompts followed) or use the `.eslintrc.js` file 
+found at root of this project
+* Run ESLint on any specific file or directory `npx eslint <file_name or directory_name>`. To run ESLint from the root of the project
+use `npx eslint .`
+  
+### Fix Automatically
+Many problems ESLint finds can be automatically fixed. When ESLint is run on file or directory, at the end it states how many errors or warning can be 
+fixed automatically. `--fix` option on the command line can be used for this. 
+
+Run the `npx` command using `--fix` flag: `npx eslint <file_name/directory_name> --fix`
 
 ## Google Cloud Functions (GCF) Emulator
 * The emulator can be started/stopped/killed with following commands
