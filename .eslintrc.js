@@ -244,7 +244,7 @@ module.exports = {
         "nonblock-statement-body-position": "error", // enforce a consistent location for single-line statements. Default: 'besides'- disallows a newline before a single-line statement
         "object-curly-newline": [                    // enforces consistent line breaks inside braces
             "error",
-            { "consistent": true }                   // consistent: requires that either both curly braces, or neither, directly enclose newlines
+            { "consistent": true }                   // consistent: requires that both open and closing curly braces are consistent on whether they directly enclose newlines
         ],
         "object-curly-spacing": "off",               // enforces consistent spacing inside braces of object literals, destructuring assignments, and import/export specifiers
         "object-shorthand": "off",                   // enforces the use of the shorthand syntax
