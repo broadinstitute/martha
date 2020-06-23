@@ -94,10 +94,12 @@ workflows:
   version: 2
   test-and-tag:
     jobs:
+      - lint
       - test
       - build-image
       - tag:
           requires:
+            - lint
             - test
             - build-image
           filters:
