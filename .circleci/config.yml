@@ -22,7 +22,9 @@ jobs:
       - checkout
       - run:
           name: Run ESLint
-          command: npm run lint
+          command: |
+            npm install
+            npm run lint
 
   test:
     docker:
