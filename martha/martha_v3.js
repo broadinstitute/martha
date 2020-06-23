@@ -41,6 +41,9 @@ function marthaV3Handler(req, res) {
         return;
     }
 
+    // !!!!!!!!!!!!!!! REMOVE BEFORE MERGING !!!!!!!!!!!!!!!!
+    console.log('Extra log message to check if Codacy ran on the PR. Remove this before merging');
+
     console.log(`Received URL '${dataObjectUri}' from IP '${req.ip}'`);
     let dataObjectResolutionUrl;
     try {

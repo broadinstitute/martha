@@ -93,9 +93,9 @@ module.exports = {
             "consistent"
         ],
         "function-paren-newline": "off",             // enforce consistent line breaks inside function parentheses
-        "generator-star-spacing": "error",           // enforce spacing around the * in generator functions
+        "generator-star-spacing": "error",           // enforce spacing around the '*' in generator functions
         "grouped-accessor-pairs": "error",           // requires grouped definitions of accessor functions for the same property in object literals, class declarations and class expressions
-        "guard-for-in": "error",                     // prevents unexpected behavior that could arise from using a `for in` loop without filtering the results
+        "guard-for-in": "error",                     // prevents unexpected behavior that could arise from using a 'for in' loop without filtering the results
         "id-blacklist": [                            // disallows specified identifiers in assignments and function definitions
             "error",
             "callback"
@@ -110,7 +110,7 @@ module.exports = {
         "id-match": "error",
         "implicit-arrow-linebreak": [                // enforce a consistent location for an arrow function containing an implicit return
             "error",
-            "beside"                                 // 'beside'- disallows a newline before an arrow function body
+            "beside"                                 // beside: disallows a newline before an arrow function body
         ],
         "indent": "error",                           // enforces a consistent indentation style. Default is 4 spaces
         "init-declarations": "off",                  // enforcing or eliminating variable initializations during declaration
@@ -156,10 +156,10 @@ module.exports = {
         "no-duplicate-imports": "error",             // requires that all imports from a single module exists in a single import statement
         "no-else-return": "off",                     // disallow unnecessary block of code following an if containing a return statement
         "no-empty-function": "error",                // disallow empty functions
-        "no-eq-null": "error",                       // disallow null comparisons using == or !=
+        "no-eq-null": "error",                       // disallow null comparisons using '==' or '!='
         "no-eval": "error",                          // disallow use of eval() function
         "no-extend-native": "error",                 // disallow directly modifying the prototype of builtin objects
-        "no-extra-bind": "error",                    // disallow unnecessary function binding using bind() function
+        "no-extra-bind": "error",                    // disallow unnecessary function binding using 'bind()' function
         "no-extra-label": "error",                   // disallow unnecessary labels
         "no-extra-parens": "off",                    // disallow unnecessary extra parentheses
         "no-floating-decimal": "error",              // disallow floating decimals (for eg: .5) to make it clear if it's a decimal or dot operator
@@ -169,7 +169,7 @@ module.exports = {
         "no-implied-eval": "error",                  // aims to eliminate implied eval() through the use of setTimeout(), setInterval() or execScript()
         "no-inline-comments": "off",                 // disallows comments on the same line as code
         "no-invalid-this": "error",                  // aims to flag usage of this keywords outside of classes or class-like objects
-        "no-iterator": "error",                      // aims at preventing errors that may arise from using the __iterator__ property
+        "no-iterator": "error",                      // aims at preventing errors that may arise from using the '__iterator__' property
         "no-label-var": "error",                     // disallow labels that are variable names
         "no-labels": "error",                        // disallow use of labeled statements
         "no-lone-blocks": "error",                   // disallow lone or nested blocks
@@ -202,8 +202,8 @@ module.exports = {
         "no-new-wrappers": "error",                  // disallow use of String, Number, and Boolean with the new operator
         "no-octal-escape": "error",                  // disallow octal escape sequences in string literals
         "no-param-reassign": "error",                // disallow reassignment of function parameters
-        "no-plusplus": "error",                      // disallow the unary operators ++ and --
-        "no-proto": "error",                         // disallow use of __proto__
+        "no-plusplus": "error",                      // disallow the unary operators '++' and '--'
+        "no-proto": "error",                         // disallow use of '__proto__'
         "no-restricted-exports": "off",              // disallow specified names from being used as exported names
         "no-restricted-globals": "off",              // allows you to specify global variable names that you don't want to use in your application
         "no-restricted-imports": "off",              // allows you to specify imports that you don't want to use in your application
@@ -211,7 +211,7 @@ module.exports = {
         "no-restricted-syntax": "off",               // disallow user specified syntax
         "no-return-assign": "error",                 // disallow assignments in return statements. Default: except-parens- disallow assignments unless they are enclosed in parentheses
         "no-return-await": "error",                  // disallow return await inside async function
-        "no-script-url": "error",                    // disallow script urls i.e. usage of `javascript:URL`
+        "no-script-url": "error",                    // disallow script urls i.e. usage of 'javascript:URL'
         "no-self-compare": "error",                  // disallow comparing something to itself
         "no-sequences": "error",                     // disallow use of comma operator
         "no-shadow": "off",                          // disallow variable declarations from shadowing variables declared in the outer scope
@@ -227,7 +227,7 @@ module.exports = {
         "no-unneeded-ternary": "error",              // disallow ternary operators when simpler alternatives exist
         "no-unused-expressions": "error",            // disallow unused expressions which have no effect on the state of the program
         "no-use-before-define": "error",             // disallow reference to an identifier that has not yet been declared
-        "no-useless-backreference": "error",         // detect and disallow the following backreferences in regular expression
+        "no-useless-backreference": "error",         // detect and disallow the following back-references in regular expression
         "no-useless-call": "error",                  // disallow usage of Function.prototype.call() and Function.prototype.apply() that can be replaced with the normal function invocation
         "no-useless-computed-key": "error",          // disallow unnecessary usage of computed property keys
         "no-useless-concat": "error",                // disallow concatenation of 2 literals when they could be combined into a single literal
@@ -236,7 +236,7 @@ module.exports = {
         "no-useless-return": "error",                // disallow redundant return statements
         "no-var": "error",                           // aimed at discouraging the use of var and encouraging the use of const or let instead
         "no-void": "error",                          // disallow use of void operator
-        "no-warning-comments": "off",                // reports comments that include any of the predefined terms like TODO or FIXME
+        "no-warning-comments": "off",                // reports comments that include any of the predefined terms like 'TODO' or 'FIXME'
         "no-whitespace-before-property": "error",    // disallow whitespace around the dot or before the opening bracket before properties of objects if they are on the same line
         "nonblock-statement-body-position": "error", // enforce a consistent location for single-line statements. Default: 'besides'- disallows a newline before a single-line statement
         "object-curly-newline": [                    // enforces consistent line breaks inside braces of object literals or destructuring assignments
@@ -257,7 +257,7 @@ module.exports = {
         ],
         "prefer-const": "error",                     // aimed at flagging variables that are declared using let keyword, but never reassigned after the initial assignment
         "prefer-destructuring": "off",               // require destructuring from arrays and objects
-        "prefer-exponentiation-operator": "error",   // disallow calls to Math.pow() and suggests using the ** operator instead
+        "prefer-exponentiation-operator": "error",   // disallow calls to Math.pow() and suggests using the '**' operator instead
         "prefer-named-capture-group": "off",         // aimed at using named capture groups instead of numbered capture groups in regular expressions
         "prefer-numeric-literals": "error",          // disallow parseInt() and Number.parseInt() in favor of binary, octal, and hexadecimal literals
         "prefer-object-spread": "off",               // prefer use of an object spread over Object.assign
@@ -277,7 +277,7 @@ module.exports = {
         ],
         "require-atomic-updates": "error",           // disallow assignments that can lead to race conditions due to usage of await or yield
         "require-await": "error",                    // warns async functions which have no await expression
-        "require-unicode-regexp": "off",             // enforce the use of `u` flag on regular expressions
+        "require-unicode-regexp": "off",             // enforce the use of 'u' flag on regular expressions
         "rest-spread-spacing": "error",              // enforce consistent spacing between rest and spread operators and their expressions
         "semi": "error",                             // requires semicolons at the end of statements
         "semi-spacing": "error",                     // enforce spacing around a semicolon. Default: {"before": false, "after": true}
@@ -299,7 +299,7 @@ module.exports = {
             "error",
             { "words": true }
         ],
-        "spaced-comment": [                          // enforce consistency of spacing after the start of a comment // or /*
+        "spaced-comment": [                          // enforce consistency of spacing after the start of a comment '//' or '/*'
             "error",
             "always"
         ],
@@ -321,7 +321,7 @@ module.exports = {
         "vars-on-top": "error",                      // require variable declarations to be at the top of their scope
         "wrap-iife": "error",                        // requires all immediately-invoked function expressions to be wrapped in parentheses
         "wrap-regex": "error",                       // requires regex expressions to be wrapped using parentheses to make it more readable
-        "yield-star-spacing": "error",               // enforces spacing around the * in yield* expressions. Default: {"before": false, "after": true}
+        "yield-star-spacing": "error",               // enforces spacing around the '*' in 'yield*' expressions. Default: {"before": false, "after": true}
         "yoda": [                                    // enforce consistent style of conditions which compare a variable to a literal value
             "error",
             "never"
