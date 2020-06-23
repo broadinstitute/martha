@@ -17,7 +17,7 @@ module.exports = {
         "ecmaVersion": 11
     },
     "rules": {
-        "accessor-pairs": "error",                   // enforces a style where it requires to have a getter for every property which has a setter defined
+        "accessor-pairs": "error",                   // enforces a style which requires a getter for every property which has a setter defined
         "array-bracket-newline": "off",              // enforces line breaks after opening and before closing array brackets
         "array-bracket-spacing": [                   // enforces consistent spacing inside array brackets
             "error",
@@ -66,7 +66,7 @@ module.exports = {
             "never"
         ],
         "consistent-return": "off",                  // require return statements to either always or never specify values
-        "consistent-this": "error",                  // enforces consistency about variables with the designated alias names for this
+        "consistent-this": "error",                  // enforces consistency regarding variables that are designated alias names for 'this' (like that, self or me). Rules are mentioned in https://eslint.org/docs/rules/consistent-this#rule-details
         "curly": "error",                            // require block statements to be wrapped in curly braces
         "default-case": "error",                     // require default case in switch statements
         "default-case-last": "off",                  // enforce default clauses in switch statements to be last
@@ -154,7 +154,7 @@ module.exports = {
         "no-continue": "error",                      // disallow continue statements
         "no-div-regex": "error",                     // disallow regular expressions that look like division
         "no-duplicate-imports": "error",             // requires that all imports from a single module exists in a single import statement
-        "no-else-return": "off",                     // disallow unnecessary block of code following an if containing a return statement
+        "no-else-return": "off",                     // disallow unnecessary blocks of code following an if that contain a return statement
         "no-empty-function": "error",                // disallow empty functions
         "no-eq-null": "error",                       // disallow null comparisons using '==' or '!='
         "no-eval": "error",                          // disallow use of eval() function
@@ -168,17 +168,17 @@ module.exports = {
         "no-implicit-globals": "error",              // disallow var and function declarations at the top-level script scope
         "no-implied-eval": "error",                  // aims to eliminate implied eval() through the use of setTimeout(), setInterval() or execScript()
         "no-inline-comments": "off",                 // disallows comments on the same line as code
-        "no-invalid-this": "error",                  // aims to flag usage of this keywords outside of classes or class-like objects
+        "no-invalid-this": "error",                  // aims to flag usage of this keyword outside of classes or class-like objects
         "no-iterator": "error",                      // aims at preventing errors that may arise from using the '__iterator__' property
         "no-label-var": "error",                     // disallow labels that are variable names
         "no-labels": "error",                        // disallow use of labeled statements
-        "no-lone-blocks": "error",                   // disallow lone or nested blocks
+        "no-lone-blocks": "error",                   // aims to eliminate unnecessary and potentially confusing blocks at the top level of a script or within other blocks
         "no-lonely-if": "error",                     // disallow if statements as the only statement in else blocks
         "no-loop-func": "error",                     // disallow any function within a loop that contains unsafe references
         "no-loss-of-precision": "error",             // disallow number literals that lose precision at runtime when converted to a JS Number
         "no-magic-numbers": "off",                   // disallow magic numbers
         "no-mixed-operators": "error",               // disallow mixing different operators without extra parentheses
-        "no-mixed-requires": "error",                // disallow require calls to be mixed with regular variable declarations
+        "no-mixed-requires": "error",                // disallow require calls that are mixed with regular variable declarations
         "no-multi-assign": "error",                  // disallow using multiple assignments within a single statement
         "no-multi-spaces": [                         // disallow multiple whitespaces
             "error",
@@ -208,7 +208,7 @@ module.exports = {
         "no-restricted-globals": "off",              // allows you to specify global variable names that you don't want to use in your application
         "no-restricted-imports": "off",              // allows you to specify imports that you don't want to use in your application
         "no-restricted-properties": "off",           // disallow certain object properties
-        "no-restricted-syntax": "off",               // disallow user specified syntax
+        "no-restricted-syntax": "off",               // disallow user-specified syntax
         "no-return-assign": "error",                 // disallow assignments in return statements. Default: except-parens- disallow assignments unless they are enclosed in parentheses
         "no-return-await": "error",                  // disallow return await inside async function
         "no-script-url": "error",                    // disallow script urls i.e. usage of 'javascript:URL'
@@ -227,8 +227,8 @@ module.exports = {
         "no-unneeded-ternary": "error",              // disallow ternary operators when simpler alternatives exist
         "no-unused-expressions": "error",            // disallow unused expressions which have no effect on the state of the program
         "no-use-before-define": "error",             // disallow reference to an identifier that has not yet been declared
-        "no-useless-backreference": "error",         // detect and disallow the following back-references in regular expression
-        "no-useless-call": "error",                  // disallow usage of Function.prototype.call() and Function.prototype.apply() that can be replaced with the normal function invocation
+        "no-useless-backreference": "error",         // detect and disallow the following backreferences in regular expression. Specific backreferences it disallows can be found at https://eslint.org/docs/rules/no-useless-backreference#rule-details
+        "no-useless-call": "error",                  // disallow the usages of Function.prototype.call() and Function.prototype.apply() that can be replaced with the normal function invocation
         "no-useless-computed-key": "error",          // disallow unnecessary usage of computed property keys
         "no-useless-concat": "error",                // disallow concatenation of 2 literals when they could be combined into a single literal
         "no-useless-constructor": "error",           // flags class constructors that can be safely removed without changing how the class works
@@ -239,18 +239,18 @@ module.exports = {
         "no-warning-comments": "off",                // reports comments that include any of the predefined terms like 'TODO' or 'FIXME'
         "no-whitespace-before-property": "error",    // disallow whitespace around the dot or before the opening bracket before properties of objects if they are on the same line
         "nonblock-statement-body-position": "error", // enforce a consistent location for single-line statements. Default: 'besides'- disallows a newline before a single-line statement
-        "object-curly-newline": [                    // enforces consistent line breaks inside braces of object literals or destructuring assignments
+        "object-curly-newline": [                    // enforces consistent line breaks inside braces
             "error",
-            { "consistent": true }                   // requires that either both curly braces, or neither, directly enclose newlines
+            { "consistent": true }                   // consistent: requires that either both curly braces, or neither, directly enclose newlines
         ],
         "object-curly-spacing": "off",               // enforces consistent spacing inside braces of object literals, destructuring assignments, and import/export specifiers
         "object-shorthand": "off",                   // enforces the use of the shorthand syntax
         "one-var": "off",                            // enforces variables to be declared either together or separately per function ( for var) or block (for let and const) scope
-        "one-var-declaration-per-line": "error",     // enforces a consistent newlines around variable declarations
+        "one-var-declaration-per-line": "error",     // enforces consistent newlines around variable declarations
         "operator-assignment": "error",              // requires assignment operator shorthand where possible
-        "operator-linebreak": "off",                 // enforces a consistent linebreak style for operators
+        "operator-linebreak": "off",                 // enforces a consistent line break style for operators
         "padded-blocks": "off",                      // enforces consistent empty line padding within blocks
-        "padding-line-between-statements": "off",    // requires or disallow blank lines between the given 2 kinds of statements
+        "padding-line-between-statements": "off",    // requires or disallows blank lines between the two kinds of statements
         "prefer-arrow-callback": [                   // require using arrow functions for callbacks or function arguments where possible
             "error",
             { "allowNamedFunctions": true }          // allows named functions as callbacks or function arguments
@@ -263,7 +263,7 @@ module.exports = {
         "prefer-object-spread": "off",               // prefer use of an object spread over Object.assign
         "prefer-promise-reject-errors": "error",     // require using Error objects as Promise rejection reasons
         "prefer-regex-literals": "error",            // disallow the use of the RegExp constructor function with string literals as its arguments
-        "prefer-rest-params": "error",               // disallow usage of arguments variables
+        "prefer-rest-params": "error",               // disallow usage of arguments[] variables passed to functions and use variadic functions instead
         "prefer-spread": "error",                    // disallow usage of Function.prototype.apply() in situations where spread syntax could be used instead
         "prefer-template": "error",                  // disallow usage of + operators with strings
         "quote-props": [                             // require quotes around object literal property names
@@ -286,8 +286,8 @@ module.exports = {
             "last"
         ],
         "sort-imports": "error",                     // requires all import declarations and verifies that all imports are first sorted by the used member syntax and then alphabetically by the first member
-        "sort-keys": "off",                          // requires all property definitions of object expressions and verifies that all variables are sorted alphabetically
-        "sort-vars": "error",                        // requires all variable declaration blocks and verifies that all variables are sorted alphabetically
+        "sort-keys": "off",                          // checks all property definitions of object expressions and verifies that all variables are sorted alphabetically
+        "sort-vars": "error",                        // checks all variable declaration blocks and verifies that all variables are sorted alphabetically
         "space-before-blocks": "off",                // enforce consistency of spacing before blocks. It is only applied on blocks that don’t begin on a new line
         "space-before-function-paren": "off",        // require or disallow a space before function parenthesis
         "space-in-parens": [                         // enforce consistent spacing directly inside of parentheses
@@ -295,9 +295,9 @@ module.exports = {
             "never"                                  // never: enforces zero spaces inside of parentheses
         ],
         "space-infix-ops": "off",                    // require spacing around infix operators
-        "space-unary-ops": [                         // enforces consistency regarding the spaces after words unary operators
+        "space-unary-ops": [                         // enforces consistency regarding the spaces around unary operators
             "error",
-            { "words": true }
+            { "words": true }                        // words: applies to unary word operators such as: new, delete, typeof, void, yield
         ],
         "spaced-comment": [                          // enforce consistency of spacing after the start of a comment '//' or '/*'
             "error",
@@ -309,11 +309,11 @@ module.exports = {
         ],
         "switch-colon-spacing": "error",             // controls spacing around colons of case and default clauses in switch statements. Default: { "after": true, "before": false}
         "symbol-description": "error",               // requires a description when creating symbols
-        "template-curly-spacing": [                  // aims to maintain consistency around the spacing inside of template literals
+        "template-curly-spacing": [                  // aims to maintain consistent spacing inside of template literals
             "error",
             "never"                                  // never: disallows spaces inside of the curly brace pair
         ],
-        "template-tag-spacing": "error",             // aims to maintain consistency around the spacing between template tag functions and their template literals. Default: never
+        "template-tag-spacing": "error",             // aims to maintain consistent spacing between template tag functions and their template literals. Default: never
         "unicode-bom": [                             // require or disallow the Unicode Byte Order Mark
             "error",
             "never"                                  // never: files must not begin with the Unicode BOM

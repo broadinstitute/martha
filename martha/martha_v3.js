@@ -42,9 +42,10 @@ function marthaV3Handler(req, res) {
     }
 
     // !!!!!!!!!!!!!!! REMOVE BEFORE MERGING !!!!!!!!!!!!!!!!
-    console.log('Extra log message to check if Codacy ran on the PR. Remove this before merging');
+    console.log('Extra log message to check if Codacy ran on the PR. Remove this before merging')
 
-    console.log(`Received URL '${dataObjectUri}' from IP '${req.ip}'`);
+    // !!!!!! MAKE SURE TO ADD SEMI-COLON BACK BEFORE MERGING
+    console.log(`Received URL '${dataObjectUri}' from IP '${req.ip}'`)
     let dataObjectResolutionUrl;
     try {
         dataObjectResolutionUrl = dataObjectUriToHttps(dataObjectUri);
