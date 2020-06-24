@@ -233,7 +233,7 @@ const promiseHandler = (fn) => (req, res) => {
  * @returns {string[]} An array with the bucket and the path.
  */
 function parseGsUri(uri) {
-    return /gs:[/][/]([^/]+)[/](.+)/.exec(uri).slice(1);
+    return (/gs:[/][/]([^/]+)[/](.+)/).exec(uri).slice(1);
 }
 
 /**
@@ -258,8 +258,8 @@ function getMd5Checksum(checksums) {
  * @throws {Error} throws an error if the checksums[] contains multiple checksum values for same hash type
  */
 function getHashesMap(checksumArray) {
-    return checksumArray.reduce(function(hashMapAsObj, checksumObj){
-        if (!hashMapAsObj.hasOwnProperty(checksumObj.type)) {
+    return checksumArray.reduce((hashMapAsObj, checksumObj) => {
+        if (!Object.prototype.hasOwnProperty.call(hashMapAsObj, checksumObj.type)) {
             hashMapAsObj[checksumObj.type] = checksumObj.checksum;
             return hashMapAsObj;
         } else {

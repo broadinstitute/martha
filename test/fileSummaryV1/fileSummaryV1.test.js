@@ -53,16 +53,16 @@ const fakeSAKey = {key: 'I am not real'};
 
 const fullExpectedResult = () => {
     return new FileSummaryV1Response(
-      'application/json',
-      1234,
-      null,
-      'Mon, 16 Jul 2018 21:36:14 GMT',
-      'some.fake-location',
-      'file.txt',
-      'gs://some.fake-location/file.txt',
-      null,
-      fakeSignedUrl,
-      'abcdefg'
+        'application/json',
+        1234,
+        null,
+        'Mon, 16 Jul 2018 21:36:14 GMT',
+        'some.fake-location',
+        'file.txt',
+        'gs://some.fake-location/file.txt',
+        null,
+        fakeSignedUrl,
+        'abcdefg'
     );
 };
 
@@ -72,9 +72,9 @@ const getMetadataMethodName = 'getMetadata';
 let getMetadataStub;
 const createSignedUrlMethodName = 'createSignedGsUrl';
 let createSignedUrlStub;
-let getJsonFromApiMethodName = 'getJsonFrom';
+const getJsonFromApiMethodName = 'getJsonFrom';
 let getJsonFromApiStub;
-let sandbox = sinon.createSandbox();
+const sandbox = sinon.createSandbox();
 
 test.serial.beforeEach(() => {
     sandbox.restore(); // If one test fails, the .afterEach() block will not execute, so always clean the slate here

@@ -18,16 +18,16 @@ let authorizedToken;
 const myEnv = process.env.ENV ? process.env.ENV : 'dev';
 const myBondBaseUrl = process.env.BOND_BASE_URL ? process.env.BOND_BASE_URL :
     `https://bond-fiab.dsde-${myEnv}.broadinstitute.org:31443`;
-const emailDomain = (myEnv === 'qa' ? 'quality' : 'test') + '.firecloud.org';
+const emailDomain = `${myEnv === 'qa' ? 'quality' : 'test'}.firecloud.org`;
 
-let keyFile = 'automation/firecloud-account.pem';
+const keyFile = 'automation/firecloud-account.pem';
 const serviceAccountEmail = `firecloud-${myEnv}@broad-dsde-${myEnv}.iam.gserviceaccount.com`;
-let scopes = 'email openid';
+const scopes = 'email openid';
 const unauthorizedEmail = `ron.weasley@${emailDomain}`;
 const authorizedEmail = `hermione.owner@${emailDomain}`;
 
-let publicFenceUrl = 'dos://dg.4503/preview_dos.json';
-let protectedFenceUrl = 'dos://dg.4503/65e4cd14-f549-4a7f-ad0c-d29212ff6e46';
+const publicFenceUrl = 'dos://dg.4503/preview_dos.json';
+const protectedFenceUrl = 'dos://dg.4503/65e4cd14-f549-4a7f-ad0c-d29212ff6e46';
 // TODO: remove static link so bond host can be changed depending on env
 const fenceAuthLink =
     `${myBondBaseUrl}/api/link/v1/fence/oauthcode` +
@@ -52,7 +52,7 @@ test.before(async () => {
         scope: scopes
     }).getToken();
 
-    await postJsonTo(fenceAuthLink, 'Bearer ' + authorizedToken);
+    await postJsonTo(fenceAuthLink, `Bearer ${authorizedToken}`);
 });
 
 // Invalid inputs
