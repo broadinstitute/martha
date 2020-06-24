@@ -23,16 +23,16 @@ test.after(() => {
 });
 
 test('api_adapter.get should get the value of the text field from the response', async (t) => {
-    let someText = { body: 'Some special text' };
+    const someText = { body: 'Some special text' };
     getRequest.returns(mockResponseToGet(someText));
     const result = (await get('get', 'Irrelevant URL')).body;
     t.is(result, someText);
 });
 
 test('api_adapter.get should append an authorization header when passed an authorization string', async (t) => {
-    let someText = { body: 'Some special text' };
-    let authzStr = 'abc123';
-    let mockGet = mockResponseToGet(someText);
+    const someText = { body: 'Some special text' };
+    const authzStr = 'abc123';
+    const mockGet = mockResponseToGet(someText);
     getRequest.returns(mockGet);
     const result = (await get('get', 'Irrelevant URL', authzStr)).body;
     t.is(result, someText);
@@ -40,8 +40,8 @@ test('api_adapter.get should append an authorization header when passed an autho
 });
 
 test('api_adapter.getTextFrom should NOT append an authorization header when not passed an authorization string', async (t) => {
-    let someText = { body: 'Some special text' };
-    let mockGet = mockResponseToGet(someText);
+    const someText = { body: 'Some special text' };
+    const mockGet = mockResponseToGet(someText);
     getRequest.returns(mockGet);
     const result = (await get('get', 'Irrelevant URL')).body;
     t.is(result, someText);

@@ -35,8 +35,8 @@ const googleSAKeyObject = { key: 'A Google Service Account private key json obje
 const bondRegEx = /^([^/]+)\/api\/link\/v1\/([a-z-]+)\/serviceaccount\/key$/;
 
 let getJsonFromApiStub;
-let getJsonFromApiMethodName = 'getJsonFrom';
-let sandbox = sinon.createSandbox();
+const getJsonFromApiMethodName = 'getJsonFrom';
+const sandbox = sinon.createSandbox();
 
 test.serial.beforeEach(() => {
     sandbox.restore(); // If one test fails, the .afterEach() block will not execute, so always clean the slate here

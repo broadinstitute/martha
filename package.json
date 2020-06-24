@@ -11,7 +11,8 @@
     "integration": "ava --timeout 10m --match integration*",
     "integration_v2": "ava -m integration_v2*",
     "integration_v3": "ava --timeout 10m --match integration_v3*",
-    "integration_fileSummaryV1": "ava -m integration_fileSummaryV1*"
+    "integration_fileSummaryV1": "ava -m integration_fileSummaryV1*",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@google-cloud/storage": "^2.5.0",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "ava": "^3.5.0",
+    "eslint": "^7.1.0",
     "minimist": "^1.2.5",
     "sinon": "^7.2.3",
     "supertest": "^3.1.0"

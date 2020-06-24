@@ -88,7 +88,7 @@ function getDataObjectMetadata(dataObjectUri) {
         });
 }
 
-async function getMetadata(url, auth, isDataObjectUrl) {
+function getMetadata(url, auth, isDataObjectUrl) {
     try {
         return isDataObjectUrl ? getDataObjectMetadata(url) : getGsObjectMetadata(url, auth);
     } catch (e) {
