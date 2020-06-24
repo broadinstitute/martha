@@ -15,7 +15,7 @@ function get(method, url, authorization) {
         req.set('authorization', authorization);
     }
 
-    console.log('Making Request: ' + JSON.stringify(req));
+    console.log(`Making Request: ${JSON.stringify(req)}`);
     return req;
 }
 
@@ -52,12 +52,12 @@ async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL
         console.log(`Received error for url '${url}'. Attempt ${retryAttempt}.`);
         console.error(error);
 
-        if((error.status >= SERVER_ERROR_CODE && error.status <= NETWORK_AUTH_REQ_CODE) ||
+        if ((error.status >= SERVER_ERROR_CODE && error.status <= NETWORK_AUTH_REQ_CODE) ||
             error.status === TOO_MANY_REQUESTS_CODE) {
             if (retryAttempt < MAX_RETRY_ATTEMPTS) {
-                let backOffDelay = delay * BACKOFF_FACTOR;
-                console.log('Failed to resolve url ' + url + '. Attempt ' + retryAttempt + '. Received error status: '
-                    + error.status + '. Will retry after ' + backOffDelay + ' ms.');
+                const backOffDelay = delay * BACKOFF_FACTOR;
+                console.log(`Failed to resolve url ${url}. Attempt ${retryAttempt}. Received error status: ${
+                    error.status}. Will retry after ${backOffDelay} ms.`);
 
                 return new Promise((resolve, reject) => {
                     setTimeout(() => {
