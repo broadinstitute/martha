@@ -1,4 +1,4 @@
-const { getMetadataFromAllDataObjectPaths, parseRequest, convertToMarthaV3Response, FailureResponse } = require('../common/helpers');
+const { getDataFromAllPaths, parseRequest, convertToMarthaV3Response, FailureResponse } = require('../common/helpers');
 const { maybeTalkToBond, determineBondProvider, BondProviders } = require('../common/bond');
 
 const BAD_REQUEST_ERROR_CODE = 400;
@@ -17,14 +17,10 @@ function validateRequest(dataObjectUri, auth) {
  * Try DRS (and then DOS if that fails) and return a standard DRS response if found.
  */
 function getDataObjectMetadata(dataObjectResolutionUri, auth, bondProvider) {
-    try {
-        if (bondProvider === BondProviders.JADE_DATA_REPO) {
-            return getMetadataFromAllDataObjectPaths(dataObjectResolutionUri, auth);
-        } else {
-            return getMetadataFromAllDataObjectPaths(dataObjectResolutionUri);
-        }
-    } catch (error) {
-        throw error;
+    if (bondProvider === BondProviders.JADE_DATA_REPO) {
+        return getDataFromAllPaths(dataObjectResolutionUri, auth);
+    } else {
+        return getDataFromAllPaths(dataObjectResolutionUri);
     }
 }
 

@@ -1,7 +1,7 @@
 const url = require('url');
 const config = require('../config.json');
 const { getJsonFrom } = require('./api_adapter');
-const { getGsUriFromDataObject } = require('../fileSummaryV1/metadata_api')
+const { getGsUriFromDataObject } = require('../fileSummaryV1/metadata_api');
 
 const dataGuidsHostPrefix = 'dg.';
 const dosDataObjectPathPrefix = '/ga4gh/dos/v1/dataobjects/';
@@ -85,7 +85,7 @@ function dosConverter(dosResponse) {
         updated_time: updated,
         version,
     };
-};
+}
 
 const dataObjectStandards = [
     new ResponseStandard(drsDataObjectPathPrefix, drsConverter),
@@ -434,7 +434,7 @@ function convertToMarthaV3Response(drsResponse, googleServiceAccount) {
 /**
  * Check all the possible dataObject paths and return the data converted to a DRS-style response.
  */
-async function getMetadataFromAllDataObjectPaths(dataObjectUri, auth) {
+async function getDataFromAllPaths(dataObjectUri, auth) {
     const parsedUrl = url.parse(dataObjectUri);
     let errorMessage, errorStatus;
     if (parsedUrl.pathname === '/') {
@@ -443,7 +443,7 @@ async function getMetadataFromAllDataObjectPaths(dataObjectUri, auth) {
     preserveHostnameCase(parsedUrl, dataObjectUri);
     validateDataObjectUrl(parsedUrl);
 
-    for (let i = 0; i < dataObjectStandards.length; i++) {
+    for (let i = 0; i < dataObjectStandards.length; i+=1) {
         const resolutionUrlParts = {
             protocol: 'https',
             hostname: determineHostname(parsedUrl),
@@ -460,14 +460,14 @@ async function getMetadataFromAllDataObjectPaths(dataObjectUri, auth) {
              *  implementation) or this is the end of the for loop, don't try again, otherwise, continue to
              *  the next dataObjectPathPrefix
              */
-            if ( ![403, 404].includes(err.status) || i === (dataObjectStandards.length - 1)) {
+            if (![403, 404].includes(err.status) || i === (dataObjectStandards.length - 1)) {
                 if (errorMessage !== null) {
                     errorMessage += `Tried ${url.format(resolutionUrlParts)}: [${err.status}] ${err.message}.\n`;
                     err.message = errorMessage;
                     err.status = errorStatus;
                 }
                 else {
-                    err.message = `[${err.status}]: ${err.message}\n`
+                    err.message = `[${err.status}]: ${err.message}\n`;
                 }
                 throw err;
             } else {
@@ -489,7 +489,7 @@ module.exports = {
     convertToMarthaV3Response,
     parseGsUri,
     getHashesMap,
-    getMetadataFromAllDataObjectPaths,
+    getDataFromAllPaths: getDataFromAllPaths,
     FileSummaryV1Response,
     MarthaV3Response,
     FailureResponse
