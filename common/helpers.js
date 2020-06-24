@@ -436,7 +436,7 @@ function convertToMarthaV3Response(drsResponse, googleServiceAccount) {
  */
 async function getMetadataFromAllDataObjectPaths(dataObjectUri, auth) {
     const parsedUrl = url.parse(dataObjectUri);
-    // let errorMessage = '';
+    let errorMessage, errorStatus;
     if (parsedUrl.pathname === '/') {
         parsedUrl.pathname = null;
     }
@@ -460,17 +460,19 @@ async function getMetadataFromAllDataObjectPaths(dataObjectUri, auth) {
              *  implementation) or this is the end of the for loop, don't try again, otherwise, continue to
              *  the next dataObjectPathPrefix
              */
-            if ( [403, 404].includes(err.status) || i === (dataObjectStandards.length - 1)) {
-                // if (err.message) {
-                //     err.message += errorMessage;
-                // }
-                // else {
-                //     err.message = errorMessage;
-                // }
+            if ( ![403, 404].includes(err.status) || i === (dataObjectStandards.length - 1)) {
+                if (errorMessage !== null) {
+                    errorMessage += `Tried ${url.format(resolutionUrlParts)}: [${err.status}] ${err.message}.\n`;
+                    err.message = errorMessage;
+                    err.status = errorStatus;
+                }
+                else {
+                    err.message = `[${err.status}]: ${err.message}\n`
+                }
                 throw err;
             } else {
-                // errorMessage += "Tried " + url.format(resolutionUrlParts) + " and could not find anything\n";
-                console.log('Got a 404 using dataObjectPathPrefix ' + dataObjectStandards[i] + ' and there are more paths to try.');
+                errorMessage = `Tried ${url.format(resolutionUrlParts)}: [${err.status}] ${err.message}.\n`;
+                errorStatus = err.status;
             }
         }
     }
