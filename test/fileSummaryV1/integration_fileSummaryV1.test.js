@@ -30,13 +30,13 @@ const fenceAuthLink = `https://bond-fiab.dsde-${myEnv}.broadinstitute.org:31443/
 
 test.before(async () => {
     unauthorizedToken = await new GoogleToken({
-        keyFile: keyFile,
+        keyFile: keyFile, // just to check for codacy
         email: serviceAccountEmail,
         sub: unauthorizedEmail,
         scope: scopes
     }).getToken();
     authorizedToken = await new GoogleToken({
-        keyFile: keyFile,
+        keyFile: keyFile, // just to check for codacy
         email: serviceAccountEmail,
         sub: authorizedEmail,
         scope: scopes
