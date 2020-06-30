@@ -30,6 +30,10 @@ function validateDataObjectUrl(someUrl) {
     }
 }
 
+function isNullish(value) {
+    return value === null || typeof value === "undefined";
+}
+
 /**
  *  Filter off the null entries first (because `regex.exec(null)` is TRUTHY, because of course it is)
  *  Then run the regex to get the path part without leading or trailing slashes
@@ -120,13 +124,13 @@ class CommonFileInfoResponse {
         gsUri,
         googleServiceAccount
     ) {
-        this.contentType = contentType || '';
-        this.size = size || 0;
-        this.timeCreated = timeCreated || '';
-        this.updated = updated || '';
-        this.bucket = bucket || '';
-        this.name = name || '';
-        this.gsUri = gsUri || '';
+        this.contentType = contentType || null;
+        this.size = size || null;
+        this.timeCreated = timeCreated || null;
+        this.updated = updated || null;
+        this.bucket = bucket || null;
+        this.name = name || null;
+        this.gsUri = gsUri || null;
         this.googleServiceAccount = googleServiceAccount || null;
     }
 }
@@ -156,7 +160,7 @@ class MarthaV3Response extends CommonFileInfoResponse {
             gsUri,
             googleServiceAccount
         );
-        this.hashes = hashesMap || {};
+        this.hashes = hashesMap || null;
     }
 }
 
@@ -233,7 +237,8 @@ const promiseHandler = (fn) => (req, res) => {
  * @returns {string[]} An array with the bucket and the path.
  */
 function parseGsUri(uri) {
-    return (/gs:[/][/]([^/]+)[/](.+)/).exec(uri).slice(1);
+    const match = (/gs:[/][/]([^/]+)[/](.+)/).exec(uri);
+    return isNullish(match) ? [] : match.slice(1);
 }
 
 /**
@@ -258,6 +263,11 @@ function getMd5Checksum(checksums) {
  * @throws {Error} throws an error if the checksums[] contains multiple checksum values for same hash type
  */
 function getHashesMap(checksumArray) {
+    // for undefined, null or empty array return null
+    if (isNullish(checksumArray) || !(Array.isArray(checksumArray) && checksumArray.length)) {
+        return null;
+    }
+
     return checksumArray.reduce((hashMapAsObj, checksumObj) => {
         if (!Object.prototype.hasOwnProperty.call(hashMapAsObj, checksumObj.type)) {
             hashMapAsObj[checksumObj.type] = checksumObj.checksum;
@@ -313,10 +323,10 @@ function getGsUrlFromDrsObject(drsResponse) {
  * @param {number} drsResponse.size The blob size in bytes
  * @param {string} [drsResponse.updated_time] Timestamp of content update in RFC3339, identical to created_time in
  *     systems that do not support updates
- * @param {Object} [googleServiceAccount] A google service account json
+ * @param {Object} [googleSA] A google service account json
  * @returns {MarthaV3Response} The drs object converted to a martha file info response
  */
-function convertToMarthaV3Response(drsResponse, googleServiceAccount) {
+function convertToMarthaV3Response(drsResponse, googleSA) {
     const {
         mime_type: mimeType = 'application/octet-stream',
         size,
@@ -327,6 +337,7 @@ function convertToMarthaV3Response(drsResponse, googleServiceAccount) {
 
     const createdTimeIso = createdTime ? new Date(createdTime).toISOString() : null;
     const updatedTimeIso = updatedTime ? new Date(updatedTime).toISOString() : null;
+    const googleServiceAccount = isNullish(googleSA) || Object.keys(googleSA).length === 0 ? null : googleSA;
     const gsUrl = getGsUrlFromDrsObject(drsResponse);
     const [bucket, name] = parseGsUri(gsUrl);
     const hashesMap = getHashesMap(checksums);

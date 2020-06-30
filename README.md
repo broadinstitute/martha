@@ -44,15 +44,15 @@ Production: https://us-central1-broad-dsde-prod.cloudfunctions.net/martha_v3
 It will always return an object with the same properties:
 
 ```
- contentType:    string,
- size:           int,
- timeCreated:    string [the time created, formatted using ISO 8601],
- updated:        string [the time updated, formatted using ISO 8601, or the empty string '' if unknown],
- bucket:         string,
- name:           string,
- gsUri:          string,
+ contentType:    string [or null if unknown],
+ size:           int [or null if unknown],
+ timeCreated:    string [the time created, formatted using ISO 8601, or null if unknown],
+ updated:        string [the time updated, formatted using ISO 8601, or null if unknown],
+ bucket:         string [or null if unknown],
+ name:           string [or null if unknown],
+ gsUri:          string [or null if unknown],
  googleServiceAccount: object, [null unless the DOS url belongs to a Bond supported host]
- hashes:         object [contains the hashes type and their checksum value]
+ hashes:         object [contains the hashes type and their checksum value. If unkown, it returns null]
 ```
 
 Example response for /martha_v3:
