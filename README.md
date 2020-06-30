@@ -52,7 +52,7 @@ It will always return an object with the same properties:
  name:           string [or null if unknown],
  gsUri:          string [or null if unknown],
  googleServiceAccount: object, [null unless the DOS url belongs to a Bond supported host]
- hashes:         object [contains the hashes type and their checksum value. If unkown, it returns null]
+ hashes:         object [contains the hashes type and their checksum value. If unknown, it returns null]
 ```
 
 Example response for /martha_v3:
