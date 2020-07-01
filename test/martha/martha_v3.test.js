@@ -83,6 +83,28 @@ const fullExpectedResult = (expectedGoogleServiceAccount) => {
     };
 };
 
+const drsObjectWithMissingFields = {
+    id: 'v1_abc-123',
+    description: '123 BAM file',
+    name: '123.mapped.abc.bam',
+    created_time: '2020-04-27T15:56:09.696Z',
+    version: '0',
+    mime_type: 'application/octet-stream',
+    size: 123456
+};
+
+const expectedObjWithMissingFields = {
+    contentType: 'application/octet-stream',
+    size: 123456,
+    timeCreated: '2020-04-27T15:56:09.696Z',
+    updated: null,
+    bucket: null,
+    name: null,
+    gsUri: null,
+    googleServiceAccount: null,
+    hashes: null
+};
+
 const googleSAKeyObject = { key: 'A Google Service Account private key json object' };
 
 const bondRegEx = /^([^/]+)\/api\/link\/v1\/([a-z-]+)\/serviceaccount\/key$/;
@@ -223,5 +245,19 @@ test.serial('martha_v3 does not call Bond or return SA key when the host url is 
     t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
     t.deepEqual(Object.assign({}, result), fullExpectedResult(null));
     t.falsy(result.googleServiceAccount);
+    t.is(response.statusCode, 200);
+});
+
+test.serial('martha_v3 returns null for fields missing in drs and bond response', async (t) => {
+    // update the stub to return DRS response with missing fields
+    sandbox.restore();
+    getJsonFromApiStub = sandbox.stub(apiAdapter, getJsonFromApiMethodName);
+    getJsonFromApiStub.onFirstCall().resolves(drsObjectWithMissingFields);
+    getJsonFromApiStub.onSecondCall().resolves(null);
+
+    const response = mockResponse();
+    await marthaV3(mockRequest({ body: { 'url': 'drs://abc/123' } }), response);
+    const result = response.send.lastCall.args[0];
+    t.deepEqual(Object.assign({}, result), expectedObjWithMissingFields);
     t.is(response.statusCode, 200);
 });
