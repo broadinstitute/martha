@@ -249,7 +249,7 @@ test.serial('martha_v3 does not call Bond or return SA key when the host url is 
 });
 
 test.serial('martha_v3 returns null for fields missing in drs and bond response', async (t) => {
-    // update the stub to return DRS response with missing fields
+    // update the stub to return DRS response with missing fields only for this test
     sandbox.restore();
     getJsonFromApiStub = sandbox.stub(apiAdapter, getJsonFromApiMethodName);
     getJsonFromApiStub.onFirstCall().resolves(drsObjectWithMissingFields);
