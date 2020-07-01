@@ -30,6 +30,9 @@ function validateDataObjectUrl(someUrl) {
     }
 }
 
+/*
+   Reference: https://stackoverflow.com/questions/28250090/javascript-comparisons-null-alternatives
+ */
 function isNullish(value) {
     return value === null || typeof value === "undefined";
 }
