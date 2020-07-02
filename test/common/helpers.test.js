@@ -1,5 +1,5 @@
 const test = require('ava');
-const { dataObjectUriToHttps, samBaseUrl, getHashesMap } = require('../../common/helpers');
+const { dataObjectUriToHttps, samBaseUrl, getHashesMap, convertToMarthaV3Response, MarthaV3Response } = require('../../common/helpers');
 const config = require('../../config.json');
 
 /**
@@ -155,8 +155,8 @@ test('samBaseUrl should come from the config json', (t) => {
  * Test the getHashesMap() function
  */
 
-test('getHashesMap should return empty object for empty checksums array', (t) => {
-    t.deepEqual(getHashesMap([]), {});
+test('getHashesMap should return null for empty checksums array', (t) => {
+    t.deepEqual(getHashesMap([]), null);
 });
 
 test('getHashesMap should return map with 1 entry for checksums array with 1 element', (t) => {
@@ -221,4 +221,86 @@ test('getHashesMap should throw error if the checksums array contains duplicate 
         },
         'Should have throw error but didnt!'
     );
+});
+
+/**
+ * Test the convertToMarthaV3Response() function
+ */
+test('convertToMarthaV3Response should return null for all fields in an unlikely event of empty drs and bond responses', (t) => {
+    const expectedResponse = new MarthaV3Response('application/octet-stream', null, null, null, null, null, null, null, null);
+    t.deepEqual(convertToMarthaV3Response({}, {}), expectedResponse);
+});
+
+test('convertToMarthaV3Response should return null for fields that are missing in drs response', (t) => {
+    const mockDrsResponse = {
+        id: 'v1_abc-123',
+        description: '123 BAM file',
+        name: '123.mapped.abc.bam',
+        created_time: '2020-04-27T15:56:09.696Z',
+        version: '0',
+        mime_type: 'application/octet-stream',
+        size: 123456
+    };
+    const expectedResponse = new MarthaV3Response('application/octet-stream', 123456, '2020-04-27T15:56:09.696Z', null, null, null, null, null, null);
+
+    t.deepEqual(convertToMarthaV3Response(mockDrsResponse, {}), expectedResponse);
+});
+
+test('convertToMarthaV3Response should return null for fields that are empty in drs with empty bond responses', (t) => {
+    const mockDrsResponse = {
+        id: 'v1_abc-123',
+        description: '123 BAM file',
+        name: '123.mapped.abc.bam',
+        version: '0',
+        mime_type: 'application/octet-stream',
+        size: 123456,
+        created_time: '2020-04-27T15:56:09.696Z',
+        updated_time: '2020-04-27T15:56:09.696Z',
+        checksums: [],
+        access_methods: []
+    };
+    const expectedResponse = new MarthaV3Response('application/octet-stream', 123456, '2020-04-27T15:56:09.696Z', '2020-04-27T15:56:09.696Z', null, null, null, null, null);
+
+    t.deepEqual(convertToMarthaV3Response(mockDrsResponse, {}), expectedResponse);
+});
+
+test('convertToMarthaV3Response should return null for googleServiceAccount if bond returned nothing', (t) => {
+    const mockDrsResponse = {
+        id: 'v1_abc-123',
+        description: '123 BAM file',
+        name: '123.mapped.abc.bam',
+        version: '0',
+        mime_type: 'application/octet-stream',
+        size: 123456,
+        created_time: '2020-04-27T15:56:09.696Z',
+        updated_time: '2020-04-27T15:56:09.696Z',
+        checksums: [
+            {
+                type: 'md5',
+                checksum: '123abc'
+            }
+        ],
+        access_methods: [
+            {
+                type: 'gs',
+                access_url: {
+                    url:
+                        'gs://abc/123',
+                }
+            }
+        ]
+    };
+    const expectedResponse = new MarthaV3Response(
+        'application/octet-stream',
+        123456,
+        '2020-04-27T15:56:09.696Z',
+        '2020-04-27T15:56:09.696Z',
+        'abc',
+        '123',
+        'gs://abc/123',
+        null,
+        { md5: '123abc' }
+    );
+
+    t.deepEqual(convertToMarthaV3Response(mockDrsResponse), expectedResponse);
 });
