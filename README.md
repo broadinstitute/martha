@@ -194,16 +194,8 @@ is used.
   [nodenv](https://github.com/nodenv/nodenv) or [nvm](https://github.com/creationix/nvm).
 * Clone the Martha git repository and `cd` to it
 * Make sure your version of npm is up-to-date: `npm install -g npm`
-* Install GCF emulator with: `npm install -g @google-cloud/functions-emulator`
 * Install dependencies: `npm install`
-* Start the GCF emulator: `functions start`
-* Deploy Martha to your local GCF emulator: `functions deploy <service> --trigger-http`.
-  The emulator will re-deploy your code as you update it.
-* Test the function: `functions call <service> --data '<json object>'`
-  * Testing functions that require you to include `header` information in the request (such as an `authorization` header)
-    will require you to use a tool like `curl` to test the function. To get the URL for the function running on your local
-    emulator, run the command: `functions describe <service>`
-    
+
 ## ESLint 
 ESLint is a tool for identifying and reporting on patterns found in ECMAScript/JavaScript code, with the goal of making code more consistent and avoiding bugs.
 More information can be found on it's [website](https://eslint.org/).
@@ -226,11 +218,17 @@ fixed automatically. `--fix` option on the command line can be used for this.
 Run the `npx` command using `--fix` flag: `npx eslint <file_name/directory_name> --fix`
 
 ## Google Cloud Functions (GCF) Emulator
-* The emulator can be started/stopped/killed with following commands
-  * `functions start`
-  * `functions stop`
-  * `functions kill`
-* Read the GCF logs: `functions logs read`
+* The emulator can be started with following command
+  * `npm start`
+* From another terminal, test the function:
+    ```
+    curl \
+        localhost:8010/martha_v3 \
+        --header 'Authorization: Bearer <token>' \
+        --header 'Content-Type: application/json' \
+        --data '{"url": "dos://foo/bar"}'
+    ```
+* To stop the emulator press `Control-C` in the terminal running `npm start`.
 
 ## Run Tests
 

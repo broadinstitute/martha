@@ -4,6 +4,7 @@
   "description": "Data Object GUID Resolution",
   "private": true,
   "scripts": {
+    "start": "functions-framework --target=index --port=8010",
     "test": "./minnie-kenny.sh && ava -m !smoketest* -m !live_test* -m !integration*",
     "smoketest": "ava -m smoketest*",
     "smoketest_v2": "ava -m smoketest_v2*",
@@ -15,6 +16,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@google-cloud/functions-framework": "^1.6.0",
     "@google-cloud/storage": "^2.5.0",
     "cors": "^2.8.4",
     "gtoken": "^3.0.1",
@@ -22,7 +24,7 @@
   },
   "devDependencies": {
     "ava": "^3.5.0",
-    "eslint": "^7.1.0",
+    "eslint": "^7.4.0",
     "minimist": "^1.2.5",
     "sinon": "^7.2.3",
     "supertest": "^3.1.0"
