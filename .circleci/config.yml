@@ -68,7 +68,7 @@ jobs:
 
   build-image:
     docker:
-      - image: circleci/node:8.15
+      - image: circleci/node:12.16.1
 
     environment:
       IMAGE_NAME: quay.io/broadinstitute/martha
