@@ -242,7 +242,7 @@ Run the `npx` command using `--fix` flag: `npx eslint <file_name/directory_name>
 build a docker image using your current working directory and current git branch name, and then deploy the resulting
 code to `broad-dsde-cromwell-dev`. There you can test out changes before submitting pull requests.
 `broad-dsde-cromwell-dev` is an environment administered by the DSP-Batch team, who previously worked primarily on
-Cromwell development and now also maintain Martha.
+Cromwell development and now also maintains Martha.
 
 * Deployments to the `dev` tier are triggered automatically whenever code is pushed/merged to the `dev` branch on github.
 
@@ -255,7 +255,7 @@ Cromwell development and now also maintain Martha.
 * Each deployment will redeploy all supported versions of functions.
 * It is important that you deploy to all tiers.  Because Martha is an "indie service", we should strive to make sure
 that all tiers other than `cromwell-dev` and `dev` are kept in sync and are running the same versions of code.  This is
-essential so that as other DSP services are tested during their release process, they can ensure that their code will
+essential so that, as other DSP services are tested during their release process, they can ensure that their code will
 work properly with the latest version of Martha running in `prod`.
 
 ## Docker
