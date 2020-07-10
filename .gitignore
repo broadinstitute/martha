@@ -3,3 +3,4 @@
 **/*.private.env.json
 **/deploy_account.json
 **/*.pem
+automation/*.json
