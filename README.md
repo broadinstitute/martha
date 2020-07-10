@@ -271,7 +271,7 @@ The Dockerfile for Martha builds a Docker image that, when run, does the followi
 
 To run the Martha container, whether you are running a locally built image or an image pulled from quay.io, you must
 start the container with appropriate port mapping between the host and the container.  You can choose whatever host
-port you may require, in the following example port `58010` is used:
+port you may require; in the following example port `58010` is used:
 
 `docker run --publish 58010:8010 quay.io/broadinstitute/martha:latest`
 
