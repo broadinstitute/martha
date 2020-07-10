@@ -217,8 +217,9 @@ fixed automatically. `--fix` option on the command line can be used for this.
 
 Run the `npx` command using `--fix` flag: `npx eslint <file_name/directory_name> --fix`
 
-## Google Cloud Functions (GCF) Emulator
-* The emulator can be started with following command
+## Google Cloud Functions (GCF) Framework
+* The Martha functions may be run locally via the
+[functions-framework](https://github.com/GoogleCloudPlatform/functions-framework-nodejs), started with following command
   * `npm start`
 * From another terminal, test the function:
     ```
@@ -228,7 +229,7 @@ Run the `npx` command using `--fix` flag: `npx eslint <file_name/directory_name>
         --header 'Content-Type: application/json' \
         --data '{"url": "dos://foo/bar"}'
     ```
-* To stop the emulator press `Control-C` in the terminal running `npm start`.
+* To stop the functions-framework press `Control-C` in the terminal running `npm start`.
 
 ## Run Tests
 
@@ -260,18 +261,19 @@ work properly with the latest version of Martha running in `prod`.
 
 The Dockerfile for Martha builds a Docker image that, when run, does the following:
 
-* Starts the [Google Cloud Functions Emulator](https://cloud.google.com/functions/docs/emulator)
-* Deploys all supported Martha functions to the emulator
-* Exposes ports: `8008` and `8010`
-* Handles `HTTP` requests to the REST API and Functions respectively on the exposed ports
+* Starts the [Google Cloud Functions Framework](https://cloud.google.com/functions/docs/functions-framework)
+* Serves all supported Martha functions via the functions-framework
+* Exposes port `8010` (the port previously used by the
+[functions-emulator](https://github.com/googlearchive/cloud-functions-emulator/wiki/Calling-functions#calling-http-functions))
+* Handles `HTTP` requests to functions served over the exposed port
 
 ## Run the Docker Container
 
 To run the Martha container, whether you are running a locally built image or an image pulled from quay.io, you must
-start the container with appropriate port mappings between the host and the container.  You can choose whatever host
-ports you may require, in the following example ports `58010` and `58008` are used:
+start the container with appropriate port mapping between the host and the container.  You can choose whatever host
+port you may require; in the following example port `58010` is used:
 
-`docker run -p 58010:8010 -p 58008:8008 quay.io/broadinstitute/martha:latest`
+`docker run --publish 58010:8010 quay.io/broadinstitute/martha:latest`
 
 ## Building Docker Images
 
