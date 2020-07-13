@@ -126,6 +126,7 @@ jobs:
       - run:
           name: Push to quay
           command: |
+            apt-get install jq
             # Get the credentials used to push to GCR out of Vault and put key into file
             docker run \
                 --rm \

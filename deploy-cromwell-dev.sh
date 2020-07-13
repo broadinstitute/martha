@@ -2,7 +2,7 @@
 set -eoux pipefail
 
 GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-MARTHA_IMAGE="quay.io/broadinstitute/martha:${GIT_BRANCH}"
+MARTHA_IMAGE="gcr.io/broad-dsp-gcr-public/martha:${GIT_BRANCH}"
 
 docker build \
     --tag "${MARTHA_IMAGE}" \
