@@ -95,8 +95,7 @@ jobs:
       - image: circleci/node:12.16.1
 
     environment:
-      IMAGE_NAME: quay.io/broadinstitute/martha
-      QUAY_USER: broadinstitute+martha_circle_bot
+      IMAGE_NAME: gcr.io/broad-dsp-gcr-public/martha
 
     steps:
       - checkout
@@ -127,8 +126,16 @@ jobs:
       - run:
           name: Push to quay
           command: |
-            docker login -u="${QUAY_USER}" -p="${QUAY_USER_PW}" quay.io
-            docker push ${IMAGE_NAME}
+            # Get the credentials used to push to GCR out of Vault and put key into file
+            docker run \
+                --rm \
+                --env "VAULT_TOKEN=${SSHAH_TEMP_VAULT_TOKEN}" \
+                broadinstitute/dsde-toolbox \
+                vault read \
+                --format=json "secret/dsde/dsp-techops/common/dspci-wb-gcr-service-account.json" |
+            jq .data > ${HOME}/gcr_auth_key_file.json
+            gcloud auth activate-service-account --key-file ${HOME}/gcr_auth_key_file.json
+            gcloud docker -- push ${IMAGE_NAME}
 
 workflows:
   version: 2

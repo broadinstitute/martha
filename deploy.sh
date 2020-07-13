@@ -31,7 +31,7 @@ set -u
 
 MARTHA_PATH=/martha
 SERVICE_ACCT_KEY_FILE="deploy_account.json"
-MARTHA_IMAGE="quay.io/broadinstitute/martha:${GIT_BRANCH}"
+MARTHA_IMAGE="gcr.io/broad-dsp-gcr-public/martha:${GIT_BRANCH}"
 DEPLOY_PROJECT_NAME="broad-dsde-${DEPLOY_ENV}"
 
 if [[ "${DEPLOY_ENV}" =~ ^(cromwell-dev)$ ]]; then
