@@ -92,7 +92,7 @@ jobs:
   build-image:
     <<: *job_defaults
     docker:
-      - image: circleci/node:12.16.1
+      - image: google/cloud-sdk
 
     environment:
       IMAGE_NAME: gcr.io/broad-dsp-gcr-public/martha
