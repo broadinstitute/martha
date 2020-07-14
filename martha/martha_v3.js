@@ -133,7 +133,22 @@ async function marthaV3Handler(req, res) {
     }
 
     const {drsUrl, bondUrl, responseParser} = determineDrsType(dataObjectUri, res);
-    const response = await apiAdapter.getJsonFrom(drsUrl, auth);
+    let response;
+
+    try {
+        response = await apiAdapter.getJsonFrom(drsUrl, auth);
+    } catch (err) {
+        console.log('Received error while either contacting Bond or resolving drs url.');
+        console.error(err);
+
+        const errorStatusCode = err.status;
+        if (typeof errorStatusCode === 'undefined') {
+            const failureResponse = new FailureResponse(SERVER_ERROR_CODE, `Received error while resolving drs url. ${err.message}`);
+            res.status(SERVER_ERROR_CODE).send(failureResponse);
+        } else {
+            res.status(errorStatusCode).send(err);
+        }
+    }
     const drsResponse = responseParser(response);
 
     let bondSA;
