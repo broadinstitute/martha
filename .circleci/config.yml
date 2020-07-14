@@ -95,7 +95,7 @@ jobs:
       - image: google/cloud-sdk
 
     environment:
-      GCR_REGISTRY: us.gcr.io
+      GCR_REGISTRY_HOST: us.gcr.io
       # Martha will be pushed to GCR as a public image since it was public in Quay as well
       IMAGE_NAME: us.gcr.io/broad-dsp-gcr-public/martha
 
@@ -128,6 +128,7 @@ jobs:
       - run:
           name: Push to quay
           command: |
+            # TODO: SSHAH_TEMP_VAULT_TOKEN should be removed and replaced with actual vault token env variable before merging
             apt-get install -y jq
             # Get the credentials used to push to GCR out of Vault and put key into file
             docker run \
@@ -139,7 +140,7 @@ jobs:
             jq .data > ${HOME}/gcr_auth_key_file.json
             gcloud auth activate-service-account --key-file ${HOME}/gcr_auth_key_file.json
             # Register `gcloud` as a Docker credential helper. Add `-q` to silence confirmation prompts
-            gcloud auth configure-docker ${GCR_REGISTRY} -q
+            gcloud auth configure-docker ${GCR_REGISTRY_HOST} -q
             docker push ${IMAGE_NAME}
 
 workflows:
