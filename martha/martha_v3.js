@@ -14,73 +14,65 @@ class DrsType {
 }
 
 const gen3UrlGenerator = function (parsedUrl) {
-    return {
+    return url.format({
         protocol: 'https',
-        host: config.dataObjectResolutionHost,
+        hostname: config.dataObjectResolutionHost,
         port: parsedUrl.port,
-        path: parsedUrl.path + '/ga4gh/drs/v1/objects/',
+        pathname: parsedUrl.host + '/ga4gh/drs/v1/objects' + parsedUrl.pathname,
         search: parsedUrl.search
-    } |> url.format;
+    });
 }
 
 const jadeUrlGenerator = function (parsedUrl) {
-    return {
+    return url.format({
         protocol: 'https',
-        host: 'jade.datarepo-dev.broadinstitute.org',
+        hostname: parsedUrl.hostname,
         port: parsedUrl.port,
-        path: '/ga4gh/drs/v1/objects/',
+        pathname: '/ga4gh/drs/v1/objects' + parsedUrl.pathname,
         search: parsedUrl.search
-    } |> url.format;
+    });
 }
 
 const hcaUrlGenerator = function (parsedUrl) {
-    return {
+    return url.format({
         protocol: 'https',
-        host: 'drs.data.humancellatlas.org',
+        hostname: parsedUrl.hostname,
         port: parsedUrl.port,
-        path: '/ga4gh/drs/v1/objects/',
+        pathname: '/ga4gh/dos/v1/dataobjects' + parsedUrl.pathname,
         search: parsedUrl.search
-    } |> url.format;
+    });
 }
 
-const gen3ResponseParser = async function (response) {
+const gen3ResponseParser = function (response) {
     return {
-        mime_type: mimeType = 'application/octet-stream',
-        size,
-        created_time: createdTime,
-        updated_time: updatedTime,
-        checksums,
+        mime_type: response.mimeType || 'application/octet-stream',
+        size: response.size,
+        created_time: response.createdTime,
+        updated_time: response.updatedTime,
+        checksums: response.checksums
     };
 }
 
-const hcaResponseParser = async function (response) {
+const hcaResponseParser = function (response) {
     return {
-        mime_type: mimeType = 'application/octet-stream',
-        size,
-        created_time: createdTime,
-        updated_time: updatedTime,
-        checksums,
+        access_methods: response.data_object.urls.filter((e) => e.url.startsWith('gs://')).map((gsUrl) => new Object ({type: 'gs', access_url: {url: gsUrl.url}})),
+        mime_type: response.data_object.mimeType || 'application/octet-stream',
+        size: response.data_object.size,
+        created_time: response.data_object.createdTime,
+        updated_time: response.data_object.updatedTime,
+        checksums: response.data_object.checksums
     };
 }
 
-const jadeResponseParser = async function (response) {
+const jadeResponseParser = function (response) {
     return {
-        mime_type: mimeType = 'application/octet-stream',
-        size,
-        created_time: createdTime,
-        updated_time: updatedTime,
-        checksums,
+        mime_type: response.mimeType || 'application/octet-stream',
+        size: response.size,
+        created_time: response.createdTime,
+        updated_time: response.updatedTime,
+        checksums: response.checksums
     };
 }
-
-/*
- Url {
- protocol: 'drs:',
- host: 'dg.712c',
- path: '/fa640b0e-9779-452f-99a6-16d833d15bd0',
- href: 'drs://dg.712c/fa640b0e-9779-452f-99a6-16d833d15bd0'
- }
- */
 
 function determineDrsType (dataObjectUri, res) {
     const parsedUrl = url.parse(dataObjectUri);
@@ -141,10 +133,12 @@ async function marthaV3Handler(req, res) {
     }
 
     const {drsUrl, bondUrl, responseParser} = determineDrsType(dataObjectUri, res);
-    const drsResponse = responseParser(await apiAdapter.getJsonFrom(drsUrl, auth));
+    const response = await apiAdapter.getJsonFrom(drsUrl, auth);
+    const drsResponse = responseParser(response);
+
     let bondSA;
     if (bondUrl && req && req.headers && req.headers.authorization) {
-        bondSA =  await apiAdapter.getJsonFrom(bondUrl, req.headers.authorization);
+        bondSA =  await apiAdapter.getJsonFrom(bondUrl, auth);
     }
 
     res.status(200).send(convertToMarthaV3Response(drsResponse, bondSA));
