@@ -95,7 +95,8 @@ jobs:
       - image: google/cloud-sdk
 
     environment:
-      IMAGE_NAME: gcr.io/broad-dsp-gcr-public/martha
+      # Martha will be pushed to GCR as a public image since it was public in Quay as well
+      IMAGE_NAME: us.gcr.io/broad-dsp-gcr-public/martha
 
     steps:
       - checkout
