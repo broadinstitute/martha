@@ -33,7 +33,7 @@ const jadeUrlGenerator = function (parsedUrl) {
     });
 }
 
-const hcaUrlGenerator = function (parsedUrl) {
+const dosUrlGenerator = function (parsedUrl) {
     return url.format({
         protocol: 'https',
         hostname: parsedUrl.hostname,
@@ -53,7 +53,7 @@ const gen3ResponseParser = function (response) {
     };
 }
 
-const hcaResponseParser = function (response) {
+const dosResponseParser = function (response) {
     return {
         access_methods: response.data_object.urls.filter((e) => e.url.startsWith('gs://')).map((gsUrl) => new Object ({type: 'gs', access_url: {url: gsUrl.url}})),
         mime_type: response.data_object.mimeType || 'application/octet-stream',
@@ -84,7 +84,7 @@ function determineDrsType (dataObjectUri, res) {
             gen3UrlGenerator(parsedUrl),
             `${config.bondBaseUrl}/api/link/v1/dcf-fence/serviceaccount/key`,
             gen3ResponseParser);
-    }else if (parsedUrl.host.startsWith('dg.')) {
+    } else if (parsedUrl.host.startsWith('dg.')) {
         return new DrsType(
             gen3UrlGenerator(parsedUrl),
             `${config.bondBaseUrl}/api/link/v1/fence/serviceaccount/key`,
@@ -94,19 +94,16 @@ function determineDrsType (dataObjectUri, res) {
             gen3UrlGenerator(parsedUrl),
             null,
             gen3ResponseParser);
-    } else if (parsedUrl.host.endsWith('humancellatlas.org')) {
-         return new DrsType(
-             hcaUrlGenerator(parsedUrl),
-             null,
-             hcaResponseParser);
     } else if (parsedUrl.host.startsWith('jade.datarepo')) {
          return new DrsType(
              jadeUrlGenerator(parsedUrl),
              null,
              jadeResponseParser);
     } else {
-        const failureResponse = new FailureResponse(BAD_REQUEST_ERROR_CODE, `The specified URI '${dataObjectUri}' is not of a recognizable format.`);
-        res.status(BAD_REQUEST_ERROR_CODE).send(failureResponse);
+        return new DrsType(
+            dosUrlGenerator(parsedUrl),
+            `${config.bondBaseUrl}/api/link/v1/fence/serviceaccount/key`,
+            dosResponseParser);
     }
 }
 
