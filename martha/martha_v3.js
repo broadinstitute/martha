@@ -4,6 +4,7 @@ const apiAdapter = require('../common/api_adapter');
 const url = require('url');
 
 const BAD_REQUEST_ERROR_CODE = 400;
+const SERVER_ERROR_CODE = 500;
 
 class DrsType {
     constructor(drsUrl, bondUrl, responseParser) {
@@ -13,7 +14,7 @@ class DrsType {
     }
 }
 
-const dosUrlGenerator = function (parsedUrl) {
+function dosUrlGenerator (parsedUrl) {
     return url.format({
         protocol: 'https',
         hostname: parsedUrl.hostname,
@@ -23,7 +24,7 @@ const dosUrlGenerator = function (parsedUrl) {
     });
 }
 
-const gen3UrlGenerator = function (parsedUrl) {
+function gen3UrlGenerator (parsedUrl) {
     const splitHost = parsedUrl.hostname.split('.');
     const idPrefix = splitHost[0] + '.' + splitHost[1].toUpperCase();
     return url.format({
@@ -35,7 +36,7 @@ const gen3UrlGenerator = function (parsedUrl) {
     });
 }
 
-const jadeUrlGenerator = function (parsedUrl) {
+function jadeUrlGenerator (parsedUrl) {
     return url.format({
         protocol: 'https',
         hostname: parsedUrl.hostname,
@@ -45,28 +46,22 @@ const jadeUrlGenerator = function (parsedUrl) {
     });
 }
 
-const dosResponseParser = function (response) {
-    return {
-        access_methods: response.data_object.urls.filter((e) => e.url.startsWith('gs://')).map((gsUrl) => new Object ({type: 'gs', access_url: {url: gsUrl.url}})),
-        mime_type: response.data_object.mimeType || 'application/octet-stream',
-        size: response.data_object.size,
-        created_time: response.data_object.created,
-        updated_time: response.data_object.updated,
-        checksums: response.data_object.checksums
-    };
+function dosResponseParser (response) {
+    if (response.data_object) {
+        return {
+            access_methods: response.data_object.urls
+                .filter((e) => e.url.startsWith('gs://'))
+                .map((gsUrl) => new Object ({type: 'gs', access_url: {url: gsUrl.url}})),
+            mime_type: response.data_object.mimeType || 'application/octet-stream',
+            size: response.data_object.size,
+            created_time: response.data_object.created,
+            updated_time: response.data_object.updated,
+            checksums: response.data_object.checksums
+        };
+    }
 }
 
-const gen3ResponseParser = function (response) {
-    return {
-        mime_type: response.mimeType || 'application/octet-stream',
-        size: response.size,
-        created_time: response.createdTime,
-        updated_time: response.updatedTime,
-        checksums: response.checksums
-    };
-}
-
-const jadeResponseParser = function (response) {
+function gen3ResponseParser (response) {
     return {
         mime_type: response.mimeType || 'application/octet-stream',
         size: response.size,
@@ -76,27 +71,37 @@ const jadeResponseParser = function (response) {
     };
 }
 
-function determineDrsType (dataObjectUri, res) {
+function jadeResponseParser (response) {
+    return {
+        access_methods: response.access_methods,
+        name: response.name,
+        mime_type: response.mime_type || 'application/octet-stream',
+        size: response.size,
+        created_time: response.created_time,
+        updated_time: response.updated_time,
+        checksums: response.checksums
+    };
+}
+
+function determineDrsType (dataObjectUri) {
     const parsedUrl = url.parse(dataObjectUri);
-    console.log('parsedUrl:');
-    console.log(parsedUrl);
 
     if (parsedUrl.host.startsWith('dg.4503')) {
         return new DrsType(
             gen3UrlGenerator(parsedUrl),
-            `${config.bondBaseUrl}/api/link/v1/dcf-fence/serviceaccount/key`,
+            `${config.bondBaseUrl}/api/link/v1/fence/serviceaccount/key`,
             gen3ResponseParser);
     } else if (parsedUrl.host.startsWith('dg.')) {
         return new DrsType(
             gen3UrlGenerator(parsedUrl),
-            `${config.bondBaseUrl}/api/link/v1/fence/serviceaccount/key`,
+            `${config.bondBaseUrl}/api/link/v1/dcf-fence/serviceaccount/key`,
             dosResponseParser);
     } else if (parsedUrl.host.endsWith('dataguids.org')) {
         return new DrsType(
             gen3UrlGenerator(parsedUrl),
             null,
             gen3ResponseParser);
-    } else if (parsedUrl.host.startsWith('jade.datarepo')) {
+    } else if (/jade.*\.datarepo-.*\.broadinstitute\.org/.test(parsedUrl.host)) {
          return new DrsType(
              jadeUrlGenerator(parsedUrl),
              null,
@@ -130,12 +135,10 @@ async function marthaV3Handler(req, res) {
         res.status(BAD_REQUEST_ERROR_CODE).send(failureResponse);
         return;
     }
-
-    const {drsUrl, bondUrl, responseParser} = determineDrsType(dataObjectUri, res);
-
+    const {drsUrl, bondUrl, responseParser} = determineDrsType(dataObjectUri);
     console.log(`Converting DRS URI to HTTPS: ${dataObjectUri} -> ${drsUrl}`);
-    let response;
 
+    let response;
     try {
         response = await apiAdapter.getJsonFrom(drsUrl, auth);
     } catch (err) {
@@ -163,7 +166,7 @@ async function marthaV3Handler(req, res) {
 
             const errorStatusCode = err.status;
             if (typeof errorStatusCode === 'undefined') {
-                const failureResponse = new FailureResponse(SERVER_ERROR_CODE, `Received error while resolving drs url. ${err.message}`);
+                const failureResponse = new FailureResponse(SERVER_ERROR_CODE, `Received error while getting SA from Bond. ${err.message}`);
                 res.status(SERVER_ERROR_CODE).send(failureResponse);
             } else {
                 res.status(errorStatusCode).send(err);
