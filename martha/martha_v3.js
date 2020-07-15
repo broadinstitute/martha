@@ -13,12 +13,24 @@ class DrsType {
     }
 }
 
+const dosUrlGenerator = function (parsedUrl) {
+    return url.format({
+        protocol: 'https',
+        hostname: parsedUrl.hostname,
+        port: parsedUrl.port,
+        pathname: '/ga4gh/dos/v1/dataobjects' + parsedUrl.pathname,
+        search: parsedUrl.search
+    });
+}
+
 const gen3UrlGenerator = function (parsedUrl) {
+    const splitHost = parsedUrl.hostname.split('.');
+    const idPrefix = splitHost[0] + '.' + splitHost[1].toUpperCase();
     return url.format({
         protocol: 'https',
         hostname: config.dataObjectResolutionHost,
         port: parsedUrl.port,
-        pathname: parsedUrl.host + '/ga4gh/drs/v1/objects' + parsedUrl.pathname,
+        pathname: '/ga4gh/dos/v1/dataobjects/' + idPrefix + parsedUrl.pathname,
         search: parsedUrl.search
     });
 }
@@ -33,14 +45,15 @@ const jadeUrlGenerator = function (parsedUrl) {
     });
 }
 
-const dosUrlGenerator = function (parsedUrl) {
-    return url.format({
-        protocol: 'https',
-        hostname: parsedUrl.hostname,
-        port: parsedUrl.port,
-        pathname: '/ga4gh/dos/v1/dataobjects' + parsedUrl.pathname,
-        search: parsedUrl.search
-    });
+const dosResponseParser = function (response) {
+    return {
+        access_methods: response.data_object.urls.filter((e) => e.url.startsWith('gs://')).map((gsUrl) => new Object ({type: 'gs', access_url: {url: gsUrl.url}})),
+        mime_type: response.data_object.mimeType || 'application/octet-stream',
+        size: response.data_object.size,
+        created_time: response.data_object.created,
+        updated_time: response.data_object.updated,
+        checksums: response.data_object.checksums
+    };
 }
 
 const gen3ResponseParser = function (response) {
@@ -50,17 +63,6 @@ const gen3ResponseParser = function (response) {
         created_time: response.createdTime,
         updated_time: response.updatedTime,
         checksums: response.checksums
-    };
-}
-
-const dosResponseParser = function (response) {
-    return {
-        access_methods: response.data_object.urls.filter((e) => e.url.startsWith('gs://')).map((gsUrl) => new Object ({type: 'gs', access_url: {url: gsUrl.url}})),
-        mime_type: response.data_object.mimeType || 'application/octet-stream',
-        size: response.data_object.size,
-        created_time: response.data_object.createdTime,
-        updated_time: response.data_object.updatedTime,
-        checksums: response.data_object.checksums
     };
 }
 
@@ -88,7 +90,7 @@ function determineDrsType (dataObjectUri, res) {
         return new DrsType(
             gen3UrlGenerator(parsedUrl),
             `${config.bondBaseUrl}/api/link/v1/fence/serviceaccount/key`,
-            gen3ResponseParser);
+            dosResponseParser);
     } else if (parsedUrl.host.endsWith('dataguids.org')) {
         return new DrsType(
             gen3UrlGenerator(parsedUrl),
@@ -130,12 +132,14 @@ async function marthaV3Handler(req, res) {
     }
 
     const {drsUrl, bondUrl, responseParser} = determineDrsType(dataObjectUri, res);
+
+    console.log(`Converting DRS URI to HTTPS: ${dataObjectUri} -> ${drsUrl}`);
     let response;
 
     try {
         response = await apiAdapter.getJsonFrom(drsUrl, auth);
     } catch (err) {
-        console.log('Received error while either contacting Bond or resolving drs url.');
+        console.log('Received error while resolving drs url.');
         console.error(err);
 
         const errorStatusCode = err.status;
@@ -150,7 +154,21 @@ async function marthaV3Handler(req, res) {
 
     let bondSA;
     if (bondUrl && req && req.headers && req.headers.authorization) {
-        bondSA =  await apiAdapter.getJsonFrom(bondUrl, auth);
+        try {
+            bondSA = await apiAdapter.getJsonFrom(bondUrl, auth);
+        } catch (err) {
+            console.log('Received error contacting Bond.');
+            console.error(err);
+
+            const errorStatusCode = err.status;
+            if (typeof errorStatusCode === 'undefined') {
+                const failureResponse = new FailureResponse(SERVER_ERROR_CODE, `Received error while resolving drs url. ${err.message}`);
+                res.status(SERVER_ERROR_CODE).send(failureResponse);
+            } else {
+                res.status(errorStatusCode).send(err);
+            }
+
+        }
     }
 
     res.status(200).send(convertToMarthaV3Response(drsResponse, bondSA));
