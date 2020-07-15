@@ -149,6 +149,7 @@ async function marthaV3Handler(req, res) {
         } else {
             res.status(errorStatusCode).send(err);
         }
+        return;
     }
     const drsResponse = responseParser(response);
 
@@ -167,7 +168,7 @@ async function marthaV3Handler(req, res) {
             } else {
                 res.status(errorStatusCode).send(err);
             }
-
+            return;
         }
     }
 
