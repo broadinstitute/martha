@@ -19,19 +19,19 @@ function dosUrlGenerator (parsedUrl) {
         protocol: 'https',
         hostname: parsedUrl.hostname,
         port: parsedUrl.port,
-        pathname: '/ga4gh/dos/v1/dataobjects' + parsedUrl.pathname,
+        pathname: `/ga4gh/dos/v1/dataobjects${parsedUrl.pathname}`,
         search: parsedUrl.search
     });
 }
 
 function gen3UrlGenerator (parsedUrl) {
     const splitHost = parsedUrl.hostname.split('.');
-    const idPrefix = splitHost[0] + '.' + splitHost[1].toUpperCase();
+    const idPrefix = `${splitHost[0]}.${splitHost[1].toUpperCase()}`;
     return url.format({
         protocol: 'https',
         hostname: config.dataObjectResolutionHost,
         port: parsedUrl.port,
-        pathname: '/ga4gh/dos/v1/dataobjects/' + idPrefix + parsedUrl.pathname,
+        pathname: `/ga4gh/dos/v1/dataobjects/${idPrefix}${parsedUrl.pathname}`,
         search: parsedUrl.search
     });
 }
@@ -41,7 +41,7 @@ function jadeUrlGenerator (parsedUrl) {
         protocol: 'https',
         hostname: parsedUrl.hostname,
         port: parsedUrl.port,
-        pathname: '/ga4gh/drs/v1/objects' + parsedUrl.pathname,
+        pathname: `/ga4gh/drs/v1/objects${parsedUrl.pathname}`,
         search: parsedUrl.search
     });
 }
@@ -51,7 +51,9 @@ function dosResponseParser (response) {
         return {
             access_methods: response.data_object.urls
                 .filter((e) => e.url.startsWith('gs://'))
-                .map((gsUrl) => new Object ({type: 'gs', access_url: {url: gsUrl.url}})),
+                .map((gsUrl) => {
+                    return { type: 'gs', access_url: { url: gsUrl.url } };
+                }),
             mime_type: response.data_object.mimeType || 'application/octet-stream',
             size: response.data_object.size,
             created_time: response.data_object.created,
@@ -101,11 +103,11 @@ function determineDrsType (dataObjectUri) {
             gen3UrlGenerator(parsedUrl),
             null,
             gen3ResponseParser);
-    } else if (/jade.*\.datarepo-.*\.broadinstitute\.org/.test(parsedUrl.host)) {
-         return new DrsType(
-             jadeUrlGenerator(parsedUrl),
-             null,
-             jadeResponseParser);
+    } else if ((/jade.*\.datarepo-.*\.broadinstitute\.org/).test(parsedUrl.host)) {
+        return new DrsType(
+            jadeUrlGenerator(parsedUrl),
+            null,
+            jadeResponseParser);
     } else {
         return new DrsType(
             dosUrlGenerator(parsedUrl),
