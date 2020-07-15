@@ -7,7 +7,8 @@ RUN apt-get update \
     && apt-get clean
 
 # Install the Google Cloud SDK
-# The emulator does not use gcloud, but deploy.sh does, and it also uses this image.
+# Deployment still uses this image and requires gcloud.
+# Unlike Google's former functions-emulator, Google's functions-framework does not use gcloud.
 ENV HOME /
 RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.zip \
     && unzip google-cloud-sdk.zip \
@@ -22,7 +23,7 @@ RUN gcloud components update --quiet \
 RUN mkdir /martha
 WORKDIR /martha
 
-# Install GCF Emulator and project dependencies
+# Install project dependencies
 # Do this prior to copying over source files to take advantage of Docker layer caching of npm dependencies
 COPY package.json package.json
 COPY package-lock.json package-lock.json
@@ -31,7 +32,7 @@ RUN npm ci
 # Copy Martha source code into image AFTER installing dependencies
 COPY . .
 
-# Running emulator on port 8010
+# Running the functions-framework on the port previously used by the functions-emulator, port 8010
 EXPOSE 8010
 
 ENTRYPOINT ["npm"]
