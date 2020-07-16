@@ -16,13 +16,9 @@ class DrsType {
 
 /** *************************************************************************************************
  * URI parsers
- * These are used to generate the resolving URL for a URI based on (unfortunately) somewhat
- * arbitrary rules, hence the names are not particularly illuminating.  The dream is that,
- * sometime in the future, the conventions will coalesce into something more sensible, but, at the
- * moment, this is not the case -- hic sunt dracones.
  */
 
-function alphaUrlGenerator (parsedUrl) {
+function dosFullUrlGenerator (parsedUrl) {
     return url.format({
         protocol: 'https',
         hostname: parsedUrl.hostname,
@@ -32,7 +28,7 @@ function alphaUrlGenerator (parsedUrl) {
     });
 }
 
-function bravoUrlGenerator (parsedUrl) {
+function dosCompactUrlGenerator (parsedUrl) {
     const splitHost = parsedUrl.hostname.split('.');
     const idPrefix = `${splitHost[0]}.${splitHost[1].toUpperCase()}`;
     return url.format({
@@ -44,7 +40,7 @@ function bravoUrlGenerator (parsedUrl) {
     });
 }
 
-function charlieUrlGenerator (parsedUrl) {
+function drsFullUrlGenerator (parsedUrl) {
     return url.format({
         protocol: 'https',
         hostname: parsedUrl.hostname,
@@ -56,13 +52,9 @@ function charlieUrlGenerator (parsedUrl) {
 
 /** *************************************************************************************************
  * Response parsers
- * These are used to take the various kinds of responses that come from the supported data URI
- * resolvers and generate a standard object from that response.  Like with the URI parsers, the
- * distinctions are (unfortunately) somewhat arbitrary rules, hence the names are also not
- * illuminating -- hic sunt dracones.
  */
 
-function amsterdamResponseParser (response) {
+function dosResponseParser (response) {
     if (response.data_object) {
         const accessMethods = (response.data_object.urls) ? response.data_object.urls
             .filter((e) => e.url.startsWith('gs://'))
@@ -73,29 +65,19 @@ function amsterdamResponseParser (response) {
             access_methods: accessMethods,
             checksums: response.data_object.checksums,
             created_time: response.data_object.created,
-            mime_type: response.data_object.mimeType || 'application/octet-stream',
+            mime_type: response.data_object.mimeType,
             size: response.data_object.size,
             updated_time: response.data_object.updated,
         };
     }
 }
 
-function baltimoreResponseParser (response) {
-    return {
-        checksums: response.checksums,
-        created_time: response.createdTime,
-        mime_type: response.mimeType || 'application/octet-stream',
-        size: response.size,
-        updated_time: response.updatedTime,
-    };
-}
-
-function casablancaResponseParser (response) {
+function drsResponseParser (response) {
     return {
         access_methods: response.access_methods,
         checksums: response.checksums,
         created_time: response.created_time,
-        mime_type: response.mime_type || 'application/octet-stream',
+        mime_type: response.mime_type,
         name: response.name,
         size: response.size,
         updated_time: response.updated_time,
@@ -109,36 +91,36 @@ function casablancaResponseParser (response) {
  */
 
 function determineDrsType (parsedUrl) {
-    if (parsedUrl.host.toLowerCase().startsWith('dg.4503')) {
+    if ((parsedUrl.host.toLowerCase() === 'dg.4503') || (parsedUrl.host.toLowerCase() === 'dg.712c')) {
         return new DrsType(
-            bravoUrlGenerator(parsedUrl),
+            dosCompactUrlGenerator(parsedUrl),
             `${config.bondBaseUrl}/api/link/v1/fence/serviceaccount/key`,
-            baltimoreResponseParser);
+            dosResponseParser);
     } else if (parsedUrl.host.toLowerCase().startsWith('dg.')) {
         return new DrsType(
-            bravoUrlGenerator(parsedUrl),
+            dosCompactUrlGenerator(parsedUrl),
             `${config.bondBaseUrl}/api/link/v1/dcf-fence/serviceaccount/key`,
-            amsterdamResponseParser);
+            dosResponseParser);
     } else if (parsedUrl.host.endsWith('.dataguids.org')) {
         return new DrsType(
-            bravoUrlGenerator(parsedUrl),
+            dosCompactUrlGenerator(parsedUrl),
             null,
-            baltimoreResponseParser);
+            dosResponseParser);
     } else if ((/jade.*\.datarepo-.*\.broadinstitute\.org/).test(parsedUrl.host)) {
         return new DrsType(
-            charlieUrlGenerator(parsedUrl),
+            drsFullUrlGenerator(parsedUrl),
             null,
-            casablancaResponseParser);
+            drsResponseParser);
     } else if (parsedUrl.host.endsWith('.humancellatlas.org')) {
         return new DrsType(
-            alphaUrlGenerator(parsedUrl),
+            dosFullUrlGenerator(parsedUrl),
             null,
-            amsterdamResponseParser);
+            dosResponseParser);
     } else {
         return new DrsType(
-            alphaUrlGenerator(parsedUrl),
+            dosFullUrlGenerator(parsedUrl),
             `${config.bondBaseUrl}/api/link/v1/dcf-fence/serviceaccount/key`,
-            amsterdamResponseParser);
+            dosResponseParser);
     }
 }
 
@@ -189,13 +171,7 @@ async function marthaV3Handler(req, res) {
         }
         return;
     }
-    console.log(`response for ${dataObjectUri}:` + "\n");
-    console.log(response);
-
     const drsResponse = responseParser(response);
-
-    console.log(`parsed response for ${dataObjectUri}:` + "\n");
-    console.log(drsResponse);
 
     let bondSA;
     if (bondUrl && req && req.headers && req.headers.authorization) {
