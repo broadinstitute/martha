@@ -78,7 +78,7 @@ test.cb('integration_v3 return error if url passed is not good', (t) => {
         .set('Authorization', `Bearer ${authorizedToken}`)
         .send({ url: 'dos://broad-dsp-dos-TYPO.storage.googleapis.com/something-that-does-not-exist' })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 404, 'Incorrect status code');
+            assert.strictEqual(response.statusCode, 403, 'Incorrect status code');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
