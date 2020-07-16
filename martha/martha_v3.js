@@ -170,7 +170,7 @@ async function marthaV3Handler(req, res) {
         res.status(BAD_REQUEST_ERROR_CODE).send(failureResponse);
         return;
     }
-    const {drsUrl, bondUrl, responseParser} = determineDrsType(parsedUrl, res);
+    const {drsUrl, bondUrl, responseParser} = determineDrsType(parsedUrl);
     console.log(`Converting DRS URI to HTTPS: ${dataObjectUri} -> ${drsUrl}`);
 
     let response;
