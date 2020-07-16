@@ -14,7 +14,7 @@ class DrsType {
     }
 }
 
-/***************************************************************************************************
+/** *************************************************************************************************
  * URI parsers
  * These are used to generate the resolving URL for a URI based on (unfortunately) somewhat
  * arbitrary rules, hence the names are not particularly illuminating.  The dream is that,
@@ -54,7 +54,7 @@ function charlieUrlGenerator (parsedUrl) {
     });
 }
 
-/***************************************************************************************************
+/** *************************************************************************************************
  * Response parsers
  * These are used to take the various kinds of responses that come from the supported data URI
  * resolvers and generate a standard object from that response.  Like with the URI parsers, the
@@ -102,7 +102,7 @@ function foxtrotResponseParser (response) {
     };
 }
 
-/***************************************************************************************************
+/** *************************************************************************************************
  * Here is where all the logic lives that pairs a particular kind of URI with its
  * resolving-URL-generating parser, what path to use to make a Bond request for an SA (if any), and
  * a response parser.
@@ -134,7 +134,7 @@ function determineDrsType (parsedUrl) {
             alphaUrlGenerator(parsedUrl),
             null,
             deltaResponseParser);
-    }else {
+    } else {
         return new DrsType(
             alphaUrlGenerator(parsedUrl),
             `${config.bondBaseUrl}/api/link/v1/dcf-fence/serviceaccount/key`,
