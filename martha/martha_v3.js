@@ -62,7 +62,7 @@ function charlieUrlGenerator (parsedUrl) {
  * illuminating -- hic sunt dracones.
  */
 
-function deltaResponseParser (response) {
+function amsterdamResponseParser (response) {
     if (response.data_object) {
         const accessMethods = (response.data_object.urls) ? response.data_object.urls
             .filter((e) => e.url.startsWith('gs://'))
@@ -80,7 +80,7 @@ function deltaResponseParser (response) {
     }
 }
 
-function echoResponseParser (response) {
+function baltimoreResponseParser (response) {
     return {
         checksums: response.checksums,
         created_time: response.createdTime,
@@ -90,7 +90,7 @@ function echoResponseParser (response) {
     };
 }
 
-function foxtrotResponseParser (response) {
+function casablancaResponseParser (response) {
     return {
         access_methods: response.access_methods,
         checksums: response.checksums,
@@ -113,32 +113,32 @@ function determineDrsType (parsedUrl) {
         return new DrsType(
             bravoUrlGenerator(parsedUrl),
             `${config.bondBaseUrl}/api/link/v1/fence/serviceaccount/key`,
-            echoResponseParser);
+            baltimoreResponseParser);
     } else if (parsedUrl.host.toLowerCase().startsWith('dg.')) {
         return new DrsType(
             bravoUrlGenerator(parsedUrl),
             `${config.bondBaseUrl}/api/link/v1/dcf-fence/serviceaccount/key`,
-            deltaResponseParser);
+            amsterdamResponseParser);
     } else if (parsedUrl.host.endsWith('dataguids.org')) {
         return new DrsType(
             bravoUrlGenerator(parsedUrl),
             null,
-            echoResponseParser);
+            baltimoreResponseParser);
     } else if ((/jade.*\.datarepo-.*\.broadinstitute\.org/).test(parsedUrl.host)) {
         return new DrsType(
             charlieUrlGenerator(parsedUrl),
             null,
-            foxtrotResponseParser);
+            casablancaResponseParser);
     } else if (parsedUrl.host.endsWith('humancellatlas.org')) {
         return new DrsType(
             alphaUrlGenerator(parsedUrl),
             null,
-            deltaResponseParser);
+            amsterdamResponseParser);
     } else {
         return new DrsType(
             alphaUrlGenerator(parsedUrl),
             `${config.bondBaseUrl}/api/link/v1/dcf-fence/serviceaccount/key`,
-            deltaResponseParser);
+            amsterdamResponseParser);
     }
 }
 
