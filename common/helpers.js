@@ -121,7 +121,7 @@ class CommonFileInfoResponse {
         contentType,
         size,
         timeCreated,
-        timeUpdated,
+        updated,
         bucket,
         name,
         gsUri,
@@ -130,7 +130,7 @@ class CommonFileInfoResponse {
         this.contentType = contentType || null;
         this.size = size || null;
         this.timeCreated = timeCreated || null;
-        this.timeUpdated = timeUpdated || null;
+        this.updated = updated || null;
         this.bucket = bucket || null;
         this.name = name || null;
         this.gsUri = gsUri || null;
@@ -147,6 +147,7 @@ class MarthaV3Response extends CommonFileInfoResponse {
         size,
         timeCreated,
         timeUpdated,
+        updated,
         bucket,
         name,
         gsUri,
@@ -157,13 +158,14 @@ class MarthaV3Response extends CommonFileInfoResponse {
             contentType,
             size,
             timeCreated,
-            timeUpdated,
             bucket,
             name,
             gsUri,
             googleServiceAccount
         );
         this.hashes = hashesMap || null;
+        this.timeUpdated = updated || null;
+        delete this.updated;
     }
 }
 
@@ -175,7 +177,7 @@ class FileSummaryV1Response extends CommonFileInfoResponse {
         contentType,
         size,
         timeCreated,
-        timeUpdated,
+        updated,
         bucket,
         name,
         gsUri,
@@ -187,7 +189,7 @@ class FileSummaryV1Response extends CommonFileInfoResponse {
             contentType,
             size,
             timeCreated,
-            timeUpdated,
+            updated,
             bucket,
             name,
             gsUri,

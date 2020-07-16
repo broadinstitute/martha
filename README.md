@@ -47,7 +47,7 @@ It will always return an object with the same properties:
  contentType:    string [or null if unknown],
  size:           int [or null if unknown],
  timeCreated:    string [the time created, formatted using ISO 8601, or null if unknown],
- timeUpdated:        string [the time updated, formatted using ISO 8601, or null if unknown],
+ updated:        string [the time updated, formatted using ISO 8601, or null if unknown],
  bucket:         string [or null if unknown],
  name:           string [or null if unknown],
  gsUri:          string [or null if unknown],
