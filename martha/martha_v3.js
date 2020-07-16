@@ -69,8 +69,6 @@ function amsterdamResponseParser (response) {
             .map((gsUrl) => {
                 return { type: 'gs', access_url: { url: gsUrl.url } };
             }) : null;
-        console.log(response.data_object.urls)
-        console.log(accessMethods)
         return {
             access_methods: accessMethods,
             checksums: response.data_object.checksums,
@@ -191,13 +189,13 @@ async function marthaV3Handler(req, res) {
         }
         return;
     }
-    console.log(`response for ${dataObjectUri}:` + "\n")
-    console.log(response)
+    console.log(`response for ${dataObjectUri}:` + "\n");
+    console.log(response);
 
     const drsResponse = responseParser(response);
 
-    console.log(`parsed response for ${dataObjectUri}:` + "\n")
-    console.log(drsResponse)
+    console.log(`parsed response for ${dataObjectUri}:` + "\n");
+    console.log(drsResponse);
 
     let bondSA;
     if (bondUrl && req && req.headers && req.headers.authorization) {
