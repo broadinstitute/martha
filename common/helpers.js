@@ -121,7 +121,7 @@ class CommonFileInfoResponse {
         contentType,
         size,
         timeCreated,
-        updated,
+        timeUpdated,
         bucket,
         name,
         gsUri,
@@ -130,7 +130,7 @@ class CommonFileInfoResponse {
         this.contentType = contentType || null;
         this.size = size || null;
         this.timeCreated = timeCreated || null;
-        this.updated = updated || null;
+        this.timeUpdated = timeUpdated || null;
         this.bucket = bucket || null;
         this.name = name || null;
         this.gsUri = gsUri || null;
@@ -146,7 +146,7 @@ class MarthaV3Response extends CommonFileInfoResponse {
         contentType,
         size,
         timeCreated,
-        updated,
+        timeUpdated,
         bucket,
         name,
         gsUri,
@@ -157,7 +157,7 @@ class MarthaV3Response extends CommonFileInfoResponse {
             contentType,
             size,
             timeCreated,
-            updated,
+            timeUpdated,
             bucket,
             name,
             gsUri,
@@ -175,7 +175,7 @@ class FileSummaryV1Response extends CommonFileInfoResponse {
         contentType,
         size,
         timeCreated,
-        updated,
+        timeUpdated,
         bucket,
         name,
         gsUri,
@@ -187,7 +187,7 @@ class FileSummaryV1Response extends CommonFileInfoResponse {
             contentType,
             size,
             timeCreated,
-            updated,
+            timeUpdated,
             bucket,
             name,
             gsUri,
@@ -331,11 +331,11 @@ function getGsUrlFromDrsObject(drsResponse) {
  */
 function convertToMarthaV3Response(drsResponse, googleSA) {
     const {
+        checksums,
+        created_time: createdTime,
         mime_type: mimeType = 'application/octet-stream',
         size,
-        created_time: createdTime,
         updated_time: updatedTime,
-        checksums,
     } = drsResponse;
 
     const createdTimeIso = createdTime ? new Date(createdTime).toISOString() : null;

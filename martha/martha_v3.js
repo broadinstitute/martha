@@ -14,7 +14,15 @@ class DrsType {
     }
 }
 
-function dosUrlGenerator (parsedUrl) {
+/***************************************************************************************************
+ * URI parsers
+ * These are used to generate the resolving URL for a URI based on (unfortunately) somewhat
+ * arbitrary rules, hence the names are not particularly illuminating.  The dream is that,
+ * sometime in the future, the conventions will coalesce into something more sensible, but, at the
+ * moment, this is not the case -- hic sunt dracones.
+ */
+
+function alphaUrlGenerator (parsedUrl) {
     return url.format({
         protocol: 'https',
         hostname: parsedUrl.hostname,
@@ -24,7 +32,7 @@ function dosUrlGenerator (parsedUrl) {
     });
 }
 
-function gen3UrlGenerator (parsedUrl) {
+function bravoUrlGenerator (parsedUrl) {
     const splitHost = parsedUrl.hostname.split('.');
     const idPrefix = `${splitHost[0]}.${splitHost[1].toUpperCase()}`;
     return url.format({
@@ -36,7 +44,7 @@ function gen3UrlGenerator (parsedUrl) {
     });
 }
 
-function jadeUrlGenerator (parsedUrl) {
+function charlieUrlGenerator (parsedUrl) {
     return url.format({
         protocol: 'https',
         hostname: parsedUrl.hostname,
@@ -46,73 +54,91 @@ function jadeUrlGenerator (parsedUrl) {
     });
 }
 
-function dosResponseParser (response) {
+/***************************************************************************************************
+ * Response parsers
+ * These are used to take the various kinds of responses that come from the supported data URI
+ * resolvers and generate a standard object from that response.  Like with the URI parsers, the
+ * distinctions are (unfortunately) somewhat arbitrary rules, hence the names are also not
+ * illuminating -- hic sunt dracones.
+ */
+
+function deltaResponseParser (response) {
     if (response.data_object) {
+        const accessMethods = (response.data_object.urls) ? response.data_object.urls
+            .filter((e) => e.url.startsWith('gs://'))
+            .map((gsUrl) => {
+                return { type: 'gs', access_url: { url: gsUrl.url } };
+            }) : null;
         return {
-            access_methods: response.data_object.urls
-                .filter((e) => e.url.startsWith('gs://'))
-                .map((gsUrl) => {
-                    return { type: 'gs', access_url: { url: gsUrl.url } };
-                }),
+            access_methods: accessMethods,
+            checksums: response.data_object.checksums,
+            created_time: response.data_object.created,
             mime_type: response.data_object.mimeType || 'application/octet-stream',
             size: response.data_object.size,
-            created_time: response.data_object.created,
             updated_time: response.data_object.updated,
-            checksums: response.data_object.checksums
         };
     }
 }
 
-function gen3ResponseParser (response) {
+function echoResponseParser (response) {
     return {
+        checksums: response.checksums,
+        created_time: response.createdTime,
         mime_type: response.mimeType || 'application/octet-stream',
         size: response.size,
-        created_time: response.createdTime,
         updated_time: response.updatedTime,
-        checksums: response.checksums
     };
 }
 
-function jadeResponseParser (response) {
+function foxtrotResponseParser (response) {
     return {
         access_methods: response.access_methods,
-        name: response.name,
-        mime_type: response.mime_type || 'application/octet-stream',
-        size: response.size,
+        checksums: response.checksums,
         created_time: response.created_time,
+        mime_type: response.mime_type || 'application/octet-stream',
+        name: response.name,
+        size: response.size,
         updated_time: response.updated_time,
-        checksums: response.checksums
     };
 }
 
-function determineDrsType (dataObjectUri) {
-    const parsedUrl = url.parse(dataObjectUri);
+/***************************************************************************************************
+ * Here is where all the logic lives that pairs a particular kind of URI with its
+ * resolving-URL-generating parser, what path to use to make a Bond request for an SA (if any), and
+ * a response parser.
+ */
 
-    if (parsedUrl.host.startsWith('dg.4503')) {
+function determineDrsType (parsedUrl) {
+    if (parsedUrl.host.toLowerCase().startsWith('dg.4503')) {
         return new DrsType(
-            gen3UrlGenerator(parsedUrl),
+            bravoUrlGenerator(parsedUrl),
             `${config.bondBaseUrl}/api/link/v1/fence/serviceaccount/key`,
-            gen3ResponseParser);
-    } else if (parsedUrl.host.startsWith('dg.')) {
+            echoResponseParser);
+    } else if (parsedUrl.host.toLowerCase().startsWith('dg.')) {
         return new DrsType(
-            gen3UrlGenerator(parsedUrl),
+            bravoUrlGenerator(parsedUrl),
             `${config.bondBaseUrl}/api/link/v1/dcf-fence/serviceaccount/key`,
-            dosResponseParser);
+            deltaResponseParser);
     } else if (parsedUrl.host.endsWith('dataguids.org')) {
         return new DrsType(
-            gen3UrlGenerator(parsedUrl),
+            bravoUrlGenerator(parsedUrl),
             null,
-            gen3ResponseParser);
+            echoResponseParser);
     } else if ((/jade.*\.datarepo-.*\.broadinstitute\.org/).test(parsedUrl.host)) {
         return new DrsType(
-            jadeUrlGenerator(parsedUrl),
+            charlieUrlGenerator(parsedUrl),
             null,
-            jadeResponseParser);
-    } else {
+            foxtrotResponseParser);
+    } else if (parsedUrl.host.endsWith('humancellatlas.org')) {
         return new DrsType(
-            dosUrlGenerator(parsedUrl),
-            `${config.bondBaseUrl}/api/link/v1/fence/serviceaccount/key`,
-            dosResponseParser);
+            alphaUrlGenerator(parsedUrl),
+            null,
+            deltaResponseParser);
+    }else {
+        return new DrsType(
+            alphaUrlGenerator(parsedUrl),
+            `${config.bondBaseUrl}/api/link/v1/dcf-fence/serviceaccount/key`,
+            deltaResponseParser);
     }
 }
 
@@ -137,19 +163,26 @@ async function marthaV3Handler(req, res) {
         res.status(BAD_REQUEST_ERROR_CODE).send(failureResponse);
         return;
     }
-    const {drsUrl, bondUrl, responseParser} = determineDrsType(dataObjectUri);
+    const parsedUrl = url.parse(dataObjectUri);
+    if (!parsedUrl.host || !parsedUrl.path) {
+        console.error(`"${url.format(parsedUrl)}" is missing a host and/or a path.`);
+        const failureResponse = new FailureResponse(BAD_REQUEST_ERROR_CODE, `"${url.format(parsedUrl)}" is not a properly-formatted URI.`);
+        res.status(BAD_REQUEST_ERROR_CODE).send(failureResponse);
+        return;
+    }
+    const {drsUrl, bondUrl, responseParser} = determineDrsType(parsedUrl, res);
     console.log(`Converting DRS URI to HTTPS: ${dataObjectUri} -> ${drsUrl}`);
 
     let response;
     try {
         response = await apiAdapter.getJsonFrom(drsUrl, auth);
     } catch (err) {
-        console.log('Received error while resolving drs url.');
+        console.log('Received error while resolving DRS URL.');
         console.error(err);
 
         const errorStatusCode = err.status;
         if (typeof errorStatusCode === 'undefined') {
-            const failureResponse = new FailureResponse(SERVER_ERROR_CODE, `Received error while resolving drs url. ${err.message}`);
+            const failureResponse = new FailureResponse(SERVER_ERROR_CODE, `Received error while resolving DRS URL. ${err.message}`);
             res.status(SERVER_ERROR_CODE).send(failureResponse);
         } else {
             res.status(errorStatusCode).send(err);

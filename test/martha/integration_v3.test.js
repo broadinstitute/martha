@@ -230,7 +230,7 @@ test.cb('integration_v3 responds with Data Object for authorized user for jade d
                     contentType: 'application/octet-stream',
                     size: 15601108255,
                     timeCreated: '2020-04-27T15:56:09.696Z',
-                    updated: '2020-04-27T15:56:09.696Z',
+                    timeUpdated: '2020-04-27T15:56:09.696Z',
                     bucket: 'broad-jade-dev-data-bucket',
                     name: 'fd8d8492-ad02-447d-b54e-35a7ffd0e7a5/8b07563a-542f-4b5c-9e00-e8fe6b1861de',
                     gsUri:
