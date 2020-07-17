@@ -191,7 +191,7 @@ test.cb('integration_v3 fails when "authorization" header is provided for a prot
         .set('Authorization', `Bearer ${unauthorizedToken}`)
         .send({ url: protectedFenceUrl })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 403, 'User should not be authorized with provider');
+            assert.strictEqual(response.statusCode, 404, 'User should not be authorized with provider');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
