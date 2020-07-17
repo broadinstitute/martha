@@ -115,6 +115,7 @@ function determineDrsType (parsedUrl) {
     } else if ((/jade.*\.datarepo-.*\.broadinstitute\.org/).test(parsedUrl.host)) {
         return new DrsType(
             drsFullUrlGenerator(parsedUrl),
+            true,
             null,
             drsResponseParser);
     } else if (parsedUrl.host.endsWith('.humancellatlas.org')) {
