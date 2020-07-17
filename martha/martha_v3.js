@@ -7,8 +7,9 @@ const BAD_REQUEST_ERROR_CODE = 400;
 const SERVER_ERROR_CODE = 500;
 
 class DrsType {
-    constructor(drsUrl, bondUrl, responseParser) {
+    constructor(drsUrl, sendAuth, bondUrl, responseParser) {
         this.drsUrl = drsUrl;
+        this.sendAuth = sendAuth;
         this.bondUrl = bondUrl;
         this.responseParser = responseParser;
     }
@@ -96,16 +97,19 @@ function determineDrsType (parsedUrl) {
     if ((parsedUrl.host.toLowerCase() === 'dg.4503') || (parsedUrl.host.toLowerCase() === 'dg.712c')) {
         return new DrsType(
             dosCompactUrlGenerator(parsedUrl),
+            false,
             `${config.bondBaseUrl}/api/link/v1/fence/serviceaccount/key`,
             dosResponseParser);
     } else if (parsedUrl.host.toLowerCase().startsWith('dg.')) {
         return new DrsType(
             dosCompactUrlGenerator(parsedUrl),
+            false,
             `${config.bondBaseUrl}/api/link/v1/dcf-fence/serviceaccount/key`,
             dosResponseParser);
     } else if (parsedUrl.host.endsWith('.dataguids.org')) {
         return new DrsType(
             dosCompactUrlGenerator(parsedUrl),
+            false,
             null,
             dosResponseParser);
     } else if ((/jade.*\.datarepo-.*\.broadinstitute\.org/).test(parsedUrl.host)) {
@@ -116,11 +120,13 @@ function determineDrsType (parsedUrl) {
     } else if (parsedUrl.host.endsWith('.humancellatlas.org')) {
         return new DrsType(
             dosFullUrlGenerator(parsedUrl),
+            false,
             null,
             dosResponseParser);
     } else {
         return new DrsType(
             dosFullUrlGenerator(parsedUrl),
+            false,
             `${config.bondBaseUrl}/api/link/v1/dcf-fence/serviceaccount/key`,
             dosResponseParser);
     }
@@ -154,12 +160,16 @@ async function marthaV3Handler(req, res) {
         res.status(BAD_REQUEST_ERROR_CODE).send(failureResponse);
         return;
     }
-    const {drsUrl, bondUrl, responseParser} = determineDrsType(parsedUrl);
+    const {drsUrl, sendAuth, bondUrl, responseParser} = determineDrsType(parsedUrl);
     console.log(`Converting DRS URI to HTTPS: ${dataObjectUri} -> ${drsUrl}`);
 
     let response;
     try {
-        response = await apiAdapter.getJsonFrom(drsUrl, auth);
+        if (sendAuth) {
+            response = await apiAdapter.getJsonFrom(drsUrl, auth);
+        } else {
+            response = await apiAdapter.getJsonFrom(drsUrl);
+        }
     } catch (err) {
         console.log('Received error while resolving DRS URL.');
         console.error(err);
