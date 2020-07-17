@@ -70,7 +70,7 @@ function dosResponseParser (response) {
             updated_time: response.data_object.updated,
         };
     } else {
-        throw new FailureResponse(400,`Expected but did not receive properly formatted DOS Response: ${ JSON.stringify(response)}`)
+        throw new FailureResponse(400,  `Expected but did not receive properly formatted DOS Response: ${JSON.stringify(response)} `);
     }
 }
 
