@@ -227,7 +227,7 @@ test.serial('martha_v3 should return 400 if given a \'url\' with an invalid valu
     const result = response.send.lastCall.args[0];
     t.is(response.statusCode, 400);
     t.is(result.status, 400);
-    t.is(result.response.text, '"Not%20a%20valid%20URI" is not a properly-formatted URI.');
+    t.is(result.response.text, '"Not a valid URI" is not a properly-formatted URI.');
 });
 
 test.serial('martha_v3 should return 500 if Data Object resolution fails', async (t) => {

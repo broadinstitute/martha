@@ -69,6 +69,8 @@ function dosResponseParser (response) {
             size: response.data_object.size,
             updated_time: response.data_object.updated,
         };
+    } else {
+        throw new FailureResponse(400,`Expected but did not receive properly formatted DOS Response: ${ JSON.stringify(response)}`)
     }
 }
 
@@ -148,7 +150,7 @@ async function marthaV3Handler(req, res) {
     const parsedUrl = url.parse(dataObjectUri);
     if (!parsedUrl.host || !parsedUrl.path) {
         console.error(`"${url.format(parsedUrl)}" is missing a host and/or a path.`);
-        const failureResponse = new FailureResponse(BAD_REQUEST_ERROR_CODE, `"${url.format(parsedUrl)}" is not a properly-formatted URI.`);
+        const failureResponse = new FailureResponse(BAD_REQUEST_ERROR_CODE, `"${dataObjectUri}" is not a properly-formatted URI.`);
         res.status(BAD_REQUEST_ERROR_CODE).send(failureResponse);
         return;
     }
@@ -171,7 +173,23 @@ async function marthaV3Handler(req, res) {
         }
         return;
     }
-    const drsResponse = responseParser(response);
+
+    let drsResponse;
+    try {
+        drsResponse = responseParser(response);
+    } catch (err) {
+        console.log('Received error while parsing response from DRS URL.');
+        console.error(err);
+
+        const errorStatusCode = err.status;
+        if (typeof errorStatusCode === 'undefined') {
+            const failureResponse = new FailureResponse(SERVER_ERROR_CODE, `Received error while parsing response from DRS URL. ${err.message}`);
+            res.status(SERVER_ERROR_CODE).send(failureResponse);
+        } else {
+            res.status(errorStatusCode).send(err);
+        }
+        return;
+    }
 
     let bondSA;
     if (bondUrl && req && req.headers && req.headers.authorization) {
