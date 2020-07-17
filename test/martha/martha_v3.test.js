@@ -114,7 +114,7 @@ const fullExpectedResult = (expectedGoogleServiceAccount) => {
     };
 };
 
-const drsObjectWithMissingFields = {
+const dosObjectWithMissingFields = {
     "data_object": {
         id: 'v1_abc-123',
         description: '123 BAM file',
@@ -302,7 +302,7 @@ test.serial('martha_v3 returns null for fields missing in drs and bond response'
     sandbox.restore();
     getJsonFromApiStub.onFirstCall().resolves(dataObjectServiceObject);
     getJsonFromApiStub = sandbox.stub(apiAdapter, getJsonFromApiMethodName);
-    getJsonFromApiStub.onFirstCall().resolves(drsObjectWithMissingFields);
+    getJsonFromApiStub.onFirstCall().resolves(dosObjectWithMissingFields);
     getJsonFromApiStub.onSecondCall().resolves(null);
 
     const response = mockResponse();
