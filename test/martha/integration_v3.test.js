@@ -63,7 +63,7 @@ test.cb('integration_v3 returns error if url passed is malformed', (t) => {
         .set('Content-Type', 'application/json')
         .send({ url: 'notAValidURL' })
         .expect((response) => {
-            assert.ok(response.statusCode.match(/4\d\d/), 'Request did not specify the URL of a DRS object');
+            assert.ok(response.statusCode.toString().match(/4\d\d/), 'Request did not specify the URL of a DRS object');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
@@ -78,7 +78,7 @@ test.cb('integration_v3 return error if url passed is not good', (t) => {
         .set('Authorization', `Bearer ${authorizedToken}`)
         .send({ url: 'dos://broad-dsp-dos-TYPO.storage.googleapis.com/something-that-does-not-exist' })
         .expect((response) => {
-            assert.ok(response.statusCode.match(/4\d\d/), 'Incorrect status code');
+            assert.ok(response.statusCode.toString().match(/4\d\d/), 'Incorrect status code');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
@@ -94,7 +94,7 @@ test.cb('integration_v3 fails when no "authorization" header is provided for pub
         .set('Content-Type', 'application/json')
         .send({ url: publicFenceUrl })
         .expect((response) => {
-            assert.ok(response.statusCode.match(/4\d\d/), 'Request did not not specify an authorization header');
+            assert.ok(response.statusCode.toString().match(/4\d\d/), 'Request did not not specify an authorization header');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
@@ -127,7 +127,7 @@ test.cb('integration_v3 fails when "authorization" header is provided for a publ
         .set('Authorization', `Bearer ${unauthorizedToken}`)
         .send({ url: publicFenceUrl })
         .expect((response) => {
-            assert.ok(response.statusCode.match(/4\d\d/), 'User should not be authorized with provider');
+            assert.ok(response.statusCode.toString().match(/4\d\d/), 'User should not be authorized with provider');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
@@ -142,7 +142,7 @@ test.cb('integration_v3 fails when "authorization" header is provided for a publ
         .set('Authorization', 'Bearer badToken')
         .send({ url: publicFenceUrl })
         .expect((response) => {
-            assert.ok(response.statusCode.match(/4\d\d/), 'Bond should not have authenticated this token');
+            assert.ok(response.statusCode.toString().match(/4\d\d/), 'Bond should not have authenticated this token');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
@@ -158,7 +158,7 @@ test.cb('integration_v3 fails when no "authorization" header is provided for a p
         .set('Content-Type', 'application/json')
         .send({ url: protectedFenceUrl })
         .expect((response) => {
-            assert.ok(response.statusCode.match(/4\d\d/), 'Request did not not specify an authorization header');
+            assert.ok(response.statusCode.toString().match(/4\d\d/), 'Request did not not specify an authorization header');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
@@ -191,7 +191,7 @@ test.cb('integration_v3 fails when "authorization" header is provided for a prot
         .set('Authorization', `Bearer ${unauthorizedToken}`)
         .send({ url: protectedFenceUrl })
         .expect((response) => {
-            assert.ok(response.statusCode.match(/4\d\d/), 'User should not be authorized with provider');
+            assert.ok(response.statusCode.toString().match(/4\d\d/), 'User should not be authorized with provider');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
@@ -206,7 +206,7 @@ test.cb('integration_v3 fails when "authorization" header is provided for a prot
         .set('Authorization', 'Bearer badToken')
         .send({ url: protectedFenceUrl })
         .expect((response) => {
-            assert.ok(response.statusCode.match(/4\d\d/), 'Bond should not have authenticated this token');
+            assert.ok(response.statusCode.toString().match(/4\d\d/), 'Bond should not have authenticated this token');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
