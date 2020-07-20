@@ -24,19 +24,25 @@ function dosFullUrlGenerator (parsedUrl) {
         protocol: 'https',
         hostname: parsedUrl.hostname,
         port: parsedUrl.port,
-        pathname: `/ga4gh/dos/v1/dataobjects${parsedUrl.pathname}`,
+        pathname: `/ga4gh/dos/v1/dataobjects${(parsedUrl.pathname) ? parsedUrl.pathname : `/${parsedUrl.hostname}`}`,
         search: parsedUrl.search
     });
 }
 
 function dosCompactUrlGenerator (parsedUrl) {
     const splitHost = parsedUrl.hostname.split('.');
-    const idPrefix = `${splitHost[0]}.${splitHost[1].toUpperCase()}`;
+    let idPrefix;
+    if (parsedUrl.pathname) {
+        idPrefix = `${splitHost[0]}.${splitHost[1].toUpperCase()}`;
+    } else {
+        idPrefix = `${splitHost[0]}.${splitHost[1]}`;
+    }
+
     return url.format({
         protocol: 'https',
         hostname: config.dataObjectResolutionHost,
         port: parsedUrl.port,
-        pathname: `/ga4gh/dos/v1/dataobjects/${idPrefix}${parsedUrl.pathname}`,
+        pathname: `/ga4gh/dos/v1/dataobjects/${idPrefix}${(parsedUrl.pathname) ? parsedUrl.pathname : ''}`,
         search: parsedUrl.search
     });
 }
@@ -155,7 +161,7 @@ async function marthaV3Handler(req, res) {
         return;
     }
     const parsedUrl = url.parse(dataObjectUri);
-    if (!parsedUrl.host || !parsedUrl.path) {
+    if (!parsedUrl.host || (!parsedUrl.path && parsedUrl.host.toLowerCase().startsWith('dg.'))) {
         console.error(`"${url.format(parsedUrl)}" is missing a host and/or a path.`);
         const failureResponse = new FailureResponse(BAD_REQUEST_ERROR_CODE, `"${dataObjectUri}" is not a properly-formatted URI.`);
         res.status(BAD_REQUEST_ERROR_CODE).send(failureResponse);
@@ -225,3 +231,4 @@ async function marthaV3Handler(req, res) {
 }
 
 exports.marthaV3Handler = marthaV3Handler;
+exports.determineDrsType = determineDrsType;
