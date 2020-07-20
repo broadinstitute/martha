@@ -164,6 +164,8 @@ class MarthaV3Response extends CommonFileInfoResponse {
             googleServiceAccount
         );
         this.hashes = hashesMap || null;
+        this.timeUpdated = updated || null;
+        delete this.updated;
     }
 }
 
@@ -331,11 +333,11 @@ function getGsUrlFromDrsObject(drsResponse) {
  */
 function convertToMarthaV3Response(drsResponse, googleSA) {
     const {
+        checksums,
+        created_time: createdTime,
         mime_type: mimeType = 'application/octet-stream',
         size,
-        created_time: createdTime,
         updated_time: updatedTime,
-        checksums,
     } = drsResponse;
 
     const createdTimeIso = createdTime ? new Date(createdTime).toISOString() : null;
