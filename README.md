@@ -44,15 +44,15 @@ Production: https://us-central1-broad-dsde-prod.cloudfunctions.net/martha_v3
 It will always return an object with the same properties:
 
 ```
- contentType:    string [or null if unknown],
- size:           int [or null if unknown],
- timeCreated:    string [the time created, formatted using ISO 8601, or null if unknown],
- timeUpdated:    string [the time updated, formatted using ISO 8601, or null if unknown],
- bucket:         string [or null if unknown],
- name:           string [or null if unknown],
- gsUri:          string [or null if unknown],
- googleServiceAccount: object, [null unless the DOS url belongs to a Bond supported host]
- hashes:         object [contains the hashes type and their checksum value. If unknown, it returns null]
+ contentType:           string [resolver sometimes returns null],
+ size:                  int [resolver sometimes returns null],
+ timeCreated:           string [the time created formatted using ISO 8601, resolver sometimes returns null],
+ timeUpdated:           string [the time updated formatted using ISO 8601, resolver sometimes returns null],
+ bucket:                string [resolver sometimes returns null],
+ name:                  string [resolver sometimes returns null],
+ gsUri:                 string [resolver sometimes returns null],
+ googleServiceAccount:  object [null unless the DOS url belongs to a Bond supported host],
+ hashes:                object [contains the hashes type and their checksum value; if unknown, it returns null]
 ```
 
 Example response for /martha_v3:
@@ -161,16 +161,16 @@ It expects the following:
 It will always return an object with the same properties:
 
 ```
- contentType:    string,
- size:           int,
- timeCreated:    string [dos objects only],
- updated:        string [usually],
- md5Hash:        string,
- bucket:         string,
- name:           string,
- gsUri:          string,
- googleServiceAccount: string, [always null]
- signedUrl:      string [absent for dos when caller is not linked in Bond]
+ contentType:           string,
+ size:                  int,
+ timeCreated:           string by design [resolver sometimes returns null],
+ updated:               string by design [resolver sometimes returns null],
+ md5Hash:               string,
+ bucket:                string,
+ name:                  string,
+ gsUri:                 string,
+ googleServiceAccount:  string [always null],
+ signedUrl:             string [absent for dos when caller is not linked in Bond]
 ```
 
 # Get Signed Url
