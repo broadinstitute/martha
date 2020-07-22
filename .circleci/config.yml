@@ -87,6 +87,15 @@ jobs:
             if [[ ${CIRCLE_BRANCH} == "dev" ]]; then docker tag ${IMAGE_NAME}:${CIRCLE_BRANCH} ${IMAGE_NAME}:latest ; fi
 
       - run:
+          name: Install trivy
+          command: |
+            curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
+  
+      - run:
+          name: Scan the local image with trivy (light)
+          command: trivy --exit-code 1 --severity CRITICAL --no-progress ${IMAGE_NAME}:latest
+
+      - run:
           name: Push to quay
           command: |
             docker login -u="${QUAY_USER}" -p="${QUAY_USER_PW}" quay.io
