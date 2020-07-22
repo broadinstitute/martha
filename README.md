@@ -80,7 +80,7 @@ Example response for /martha_v3:
 There was an [early substitution recommendation to
 users](https://app.zenhub.com/workspaces/orange-5d680d7e3eeb5f1bbdf5668f/issues/databiosphere/azul/1115), instructing
 them to convert their URL schemes from "dos" to "drs". Some underlying servers hosting the DOS/DRS metadata have not yet
-upgraded to support the DRS request path-prefix and DRS response JSON metadata, so `martha_v2` abd `martha_v3` still 
+upgraded to support the DRS request path-prefix and DRS response JSON metadata, so `martha_v2` and `martha_v3` still 
 communicates with those servers using the older request/response format.
 
 At the same time, those server hosts are also working to submit test accounts for automated testing purposes. The final
