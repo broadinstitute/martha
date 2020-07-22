@@ -47,7 +47,7 @@ It will always return an object with the same properties:
  contentType:    string [or null if unknown],
  size:           int [or null if unknown],
  timeCreated:    string [the time created, formatted using ISO 8601, or null if unknown],
- updated:        string [the time updated, formatted using ISO 8601, or null if unknown],
+ timeUpdated:    string [the time updated, formatted using ISO 8601, or null if unknown],
  bucket:         string [or null if unknown],
  name:           string [or null if unknown],
  gsUri:          string [or null if unknown],
@@ -77,14 +77,11 @@ Example response for /martha_v3:
 
 **NOTE:**
 
-`martha_v3` only handles URLs for servers that support requests via the DRS v1.0 path-prefix
-`https://[hostname]/ga4gh/drs/v1/object/[path]`, and then return DRS v1.0 compatible JSON metadata.
-
 There was an [early substitution recommendation to
 users](https://app.zenhub.com/workspaces/orange-5d680d7e3eeb5f1bbdf5668f/issues/databiosphere/azul/1115), instructing
 them to convert their URL schemes from "dos" to "drs". Some underlying servers hosting the DOS/DRS metadata have not yet
-upgraded to support the DRS request path-prefix and DRS response JSON metadata, so `martha_v2` still communicates with
-those servers using the older request/response format.
+upgraded to support the DRS request path-prefix and DRS response JSON metadata, so `martha_v2` abd `martha_v3` still 
+communicates with those servers using the older request/response format.
 
 At the same time, those server hosts are also working to submit test accounts for automated testing purposes. The final
 list of supported `martha_v3` servers is still being finalized while those test accounts are being created.
@@ -167,7 +164,7 @@ It will always return an object with the same properties:
  contentType:    string,
  size:           int,
  timeCreated:    string [dos objects only],
- timeUpdated:        string [usually],
+ updated:        string [usually],
  md5Hash:        string,
  bucket:         string,
  name:           string,
