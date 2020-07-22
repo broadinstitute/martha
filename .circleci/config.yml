@@ -93,7 +93,12 @@ jobs:
   
       - run:
           name: Scan the local image with trivy (light)
-          command: trivy --exit-code 1 --severity CRITICAL --no-progress ${IMAGE_NAME}:latest
+          command:  |
+            if [[ ${CIRCLE_BRANCH} == "dev" ]]; then 
+            trivy --exit-code 1 --severity CRITICAL --no-progress ${IMAGE_NAME}:latest
+            else 
+            trivy --exit-code 1 --severity CRITICAL --no-progress ${IMAGE_NAME}:${CIRCLE_BRANCH} 
+            fi 
 
       - run:
           name: Push to quay
