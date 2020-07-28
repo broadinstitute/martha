@@ -31,11 +31,11 @@ To call `martha_v3`, perform an HTTP `POST` to the appropriate URL. The `content
 `application/json` or `application/x-www-form-urlencoded` with the content/body of your request encoded accordingly.
 
 The body of the request must be a JSON Object with one value:
-a [DOS](https://data-object-service.readthedocs.io/en/latest/) URL. You must also specify an `Authorization` header on
-the request with a valid OAuth bearer token. Martha uses the DOS URL to retrieve a data object, unpacks it, and returns
+a [DOS](https://data-object-service.readthedocs.io/en/latest/) or [DRS](https://ga4gh.github.io/data-repository-service-schemas/docs) URL. You must also specify an `Authorization` header on
+the request with a valid OAuth bearer token. Martha uses the URL to retrieve a data object, unpacks it, and returns
 a standard JSON Object containing the object metadata and (optionally) the private key information for the
 [Google Service Account](https://cloud.google.com/iam/docs/understanding-service-accounts) that you may use to access
-the underlying resource. The Google Service Account information will only be included in the response if the DOS URL
+the underlying resource. The Google Service Account information will only be included in the response if the     URL
 should return the service account from the account linking service [Bond](https://github.com/DataBiosphere/bond#readme).
 
 Staging: https://us-central1-broad-dsde-staging.cloudfunctions.net/martha_v3
@@ -44,15 +44,15 @@ Production: https://us-central1-broad-dsde-prod.cloudfunctions.net/martha_v3
 It will always return an object with the same properties:
 
 ```
- contentType:    string [or null if unknown],
- size:           int [or null if unknown],
- timeCreated:    string [the time created, formatted using ISO 8601, or null if unknown],
- updated:        string [the time updated, formatted using ISO 8601, or null if unknown],
- bucket:         string [or null if unknown],
- name:           string [or null if unknown],
- gsUri:          string [or null if unknown],
- googleServiceAccount: object, [null unless the DOS url belongs to a Bond supported host]
- hashes:         object [contains the hashes type and their checksum value. If unknown, it returns null]
+ contentType:           string [resolver sometimes returns null],
+ size:                  int [resolver sometimes returns null],
+ timeCreated:           string [the time created formatted using ISO 8601, resolver sometimes returns null],
+ timeUpdated:           string [the time updated formatted using ISO 8601, resolver sometimes returns null],
+ bucket:                string [resolver sometimes returns null],
+ name:                  string [resolver sometimes returns null],
+ gsUri:                 string [resolver sometimes returns null],
+ googleServiceAccount:  object [null unless the DOS url belongs to a Bond supported host],
+ hashes:                object [contains the hashes type and their checksum value; if unknown, it returns null]
 ```
 
 Example response for /martha_v3:
@@ -77,14 +77,11 @@ Example response for /martha_v3:
 
 **NOTE:**
 
-`martha_v3` only handles URLs for servers that support requests via the DRS v1.0 path-prefix
-`https://[hostname]/ga4gh/drs/v1/object/[path]`, and then return DRS v1.0 compatible JSON metadata.
-
 There was an [early substitution recommendation to
 users](https://app.zenhub.com/workspaces/orange-5d680d7e3eeb5f1bbdf5668f/issues/databiosphere/azul/1115), instructing
 them to convert their URL schemes from "dos" to "drs". Some underlying servers hosting the DOS/DRS metadata have not yet
-upgraded to support the DRS request path-prefix and DRS response JSON metadata, so `martha_v2` still communicates with
-those servers using the older request/response format.
+upgraded to support the DRS request path-prefix and DRS response JSON metadata, so `martha_v2` and `martha_v3` still 
+communicate with those servers using the older request/response format.
 
 At the same time, those server hosts are also working to submit test accounts for automated testing purposes. The final
 list of supported `martha_v3` servers is still being finalized while those test accounts are being created.
@@ -164,16 +161,16 @@ It expects the following:
 It will always return an object with the same properties:
 
 ```
- contentType:    string,
- size:           int,
- timeCreated:    string [dos objects only],
- timeUpdated:        string [usually],
- md5Hash:        string,
- bucket:         string,
- name:           string,
- gsUri:          string,
- googleServiceAccount: string, [always null]
- signedUrl:      string [absent for dos when caller is not linked in Bond]
+ contentType:           string,
+ size:                  int,
+ timeCreated:           string by design [resolver sometimes returns null],
+ updated:               string by design [resolver sometimes returns null],
+ md5Hash:               string,
+ bucket:                string,
+ name:                  string,
+ gsUri:                 string,
+ googleServiceAccount:  string [always null],
+ signedUrl:             string [absent for dos when caller is not linked in Bond]
 ```
 
 # Get Signed Url
