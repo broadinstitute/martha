@@ -31,6 +31,7 @@ const mockResponse = () => {
     };
 };
 
+// Jade Data Repo DOS
 const dataObjectServiceObject = {
     "data_object": {
         aliases: [],
@@ -62,6 +63,7 @@ const dataObjectServiceObject = {
     }
 };
 
+// Jade Data Repo DRS
 const dataRepositoryServiceObject = {
     id: 'v1_93dc1e76-8f1c-4949-8f9b-07a087f3ce7b_8b07563a-542f-4b5c-9e00-e8fe6b1861de',
     description: 'HG00096 BAM file',
@@ -97,6 +99,50 @@ const dataRepositoryServiceObject = {
     ]
 };
 
+// https://docs.google.com/document/d/1Wf4enSGOEXD5_AE-uzLoYqjIp5MnePbZ6kYTVFp1WoM/edit#
+const anicholsTestResponse = {
+    access_methods:
+        [
+            {
+                access_id: "gs",
+                access_url:
+                    {
+                        url: "gs://gdc-tcga-phs000178-controlled/BRCA/RNA/RNA-Seq/UNC-LCCC/ILLUMINA/UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz"
+                    },
+                region: "",
+                type: "gs"
+            },
+            {
+                access_id: "s3",
+                access_url:
+                    {
+                        url: "s3://tcga-2-controlled/0027045b-9ed6-45af-a68e-f55037b5184c/UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz"
+                    },
+                region: "",
+                type: "s3"
+            }
+        ],
+    aliases: [],
+    checksums:
+        [
+            {
+                checksum: "2edd5fdb4f1deac4ef2bdf969de9f8ad",
+                type: "md5"
+            }
+        ],
+    contents: [],
+    created_time: "2018-06-27T10:28:06.398871",
+    description: "",
+    id: "0027045b-9ed6-45af-a68e-f55037b5184c",
+    mime_type: "application/json",
+    name: null,
+    self_uri: "drs://nci-crdc.datacommons.io/0027045b-9ed6-45af-a68e-f55037b5184c",
+    size: 6703858793,
+    updated_time: "2018-06-27T10:28:06.398882",
+    version: "5eb15d8b"
+};
+
+
 const fullExpectedResult = (expectedGoogleServiceAccount) => {
     return {
         contentType: 'application/octet-stream',
@@ -112,6 +158,23 @@ const fullExpectedResult = (expectedGoogleServiceAccount) => {
             md5: '336ea55913bc261b72875bd259753046',
             sha256: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44',
             crc32c: '8a366443'
+        }
+    };
+};
+
+const fullExpectedResultGen3 = (expectedGoogleServiceAccount) => {
+    return {
+        contentType: 'application/json',
+        size: 6703858793,
+        timeCreated: '2018-06-27T14:28:06.398Z',
+        timeUpdated: '2018-06-27T14:28:06.398Z',
+        bucket: 'gdc-tcga-phs000178-controlled',
+        name: 'BRCA/RNA/RNA-Seq/UNC-LCCC/ILLUMINA/UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz',
+        gsUri:
+            'gs://gdc-tcga-phs000178-controlled/BRCA/RNA/RNA-Seq/UNC-LCCC/ILLUMINA/UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz',
+        googleServiceAccount: expectedGoogleServiceAccount,
+        hashes: {
+            md5: '2edd5fdb4f1deac4ef2bdf969de9f8ad'
         }
     };
 };
@@ -151,7 +214,6 @@ const sandbox = sinon.createSandbox();
 test.serial.beforeEach(() => {
     sandbox.restore(); // If one test fails, the .afterEach() block will not execute, so always clean the slate here
     getJsonFromApiStub = sandbox.stub(apiAdapter, getJsonFromApiMethodName);
-    getJsonFromApiStub.onFirstCall().resolves(dataRepositoryServiceObject);
     getJsonFromApiStub.onSecondCall().resolves(googleSAKeyObject);
 });
 
@@ -290,11 +352,23 @@ test.serial('martha_v3 does not call Bond or return SA key when the Data Object 
 });
 
 test.serial('martha_v3 does not call Bond or return SA key when the host url is for jade data repo', async (t) => {
+    getJsonFromApiStub.onFirstCall().resolves(dataRepositoryServiceObject);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'drs://jade.datarepo-dev.broadinstitute.org/abc' } }), response);
     const result = response.send.lastCall.args[0];
     t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
     t.deepEqual(Object.assign({}, result), fullExpectedResult(null));
+    t.falsy(result.googleServiceAccount);
+    t.is(response.statusCode, 200);
+});
+
+test.serial('martha_v3 resolves Gen3 (?) object correctly', async (t) => {
+    getJsonFromApiStub.onFirstCall().resolves(anicholsTestResponse);
+    const response = mockResponse();
+    await marthaV3(mockRequest({ body: { 'url': 'drs://jade.datarepo-dev.broadinstitute.org/abc' } }), response);
+    const result = response.send.lastCall.args[0];
+    t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
+    t.deepEqual(Object.assign({}, result), fullExpectedResultGen3(null));
     t.falsy(result.googleServiceAccount);
     t.is(response.statusCode, 200);
 });
