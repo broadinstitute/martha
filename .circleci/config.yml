@@ -129,6 +129,7 @@ jobs:
           name: Push to GCR
           command: |
             apt-get install -y jq
+            apt-get install -y sudo
             # Get the credentials used to push to GCR from CircleCI
             echo ${QUAY_USER} > ${HOME}/gcr_auth_key_file.json
             gcloud auth activate-service-account --key-file ${HOME}/gcr_auth_key_file.json
