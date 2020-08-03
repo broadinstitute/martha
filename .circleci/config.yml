@@ -126,18 +126,11 @@ jobs:
             fi 
 
       - run:
-          name: Push to quay
+          name: Push to GCR
           command: |
-            # TODO: SSHAH_TEMP_VAULT_TOKEN should be removed and replaced with actual vault token env variable before merging
             apt-get install -y jq
-            # Get the credentials used to push to GCR out of Vault and put key into file
-            docker run \
-                --rm \
-                --env "VAULT_TOKEN=${SSHAH_TEMP_VAULT_TOKEN}" \
-                broadinstitute/dsde-toolbox \
-                vault read \
-                --format=json "secret/dsde/dsp-techops/common/dspci-wb-gcr-service-account.json" |
-            jq .data > ${HOME}/gcr_auth_key_file.json
+            # Get the credentials used to push to GCR from CircleCI
+            echo ${QUAY_USER} > ${HOME}/gcr_auth_key_file.json
             gcloud auth activate-service-account --key-file ${HOME}/gcr_auth_key_file.json
             # Register `gcloud` as a Docker credential helper. Add `-q` to silence confirmation prompts
             gcloud auth configure-docker ${GCR_REGISTRY_HOST} -q
