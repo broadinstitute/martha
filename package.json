@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "start": "functions-framework --target=index --port=8010",
-    "test": "./minnie-kenny.sh && ava -m !smoketest* -m !live_test* -m !integration*",
+    "test": "./minnie-kenny.sh && nyc ava -m !smoketest* -m !live_test* -m !integration*",
     "smoketest": "ava -m smoketest*",
     "smoketest_v2": "ava -m smoketest_v2*",
     "smoketest_fileSummaryV1": "ava -m smoketest_fileSummaryV1*",
@@ -13,11 +13,12 @@
     "integration_v2": "ava -m integration_v2*",
     "integration_v3": "ava --timeout 10m --match integration_v3*",
     "integration_fileSummaryV1": "ava -m integration_fileSummaryV1*",
+    "report-coverage": "nyc report --reporter=text-lcov > coverage.lcov",
     "lint": "eslint ."
   },
   "dependencies": {
     "@google-cloud/functions-framework": "^1.6.0",
-    "@google-cloud/storage": "^2.5.0",
+    "@google-cloud/storage": "^5.1.2",
     "cors": "^2.8.4",
     "gtoken": "^3.0.1",
     "superagent": "^3.8.3"
@@ -26,6 +27,7 @@
     "ava": "^3.5.0",
     "eslint": "^7.4.0",
     "minimist": "^1.2.5",
+    "nyc": "^15.1.0",
     "sinon": "^7.2.3",
     "supertest": "^3.1.0"
   }
