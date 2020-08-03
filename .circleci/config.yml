@@ -4,19 +4,41 @@
 #
 version: 2
 
+job_defaults: &job_defaults
+  working_directory: ~/repo
+
 run_env_setup: &run_env_setup
   run:
     name: Setup Environment Variables
     command: |
       echo 'export PATH="${PATH}:${HOME}/repo/git-secrets"' >> $BASH_ENV
-      source $BASH_ENV
+run_secret_setup: &run_secret_setup
+  run:
+    name: Install git secrets and configure minnie-kenny.sh
+    command: |
+      git clone https://github.com/awslabs/git-secrets.git
+      pushd git-secrets >/dev/null
+      git checkout ad82d68ee924906a0401dfd48de5057731a9bc84
+      popd >/dev/null
+      ./minnie-kenny.sh -f
 
 jobs:
+  secrets:
+    <<: *job_defaults
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - <<: *run_env_setup
+      - <<: *run_secret_setup
+      - run:
+          name: Check for git secrets
+          command: git secrets --scan-history
+
   lint:
+    <<: *job_defaults
     docker:
       - image: circleci/node:12.16.1
-
-    working_directory: ~/repo
 
     steps:
       - checkout
@@ -27,29 +49,30 @@ jobs:
             npm run lint
 
   test:
+    <<: *job_defaults
     docker:
       - image: circleci/node:12.16.1
 
-    working_directory: ~/repo
-
     steps:
       - checkout
-      - run:
-          command: npm ci
       - <<: *run_env_setup
+      - <<: *run_secret_setup
       - run:
-          name: Install git secrets and configure minnie-kenny.sh
+          name: Setup npm
           command: |
-            git clone https://github.com/awslabs/git-secrets.git
-            pushd git-secrets >/dev/null
-            git checkout ad82d68ee924906a0401dfd48de5057731a9bc84
-            popd >/dev/null
-            ./minnie-kenny.sh -f
-      - <<: *run_env_setup
+            npm ci
+            sudo npm install -g codecov
       - run:
+          name: Run tests
           command: npm test
+      - run:
+          name: Upload codecov
+          command: |
+            npm run report-coverage
+            codecov
 
   tag:
+    <<: *job_defaults
     docker:
       - image: alpine/git
 
@@ -67,6 +90,7 @@ jobs:
             git push origin $TAG_NAME
 
   build-image:
+    <<: *job_defaults
     docker:
       - image: circleci/node:12.16.1
 
@@ -110,9 +134,14 @@ workflows:
   version: 2
   test-and-tag:
     jobs:
+      - secrets
       - lint
-      - test
-      - build-image
+      - test:
+          requires:
+            - secrets
+      - build-image:
+          requires:
+            - secrets
       - tag:
           requires:
             - lint
