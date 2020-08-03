@@ -129,9 +129,8 @@ jobs:
       - run:
           name: Push to GCR
           command: |
-            apt-get install -y jq
             # Get the credentials used to push to GCR from CircleCI
-            echo ${QUAY_USER} > ${HOME}/gcr_auth_key_file.json
+            echo ${GCR_SA} > ${HOME}/gcr_auth_key_file.json
             gcloud auth activate-service-account --key-file ${HOME}/gcr_auth_key_file.json
             # Register `gcloud` as a Docker credential helper. Add `-q` to silence confirmation prompts
             gcloud auth configure-docker ${GCR_REGISTRY_HOST} -q
