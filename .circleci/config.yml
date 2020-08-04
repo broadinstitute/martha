@@ -95,10 +95,7 @@ jobs:
       - image: google/cloud-sdk
 
     environment:
-      QUAY_IMAGE_NAME: quay.io/broadinstitute/martha
-      QUAY_USER: broadinstitute+martha_circle_bot
       GCR_REGISTRY_HOST: us.gcr.io
-      # Martha will be pushed to GCR as a public image since it was public in Quay as well
       GCR_IMAGE_NAME: us.gcr.io/broad-dsp-gcr-public/martha
 
     steps:
@@ -111,10 +108,8 @@ jobs:
           name: Build image
           command: |
             docker build -t ${GCR_IMAGE_NAME}:${CIRCLE_BRANCH} -f docker/Dockerfile .
-            docker tag ${GCR_IMAGE_NAME}:${CIRCLE_BRANCH} ${QUAY_IMAGE_NAME}:${CIRCLE_BRANCH}
             if [[ ${CIRCLE_BRANCH} == "dev" ]]; then
               docker tag ${GCR_IMAGE_NAME}:${CIRCLE_BRANCH} ${GCR_IMAGE_NAME}:latest
-              docker tag ${QUAY_IMAGE_NAME}:${CIRCLE_BRANCH} ${QUAY_IMAGE_NAME}:latest
             fi
 
       - run:
@@ -127,19 +122,9 @@ jobs:
           command:  |
             if [[ ${CIRCLE_BRANCH} == "dev" ]]; then 
             trivy --exit-code 1 --severity CRITICAL --no-progress ${GCR_IMAGE_NAME}:latest
-            trivy --exit-code 1 --severity CRITICAL --no-progress ${QUAY_IMAGE_NAME}:latest
             else
             trivy --exit-code 1 --severity CRITICAL --no-progress ${GCR_IMAGE_NAME}:${CIRCLE_BRANCH}
-            trivy --exit-code 1 --severity CRITICAL --no-progress ${QUAY_IMAGE_NAME}:${CIRCLE_BRANCH}
             fi
-
-      - run:
-          name: Push to Quay
-          command: |
-            # We need to push to Quay as well so that FIAB tests don't fail. Once WA-240 (https://broadworkbench.atlassian.net/browse/WA-240)
-            # is done, pushing to Quay should be removed in WA-241 (https://broadworkbench.atlassian.net/browse/WA-241).
-            docker login -u="${QUAY_USER}" -p="${QUAY_USER_PW}" quay.io
-            docker push ${QUAY_IMAGE_NAME}
 
       - run:
           name: Push to GCR
