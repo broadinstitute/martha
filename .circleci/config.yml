@@ -114,8 +114,7 @@ jobs:
       - run:
           name: Install trivy
           command: |
-            apt-get install -y sudo
-            curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
+            curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/contrib/install.sh | sh -s -- -b /usr/local/bin
   
       - run:
           name: Scan the local image with trivy (light)
@@ -124,7 +123,15 @@ jobs:
             trivy --exit-code 1 --severity CRITICAL --no-progress ${IMAGE_NAME}:latest
             else 
             trivy --exit-code 1 --severity CRITICAL --no-progress ${IMAGE_NAME}:${CIRCLE_BRANCH} 
-            fi 
+            fi
+
+      - run:
+          name: Push to Quay
+          command: |
+            # We need to push to Quay as well so that FIAB tests don't fail. Once WA-240 (https://broadworkbench.atlassian.net/browse/WA-240)
+            # is done, pushing to Quay should be removed in WA-241 (https://broadworkbench.atlassian.net/browse/WA-241).
+            docker login -u="${QUAY_USER}" -p="${QUAY_USER_PW}" quay.io
+            docker push ${IMAGE_NAME}
 
       - run:
           name: Push to GCR
