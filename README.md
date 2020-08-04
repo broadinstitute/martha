@@ -25,8 +25,6 @@ Staging: https://us-central1-broad-dsde-staging.cloudfunctions.net/martha_v2
 Production: https://us-central1-broad-dsde-prod.cloudfunctions.net/martha_v2
 
 # Martha v3
-Currently is in development stage. Please do not use it.
-
 To call `martha_v3`, perform an HTTP `POST` to the appropriate URL. The `content-type` of your request should be either
 `application/json` or `application/x-www-form-urlencoded` with the content/body of your request encoded accordingly.
 
