@@ -94,7 +94,7 @@ docker run \
 #
 # DO NOT TRY TO CHANGE THE ENTRYPOINT. Our Jenkins server is running a version of `docker` from circa 2017, and does not
 # support newer CLI syntax for `--entrypoint`. If you are going to try to change the entrypoint, you definitely want
-# to test your commands is Jenkins first!
+# to test your commands in Jenkins first!
 #
 # https://broadworkbench.atlassian.net/browse/WA-296
 
