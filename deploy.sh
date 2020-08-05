@@ -91,14 +91,20 @@ docker run \
 
 # Overriding ENTRYPOINT has some subtleties:
 # https://medium.com/@oprearocks/how-to-properly-override-the-entrypoint-using-docker-run-2e081e5feb9d
+#
+# DO NOT TRY TO CHANGE THE ENTRYPOINT. Our Jenkins server is running a version of `docker` from circa 2017, and does not
+# support newer CLI syntax for `--entrypoint`. If you are going to try to change the entrypoint, you definitely want
+# to test your commands is Jenkins first!
+#
+# https://broadworkbench.atlassian.net/browse/WA-296
 
 docker run \
     --rm \
-    --entrypoint="" \
+    --entrypoint="/bin/bash" \
     --volume "$PWD:${MARTHA_PATH}" \
     --env BASE_URL="https://us-central1-broad-dsde-${DEPLOY_ENV}.cloudfunctions.net" \
     "${MARTHA_IMAGE}" \
-    /bin/bash -c \
+    -c \
     "gcloud config set project ${DEPLOY_PROJECT_NAME} &&
       gcloud auth activate-service-account --key-file ${MARTHA_PATH}/${SERVICE_ACCT_KEY_FILE} &&
       cd ${MARTHA_PATH} &&
