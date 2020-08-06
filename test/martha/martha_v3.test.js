@@ -142,6 +142,24 @@ const gen3CrdcResponse = {
     version: "5eb15d8b"
 };
 
+// From the `anvil-stage-demo/DRS Test Workspace` test workflow
+const hcaDrsResponse = {
+    "contentType": "application/octet-stream",
+    "size": "148",
+    "timeCreated": null,
+    "bucket": "org-hca-dss-checkout-prod",
+    "name": "blobs/160fde1559f7154b03a6f645b4c7ff0eb2af37241e2cab3961e7780ead93860a.b0fcf2baaadb4aa6545804998867eff29330762a.d18ef9b8fd14ac922588baeec4853c0d.0ba92b16",
+    "gsUri": "gs://org-hca-dss-checkout-prod/blobs/160fde1559f7154b03a6f645b4c7ff0eb2af37241e2cab3961e7780ead93860a.b0fcf2baaadb4aa6545804998867eff29330762a.d18ef9b8fd14ac922588baeec4853c0d.0ba92b16",
+    "googleServiceAccount": null,
+    "hashes": {
+        "sha256": "160fde1559f7154b03a6f645b4c7ff0eb2af37241e2cab3961e7780ead93860a"
+    },
+    "timeUpdated": null
+};
+
+const hcaDrsMarthaResult = {
+
+};
 
 const jadeDosMarthaResult = (expectedGoogleServiceAccount) => {
     return {
@@ -362,13 +380,24 @@ test.serial('martha_v3 does not call Bond or return SA key when the host url is 
     t.is(response.statusCode, 200);
 });
 
-test.serial('martha_v3 resolves Gen3 (?) object correctly', async (t) => {
+test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
     getJsonFromApiStub.onFirstCall().resolves(gen3CrdcResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'drs://jade.datarepo-dev.broadinstitute.org/abc' } }), response);
     const result = response.send.lastCall.args[0];
     t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
     t.deepEqual(Object.assign({}, result), gen3CrdcDrsMarthaResult(null));
+    t.falsy(result.googleServiceAccount);
+    t.is(response.statusCode, 200);
+});
+
+test.serial('martha_v3 parses HCA response correctly', async (t) => {
+    getJsonFromApiStub.onFirstCall().resolves(hcaDrsResponse);
+    const response = mockResponse();
+    await marthaV3(mockRequest({ body: { 'url': 'drs://jade.datarepo-dev.broadinstitute.org/abc' } }), response);
+    const result = response.send.lastCall.args[0];
+    t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
+    t.deepEqual(Object.assign({}, result), hcaDrsMarthaResult);
     t.falsy(result.googleServiceAccount);
     t.is(response.statusCode, 200);
 });
