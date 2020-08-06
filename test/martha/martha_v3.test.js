@@ -142,23 +142,52 @@ const gen3CrdcResponse = {
     version: "5eb15d8b"
 };
 
-// From the `anvil-stage-demo/DRS Test Workspace` test workflow
-const hcaDrsResponse = {
-    "contentType": "application/octet-stream",
-    "size": "148",
-    "timeCreated": null,
-    "bucket": "org-hca-dss-checkout-prod",
-    "name": "blobs/160fde1559f7154b03a6f645b4c7ff0eb2af37241e2cab3961e7780ead93860a.b0fcf2baaadb4aa6545804998867eff29330762a.d18ef9b8fd14ac922588baeec4853c0d.0ba92b16",
-    "gsUri": "gs://org-hca-dss-checkout-prod/blobs/160fde1559f7154b03a6f645b4c7ff0eb2af37241e2cab3961e7780ead93860a.b0fcf2baaadb4aa6545804998867eff29330762a.d18ef9b8fd14ac922588baeec4853c0d.0ba92b16",
-    "googleServiceAccount": null,
-    "hashes": {
-        "sha256": "160fde1559f7154b03a6f645b4c7ff0eb2af37241e2cab3961e7780ead93860a"
-    },
-    "timeUpdated": null
+const bdcDrsResponse = {
+    access_methods:
+        [
+            {
+                access_id: "gs",
+                access_url:
+                    {
+                        url: "gs://fc-56ac46ea-efc4-4683-b6d5-6d95bed41c5e/CCDG_13607/Project_CCDG_13607_B01_GRM_WGS.cram.2019-02-06/Sample_HG02014/analysis/HG02014.final.cram"
+                    },
+                region: "",
+                type: "gs"
+            }
+        ],
+    aliases: [],
+    checksums:
+        [
+            {
+                checksum: "bb193a5b603ae6ac5eb39890b6ca1bb5",
+                type: "md5"
+            }
+        ],
+    contents: [],
+    created_time: "2020-01-15T15:35:09.184152",
+    description: "",
+    id: "dg.4503/fc046e84-6cf9-43a3-99cc-ffa2964b88cb",
+    mime_type: "application/json",
+    name: "",
+    self_uri: "drs://gen3.biodatacatalyst.nhlbi.nih.gov/dg.4503/fc046e84-6cf9-43a3-99cc-ffa2964b88cb",
+    size: 14772393959,
+    updated_time: "2020-01-15T15:35:09.184160",
+    version: "f443f632"
 };
 
-const hcaDrsMarthaResult = {
-
+const bdcDrsMarthaResult = {
+    contentType: 'application/json',
+    size: 14772393959,
+    timeCreated: '2020-01-15T20:35:09.184Z',
+    timeUpdated: '2020-01-15T20:35:09.184Z',
+    bucket: 'fc-56ac46ea-efc4-4683-b6d5-6d95bed41c5e',
+    name: 'CCDG_13607/Project_CCDG_13607_B01_GRM_WGS.cram.2019-02-06/Sample_HG02014/analysis/HG02014.final.cram',
+    gsUri:
+        'gs://fc-56ac46ea-efc4-4683-b6d5-6d95bed41c5e/CCDG_13607/Project_CCDG_13607_B01_GRM_WGS.cram.2019-02-06/Sample_HG02014/analysis/HG02014.final.cram',
+    googleServiceAccount: null,
+    hashes: {
+        md5: 'bb193a5b603ae6ac5eb39890b6ca1bb5'
+    }
 };
 
 const jadeDosMarthaResult = (expectedGoogleServiceAccount) => {
@@ -391,13 +420,13 @@ test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
     t.is(response.statusCode, 200);
 });
 
-test.serial('martha_v3 parses HCA response correctly', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(hcaDrsResponse);
+test.serial('martha_v3 parses BDC response correctly', async (t) => {
+    getJsonFromApiStub.onFirstCall().resolves(bdcDrsResponse);
     const response = mockResponse();
-    await marthaV3(mockRequest({ body: { 'url': 'drs://jade.datarepo-dev.broadinstitute.org/abc' } }), response);
+    await marthaV3(mockRequest({ body: { 'url': 'dos://jade.datarepo-dev.broadinstitute.org/abc' } }), response);
     const result = response.send.lastCall.args[0];
     t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
-    t.deepEqual(Object.assign({}, result), hcaDrsMarthaResult);
+    t.deepEqual(Object.assign({}, result), bdcDrsMarthaResult);
     t.falsy(result.googleServiceAccount);
     t.is(response.statusCode, 200);
 });
