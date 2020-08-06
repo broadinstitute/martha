@@ -32,7 +32,7 @@ test.cb('smoketest_v3 returns error if url passed is malformed', (t) => {
         });
 });
 
-test.cb('smoketest_v3 return error if url passed is not good', (t) => {
+test.cb('smoketest_v3 return error if url passed is not valid', (t) => {
     supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
