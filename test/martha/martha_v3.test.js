@@ -32,7 +32,7 @@ const mockResponse = () => {
 };
 
 // Jade Data Repo DOS
-const dataObjectServiceObject = {
+const jadeDosResponse = {
     "data_object": {
         aliases: [],
         checksums: [
@@ -64,7 +64,7 @@ const dataObjectServiceObject = {
 };
 
 // Jade Data Repo DRS
-const dataRepositoryServiceObject = {
+const jadeDrsResponse = {
     id: 'v1_93dc1e76-8f1c-4949-8f9b-07a087f3ce7b_8b07563a-542f-4b5c-9e00-e8fe6b1861de',
     description: 'HG00096 BAM file',
     name: 'HG00096.mapped.ILLUMINA.bwa.GBR.low_coverage.20120522.bam',
@@ -100,7 +100,7 @@ const dataRepositoryServiceObject = {
 };
 
 // https://docs.google.com/document/d/1Wf4enSGOEXD5_AE-uzLoYqjIp5MnePbZ6kYTVFp1WoM/edit#
-const anicholsTestResponse = {
+const gen3CrdcResponse = {
     access_methods:
         [
             {
@@ -143,7 +143,7 @@ const anicholsTestResponse = {
 };
 
 
-const fullExpectedResult = (expectedGoogleServiceAccount) => {
+const jadeDosMarthaResult = (expectedGoogleServiceAccount) => {
     return {
         contentType: 'application/octet-stream',
         size: 15601108255,
@@ -162,7 +162,7 @@ const fullExpectedResult = (expectedGoogleServiceAccount) => {
     };
 };
 
-const fullExpectedResultGen3 = (expectedGoogleServiceAccount) => {
+const gen3CrdcDrsMarthaResult = (expectedGoogleServiceAccount) => {
     return {
         contentType: 'application/json',
         size: 6703858793,
@@ -222,25 +222,25 @@ test.serial.afterEach(() => {
 });
 
 test.serial('martha_v3 resolves a valid DOS-style url', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(dataObjectServiceObject);
+    getJsonFromApiStub.onFirstCall().resolves(jadeDosResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
     const result = response.send.lastCall.args[0];
-    t.deepEqual(Object.assign({}, result), fullExpectedResult(googleSAKeyObject));
+    t.deepEqual(Object.assign({}, result), jadeDosMarthaResult(googleSAKeyObject));
     t.is(response.statusCode, 200);
 });
 
 test.serial('martha_v3 resolves a valid DRS-style url', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(dataObjectServiceObject);
+    getJsonFromApiStub.onFirstCall().resolves(jadeDosResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'drs://abc/123' } }), response);
     const result = response.send.lastCall.args[0];
-    t.deepEqual(Object.assign({}, result), fullExpectedResult(googleSAKeyObject));
+    t.deepEqual(Object.assign({}, result), jadeDosMarthaResult(googleSAKeyObject));
     t.is(response.statusCode, 200);
 });
 
 test.serial('martha_v3 resolves successfully and ignores extra data submitted besides a \'url\'', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(dataObjectServiceObject);
+    getJsonFromApiStub.onFirstCall().resolves(jadeDosResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({
         body: {
@@ -250,12 +250,12 @@ test.serial('martha_v3 resolves successfully and ignores extra data submitted be
         }
     }), response);
     const result = response.send.lastCall.args[0];
-    t.deepEqual(Object.assign({}, result), fullExpectedResult(googleSAKeyObject));
+    t.deepEqual(Object.assign({}, result), jadeDosMarthaResult(googleSAKeyObject));
     t.is(response.statusCode, 200);
 });
 
 test.serial('martha_v3 should return 400 if a Data Object without authorization header is provided', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(dataObjectServiceObject);
+    getJsonFromApiStub.onFirstCall().resolves(jadeDosResponse);
     const response = mockResponse();
     const mockReq = mockRequest({ body: { 'url': 'dos://abc/123' } });
     delete mockReq.headers.authorization;
@@ -267,7 +267,7 @@ test.serial('martha_v3 should return 400 if a Data Object without authorization 
 });
 
 test.serial('martha_v3 should return 400 if not given a url', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(dataObjectServiceObject);
+    getJsonFromApiStub.onFirstCall().resolves(jadeDosResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'uri': 'dos://abc/123' } }), response);
     const result = response.send.lastCall.args[0];
@@ -317,7 +317,7 @@ test.serial('martha_v3 should return 500 if key retrieval from bond fails', asyn
 });
 
 test.serial('martha_v3 calls bond Bond with the "dcf-fence" provider when the Data Object URL host is not "dg.4503"', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(dataObjectServiceObject);
+    getJsonFromApiStub.onFirstCall().resolves(jadeDosResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
     const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
@@ -329,7 +329,7 @@ test.serial('martha_v3 calls bond Bond with the "dcf-fence" provider when the Da
 });
 
 test.serial('martha_v3 calls bond Bond with the "fence" provider when the Data Object URL host is "dg.4503"', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(dataObjectServiceObject);
+    getJsonFromApiStub.onFirstCall().resolves(jadeDosResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'drs://dg.4503/this_part_can_be_anything' } }), response);
     const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
@@ -341,34 +341,34 @@ test.serial('martha_v3 calls bond Bond with the "fence" provider when the Data O
 });
 
 test.serial('martha_v3 does not call Bond or return SA key when the Data Object URL host endswith ".humancellatlas.org', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(dataObjectServiceObject);
+    getJsonFromApiStub.onFirstCall().resolves(jadeDosResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'drs://someservice.humancellatlas.org/this_part_can_be_anything' } }), response);
     const result = response.send.lastCall.args[0];
     t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
-    t.deepEqual(Object.assign({}, result), fullExpectedResult(null));
+    t.deepEqual(Object.assign({}, result), jadeDosMarthaResult(null));
     t.falsy(result.googleServiceAccount);
     t.is(response.statusCode, 200);
 });
 
 test.serial('martha_v3 does not call Bond or return SA key when the host url is for jade data repo', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(dataRepositoryServiceObject);
+    getJsonFromApiStub.onFirstCall().resolves(jadeDrsResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'drs://jade.datarepo-dev.broadinstitute.org/abc' } }), response);
     const result = response.send.lastCall.args[0];
     t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
-    t.deepEqual(Object.assign({}, result), fullExpectedResult(null));
+    t.deepEqual(Object.assign({}, result), jadeDosMarthaResult(null));
     t.falsy(result.googleServiceAccount);
     t.is(response.statusCode, 200);
 });
 
 test.serial('martha_v3 resolves Gen3 (?) object correctly', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(anicholsTestResponse);
+    getJsonFromApiStub.onFirstCall().resolves(gen3CrdcResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'drs://jade.datarepo-dev.broadinstitute.org/abc' } }), response);
     const result = response.send.lastCall.args[0];
     t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
-    t.deepEqual(Object.assign({}, result), fullExpectedResultGen3(null));
+    t.deepEqual(Object.assign({}, result), gen3CrdcDrsMarthaResult(null));
     t.falsy(result.googleServiceAccount);
     t.is(response.statusCode, 200);
 });
@@ -376,7 +376,7 @@ test.serial('martha_v3 resolves Gen3 (?) object correctly', async (t) => {
 test.serial('martha_v3 returns null for fields missing in drs and bond response', async (t) => {
     // update the stub to return DRS response with missing fields only for this test
     sandbox.restore();
-    getJsonFromApiStub.onFirstCall().resolves(dataObjectServiceObject);
+    getJsonFromApiStub.onFirstCall().resolves(jadeDosResponse);
     getJsonFromApiStub = sandbox.stub(apiAdapter, getJsonFromApiMethodName);
     getJsonFromApiStub.onFirstCall().resolves(dosObjectWithMissingFields);
     getJsonFromApiStub.onSecondCall().resolves(null);
