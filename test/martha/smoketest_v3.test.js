@@ -14,7 +14,7 @@ const publicFenceUrl = 'dos://dg.4503/preview_dos.json';
 const jdrDevTestUrl = 'drs://jade.datarepo-dev.broadinstitute.org/v1_93dc1e76-8f1c-4949-8f9b-07a087f3ce7b_8b07563a-542f-4b5c-9e00-e8fe6b1861de';
 
 /*
- * NOTE: We are only testing few variation of martha_v3 tests. Because these smoke tests are executed by a Google
+ * NOTE: We are only testing few variations of martha_v3 requests. Because these smoke tests are executed by a Google
  * Service Account, we are unable to test martha_v3 without first authenticating that service account with Fence.
  */
 
