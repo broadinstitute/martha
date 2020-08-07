@@ -175,6 +175,76 @@ const bdcDrsResponse = {
     version: "f443f632"
 };
 
+const anvilDrsResponse = {
+    access_methods:
+        [
+            {
+                access_id: "gs",
+                access_url:
+                    {
+                        url: "gs://fc-secure-ff8156a3-ddf3-42e4-9211-0fd89da62108/GTEx_Analysis_2017-06-05_v8_RNAseq_bigWig_files/GTEX-1GZHY-0011-R6a-SM-9OSWL.Aligned.sortedByCoord.out.patched.md.bigWig"
+                    },
+                region: "",
+                type: "gs"
+            }
+        ],
+    aliases: [],
+    checksums:
+        [
+            {
+                checksum: "18156430a5eea715b9b58fb53d0cef99",
+                type: "md5"
+            }
+        ],
+    contents: [],
+    created_time: "2020-07-08T18:52:53.194819",
+    description: "",
+    id: "dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0",
+    mime_type: "application/json",
+    name: "",
+    self_uri: "drs://gen3.theanvil.io/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0",
+    size: 143562155,
+    updated_time: "2020-07-08T18:52:53.194826",
+    version: "0a4262ff"
+};
+
+const kidsFirstDrsResponse = {
+    "access_methods": [
+        {
+            "access_id": "s3",
+            "access_url": {
+                "uUrl":
+                    "s3://kf-seq-data-washu/OrofacialCleft/fa9c2cb04f614f90b75323b05bfdd231.bam"
+            },
+            "region": "",
+            "type": "s3"
+        }
+    ],
+    "aliases": [
+
+    ],
+    "checksums": [
+        {
+            "Checksum":
+                "24e5d5d0ddd094be0ffb672875b10576-6572",
+            "type": "etag"
+        }
+    ],
+    "contents": [
+
+    ],
+    "created_time": "2018-05-23T12:32:32.594470",
+    "description": "",
+    "id": "ed6be7ab-068e-46c8-824a-f39cfbb885cc",
+    "mime_type": "application/json",
+    "name": "fa9c2cb04f614f90b75323b05bfdd231.bam",
+    "Self_uri":
+        "drs://data.kidsfirstdrc.org/ed6be7ab-068e-46c8-824a-f39cfbb885cc",
+    "size": 55121736836,
+    "updated_time": "2018-05-23T12:32:32.594480",
+    "version": "f70e5775"
+};
+
 const bdcDrsMarthaResult = {
     contentType: 'application/json',
     size: 14772393959,
@@ -222,6 +292,39 @@ const gen3CrdcDrsMarthaResult = (expectedGoogleServiceAccount) => {
         googleServiceAccount: expectedGoogleServiceAccount,
         hashes: {
             md5: '2edd5fdb4f1deac4ef2bdf969de9f8ad'
+        }
+    };
+};
+
+const anvilDrsMarthaResult = (expectedGoogleServiceAccount) => {
+    return {
+        contentType: 'application/json',
+        size: 143562155,
+        timeCreated: '2020-07-08T22:52:53.194Z',
+        timeUpdated: '2020-07-08T22:52:53.194Z',
+        bucket: 'fc-secure-ff8156a3-ddf3-42e4-9211-0fd89da62108',
+        name: 'GTEx_Analysis_2017-06-05_v8_RNAseq_bigWig_files/GTEX-1GZHY-0011-R6a-SM-9OSWL.Aligned.sortedByCoord.out.patched.md.bigWig',
+        gsUri:
+            'gs://fc-secure-ff8156a3-ddf3-42e4-9211-0fd89da62108/GTEx_Analysis_2017-06-05_v8_RNAseq_bigWig_files/GTEX-1GZHY-0011-R6a-SM-9OSWL.Aligned.sortedByCoord.out.patched.md.bigWig',
+        googleServiceAccount: expectedGoogleServiceAccount,
+        hashes: {
+            md5: '18156430a5eea715b9b58fb53d0cef99'
+        }
+    };
+};
+
+const kidsFirstDrsMarthaResult = (expectedGoogleServiceAccount) => {
+    return {
+        contentType: 'application/json',
+        size: 55121736836,
+        timeCreated: '2018-05-23T16:32:32.594Z',
+        timeUpdated: '2018-05-23T16:32:32.594Z',
+        bucket: null, // expected, uses S3
+        name: null, // there is definitely a name in the server response, why isn't Martha using it?
+        gsUri: null, // expected, uses S3
+        googleServiceAccount: expectedGoogleServiceAccount,
+        hashes: {
+            etag: undefined
         }
     };
 };
@@ -427,6 +530,28 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
     const result = response.send.lastCall.args[0];
     t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
     t.deepEqual(Object.assign({}, result), bdcDrsMarthaResult);
+    t.falsy(result.googleServiceAccount);
+    t.is(response.statusCode, 200);
+});
+
+test.serial('martha_v3 parses Anvil response correctly', async (t) => {
+    getJsonFromApiStub.onFirstCall().resolves(anvilDrsResponse);
+    const response = mockResponse();
+    await marthaV3(mockRequest({ body: { 'url': 'dos://jade.datarepo-dev.broadinstitute.org/abc' } }), response);
+    const result = response.send.lastCall.args[0];
+    t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
+    t.deepEqual(Object.assign({}, result), anvilDrsMarthaResult(null));
+    t.falsy(result.googleServiceAccount);
+    t.is(response.statusCode, 200);
+});
+
+test.serial('martha_v3 parses Kids First response correctly', async (t) => {
+    getJsonFromApiStub.onFirstCall().resolves(kidsFirstDrsResponse);
+    const response = mockResponse();
+    await marthaV3(mockRequest({ body: { 'url': 'dos://jade.datarepo-dev.broadinstitute.org/abc' } }), response);
+    const result = response.send.lastCall.args[0];
+    t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
+    t.deepEqual(Object.assign({}, result), kidsFirstDrsMarthaResult(null));
     t.falsy(result.googleServiceAccount);
     t.is(response.statusCode, 200);
 });
