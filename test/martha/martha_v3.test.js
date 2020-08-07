@@ -245,6 +245,36 @@ const kidsFirstDrsResponse = {
     "version": "f70e5775"
 };
 
+const hcaDosResponse = {
+    data_object:
+        {
+            id: "8aca942c-17f7-4e34-b8fd-3c12e50f9291",
+            urls:
+                [
+                    {
+                        url: "https://drs.data.humancellatlas.org/dss/files/8aca942c-17f7-4e34-b8fd-3c12e50f9291?version=2019-07-04T151444.185805Z&replica=aws&wait=1&fileName=SRR3879608_1.fastq.gz"
+                    },
+                    {
+                        url: "gs://org-hca-dss-checkout-prod/blobs/44d320c9606e32d6df04d8a4023e6474efaa2f99de436e07f7241942972d5703.c3349268e528c844c528a427aa13034e72b7b39d.16c68f2306435b7cf990153b37adeb20-134.64d51664"
+                    }
+                ],
+            size: "8933233597",
+            checksums:
+                [
+                    {
+                        checksum: "44d320c9606e32d6df04d8a4023e6474efaa2f99de436e07f7241942972d5703",
+                        type: "sha256"
+                    }
+                ],
+            aliases:
+                [
+                    "SRR3879608_1.fastq.gz"
+                ],
+            version: "2019-07-04T151444.185805Z",
+            name: "SRR3879608_1.fastq.gz"
+        }
+};
+
 const bdcDrsMarthaResult = {
     contentType: 'application/json',
     size: 14772393959,
@@ -326,6 +356,21 @@ const kidsFirstDrsMarthaResult = (expectedGoogleServiceAccount) => {
         hashes: {
             etag: undefined
         }
+    };
+};
+
+// Quite a grim result, but could be working as expected?
+const hcaDosMarthaResult = (expectedGoogleServiceAccount) => {
+    return {
+        contentType: 'application/octet-stream',
+        size: null,
+        timeCreated: null,
+        timeUpdated: null,
+        bucket: null,
+        name: null,
+        gsUri: null,
+        googleServiceAccount: expectedGoogleServiceAccount,
+        hashes: null
     };
 };
 
@@ -552,6 +597,17 @@ test.serial('martha_v3 parses Kids First response correctly', async (t) => {
     const result = response.send.lastCall.args[0];
     t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
     t.deepEqual(Object.assign({}, result), kidsFirstDrsMarthaResult(null));
+    t.falsy(result.googleServiceAccount);
+    t.is(response.statusCode, 200);
+});
+
+test.serial('martha_v3 parses HCA response correctly', async (t) => {
+    getJsonFromApiStub.onFirstCall().resolves(hcaDosResponse);
+    const response = mockResponse();
+    await marthaV3(mockRequest({ body: { 'url': 'dos://jade.datarepo-dev.broadinstitute.org/abc' } }), response);
+    const result = response.send.lastCall.args[0];
+    t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
+    t.deepEqual(Object.assign({}, result), hcaDosMarthaResult(null));
     t.falsy(result.googleServiceAccount);
     t.is(response.statusCode, 200);
 });
