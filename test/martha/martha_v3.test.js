@@ -359,18 +359,19 @@ const kidsFirstDrsMarthaResult = (expectedGoogleServiceAccount) => {
     };
 };
 
-// Quite a grim result, but could be working as expected?
 const hcaDosMarthaResult = (expectedGoogleServiceAccount) => {
     return {
         contentType: 'application/octet-stream',
-        size: null,
+        size: '8933233597', // Why is `size` a string in HCA but an int elsewhere?
         timeCreated: null,
         timeUpdated: null,
-        bucket: null,
-        name: null,
-        gsUri: null,
+        bucket: "org-hca-dss-checkout-prod",
+        name: "blobs/44d320c9606e32d6df04d8a4023e6474efaa2f99de436e07f7241942972d5703.c3349268e528c844c528a427aa13034e72b7b39d.16c68f2306435b7cf990153b37adeb20-134.64d51664",
+        gsUri: "gs://org-hca-dss-checkout-prod/blobs/44d320c9606e32d6df04d8a4023e6474efaa2f99de436e07f7241942972d5703.c3349268e528c844c528a427aa13034e72b7b39d.16c68f2306435b7cf990153b37adeb20-134.64d51664",
         googleServiceAccount: expectedGoogleServiceAccount,
-        hashes: null
+        hashes: {
+            sha256: '44d320c9606e32d6df04d8a4023e6474efaa2f99de436e07f7241942972d5703'
+        }
     };
 };
 
@@ -604,7 +605,7 @@ test.serial('martha_v3 parses Kids First response correctly', async (t) => {
 test.serial('martha_v3 parses HCA response correctly', async (t) => {
     getJsonFromApiStub.onFirstCall().resolves(hcaDosResponse);
     const response = mockResponse();
-    await marthaV3(mockRequest({ body: { 'url': 'dos://jade.datarepo-dev.broadinstitute.org/abc' } }), response);
+    await marthaV3(mockRequest({ body: { 'url': 'dos://someservice.humancellatlas.org/abc' } }), response);
     const result = response.send.lastCall.args[0];
     t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
     t.deepEqual(Object.assign({}, result), hcaDosMarthaResult(null));
