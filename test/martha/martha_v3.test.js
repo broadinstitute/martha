@@ -362,7 +362,7 @@ const kidsFirstDrsMarthaResult = (expectedGoogleServiceAccount) => {
 const hcaDosMarthaResult = (expectedGoogleServiceAccount) => {
     return {
         contentType: 'application/octet-stream',
-        size: '8933233597', // Why is `size` a string in HCA but an int elsewhere?
+        size: 8933233597,
         timeCreated: null,
         timeUpdated: null,
         bucket: "org-hca-dss-checkout-prod",
