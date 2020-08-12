@@ -31,7 +31,7 @@ set -u
 
 MARTHA_PATH=/martha
 SERVICE_ACCT_KEY_FILE="deploy_account.json"
-MARTHA_IMAGE="quay.io/broadinstitute/martha:${GIT_BRANCH}"
+MARTHA_IMAGE="us.gcr.io/broad-dsp-gcr-public/martha:${GIT_BRANCH}"
 DEPLOY_PROJECT_NAME="broad-dsde-${DEPLOY_ENV}"
 
 if [[ "${DEPLOY_ENV}" =~ ^(cromwell-dev)$ ]]; then
@@ -91,24 +91,30 @@ docker run \
 
 # Overriding ENTRYPOINT has some subtleties:
 # https://medium.com/@oprearocks/how-to-properly-override-the-entrypoint-using-docker-run-2e081e5feb9d
+#
+# DO NOT TRY TO CHANGE THE ENTRYPOINT. Our Jenkins server is running a version of `docker` from circa 2017, and does not
+# support newer CLI syntax for `--entrypoint`. If you are going to try to change the entrypoint, you definitely want
+# to test your commands in Jenkins first!
+#
+# https://broadworkbench.atlassian.net/browse/WA-296
 
 docker run \
     --rm \
-    --entrypoint="" \
+    --entrypoint="/bin/bash" \
     --volume "$PWD:${MARTHA_PATH}" \
     --env BASE_URL="https://us-central1-broad-dsde-${DEPLOY_ENV}.cloudfunctions.net" \
     "${MARTHA_IMAGE}" \
-    /bin/bash -c \
+    -c \
     "gcloud config set project ${DEPLOY_PROJECT_NAME} &&
       gcloud auth activate-service-account --key-file ${MARTHA_PATH}/${SERVICE_ACCT_KEY_FILE} &&
       cd ${MARTHA_PATH} &&
-      gcloud beta functions deploy martha_v2 --trigger-http --source=. --runtime nodejs8 \\
+      gcloud beta functions deploy martha_v2 --trigger-http --source=. --runtime nodejs10 \\
         --allow-unauthenticated --project ${DEPLOY_PROJECT_NAME} &&
-      gcloud beta functions deploy martha_v3 --trigger-http --source=. --runtime nodejs8 \\
+      gcloud beta functions deploy martha_v3 --trigger-http --source=. --runtime nodejs10 \\
         --allow-unauthenticated --project ${DEPLOY_PROJECT_NAME} &&
-      gcloud beta functions deploy fileSummaryV1 --trigger-http --source=. --runtime nodejs8 \\
+      gcloud beta functions deploy fileSummaryV1 --trigger-http --source=. --runtime nodejs10 \\
         --allow-unauthenticated --project ${DEPLOY_PROJECT_NAME} &&
-      gcloud beta functions deploy getSignedUrlV1 --trigger-http --source=. --runtime nodejs8 \\
+      gcloud beta functions deploy getSignedUrlV1 --trigger-http --source=. --runtime nodejs10 \\
         --allow-unauthenticated --project ${DEPLOY_PROJECT_NAME} &&
       npm ci &&
       npm run-script smoketest"

@@ -25,8 +25,6 @@ Staging: https://us-central1-broad-dsde-staging.cloudfunctions.net/martha_v2
 Production: https://us-central1-broad-dsde-prod.cloudfunctions.net/martha_v2
 
 # Martha v3
-Currently is in development stage. Please do not use it.
-
 To call `martha_v3`, perform an HTTP `POST` to the appropriate URL. The `content-type` of your request should be either
 `application/json` or `application/x-www-form-urlencoded` with the content/body of your request encoded accordingly.
 
@@ -266,15 +264,21 @@ The Dockerfile for Martha builds a Docker image that, when run, does the followi
 
 ## Run the Docker Container
 
-To run the Martha container, whether you are running a locally built image or an image pulled from quay.io, you must
+To run the Martha container, whether running a locally built image or an image pulled from a repository, you must
 start the container with appropriate port mapping between the host and the container.  You can choose whatever host
 port you may require; in the following example port `58010` is used:
 
-`docker run --publish 58010:8010 quay.io/broadinstitute/martha:latest`
+`docker run --publish 58010:8010 us.gcr.io/broad-dsp-gcr-public/martha:latest`
 
 ## Building Docker Images
 
-Public images are published to [quay.io](https://quay.io/repository/broadinstitute/martha?tab=tags) for each branch.
+Public images are published to Google Container Registry (GCR) for each branch.
+
+To list images run:
+
+```bash
+gcloud container images list-tags us.gcr.io/broad-dsp-gcr-public/martha
+```
 
 To build a new Docker image for Martha:
 

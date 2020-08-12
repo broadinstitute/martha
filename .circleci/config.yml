@@ -4,19 +4,41 @@
 #
 version: 2
 
+job_defaults: &job_defaults
+  working_directory: ~/repo
+
 run_env_setup: &run_env_setup
   run:
     name: Setup Environment Variables
     command: |
       echo 'export PATH="${PATH}:${HOME}/repo/git-secrets"' >> $BASH_ENV
-      source $BASH_ENV
+run_secret_setup: &run_secret_setup
+  run:
+    name: Install git secrets and configure minnie-kenny.sh
+    command: |
+      git clone https://github.com/awslabs/git-secrets.git
+      pushd git-secrets >/dev/null
+      git checkout ad82d68ee924906a0401dfd48de5057731a9bc84
+      popd >/dev/null
+      ./minnie-kenny.sh -f
 
 jobs:
+  secrets:
+    <<: *job_defaults
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - <<: *run_env_setup
+      - <<: *run_secret_setup
+      - run:
+          name: Check for git secrets
+          command: git secrets --scan-history
+
   lint:
+    <<: *job_defaults
     docker:
       - image: circleci/node:12.16.1
-
-    working_directory: ~/repo
 
     steps:
       - checkout
@@ -27,29 +49,30 @@ jobs:
             npm run lint
 
   test:
+    <<: *job_defaults
     docker:
       - image: circleci/node:12.16.1
 
-    working_directory: ~/repo
-
     steps:
       - checkout
-      - run:
-          command: npm ci
       - <<: *run_env_setup
+      - <<: *run_secret_setup
       - run:
-          name: Install git secrets and configure minnie-kenny.sh
+          name: Setup npm
           command: |
-            git clone https://github.com/awslabs/git-secrets.git
-            pushd git-secrets >/dev/null
-            git checkout ad82d68ee924906a0401dfd48de5057731a9bc84
-            popd >/dev/null
-            ./minnie-kenny.sh -f
-      - <<: *run_env_setup
+            npm ci
+            sudo npm install -g codecov
       - run:
+          name: Run tests
           command: npm test
+      - run:
+          name: Upload codecov
+          command: |
+            npm run report-coverage
+            codecov
 
   tag:
+    <<: *job_defaults
     docker:
       - image: alpine/git
 
@@ -67,12 +90,13 @@ jobs:
             git push origin $TAG_NAME
 
   build-image:
+    <<: *job_defaults
     docker:
-      - image: circleci/node:12.16.1
+      - image: google/cloud-sdk
 
     environment:
-      IMAGE_NAME: quay.io/broadinstitute/martha
-      QUAY_USER: broadinstitute+martha_circle_bot
+      GCR_REGISTRY_HOST: us.gcr.io
+      GCR_IMAGE_NAME: us.gcr.io/broad-dsp-gcr-public/martha
 
     steps:
       - checkout
@@ -83,36 +107,49 @@ jobs:
       - run:
           name: Build image
           command: |
-            docker build -t ${IMAGE_NAME}:${CIRCLE_BRANCH} -f docker/Dockerfile .
-            if [[ ${CIRCLE_BRANCH} == "dev" ]]; then docker tag ${IMAGE_NAME}:${CIRCLE_BRANCH} ${IMAGE_NAME}:latest ; fi
+            docker build -t ${GCR_IMAGE_NAME}:${CIRCLE_BRANCH} -f docker/Dockerfile .
+            if [[ ${CIRCLE_BRANCH} == "dev" ]]; then
+              docker tag ${GCR_IMAGE_NAME}:${CIRCLE_BRANCH} ${GCR_IMAGE_NAME}:latest
+            fi
 
       - run:
           name: Install trivy
           command: |
-            curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
+            curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/contrib/install.sh | sh -s -- -b /usr/local/bin
   
       - run:
           name: Scan the local image with trivy (light)
           command:  |
             if [[ ${CIRCLE_BRANCH} == "dev" ]]; then 
-            trivy --exit-code 1 --severity CRITICAL --no-progress ${IMAGE_NAME}:latest
-            else 
-            trivy --exit-code 1 --severity CRITICAL --no-progress ${IMAGE_NAME}:${CIRCLE_BRANCH} 
-            fi 
+            trivy --exit-code 1 --severity CRITICAL --no-progress ${GCR_IMAGE_NAME}:latest
+            else
+            trivy --exit-code 1 --severity CRITICAL --no-progress ${GCR_IMAGE_NAME}:${CIRCLE_BRANCH}
+            fi
 
       - run:
-          name: Push to quay
+          name: Push to GCR
           command: |
-            docker login -u="${QUAY_USER}" -p="${QUAY_USER_PW}" quay.io
-            docker push ${IMAGE_NAME}
+            # SA copied from secret/dsde/dsp-techops/common/dspci-wb-gcr-service-account.json
+            # - Follow up: https://broadworkbench.atlassian.net/browse/DDO-526
+            # Get the credentials used to push to GCR from CircleCI from the CircleCI environment variables
+            echo ${GCR_SA} > ${HOME}/gcr_auth_key_file.json
+            gcloud auth activate-service-account --key-file ${HOME}/gcr_auth_key_file.json
+            # Register `gcloud` as a Docker credential helper. Add `-q` to silence confirmation prompts
+            gcloud auth configure-docker ${GCR_REGISTRY_HOST} -q
+            docker push ${GCR_IMAGE_NAME}
 
 workflows:
   version: 2
   test-and-tag:
     jobs:
+      - secrets
       - lint
-      - test
-      - build-image
+      - test:
+          requires:
+            - secrets
+      - build-image:
+          requires:
+            - secrets
       - tag:
           requires:
             - lint
