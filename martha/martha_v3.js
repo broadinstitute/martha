@@ -130,6 +130,12 @@ function determineDrsType (parsedUrl) {
             false,
             null,
             dosResponseParser);
+    } else if (parsedUrl.host.endsWith('.datacommons.io')) {
+        return new DrsType(
+            drsFullUrlGenerator(parsedUrl),
+            true,
+            null,
+            drsResponseParser);
     } else {
         return new DrsType(
             dosFullUrlGenerator(parsedUrl),
