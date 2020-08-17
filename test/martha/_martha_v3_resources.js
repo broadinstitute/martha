@@ -300,7 +300,8 @@ const kidsFirstDrsMarthaResult = (expectedGoogleServiceAccount) => {
         gsUri: null, // expected, uses S3
         googleServiceAccount: expectedGoogleServiceAccount,
         hashes: {
-            etag: undefined
+            // This case captures current Martha behavior, selectively allow `undefined`
+            etag: undefined // eslint-disable-line no-undefined
         }
     };
 };
