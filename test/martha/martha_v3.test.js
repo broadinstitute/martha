@@ -77,6 +77,10 @@ test.serial('martha_v3 resolves a valid DOS-style url', async (t) => {
     t.is(response.statusCode, 200);
 });
 
+// According to the DRS specification authors [0] it's OK to call a `drs://` URI and get back a DOS object. Martha
+// should just "do the right thing" and return whichever format the server supports, instead of erroring out [1].
+// [0] https://ucsc-cgl.atlassian.net/browse/AZUL-702
+// [1] https://broadinstitute.slack.com/archives/G011ZUKHCUX/p1597694952108600
 test.serial('martha_v3 resolves a valid DRS-style url', async (t) => {
     getJsonFromApiStub.onFirstCall().resolves(sampleDosResponse);
     const response = mockResponse();
