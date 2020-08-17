@@ -3,6 +3,32 @@
 //
 // The leading _ in the filename prevents `ava` from looking for tests in it
 
+// Invalid example
+
+const dosObjectWithMissingFields = {
+    "data_object": {
+        id: 'v1_abc-123',
+        description: '123 BAM file',
+        name: '123.mapped.abc.bam',
+        created: '2020-04-27T15:56:09.696Z',
+        version: '0',
+        mime_type: 'application/octet-stream',
+        size: 123456
+    }
+};
+
+const expectedObjWithMissingFields = {
+    contentType: 'application/octet-stream',
+    size: 123456,
+    timeCreated: '2020-04-27T15:56:09.696Z',
+    timeUpdated: null,
+    bucket: null,
+    name: null,
+    gsUri: null,
+    googleServiceAccount: null,
+    hashes: null
+};
+
 // Unaffiliated DOS examples
 
 const sampleDosResponse = {
@@ -378,6 +404,8 @@ const hcaDosMarthaResult = (expectedGoogleServiceAccount) => {
 };
 
 module.exports = {
+    expectedObjWithMissingFields,
+    dosObjectWithMissingFields,
     sampleDosResponse,
     jadeDrsResponse,
     hcaDosMarthaResult,

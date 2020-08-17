@@ -21,7 +21,9 @@ const {
     gen3CrdcResponse,
     sampleDosMarthaResult,
     jadeDrsMarthaResult,
-    kidsFirstDrsMarthaResult
+    kidsFirstDrsMarthaResult,
+    dosObjectWithMissingFields,
+    expectedObjWithMissingFields
 } = require('./_martha_v3_resources.js');
 
 const test = require('ava');
@@ -46,30 +48,6 @@ const mockResponse = () => {
         send: sinon.stub(),
         setHeader: sinon.stub()
     };
-};
-
-const dosObjectWithMissingFields = {
-    "data_object": {
-        id: 'v1_abc-123',
-        description: '123 BAM file',
-        name: '123.mapped.abc.bam',
-        created: '2020-04-27T15:56:09.696Z',
-        version: '0',
-        mime_type: 'application/octet-stream',
-        size: 123456
-    }
-};
-
-const expectedObjWithMissingFields = {
-    contentType: 'application/octet-stream',
-    size: 123456,
-    timeCreated: '2020-04-27T15:56:09.696Z',
-    timeUpdated: null,
-    bucket: null,
-    name: null,
-    gsUri: null,
-    googleServiceAccount: null,
-    hashes: null
 };
 
 const googleSAKeyObject = { key: 'A Google Service Account private key json object' };
@@ -236,7 +214,7 @@ test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'drs://nci-crdc.datacommons.io/asdfasdfasdf' } }), response);
     const result = response.send.lastCall.args[0];
-    // t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
+    t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
     t.deepEqual(Object.assign({}, result), gen3CrdcDrsMarthaResult(null));
     t.falsy(result.googleServiceAccount);
     t.is(response.statusCode, 200);
