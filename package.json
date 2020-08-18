@@ -22,6 +22,7 @@
     "@google-cloud/storage": "^5.1.2",
     "cors": "^2.8.4",
     "gtoken": "^3.0.1",
+    "moment": "^2.27.0",
     "superagent": "^3.8.3"
   },
   "devDependencies": {
