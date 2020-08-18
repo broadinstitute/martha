@@ -1,6 +1,8 @@
 const url = require('url');
 const config = require('../config.json');
 
+const moment = require('moment');
+
 const dataGuidsHostPrefix = 'dg.';
 const dosDataObjectPathPrefix = '/ga4gh/dos/v1/dataobjects/';
 const drsDataObjectPathPrefix = '/ga4gh/drs/v1/objects/';
@@ -340,8 +342,10 @@ function convertToMarthaV3Response(drsResponse, googleSA) {
         updated_time: updatedTime,
     } = drsResponse;
 
-    const createdTimeIso = createdTime ? new Date(createdTime).toISOString() : null;
-    const updatedTimeIso = updatedTime ? new Date(updatedTime).toISOString() : null;
+    // Some (but not all!) DRS servers return time without a timezone (see example responses in `_martha_v3_resources.js`)
+    // Instead of letting JS assume that a timezoneless time is local TZ, explicitly assign it to be UTC
+    const createdTimeIso = createdTime ? moment.utc(createdTime).toISOString() : null;
+    const updatedTimeIso = updatedTime ? moment.utc(updatedTime).toISOString() : null;
     const googleServiceAccount = isNullish(googleSA) || Object.keys(googleSA).length === 0 ? null : googleSA;
     const gsUrl = getGsUrlFromDrsObject(drsResponse);
     const [bucket, name] = parseGsUri(gsUrl);

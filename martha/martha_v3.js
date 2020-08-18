@@ -73,7 +73,7 @@ function dosResponseParser (response) {
             checksums: response.data_object.checksums,
             created_time: response.data_object.created,
             mime_type: response.data_object.mimeType,
-            size: response.data_object.size,
+            size: Number(response.data_object.size),
             updated_time: response.data_object.updated,
         };
     } else {
@@ -88,7 +88,7 @@ function drsResponseParser (response) {
         created_time: response.created_time,
         mime_type: response.mime_type,
         name: response.name,
-        size: response.size,
+        size: Number(response.size),
         updated_time: response.updated_time,
     };
 }
@@ -130,6 +130,12 @@ function determineDrsType (parsedUrl) {
             false,
             null,
             dosResponseParser);
+    } else if (parsedUrl.host.endsWith('.datacommons.io')) {
+        return new DrsType(
+            drsFullUrlGenerator(parsedUrl),
+            true,
+            null,
+            drsResponseParser);
     } else {
         return new DrsType(
             dosFullUrlGenerator(parsedUrl),
