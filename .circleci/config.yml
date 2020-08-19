@@ -7,6 +7,10 @@ version: 2
 job_defaults: &job_defaults
   working_directory: ~/repo
 
+git_tags: &git_tags
+  tags:
+    only: /^\d+\.\d+\.\d+$/
+
 run_env_setup: &run_env_setup
   run:
     name: Setup Environment Variables
@@ -107,7 +111,7 @@ jobs:
       - run:
           name: Build image
           command: |
-            docker build -t ${GCR_IMAGE_NAME}:${CIRCLE_BRANCH} -f docker/Dockerfile .
+            docker build -t "${GCR_IMAGE_NAME}:${CIRCLE_TAG:-${CIRCLE_BRANCH}}" -f docker/Dockerfile .
             if [[ ${CIRCLE_BRANCH} == "dev" ]]; then
               docker tag ${GCR_IMAGE_NAME}:${CIRCLE_BRANCH} ${GCR_IMAGE_NAME}:latest
             fi
@@ -120,11 +124,7 @@ jobs:
       - run:
           name: Scan the local image with trivy (light)
           command:  |
-            if [[ ${CIRCLE_BRANCH} == "dev" ]]; then 
-            trivy --exit-code 1 --severity CRITICAL --no-progress ${GCR_IMAGE_NAME}:latest
-            else
-            trivy --exit-code 1 --severity CRITICAL --no-progress ${GCR_IMAGE_NAME}:${CIRCLE_BRANCH}
-            fi
+            trivy --exit-code 1 --severity CRITICAL --no-progress "${GCR_IMAGE_NAME}:${CIRCLE_TAG:-${CIRCLE_BRANCH}}"
 
       - run:
           name: Push to GCR
@@ -136,20 +136,32 @@ jobs:
             gcloud auth activate-service-account --key-file ${HOME}/gcr_auth_key_file.json
             # Register `gcloud` as a Docker credential helper. Add `-q` to silence confirmation prompts
             gcloud auth configure-docker ${GCR_REGISTRY_HOST} -q
-            docker push ${GCR_IMAGE_NAME}
+
+            docker push "${GCR_IMAGE_NAME}:${CIRCLE_TAG:-${CIRCLE_BRANCH}}"
+            if [[ ${CIRCLE_BRANCH} == "dev" ]]; then
+              docker push ${GCR_IMAGE_NAME}:latest
+            fi
 
 workflows:
   version: 2
   test-and-tag:
     jobs:
-      - secrets
-      - lint
+      - secrets:
+          filters:
+            <<: *git_tags
+      - lint:
+          filters:
+            <<: *git_tags
       - test:
           requires:
             - secrets
+          filters:
+            <<: *git_tags
       - build-image:
           requires:
             - secrets
+          filters:
+            <<: *git_tags
       - tag:
           requires:
             - lint
@@ -158,3 +170,5 @@ workflows:
           filters:
             branches:
               only: dev
+            <<: *git_tags
+
