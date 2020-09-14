@@ -70,20 +70,21 @@ function responseParser (response) {
     if (!response.data_object) { return response; }
 
     // Otherwise, find the DOS fields and convert them to DRS.
-    const accessMethods =
-        response.data_object.urls &&
-        response.data_object.urls
+    const {
+        urls,
+        checksums,
+        created: created_time,
+        mimeType: mime_type,
+        name,
+        size,
+        updated: updated_time,
+    } = response.data_object;
+    const access_methods =
+        urls &&
+        urls
             .filter((e) => e.url.startsWith('gs://'))
             .map((gsUrl) => { return { type: 'gs', access_url: { url: gsUrl.url } }; });
-    return {
-        access_methods: accessMethods,
-        checksums: response.data_object.checksums,
-        created_time: response.data_object.created,
-        mime_type: response.data_object.mimeType,
-        name: response.data_object.name,
-        size: response.data_object.size,
-        updated_time: response.data_object.updated,
-    };
+    return { access_methods, checksums, created_time, mime_type, name, size, updated_time };
 }
 
 /** *************************************************************************************************
