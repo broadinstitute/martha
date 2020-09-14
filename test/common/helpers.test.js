@@ -227,7 +227,18 @@ test('getHashesMap should throw error if the checksums array contains duplicate 
  * Test the convertToMarthaV3Response() function
  */
 test('convertToMarthaV3Response should return null for all fields in an unlikely event of empty drs and bond responses', (t) => {
-    const expectedResponse = new MarthaV3Response('application/octet-stream', null, null, null, null, null, null, null, null);
+    const expectedResponse = new MarthaV3Response(
+        'application/octet-stream',
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+    );
     t.deepEqual(convertToMarthaV3Response({}, {}), expectedResponse);
 });
 
@@ -241,7 +252,18 @@ test('convertToMarthaV3Response should return null for fields that are missing i
         mime_type: 'application/octet-stream',
         size: 123456
     };
-    const expectedResponse = new MarthaV3Response('application/octet-stream', 123456, '2020-04-27T15:56:09.696Z', null, null, null, null, null, null);
+    const expectedResponse = new MarthaV3Response(
+        'application/octet-stream',
+        123456,
+        '2020-04-27T15:56:09.696Z',
+        null,
+        null,
+        null,
+        null,
+        null,
+        '123.mapped.abc.bam',
+        null
+    );
 
     t.deepEqual(convertToMarthaV3Response(mockDrsResponse, {}), expectedResponse);
 });
@@ -259,7 +281,18 @@ test('convertToMarthaV3Response should return null for fields that are empty in 
         checksums: [],
         access_methods: []
     };
-    const expectedResponse = new MarthaV3Response('application/octet-stream', 123456, '2020-04-27T15:56:09.696Z', '2020-04-27T15:56:09.696Z', null, null, null, null, null);
+    const expectedResponse = new MarthaV3Response(
+        'application/octet-stream',
+        123456,
+        '2020-04-27T15:56:09.696Z',
+        '2020-04-27T15:56:09.696Z',
+        null,
+        null,
+        null,
+        null,
+        '123.mapped.abc.bam',
+        null
+    );
 
     t.deepEqual(convertToMarthaV3Response(mockDrsResponse, {}), expectedResponse);
 });
@@ -299,6 +332,7 @@ test('convertToMarthaV3Response should return null for googleServiceAccount if b
         '123',
         'gs://abc/123',
         null,
+        '123.mapped.abc.bam',
         { md5: '123abc' }
     );
 

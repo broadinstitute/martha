@@ -15,7 +15,8 @@
     "integration_v3": "ava --timeout 10m --match integration_v3*",
     "integration_fileSummaryV1": "ava -m integration_fileSummaryV1*",
     "report-coverage": "nyc report --reporter=text-lcov > coverage.lcov",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "lint_fix": "eslint --fix ."
   },
   "dependencies": {
     "@google-cloud/functions-framework": "^1.6.0",

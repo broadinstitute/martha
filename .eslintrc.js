@@ -263,7 +263,7 @@ module.exports = {
         "prefer-exponentiation-operator": "error",   // disallow calls to Math.pow() and suggests using the '**' operator instead
         "prefer-named-capture-group": "off",         // aimed at using named capture groups instead of numbered capture groups in regular expressions
         "prefer-numeric-literals": "error",          // disallow parseInt() and Number.parseInt() in favor of binary, octal, and hexadecimal literals
-        "prefer-object-spread": "off",               // prefer use of an object spread over Object.assign
+        "prefer-object-spread": "error",             // prefer use of an object spread over Object.assign
         "prefer-promise-reject-errors": "error",     // require using Error objects as Promise rejection reasons
         "prefer-regex-literals": "error",            // disallow the use of the RegExp constructor function with string literals as its arguments
         "prefer-rest-params": "error",               // disallow usage of arguments[] variables passed to functions and use variadic functions instead

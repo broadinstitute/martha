@@ -10,13 +10,17 @@ test('BondProviders default should be "dcf-fence"', (t) => {
     t.is(BondProviders.default, BondProviders.DCF_FENCE);
 });
 
-test('BondProviders should contain "dcf-fence" and "fence"', (t) => {
+test('BondProviders should contain "dcf-fence" and "fence" and "anvil"', (t) => {
     t.truthy(BondProviders.DCF_FENCE);
     t.truthy(BondProviders.FENCE);
+    t.truthy(BondProviders.ANVIL);
 });
 
-test('BondProviders should contain "jade-data-repo"', (t) => {
-    t.truthy(BondProviders.JADE_DATA_REPO);
+test('determineBondProvider should be "dcf-fence" if the URL host is "dataguids.org"', (t) => {
+    t.is(
+        determineBondProvider('dos://dataguids.org/a41b0c4f-ebfb-4277-a941-507340dea85d'),
+        BondProviders.DCF_FENCE
+    );
 });
 
 test('determineBondProvider should be "fence" if the URL host is "dg.4503"', (t) => {
@@ -32,7 +36,7 @@ test('determineBondProvider should be "dcf-fence" if the URL host is "dg.foo"', 
 });
 
 test('determineBondProvider should be "HCA" if the URL host ends with ".humancellatlas.org"', (t) => {
-    t.is(determineBondProvider('drs://someservice.humancellatlas.org'), BondProviders.HCA);
+    t.falsy(determineBondProvider('drs://someservice.humancellatlas.org'));
 });
 
 test('determineBondProvider should return the default BondProvider if the URL host does not end with ' +
@@ -45,5 +49,5 @@ test('determineBondProvider should return the default BondProvider if the URL ho
 });
 
 test('determineBondProvider should return the "jade-data-repo" as the provider for JDR host"', (t) => {
-    t.is(determineBondProvider('drs://jade.datarepo-dev.broadinstitute.org/identifier'), BondProviders.JADE_DATA_REPO);
+    t.falsy(determineBondProvider('drs://jade.datarepo-dev.broadinstitute.org/identifier'));
 });
