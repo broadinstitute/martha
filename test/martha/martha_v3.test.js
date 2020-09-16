@@ -367,7 +367,8 @@ test.serial('martha_v3 returns null for fields missing in drs and bond response'
     t.is(response.statusCode, 200);
 });
 
-function generateUrl(testUrl) {
+// Test utility for generating server URL from a DRS URL
+function determineDrsTypeTestWrapper(testUrl) {
     const parsedUrl = new URL(testUrl);
     return determineDrsType(parsedUrl).urlGenerator(parsedUrl);
 }
@@ -376,23 +377,23 @@ function generateUrl(testUrl) {
  * determineDrsType(uri) -> drsUrl Scenario 1: data objects uri with non-dg host and path
  */
 test('determineDrsType should parse dos:// Data Object uri', (t) => {
-    t.is(generateUrl('dos://fo.o/bar'), 'https://fo.o/ga4gh/dos/v1/dataobjects/bar');
+    t.is(determineDrsTypeTestWrapper('dos://fo.o/bar'), 'https://fo.o/ga4gh/dos/v1/dataobjects/bar');
 });
 
 test('determineDrsType should parse drs:// Data Object uri', (t) => {
-    t.is(generateUrl('drs://fo.o/bar'), 'https://fo.o/ga4gh/dos/v1/dataobjects/bar');
+    t.is(determineDrsTypeTestWrapper('drs://fo.o/bar'), 'https://fo.o/ga4gh/dos/v1/dataobjects/bar');
 });
 
 test('determineDrsType should parse drs:// Data Object uri with query part', (t) => {
     t.is(
-        generateUrl('drs://fo.o/bar?version=1&bananas=yummy'),
+        determineDrsTypeTestWrapper('drs://fo.o/bar?version=1&bananas=yummy'),
         'https://fo.o/ga4gh/dos/v1/dataobjects/bar?version=1&bananas=yummy'
     );
 });
 
 test('determineDrsType should parse drs:// Data Object uri when host includes a port number', (t) => {
     t.is(
-        generateUrl('drs://foo.com:1234/bar'),
+        determineDrsTypeTestWrapper('drs://foo.com:1234/bar'),
         'https://foo.com:1234/ga4gh/dos/v1/dataobjects/bar'
     );
 });
@@ -403,23 +404,23 @@ test('determineDrsType should parse drs:// Data Object uri when host includes a 
 /**
  * determineDrsType(uri) -> drsUrl Scenario 2: data objects uri with dg host
  */
-test('dataObjectUriToHttps should parse "dos://" Data Object uri with a host and path', (t) => {
+test('determineDrsType should parse "dos://" Data Object uri with a host and path', (t) => {
     t.is(
-        generateUrl('dos://dg.2345/bar'),
+        determineDrsTypeTestWrapper('dos://dg.2345/bar'),
         `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/dg.2345/bar`
     );
 });
 
-test('dataObjectUriToHttps should parse "drs://" Data Object uri with a host and path', (t) => {
+test('determineDrsType should parse "drs://" Data Object uri with a host and path', (t) => {
     t.is(
-        generateUrl('drs://dg.2345/bar'),
+        determineDrsTypeTestWrapper('drs://dg.2345/bar'),
         `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/dg.2345/bar`
     );
 });
 
-test('dataObjectUriToHttps should parse "drs://dg." Data Object uri with query part', (t) => {
+test('determineDrsType should parse "drs://dg." Data Object uri with query part', (t) => {
     t.is(
-        generateUrl('drs://dg.2345/bar?version=1&bananas=yummy'),
+        determineDrsTypeTestWrapper('drs://dg.2345/bar?version=1&bananas=yummy'),
         `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/dg.2345/bar?version=1&bananas=yummy`
     );
 });
@@ -432,21 +433,21 @@ test('dataObjectUriToHttps should parse "drs://dg." Data Object uri with query p
  */
 test('should parse "dos://dg." Data Object uri with only a host part without a path', (t) => {
     t.is(
-        generateUrl('dos://dg.bAz'),
+        determineDrsTypeTestWrapper('dos://dg.bAz'),
         `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/dg.bAz`
     );
 });
 
 test('should parse "drs://foo-bar.baz" Data Object uri with only a host part without a path', (t) => {
     t.is(
-        generateUrl('drs://foo-BAR.baz'),
+        determineDrsTypeTestWrapper('drs://foo-BAR.baz'),
         `https://foo-BAR.baz/ga4gh/dos/v1/dataobjects/foo-BAR.baz`
     );
 });
 
 test('should parse "drs://dg." Data Object uri with only a host part with a query part', (t) => {
     t.is(
-        generateUrl('drs://dg.foo-bar-baz?version=1&bananas=yummy'),
+        determineDrsTypeTestWrapper('drs://dg.foo-bar-baz?version=1&bananas=yummy'),
         `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/dg.foo-bar-baz?version=1&bananas=yummy`
     );
 });
@@ -459,28 +460,28 @@ test('should parse "drs://dg." Data Object uri with only a host part with a quer
  */
 test('should parse Data Object uri with jade data repo DEV as host', (t) => {
     t.is(
-        generateUrl('drs://jade.datarepo-dev.broadinstitute.org/973b5e79-6433-40ce-bf38-686ab7f17820'),
+        determineDrsTypeTestWrapper('drs://jade.datarepo-dev.broadinstitute.org/973b5e79-6433-40ce-bf38-686ab7f17820'),
         'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/973b5e79-6433-40ce-bf38-686ab7f17820'
     );
 });
 
 test('should parse Data Object uri with jade data repo DEV as host and path with snapshot id', (t) => {
     t.is(
-        generateUrl('drs://jade.datarepo-dev.broadinstitute.org/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820'),
+        determineDrsTypeTestWrapper('drs://jade.datarepo-dev.broadinstitute.org/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820'),
         'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820'
     );
 });
 
 test('should parse Data Object uri with jade data repo PROD as host', (t) => {
     t.is(
-        generateUrl('drs://jade-terra.datarepo-prod.broadinstitute.org/anything'),
+        determineDrsTypeTestWrapper('drs://jade-terra.datarepo-prod.broadinstitute.org/anything'),
         'https://jade-terra.datarepo-prod.broadinstitute.org/ga4gh/drs/v1/objects/anything'
     );
 });
 
 test('should parse Data Object uri with host that looks like jade data repo host', (t) => {
     t.is(
-        generateUrl('drs://jade-data-repo.datarepo-dev.broadinstitute.org/v1_anything'),
+        determineDrsTypeTestWrapper('drs://jade-data-repo.datarepo-dev.broadinstitute.org/v1_anything'),
         'https://jade-data-repo.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_anything'
     );
 });
