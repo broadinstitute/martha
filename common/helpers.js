@@ -151,7 +151,6 @@ class CommonFileInfoResponse {
  *         - but `martha_v2` passed-thru whatever unstable response from the `dos` server while the specs keep evolving
  *     - ...which was then coalesced to what you see below for the `martha_v3` endpoint
  *         - `updated` was renamed to `timeUpdated`
- *         - The DOS/DRS optional `name` was added as `fileName`
  *         - etc.
  */
 class MarthaV3Response extends CommonFileInfoResponse {
@@ -164,7 +163,6 @@ class MarthaV3Response extends CommonFileInfoResponse {
         name,
         gsUri,
         googleServiceAccount,
-        fileName,
         hashesMap
     ) {
         super(
@@ -179,7 +177,6 @@ class MarthaV3Response extends CommonFileInfoResponse {
         );
         this.hashes = hashesMap || null;
         this.timeUpdated = updated || null;
-        this.fileName = fileName || null;
         delete this.updated;
     }
 }
@@ -354,7 +351,6 @@ function convertToMarthaV3Response(drsResponse, googleSA) {
         mime_type: mimeType = 'application/octet-stream',
         size: maybeNumberSize,
         updated_time: updatedTime,
-        name: maybeFileName,
     } = drsResponse;
 
     // Some (but not all!) DRS servers return time without a timezone (see example responses in `_martha_v3_resources.js`)
@@ -386,9 +382,6 @@ function convertToMarthaV3Response(drsResponse, googleSA) {
      */
     const size = Number(maybeNumberSize);
 
-    // Use the filename of the server, or get the name from the GCS object name we generated above
-    const fileName = maybeFileName || (name && name.replace(/^.*[\\/]/, ''));
-
     return new MarthaV3Response(
         mimeType,
         size,
@@ -398,7 +391,6 @@ function convertToMarthaV3Response(drsResponse, googleSA) {
         name,
         gsUrl,
         googleServiceAccount,
-        fileName,
         hashesMap
     );
 }

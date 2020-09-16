@@ -26,7 +26,6 @@ const expectedObjWithMissingFields = {
     name: null,
     gsUri: null,
     googleServiceAccount: null,
-    fileName: '123.mapped.abc.bam',
     hashes: null
 };
 
@@ -73,7 +72,6 @@ const sampleDosMarthaResult = (expectedGoogleServiceAccount) => {
         name: 'my_data',
         gsUri: 'gs://bogus/my_data',
         googleServiceAccount: expectedGoogleServiceAccount,
-        fileName: 'my_data',
         hashes: {
             md5: '336ea55913bc261b72875bd259753046',
             sha256: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44',
@@ -127,7 +125,6 @@ const dataGuidsOrgMarthaResult = (expectedGoogleServiceAccount) => {
             'gs://gdc-tcga-phs000178-open/a41b0c4f-ebfb-4277-a941-507340dea85d' +
             '/nationwidechildrens.org_clinical.TCGA-56-A4BY.xml',
         googleServiceAccount: expectedGoogleServiceAccount,
-        fileName: 'nationwidechildrens.org_clinical.TCGA-56-A4BY.xml',
         hashes: {
             md5: '0d22c86537e22ad9e924c7c756b23131'
         }
@@ -181,7 +178,6 @@ const jadeDrsMarthaResult = {
     gsUri:
         'gs://broad-jade-dev-data-bucket/fd8d8492-ad02-447d-b54e-35a7ffd0e7a5/8b07563a-542f-4b5c-9e00-e8fe6b1861de',
     googleServiceAccount: null,
-    fileName: 'HG00096.mapped.ILLUMINA.bwa.GBR.low_coverage.20120522.bam',
     hashes: {
         md5: '336ea55913bc261b72875bd259753046',
         sha256: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44',
@@ -246,7 +242,6 @@ const gen3CrdcDrsMarthaResult = {
         'gs://gdc-tcga-phs000178-controlled/BRCA/RNA/RNA-Seq/UNC-LCCC/ILLUMINA' +
         '/UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz',
     googleServiceAccount: null,
-    fileName: 'UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz',
     hashes: {
         md5: '2edd5fdb4f1deac4ef2bdf969de9f8ad'
     }
@@ -301,7 +296,6 @@ const anvilDrsMarthaResult = (expectedGoogleServiceAccount) => {
             'gs://fc-secure-ff8156a3-ddf3-42e4-9211-0fd89da62108/GTEx_Analysis_2017-06-05_v8_RNAseq_bigWig_files' +
             '/GTEX-1GZHY-0011-R6a-SM-9OSWL.Aligned.sortedByCoord.out.patched.md.bigWig',
         googleServiceAccount: expectedGoogleServiceAccount,
-        fileName: 'GTEX-1GZHY-0011-R6a-SM-9OSWL.Aligned.sortedByCoord.out.patched.md.bigWig',
         hashes: {
             md5: '18156430a5eea715b9b58fb53d0cef99'
         }
@@ -357,7 +351,6 @@ const kidsFirstDrsMarthaResult = (expectedGoogleServiceAccount) => {
         name: null, // there is definitely a name in the server response, why isn't Martha using it?
         gsUri: null, // expected, uses S3
         googleServiceAccount: expectedGoogleServiceAccount,
-        fileName: 'fa9c2cb04f614f90b75323b05bfdd231.bam',
         hashes: {
             // This case captures current Martha behavior, selectively allow `undefined`
             etag: undefined // eslint-disable-line no-undefined
@@ -416,7 +409,6 @@ const bdcDrsMarthaResult = (expectedGoogleServiceAccount) => {
             '/analysis' +
             '/HG02014.final.cram',
         googleServiceAccount: expectedGoogleServiceAccount,
-        fileName: 'HG02014.final.cram',
         hashes: {
             md5: 'bb193a5b603ae6ac5eb39890b6ca1bb5'
         }
@@ -481,7 +473,6 @@ const hcaDosMarthaResult = {
         '.d18ef9b8fd14ac922588baeec4853c0d' +
         '.0ba92b16',
     googleServiceAccount: null,
-    fileName: 'eb32bfc6-e7be-4093-8959-b8bf27f2404f.zarr!.zattrs',
     hashes: {
         sha256: '160fde1559f7154b03a6f645b4c7ff0eb2af37241e2cab3961e7780ead93860a'
     }
