@@ -1,4 +1,4 @@
-const { parseRequest, convertToMarthaV3Response, FailureResponse } = require('../common/helpers');
+const { jadeDataRepoHostRegex, parseRequest, convertToMarthaV3Response, FailureResponse } = require('../common/helpers');
 const config = require('../config.json');
 const apiAdapter = require('../common/api_adapter');
 const url = require('url');
@@ -118,7 +118,7 @@ function determineDrsType (parsedUrl) {
             false,
             null,
             dosResponseParser);
-    } else if ((/jade.*\.datarepo-.*\.broadinstitute\.org/).test(parsedUrl.host)) {
+    } else if (jadeDataRepoHostRegex.test(parsedUrl.host)) {
         return new DrsType(
             drsFullUrlGenerator(parsedUrl),
             true,

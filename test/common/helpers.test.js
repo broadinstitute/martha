@@ -1,5 +1,5 @@
 const test = require('ava');
-const { dataObjectUriToHttps, samBaseUrl, getHashesMap, convertToMarthaV3Response, MarthaV3Response } = require('../../common/helpers');
+const { dataObjectUriToHttps, jadeDataRepoHostRegex, samBaseUrl, getHashesMap, convertToMarthaV3Response, MarthaV3Response } = require('../../common/helpers');
 const config = require('../../config.json');
 
 /**
@@ -60,7 +60,7 @@ test('dataObjectUriToHttps should throw an error when given a "dg.*" host with n
         () => dataObjectUriToHttps('dos://dg.4503'),
         {
             instanceOf: Error,
-            message: 'Data Object URIs with either \'dg.*\' or \'/jade.*\\.datarepo-.*\\.broadinstitute\\.org/\' as host are required to have a path: "dos://dg.4503"'
+            message: `Data Object URIs with either \'dg.*\' or \'${jadeDataRepoHostRegex}\' as host are required to have a path: "dos://dg.4503"`
         },
         'Should have thrown error but didnt!'
     );
@@ -120,7 +120,7 @@ test('should throw error when given jade data repo host and no path', (t) => {
         () => dataObjectUriToHttps('drs://jade.datarepo-dev.broadinstitute.org/'),
         {
             instanceOf: Error,
-            message: 'Data Object URIs with either \'dg.*\' or \'/jade.*\\.datarepo-.*\\.broadinstitute\\.org/\' as host are required to have a path: "drs://jade.datarepo-dev.broadinstitute.org"'
+            message: `Data Object URIs with either \'dg.*\' or \'${jadeDataRepoHostRegex}\' as host are required to have a path: "drs://jade.datarepo-dev.broadinstitute.org"`
         },
         'Should have thrown error but didnt!'
     );

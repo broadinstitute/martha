@@ -88,6 +88,8 @@ Martha's `martha_v3` implementation translates requests-to and responses-from th
 
 - ✅ [Jade Data Repo](https://github.com/DataBiosphere/jade-data-repo#readme) (JDR)
     - Prod host: `jade-terra.datarepo-prod.broadinstitute.org`
+    - Alpha host: `data.alpha.envs-terra.bio`
+    - Staging host: `data.staging.envs-terra.bio`
     - Dev host: `jade.datarepo-dev.broadinstitute.org`
     - Martha Testing: 🤖 Continuous Automated
     - Returns Bond SA: No
