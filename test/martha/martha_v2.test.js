@@ -32,7 +32,7 @@ const mockResponse = () => {
 const dataObject = { fake: 'A fake Data Object' };
 const googleSAKeyObject = { key: 'A Google Service Account private key json object' };
 
-const bondRegEx = /^([^/]+)\/api\/link\/v1\/([a-z-]+)\/serviceaccount\/key$/;
+const bondRegEx = /^https:\/\/([^/]+)\/api\/link\/v1\/([a-z-]+)\/serviceaccount\/key$/;
 
 let getJsonFromApiStub;
 const getJsonFromApiMethodName = 'getJsonFrom';

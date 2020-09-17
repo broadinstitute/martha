@@ -28,7 +28,6 @@ const authorizedEmail = `hermione.owner@${emailDomain}`;
 
 const publicFenceUrl = 'dos://dg.4503/preview_dos.json';
 const protectedFenceUrl = 'dos://dg.4503/65e4cd14-f549-4a7f-ad0c-d29212ff6e46';
-// TODO: remove static link so bond host can be changed depending on env
 const fenceAuthLink =
     `${myBondBaseUrl}/api/link/v1/fence/oauthcode` +
     '?oauthcode=IgnoredByMockProvider' +

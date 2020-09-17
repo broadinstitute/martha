@@ -10,13 +10,17 @@ test('BondProviders default should be "dcf-fence"', (t) => {
     t.is(BondProviders.default, BondProviders.DCF_FENCE);
 });
 
-test('BondProviders should contain "dcf-fence" and "fence"', (t) => {
+test('BondProviders should contain "dcf-fence" and "fence" and "anvil"', (t) => {
     t.truthy(BondProviders.DCF_FENCE);
     t.truthy(BondProviders.FENCE);
+    t.truthy(BondProviders.ANVIL);
 });
 
-test('BondProviders should contain "jade-data-repo"', (t) => {
-    t.truthy(BondProviders.JADE_DATA_REPO);
+test('determineBondProvider should be "dcf-fence" if the URL host is "dataguids.org"', (t) => {
+    t.is(
+        determineBondProvider('dos://dataguids.org/a41b0c4f-ebfb-4277-a941-507340dea85d'),
+        BondProviders.DCF_FENCE
+    );
 });
 
 test('determineBondProvider should be "fence" if the URL host is "dg.4503"', (t) => {
@@ -31,8 +35,8 @@ test('determineBondProvider should be "dcf-fence" if the URL host is "dg.foo"', 
     t.is(determineBondProvider('drs://dg.foo/anything'), BondProviders.DCF_FENCE);
 });
 
-test('determineBondProvider should be "HCA" if the URL host ends with ".humancellatlas.org"', (t) => {
-    t.is(determineBondProvider('drs://someservice.humancellatlas.org'), BondProviders.HCA);
+test('determineBondProvider should not return a provider if the URL host ends with ".humancellatlas.org"', (t) => {
+    t.falsy(determineBondProvider('drs://someservice.humancellatlas.org'));
 });
 
 test('determineBondProvider should return the default BondProvider if the URL host does not end with ' +
@@ -44,6 +48,41 @@ test('determineBondProvider should return the default BondProvider if the URL ho
     t.is(determineBondProvider('drs://some-host/anything'), BondProviders.default);
 });
 
-test('determineBondProvider should return the "jade-data-repo" as the provider for JDR host"', (t) => {
-    t.is(determineBondProvider('drs://jade.datarepo-dev.broadinstitute.org/identifier'), BondProviders.JADE_DATA_REPO);
+test('determineBondProvider should not return a provider if the URL host is JDR"', (t) => {
+    t.falsy(determineBondProvider('drs://jade.datarepo-dev.broadinstitute.org/identifier'));
 });
+
+test('determineBondProvider should return the AnVIL BondProvider if the URL host is the AnVIL prefix dg.ANV0', (t) => {
+    t.is(determineBondProvider('drs://dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0'), BondProviders.ANVIL);
+});
+
+test('determineBondProvider should return the AnVIL BondProvider if the URL host is the AnVIL host', (t) => {
+    t.is(determineBondProvider('drs://gen3.theanvil.io/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0'), BondProviders.ANVIL);
+});
+
+test('determineBondProvider should return the default BondProvider if the URL host is Kids First', (t) => {
+    t.is(
+        determineBondProvider('drs://data.kidsfirstdrc.org/ed6be7ab-068e-46c8-824a-f39cfbb885cc'),
+        BondProviders.default,
+    );
+});
+
+test('determineBondProvider should return the default BondProvider if the URL host is CRDC', (t) => {
+    t.is(
+        determineBondProvider('drs://nci-crdc.datacommons.io/0027045b-9ed6-45af-a68e-f55037b5184c'),
+        BondProviders.default,
+    );
+});
+
+test(
+    'determineBondProvider should return the default BondProvider if the URL host is drs.dev.singlecell.gi.ucsc.edu',
+    (t) => {
+        t.is(
+            determineBondProvider(
+                'drs://drs.dev.singlecell.gi.ucsc.edu' +
+                '/bee7a822-ea28-4374-8e18-8b9941392723?version=2019-05-15T205839.080730Z'
+            ),
+            BondProviders.default,
+        );
+    }
+);

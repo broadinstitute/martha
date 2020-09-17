@@ -34,7 +34,8 @@ function marthaV2Handler(req, res) {
     const bondProvider = determineBondProvider(dataObjectUri);
 
     const dataObjectPromise = apiAdapter.getJsonFrom(dataObjectResolutionUrl);
-    const bondPromise = maybeTalkToBond(req, bondProvider);
+    const auth = req && req.headers && req.headers.authorization;
+    const bondPromise = maybeTalkToBond(auth, bondProvider);
 
     return Promise.all([dataObjectPromise, bondPromise])
         .then((rawResults) => {

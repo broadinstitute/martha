@@ -73,6 +73,17 @@ Example response for /martha_v3:
 }
 ```
 
+The fields are:
+- `gsUri`: The full Google Cloud Storage URI/URL/path to the blob storing the data
+- `bucket`: The [bucket name](https://cloud.google.com/storage/docs/key-terms#bucket-names) part of the `gsUri`
+- `name`: The [object name](https://cloud.google.com/storage/docs/key-terms#object-names) part of the `gsUri`
+- `contentType`: The type of data stored in the blob found at `gsUri`
+- `size`: The size of the blob found at `gsUri`
+- `hashes`: The various hash types and values for the blob found at `gsUri`
+- `timeCreated`: The time of creation for the data found at `gsUri`
+- `timeUpdated`: The time of last update for the data found at `gsUri`
+- `googleServiceAccount`: An optional service account that should be used to access the `gsUri`
+
 **NOTE:**
 
 There was an [early substitution recommendation to
@@ -92,48 +103,67 @@ Martha's `martha_v3` implementation translates requests-to and responses-from th
     - Martha Testing: 🤖 Continuous Automated
     - Returns Bond SA: No
     - Requires OAuth for metadata: 🔐 Yes
-- ❌ [DataGuids.org](https://dataguids.org/) (ex: any drs://dg.* other than drs://dg.4503, and not drs://dataguids.org)
+    - Example: `drs://jade.datarepo-dev.broadinstitute.org/v1_0c86170e-312d-4b39-a0a4-2a2bfaa24c7a_c0e40912-8b14-43f6-9a2f-b278144d0060`
+- ❌ [DataGuids.org](https://dataguids.org/)
+    (any drs://dg.* other than drs://dg.4503, drs://dg.712C, drs://dg.ANV0, and not drs://dataguids.org)
     - Prod host: `gen3.biodatacatalyst.nhlbi.nih.gov`
     - Dev host: `staging.gen3.biodatacatalyst.nhlbi.nih.gov`
     - Martha testing: 🖐 Manual (in production)
     - Returns Bond SA: Yes, via the [Data Coordination Platform](https://data.humancellatlas.org/about) (DCP)
     - Requires OAuth for metadata: 🔓 No
-- ❌ [DataGuids.org](https://dataguids.org/) (ex: drs://dg.4503)
+    - Example: _unknown_
+- ❌ [DataGuids.org](https://dataguids.org/) (drs://dg.4503 in prod and drs://dg.712C in non-prod)
     - Prod host: `gen3.biodatacatalyst.nhlbi.nih.gov`
     - Dev host: `staging.gen3.biodatacatalyst.nhlbi.nih.gov`
     - Martha testing: 🖐 Manual
     - Returns Bond SA: Yes, via the [Data Commons Framework](https://datascience.cancer.gov/data-commons/data-commons-framework) (DCF)
     - Requires OAuth for metadata: 🔓 No
-- ❌ [DataGuids.org](https://dataguids.org/) (ex: drs://dataguids.org, but not drs://dg.*)
+    - Example: `drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0`
+- ❌ The [Analysis, Visualization and Informatics Lab-space](https://www.genome.gov/Funded-Programs-Projects/Computational-Genomics-and-Data-Science-Program/Genomic-Analysis-Visualization-Informatics-Lab-space-AnVIL)
+    (The AnVIL, dg.ANV0)
+    - Prod host: `gen3.theanvil.io`
+    - Dev host: _unknown_
+    - Martha testing: 🚫 Mock only
+    - Returns Bond SA: Yes, via the AnVIL
+    - Requires OAuth for metadata: 🔓 No
+    - Example: `drs://dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`
+- ❌ [DataGuids.org](https://dataguids.org/) (drs://dataguids.org, but not drs://dg.*)
     - Prod host: `dataguids.org`
     - Dev host: _unknown_
-    - Martha testing: 🚫 No testing
-    - Returns Bond SA: No
+    - Martha testing: 🚫 Mock only
+    - Returns Bond SA: Yes
     - Requires OAuth for metadata: 🔓 No
+    - Example: `dos://dataguids.org/a41b0c4f-ebfb-4277-a941-507340dea85d`
 - ❌ [Human Cell Atlas](https://github.com/HumanCellAtlas/data-store) (HCA)
     - Prod host: `drs.data.humancellatlas.org`
     - Dev host: _unknown_
     - Martha testing: 🖐 Manual (in production)
     - Returns Bond SA: No
     - Requires OAuth for metadata: 🔓 No
+    - Example:
+    `drs://drs.data.humancellatlas.org/4cf48dbf-cf09-452e-bb5b-fd016af0c747?version=2019-09-14T024754.281908Z`
 - ❌ [UCSC Single Cell Dev Server](https://drs.dev.singlecell.gi.ucsc.edu/)
     - Prod host: _unknown_
     - Dev host: `drs.dev.singlecell.gi.ucsc.edu`
-    - Martha testing: 🚫 No testing
-    - Returns Bond SA: No
+    - Martha testing: 🚫 Mock only
+    - Returns Bond SA: Yes, via the [Data Coordination Platform](https://data.humancellatlas.org/about) (DCP)
     - Requires OAuth for metadata: 🔐 Yes
-- ❌ [Analysis, Visualization and Informatics Lab-space](https://www.genome.gov/Funded-Programs-Projects/Computational-Genomics-and-Data-Science-Program/Genomic-Analysis-Visualization-Informatics-Lab-space-AnVIL) (AnVIL)
-    - Prod host: _unknown_
-    - Dev host: _unknown_
-    - Martha testing: 🚫 No testing
-    - Returns Bond SA: No
-    - Requires OAuth for metadata: 🔓 No
+    - Example:
+    `drs://drs.dev.singlecell.gi.ucsc.edu/bee7a822-ea28-4374-8e18-8b9941392723?version=2019-05-15T205839.080730Z`
 - ❌ [Gabriella Miller Kids First Pediatric Data Resource](https://commonfund.nih.gov/kidsfirst/overview)
-    - Prod host: _unknown_
+    - Prod host: `data.kidsfirstdrc.org`
     - Dev host: _unknown_
-    - Martha testing: 🚫 No testing
-    - Returns Bond SA: No
-    - Requires OAuth for metadata: _unknown_
+    - Martha testing: 🚫 Mock only
+    - Returns Bond SA: Yes, via the [Data Coordination Platform](https://data.humancellatlas.org/about) (DCP)
+    - Requires OAuth for metadata: no
+    - Example: `drs://data.kidsfirstdrc.org/ed6be7ab-068e-46c8-824a-f39cfbb885cc`
+- ❌ [Cancer Research Data Commons](https://datacommons.cancer.gov/) (CRDC)
+    - Prod host: `nci-crdc.datacommons.io`
+    - Dev host: `nci-crdc-staging.datacommons.io`
+    - Martha testing: 🚫 Mock only
+    - Returns Bond SA: Yes, via the [Data Coordination Platform](https://data.humancellatlas.org/about) (DCP)
+    - Requires OAuth for metadata: 🔓 No
+    - Example: `drs://nci-crdc.datacommons.io/0027045b-9ed6-45af-a68e-f55037b5184c`
 
 <sup>
 ✅ = DRS v1.0 hosts tested with Martha's `martha_v3` endpoint<br/>
