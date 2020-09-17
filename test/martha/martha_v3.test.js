@@ -495,16 +495,14 @@ test('should parse Data Object uri with host that looks like jade data repo host
  */
 test('should parse Data Object uri with the AnVIL prefix dg.ANV0', (t) => {
     t.is(
-        determineDrsTypeTestWrapper(
-            'drs://dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0'),
+        determineDrsTypeTestWrapper('drs://dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0'),
         'https://gen3.theanvil.io/ga4gh/dos/v1/dataobjects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0',
     );
 });
 
 test('should parse Data Object uri with the AnVIL host', (t) => {
     t.is(
-        determineDrsTypeTestWrapper(
-            'drs://gen3.theanvil.io/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0'),
+        determineDrsTypeTestWrapper('drs://gen3.theanvil.io/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0'),
         'https://gen3.theanvil.io/ga4gh/dos/v1/dataobjects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0',
     );
 });
@@ -517,8 +515,7 @@ test('should parse Data Object uri with the AnVIL host', (t) => {
  */
 test('should parse Data Object uri with the Kids First repo as host', (t) => {
     t.is(
-        determineDrsTypeTestWrapper(
-            'drs://data.kidsfirstdrc.org/ed6be7ab-068e-46c8-824a-f39cfbb885cc'),
+        determineDrsTypeTestWrapper('drs://data.kidsfirstdrc.org/ed6be7ab-068e-46c8-824a-f39cfbb885cc'),
         'https://data.kidsfirstdrc.org/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc',
     );
 });
