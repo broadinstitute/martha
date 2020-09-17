@@ -6,12 +6,29 @@ const url = require('url');
 const BAD_REQUEST_ERROR_CODE = 400;
 const SERVER_ERROR_CODE = 500;
 
+const BOND_PROVIDER_NONE = null; // Used for servers that should NOT contact bond
+const BOND_PROVIDER_DCF_FENCE = 'dcf-fence'; // The default when we don't recognize the server
+const BOND_PROVIDER_FENCE = 'fence';
+const BOND_PROVIDER_ANVIL = 'anvil';
+
+const AUTH_REQUIRED = true;
+const AUTH_SKIPPED = false;
+
+const PROTOCOL_PREFIX_DOS='/ga4gh/dos/v1/dataobjects';
+const PROTOCOL_PREFIX_DRS='/ga4gh/drs/v1/objects';
+
+// TODO: Does dataguids.org actually have a resolution API??
+// Until we figure that out, we'll try to re-implement the mappings we know about here.
+const DG_EXPANSION_NONE = null;
+const DG_EXPANSION_BIO_DATA_CATALYST = config.dataObjectResolutionHost;
+const DG_EXPANSION_THE_ANVIL = 'gen3.theanvil.io';
+
 class DrsType {
-    constructor(drsUrl, sendAuth, bondUrl, responseParser) {
-        this.drsUrl = drsUrl;
+    constructor(dataGuidExpansion, protocolPrefix, sendAuth, bondProvider) {
+        this.dataGuidExpansion = dataGuidExpansion;
+        this.protocolPrefix = protocolPrefix;
         this.sendAuth = sendAuth;
-        this.bondUrl = bondUrl;
-        this.responseParser = responseParser;
+        this.bondProvider = bondProvider;
     }
 }
 
@@ -19,143 +36,177 @@ class DrsType {
  * URI parsers
  */
 
-function dosFullUrlGenerator (parsedUrl) {
+function fullUrlGenerator (parsedUrl, protocolPrefix) {
     return url.format({
         protocol: 'https',
         hostname: parsedUrl.hostname,
         port: parsedUrl.port,
-        pathname: `/ga4gh/dos/v1/dataobjects${(parsedUrl.pathname) ? parsedUrl.pathname : `/${parsedUrl.hostname}`}`,
+        pathname: `${protocolPrefix}${parsedUrl.pathname || `/${parsedUrl.hostname}`}`,
         search: parsedUrl.search
     });
 }
 
-function dosCompactUrlGenerator (parsedUrl) {
-    const splitHost = parsedUrl.hostname.split('.');
-    let idPrefix;
-    if (parsedUrl.pathname) {
-        idPrefix = `${splitHost[0]}.${splitHost[1].toUpperCase()}`;
-    } else {
-        idPrefix = `${splitHost[0]}.${splitHost[1]}`;
-    }
-
+const compactUrlGenerator = (dataGuidExpansion) => function (parsedUrl, protocolPrefix) {
     return url.format({
         protocol: 'https',
-        hostname: config.dataObjectResolutionHost,
+        hostname: dataGuidExpansion,
         port: parsedUrl.port,
-        pathname: `/ga4gh/dos/v1/dataobjects/${idPrefix}${(parsedUrl.pathname) ? parsedUrl.pathname : ''}`,
+        pathname: `${protocolPrefix}/${parsedUrl.hostname}${parsedUrl.pathname || ''}`,
         search: parsedUrl.search
     });
-}
+};
 
-function drsFullUrlGenerator (parsedUrl) {
-    return url.format({
-        protocol: 'https',
-        hostname: parsedUrl.hostname,
-        port: parsedUrl.port,
-        pathname: `/ga4gh/drs/v1/objects${parsedUrl.pathname}`,
-        search: parsedUrl.search
-    });
+// NOTE: reimplementation of dataObjectUriToHttps in helper.js
+function httpsUrlGenerator (parsedUrl, dataGuidExpansion, protocolPrefix) {
+    const generator = dataGuidExpansion ? compactUrlGenerator(dataGuidExpansion) : fullUrlGenerator;
+    return generator(parsedUrl, protocolPrefix);
 }
 
 /** *************************************************************************************************
  * Response parsers
  */
 
-function dosResponseParser (response) {
-    if (response.data_object) {
-        const accessMethods = (response.data_object.urls) ? response.data_object.urls
-            .filter((e) => e.url.startsWith('gs://'))
-            .map((gsUrl) => {
-                return { type: 'gs', access_url: { url: gsUrl.url } };
-            }) : null;
-        return {
-            access_methods: accessMethods,
-            checksums: response.data_object.checksums,
-            created_time: response.data_object.created,
-            mime_type: response.data_object.mimeType,
-            size: Number(response.data_object.size),
-            updated_time: response.data_object.updated,
-        };
-    } else {
-        throw new FailureResponse(400, `Expected but did not receive properly formatted DOS Response: ${JSON.stringify(response)} `);
-    }
-}
+function responseParser (response) {
+    // If this is not a DOS response, assume it's already DRS and return it.
+    if (!response.data_object) { return response; }
 
-function drsResponseParser (response) {
-    return {
-        access_methods: response.access_methods,
-        checksums: response.checksums,
-        created_time: response.created_time,
-        mime_type: response.mime_type,
-        name: response.name,
-        size: Number(response.size),
-        updated_time: response.updated_time,
-    };
+    // Otherwise, find the DOS fields and convert them to DRS.
+    const {
+        urls,
+        checksums,
+        created: created_time,
+        mimeType: mime_type,
+        name,
+        size,
+        updated: updated_time,
+    } = response.data_object;
+    const access_methods =
+        urls &&
+        urls
+            .filter((e) => e.url.startsWith('gs://'))
+            .map((gsUrl) => { return { type: 'gs', access_url: { url: gsUrl.url } }; });
+    return { access_methods, checksums, created_time, mime_type, name, size, updated_time };
 }
 
 /** *************************************************************************************************
  * Here is where all the logic lives that pairs a particular kind of URI with its
  * resolving-URL-generating parser, what path to use to make a Bond request for an SA (if any), and
  * a response parser.
+ *
+ * If you update this function update the README too!
  */
 
 function determineDrsType (parsedUrl) {
-    if ((parsedUrl.host.toLowerCase() === 'dg.4503') || (parsedUrl.host.toLowerCase() === 'dg.712c')) {
+    const host = parsedUrl.hostname.toLowerCase();
+
+    // First handle servers that we know about...
+
+    // Compact BDC
+    if (['dg.4503', 'dg.712c'].includes(host)) {
         return new DrsType(
-            dosCompactUrlGenerator(parsedUrl),
-            false,
-            `${config.bondBaseUrl}/api/link/v1/fence/serviceaccount/key`,
-            dosResponseParser);
-    } else if (parsedUrl.host.toLowerCase().startsWith('dg.')) {
-        return new DrsType(
-            dosCompactUrlGenerator(parsedUrl),
-            false,
-            `${config.bondBaseUrl}/api/link/v1/dcf-fence/serviceaccount/key`,
-            dosResponseParser);
-    } else if (parsedUrl.host.endsWith('.dataguids.org')) {
-        return new DrsType(
-            dosCompactUrlGenerator(parsedUrl),
-            false,
-            null,
-            dosResponseParser);
-    } else if (jadeDataRepoHostRegex.test(parsedUrl.host)) {
-        return new DrsType(
-            drsFullUrlGenerator(parsedUrl),
-            true,
-            null,
-            drsResponseParser);
-    } else if (parsedUrl.host.endsWith('.humancellatlas.org')) {
-        return new DrsType(
-            dosFullUrlGenerator(parsedUrl),
-            false,
-            null,
-            dosResponseParser);
-    } else if (parsedUrl.host.endsWith('.datacommons.io')) {
-        return new DrsType(
-            drsFullUrlGenerator(parsedUrl),
-            true,
-            null,
-            drsResponseParser);
-    } else {
-        return new DrsType(
-            dosFullUrlGenerator(parsedUrl),
-            false,
-            `${config.bondBaseUrl}/api/link/v1/dcf-fence/serviceaccount/key`,
-            dosResponseParser);
+            DG_EXPANSION_BIO_DATA_CATALYST,
+            PROTOCOL_PREFIX_DOS,
+            AUTH_SKIPPED,
+            BOND_PROVIDER_FENCE,
+        );
     }
+
+    // Full BDC
+    if (host === DG_EXPANSION_BIO_DATA_CATALYST) {
+        return new DrsType(
+            DG_EXPANSION_NONE,
+            PROTOCOL_PREFIX_DOS,
+            AUTH_SKIPPED,
+            BOND_PROVIDER_FENCE,
+        );
+    }
+
+    // Compact The AnVIL
+    if (host === 'dg.anv0') {
+        return new DrsType(
+            DG_EXPANSION_THE_ANVIL,
+            PROTOCOL_PREFIX_DOS,
+            AUTH_SKIPPED,
+            BOND_PROVIDER_ANVIL,
+        );
+    }
+
+    // Full The AnVIL
+    if (host === DG_EXPANSION_THE_ANVIL) {
+        return new DrsType(
+            DG_EXPANSION_NONE,
+            PROTOCOL_PREFIX_DOS,
+            AUTH_SKIPPED,
+            BOND_PROVIDER_ANVIL,
+        );
+    }
+
+    // Full Jade Data Repo
+    if (jadeDataRepoHostRegex.test(host)) {
+        return new DrsType(
+            DG_EXPANSION_NONE,
+            PROTOCOL_PREFIX_DRS,
+            AUTH_REQUIRED,
+            BOND_PROVIDER_NONE,
+        );
+    }
+
+    // Full HCA
+    if (host.endsWith('.humancellatlas.org')) {
+        return new DrsType(
+            DG_EXPANSION_NONE,
+            PROTOCOL_PREFIX_DOS,
+            AUTH_SKIPPED,
+            BOND_PROVIDER_NONE,
+        );
+    }
+
+    // Full CRDC
+    if (host.endsWith('.datacommons.io')) {
+        return new DrsType(
+            DG_EXPANSION_NONE,
+            PROTOCOL_PREFIX_DRS,
+            AUTH_REQUIRED,
+            BOND_PROVIDER_NONE,
+        );
+    }
+
+    // Assume this is a BDC compact URI but using dcf-fence Bond provider.
+    // If we don't recognize the dg.* assume like martha_v2 that everyone else
+    // speaks DOS, doesn't require auth, and uses dcf-fence.
+    if (host.startsWith("dg.")) {
+        return new DrsType(
+            DG_EXPANSION_BIO_DATA_CATALYST,
+            PROTOCOL_PREFIX_DOS,
+            AUTH_SKIPPED,
+            BOND_PROVIDER_DCF_FENCE,
+        );
+    }
+
+
+    // If we don't recognize the server assume like martha_v2 that everyone else
+    // speaks DOS, doesn't require auth, and uses dcf-fence.
+    return new DrsType(
+        DG_EXPANSION_NONE,
+        PROTOCOL_PREFIX_DOS,
+        AUTH_SKIPPED,
+        BOND_PROVIDER_DCF_FENCE,
+    );
 }
 
 function validateRequest(dataObjectUri, auth) {
     if (!dataObjectUri) {
         throw new Error('URL of a DRS object is missing.');
-    } else if (!auth) {
+    }
+
+    if (!auth) {
         throw new Error('Authorization header is missing.');
     }
 }
 
 async function marthaV3Handler(req, res) {
     const dataObjectUri = parseRequest(req);
-    const auth = req.headers.authorization;
+    const auth = req && req.headers && req.headers.authorization;
     console.log(`Received URL '${dataObjectUri}' from IP '${req.ip}'`);
 
     try {
@@ -166,23 +217,32 @@ async function marthaV3Handler(req, res) {
         res.status(BAD_REQUEST_ERROR_CODE).send(failureResponse);
         return;
     }
-    const parsedUrl = url.parse(dataObjectUri);
-    if (!parsedUrl.host || (!parsedUrl.path && parsedUrl.host.toLowerCase().startsWith('dg.'))) {
+
+    let parsedUrl;
+    try {
+        parsedUrl = new URL(dataObjectUri);
+    } catch (error) {
+        console.error(error);
+        const failureResponse = new FailureResponse(BAD_REQUEST_ERROR_CODE, error.message);
+        res.status(BAD_REQUEST_ERROR_CODE).send(failureResponse);
+        return;
+    }
+
+    if (!parsedUrl.hostname || (!parsedUrl.pathname && parsedUrl.hostname.toLowerCase().startsWith('dg.'))) {
         console.error(`"${url.format(parsedUrl)}" is missing a host and/or a path.`);
         const failureResponse = new FailureResponse(BAD_REQUEST_ERROR_CODE, `"${dataObjectUri}" is not a properly-formatted URI.`);
         res.status(BAD_REQUEST_ERROR_CODE).send(failureResponse);
         return;
     }
-    const {drsUrl, sendAuth, bondUrl, responseParser} = determineDrsType(parsedUrl);
+
+    const {dataGuidExpansion, protocolPrefix, sendAuth, bondProvider} = determineDrsType(parsedUrl);
+    const drsUrl = httpsUrlGenerator(parsedUrl, dataGuidExpansion, protocolPrefix);
+    const bondUrl = bondProvider && `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
     console.log(`Converting DRS URI to HTTPS: ${dataObjectUri} -> ${drsUrl}`);
 
     let response;
     try {
-        if (sendAuth) {
-            response = await apiAdapter.getJsonFrom(drsUrl, auth);
-        } else {
-            response = await apiAdapter.getJsonFrom(drsUrl);
-        }
+        response = await apiAdapter.getJsonFrom(drsUrl, sendAuth ? auth : null);
     } catch (err) {
         console.log('Received error while resolving DRS URL.');
         console.error(err);
@@ -215,7 +275,7 @@ async function marthaV3Handler(req, res) {
     }
 
     let bondSA;
-    if (bondUrl && req && req.headers && req.headers.authorization) {
+    if (bondUrl) {
         try {
             bondSA = await apiAdapter.getJsonFrom(bondUrl, auth);
         } catch (err) {
@@ -238,3 +298,4 @@ async function marthaV3Handler(req, res) {
 
 exports.marthaV3Handler = marthaV3Handler;
 exports.determineDrsType = determineDrsType;
+exports.httpsUrlGenerator = httpsUrlGenerator;

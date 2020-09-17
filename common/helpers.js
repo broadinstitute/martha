@@ -55,7 +55,15 @@ function constructPath(pathParts) {
 }
 
 function determineHostname(someUrl) {
-    return isDataGuidsUrl(someUrl) ? config.dataObjectResolutionHost : someUrl.hostname;
+    if (!isDataGuidsUrl(someUrl)) {
+        return someUrl.hostname;
+    }
+
+    if (someUrl.hostname.toLowerCase() === 'dg.anv0') {
+        return 'gen3.theanvil.io';
+    }
+
+    return config.dataObjectResolutionHost;
 }
 
 function determinePathname(someUrl) {
@@ -84,6 +92,7 @@ function preserveHostnameCase(parsedUrl, rawUrl) {
 //      1. host part starts with "dg."
 //      2. host part DOES NOT start with "dg." AND path part is FALSY
 //      3. host part DOES NOT start with "dg." AND path part is TRUTHY
+// If you update this function update the README too!
 function dataObjectUriToHttps(dataObjectUri) {
     const parsedUrl = url.parse(dataObjectUri);
     if (parsedUrl.pathname === '/') {
@@ -110,9 +119,7 @@ function dataObjectUriToHttps(dataObjectUri) {
 // This function counts on the request posing data as "application/json" content-type.
 // See: https://cloud.google.com/functions/docs/writing/http#parsing_http_requests for more details
 function parseRequest(req) {
-    if (req && req.body) {
-        return req.body.url;
-    }
+    return req && req.body && req.body.url;
 }
 
 /**
@@ -142,6 +149,18 @@ class CommonFileInfoResponse {
 
 /**
  * Response class for /martha_v3
+ *
+ * For the curious, the fields are an evolution of:
+ *     - It appears to have all started with the json schema for GCS objects...
+ *         - `bucket`, `name`, `timeCreated`, `updated`, etc.
+ *         - https://cloud.google.com/storage/docs/json_api/v1/objects#resource-representations
+ *     - ...which was the inspiration for the `fileSummaryV1` endpoint (used by FireCloud-UI and not Terra-UI)...
+ *     - ...which was partially merged with `martha_v2`...
+ *         - `googleServiceAccount` was essentially added to `fileSummaryV1`
+ *         - but `martha_v2` passed-thru whatever unstable response from the `dos` server while the specs keep evolving
+ *     - ...which was then coalesced to what you see below for the `martha_v3` endpoint
+ *         - `updated` was renamed to `timeUpdated`
+ *         - etc.
  */
 class MarthaV3Response extends CommonFileInfoResponse {
     constructor(
@@ -264,8 +283,8 @@ function getMd5Checksum(checksums) {
  * Transforms the DOS or DRS checksum array into a map where `type` is key and `checksum` is value
  *
  * @param {Object[]} checksumArray The checksum of the drs object
- * @param {string} checksums[].checksum The hex-string encoded checksum for the data
- * @param {string} checksums[].type The digest method used to create the checksum
+ * @param {string} checksumArray[].checksum The hex-string encoded checksum for the data
+ * @param {string} checksumArray[].type The digest method used to create the checksum
  * @returns {Object} The checksum map as an object
  * @throws {Error} throws an error if the checksums[] contains multiple checksum values for same hash type
  */
@@ -316,6 +335,7 @@ function getGsUrlFromDrsObject(drsResponse) {
  *     https://ga4gh.github.io/data-repository-service-schemas/preview/release/drs-1.0.0/docs/
  *
  * @param {Object} drsResponse DRS v1.x response
+ * @param {string} [drsResponse.name] A string that can be used to name a drs object
  * @param {Object[]} [drsResponse.access_methods] The list of access methods that can be used to fetch the drs object
  * @param {Object} [drsResponse.access_methods[].access_url] An AccessURL that can be used to fetch the actual object
  *     bytes
@@ -338,7 +358,7 @@ function convertToMarthaV3Response(drsResponse, googleSA) {
         checksums,
         created_time: createdTime,
         mime_type: mimeType = 'application/octet-stream',
-        size,
+        size: maybeNumberSize,
         updated_time: updatedTime,
     } = drsResponse;
 
@@ -346,10 +366,30 @@ function convertToMarthaV3Response(drsResponse, googleSA) {
     // Instead of letting JS assume that a timezoneless time is local TZ, explicitly assign it to be UTC
     const createdTimeIso = createdTime ? moment.utc(createdTime).toISOString() : null;
     const updatedTimeIso = updatedTime ? moment.utc(updatedTime).toISOString() : null;
+
     const googleServiceAccount = isNullish(googleSA) || Object.keys(googleSA).length === 0 ? null : googleSA;
     const gsUrl = getGsUrlFromDrsObject(drsResponse);
     const [bucket, name] = parseGsUri(gsUrl);
     const hashesMap = getHashesMap(checksums);
+
+    /*
+    Some servers return the size as a JSON string and not a JSON number.
+
+      curl \
+        https://drs.data.humancellatlas.org/ga4gh/dos/v1/dataobjects/4cf48dbf-cf09-452e-bb5b-fd016af0c747 |
+        jq .data_object.size
+
+      returns `"148"`
+
+    vs.
+
+      curl \
+        https://dataguids.org/ga4gh/dos/v1/dataobjects/a41b0c4f-ebfb-4277-a941-507340dea85d |
+        jq .data_object.size
+
+      returns `39830`
+     */
+    const size = Number(maybeNumberSize);
 
     return new MarthaV3Response(
         mimeType,

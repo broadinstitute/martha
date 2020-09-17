@@ -50,7 +50,7 @@ jobs:
           name: Run ESLint
           command: |
             npm install
-            npm run lint
+            npx eslint .
 
   test:
     <<: *job_defaults
@@ -120,7 +120,7 @@ jobs:
           name: Install trivy
           command: |
             curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/contrib/install.sh | sh -s -- -b /usr/local/bin
-  
+
       - run:
           name: Scan the local image with trivy (light)
           command:  |

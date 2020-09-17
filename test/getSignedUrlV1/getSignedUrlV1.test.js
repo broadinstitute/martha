@@ -32,7 +32,7 @@ const mockResponse = () => {
 
 const fakeSignedUrl = 'http://i.am.a.signed.url.com/totallyMadeUp';
 const fakeSAKey = {key: 'I am not real'};
-const bondSAKeyUrlRegEx = /^([^/]+)\/api\/link\/v1\/([a-z-]+)\/serviceaccount\/key$/;
+const bondSAKeyUrlRegEx = /^https:\/\/([^/]+)\/api\/link\/v1\/([a-z-]+)\/serviceaccount\/key$/;
 const samPetSAKeyUrlRegEx = /^.*\/user\/petServiceAccount\/key$/;
 
 let getJsonFromApiStub;
@@ -98,3 +98,40 @@ test.serial('Valid bucket, object, and HCA dataObjectUri returns signed URL usin
     const result = response.send.lastCall.args[0];
     t.is(fakeSignedUrl, result.url);
 });
+
+test.serial('Valid bucket, object, and JDR dataObjectUri returns signed URL using SA key from SAM', async (t) => {
+    getJsonFromApiStub.resolves(fakeSAKey);
+    getSignedUrlStub.resolves([fakeSignedUrl]);
+    const response = mockResponse();
+    await getSignedUrlV1(mockRequest({
+        body: {
+            bucket: 'testBucket',
+            object: 'testObjectKey',
+            dataObjectUri: 'drs://jade.datarepo-dev.broadinstitute.org/this_part_can_be_anything'
+        }
+    }), response);
+    t.regex(getJsonFromApiStub.firstCall.args[0], samPetSAKeyUrlRegEx); // User SA key obtained from SAM
+    t.is(response.statusCode, 200);
+    const result = response.send.lastCall.args[0];
+    t.is(fakeSignedUrl, result.url);
+});
+
+test.serial(
+    'Valid bucket, object, and dataguids.org dataObjectUri returns signed URL using SA key from SAM',
+    async (t) => {
+        getJsonFromApiStub.resolves(fakeSAKey);
+        getSignedUrlStub.resolves([fakeSignedUrl]);
+        const response = mockResponse();
+        await getSignedUrlV1(mockRequest({
+            body: {
+                bucket: 'testBucket',
+                object: 'testObjectKey',
+                dataObjectUri: 'dos://dataguids.org/a41b0c4f-ebfb-4277-a941-507340dea85d'
+            }
+        }), response);
+        t.regex(getJsonFromApiStub.firstCall.args[0], bondSAKeyUrlRegEx); // User SA key obtained from Bond/Fence
+        t.is(response.statusCode, 200);
+        const result = response.send.lastCall.args[0];
+        t.is(fakeSignedUrl, result.url);
+    }
+);

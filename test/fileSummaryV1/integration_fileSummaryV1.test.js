@@ -15,6 +15,10 @@ let unauthorizedToken;
 let authorizedToken;
 
 const myEnv = process.env.ENV ? process.env.ENV : 'dev';
+const myBondBaseUrl =
+    process.env.BOND_BASE_URL ?
+        process.env.BOND_BASE_URL :
+        `https://bond-fiab.dsde-${myEnv}.broadinstitute.org:31443`;
 const emailDomain = `${myEnv === 'qa' ? 'quality' : 'test'}.firecloud.org`;
 
 const keyFile = 'automation/firecloud-account.pem';
@@ -25,8 +29,10 @@ const authorizedEmail = `hermione.owner@${emailDomain}`;
 
 const dataObjectUri = 'dos://dg.4503/preview_dos.json';
 const gsUri = 'gs://wb-mock-drs-dev/public/dos_test.txt';
-// TODO: GAWB-4053 -- remove static link so bond host can be changed depending on env
-const fenceAuthLink = `https://bond-fiab.dsde-${myEnv}.broadinstitute.org:31443/api/link/v1/fence/oauthcode?oauthcode=IgnoredByMockProvider&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback`;
+const fenceAuthLink =
+    `${myBondBaseUrl}/api/link/v1/fence/oauthcode` +
+    '?oauthcode=IgnoredByMockProvider' +
+    '&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback';
 
 test.before(async () => {
     unauthorizedToken = await new GoogleToken({

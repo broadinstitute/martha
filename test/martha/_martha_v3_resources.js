@@ -70,13 +70,63 @@ const sampleDosMarthaResult = (expectedGoogleServiceAccount) => {
         timeUpdated: '2020-04-27T15:56:09.696Z',
         bucket: 'bogus',
         name: 'my_data',
-        gsUri:
-            'gs://bogus/my_data',
+        gsUri: 'gs://bogus/my_data',
         googleServiceAccount: expectedGoogleServiceAccount,
         hashes: {
             md5: '336ea55913bc261b72875bd259753046',
             sha256: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44',
             crc32c: '8a366443'
+        }
+    };
+};
+
+// dataguids.org
+// returned via `curl https://dataguids.org/ga4gh/dos/v1/dataobjects/a41b0c4f-ebfb-4277-a941-507340dea85d`
+const dataGuidsOrgResponse = {
+    data_object: {
+        checksums: [
+            {
+                checksum: '0d22c86537e22ad9e924c7c756b23131',
+                type: 'md5'
+            }
+        ],
+        created: '2018-06-26T18:53:21.416896',
+        description: '',
+        id: 'a41b0c4f-ebfb-4277-a941-507340dea85d',
+        mime_type: '',
+        name: null,
+        size: 39830,
+        updated: '2018-06-26T18:53:21.416908',
+        urls: [
+            {
+                'url':
+                    'gs://gdc-tcga-phs000178-open/a41b0c4f-ebfb-4277-a941-507340dea85d' +
+                    '/nationwidechildrens.org_clinical.TCGA-56-A4BY.xml'
+            },
+            {
+                'url':
+                    's3://tcga-2-open/a41b0c4f-ebfb-4277-a941-507340dea85d' +
+                    '/nationwidechildrens.org_clinical.TCGA-56-A4BY.xml'
+            }
+        ],
+        version: 'a095f638'
+    }
+};
+
+const dataGuidsOrgMarthaResult = (expectedGoogleServiceAccount) => {
+    return {
+        contentType: 'application/octet-stream',
+        size: 39830,
+        timeCreated: '2018-06-26T18:53:21.416Z',
+        timeUpdated: '2018-06-26T18:53:21.416Z',
+        bucket: 'gdc-tcga-phs000178-open',
+        name: 'a41b0c4f-ebfb-4277-a941-507340dea85d/nationwidechildrens.org_clinical.TCGA-56-A4BY.xml',
+        gsUri:
+            'gs://gdc-tcga-phs000178-open/a41b0c4f-ebfb-4277-a941-507340dea85d' +
+            '/nationwidechildrens.org_clinical.TCGA-56-A4BY.xml',
+        googleServiceAccount: expectedGoogleServiceAccount,
+        hashes: {
+            md5: '0d22c86537e22ad9e924c7c756b23131'
         }
     };
 };
@@ -118,23 +168,21 @@ const jadeDrsResponse = {
     ]
 };
 
-const jadeDrsMarthaResult = (expectedGoogleServiceAccount) => {
-    return {
-        contentType: 'application/octet-stream',
-        size: 15601108255,
-        timeCreated: '2020-04-27T15:56:09.696Z',
-        timeUpdated: '2020-04-27T15:56:09.696Z',
-        bucket: 'broad-jade-dev-data-bucket',
-        name: 'fd8d8492-ad02-447d-b54e-35a7ffd0e7a5/8b07563a-542f-4b5c-9e00-e8fe6b1861de',
-        gsUri:
-            'gs://broad-jade-dev-data-bucket/fd8d8492-ad02-447d-b54e-35a7ffd0e7a5/8b07563a-542f-4b5c-9e00-e8fe6b1861de',
-        googleServiceAccount: expectedGoogleServiceAccount,
-        hashes: {
-            md5: '336ea55913bc261b72875bd259753046',
-            sha256: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44',
-            crc32c: '8a366443'
-        }
-    };
+const jadeDrsMarthaResult = {
+    contentType: 'application/octet-stream',
+    size: 15601108255,
+    timeCreated: '2020-04-27T15:56:09.696Z',
+    timeUpdated: '2020-04-27T15:56:09.696Z',
+    bucket: 'broad-jade-dev-data-bucket',
+    name: 'fd8d8492-ad02-447d-b54e-35a7ffd0e7a5/8b07563a-542f-4b5c-9e00-e8fe6b1861de',
+    gsUri:
+        'gs://broad-jade-dev-data-bucket/fd8d8492-ad02-447d-b54e-35a7ffd0e7a5/8b07563a-542f-4b5c-9e00-e8fe6b1861de',
+    googleServiceAccount: null,
+    hashes: {
+        md5: '336ea55913bc261b72875bd259753046',
+        sha256: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44',
+        crc32c: '8a366443'
+    }
 };
 
 // Gen3/CRDC
@@ -181,21 +229,22 @@ const gen3CrdcResponse = {
     version: "5eb15d8b"
 };
 
-const gen3CrdcDrsMarthaResult = (expectedGoogleServiceAccount) => {
-    return {
-        contentType: 'application/json',
-        size: 6703858793,
-        timeCreated: '2018-06-27T10:28:06.398Z',
-        timeUpdated: '2018-06-27T10:28:06.398Z',
-        bucket: 'gdc-tcga-phs000178-controlled',
-        name: 'BRCA/RNA/RNA-Seq/UNC-LCCC/ILLUMINA/UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz',
-        gsUri:
-            'gs://gdc-tcga-phs000178-controlled/BRCA/RNA/RNA-Seq/UNC-LCCC/ILLUMINA/UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz',
-        googleServiceAccount: expectedGoogleServiceAccount,
-        hashes: {
-            md5: '2edd5fdb4f1deac4ef2bdf969de9f8ad'
-        }
-    };
+const gen3CrdcDrsMarthaResult = {
+    contentType: 'application/json',
+    size: 6703858793,
+    timeCreated: '2018-06-27T10:28:06.398Z',
+    timeUpdated: '2018-06-27T10:28:06.398Z',
+    bucket: 'gdc-tcga-phs000178-controlled',
+    name:
+        'BRCA/RNA/RNA-Seq/UNC-LCCC/ILLUMINA' +
+        '/UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz',
+    gsUri:
+        'gs://gdc-tcga-phs000178-controlled/BRCA/RNA/RNA-Seq/UNC-LCCC/ILLUMINA' +
+        '/UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz',
+    googleServiceAccount: null,
+    hashes: {
+        md5: '2edd5fdb4f1deac4ef2bdf969de9f8ad'
+    }
 };
 
 // Anvil
@@ -240,9 +289,12 @@ const anvilDrsMarthaResult = (expectedGoogleServiceAccount) => {
         timeCreated: '2020-07-08T18:52:53.194Z',
         timeUpdated: '2020-07-08T18:52:53.194Z',
         bucket: 'fc-secure-ff8156a3-ddf3-42e4-9211-0fd89da62108',
-        name: 'GTEx_Analysis_2017-06-05_v8_RNAseq_bigWig_files/GTEX-1GZHY-0011-R6a-SM-9OSWL.Aligned.sortedByCoord.out.patched.md.bigWig',
+        name:
+            'GTEx_Analysis_2017-06-05_v8_RNAseq_bigWig_files' +
+            '/GTEX-1GZHY-0011-R6a-SM-9OSWL.Aligned.sortedByCoord.out.patched.md.bigWig',
         gsUri:
-            'gs://fc-secure-ff8156a3-ddf3-42e4-9211-0fd89da62108/GTEx_Analysis_2017-06-05_v8_RNAseq_bigWig_files/GTEX-1GZHY-0011-R6a-SM-9OSWL.Aligned.sortedByCoord.out.patched.md.bigWig',
+            'gs://fc-secure-ff8156a3-ddf3-42e4-9211-0fd89da62108/GTEx_Analysis_2017-06-05_v8_RNAseq_bigWig_files' +
+            '/GTEX-1GZHY-0011-R6a-SM-9OSWL.Aligned.sortedByCoord.out.patched.md.bigWig',
         googleServiceAccount: expectedGoogleServiceAccount,
         hashes: {
             md5: '18156430a5eea715b9b58fb53d0cef99'
@@ -282,7 +334,7 @@ const kidsFirstDrsResponse = {
     "id": "ed6be7ab-068e-46c8-824a-f39cfbb885cc",
     "mime_type": "application/json",
     "name": "fa9c2cb04f614f90b75323b05bfdd231.bam",
-    "Self_uri":
+    "self_uri":
         "drs://data.kidsfirstdrc.org/ed6be7ab-068e-46c8-824a-f39cfbb885cc",
     "size": 55121736836,
     "updated_time": "2018-05-23T12:32:32.594480",
@@ -341,84 +393,108 @@ const bdcDrsResponse = {
     version: "f443f632"
 };
 
-const bdcDrsMarthaResult = {
-    contentType: 'application/json',
-    size: 14772393959,
-    timeCreated: '2020-01-15T15:35:09.184Z',
-    timeUpdated: '2020-01-15T15:35:09.184Z',
-    bucket: 'fc-56ac46ea-efc4-4683-b6d5-6d95bed41c5e',
-    name: 'CCDG_13607/Project_CCDG_13607_B01_GRM_WGS.cram.2019-02-06/Sample_HG02014/analysis/HG02014.final.cram',
-    gsUri:
-        'gs://fc-56ac46ea-efc4-4683-b6d5-6d95bed41c5e/CCDG_13607/Project_CCDG_13607_B01_GRM_WGS.cram.2019-02-06/Sample_HG02014/analysis/HG02014.final.cram',
-    googleServiceAccount: null,
-    hashes: {
-        md5: 'bb193a5b603ae6ac5eb39890b6ca1bb5'
-    }
+const bdcDrsMarthaResult = (expectedGoogleServiceAccount) => {
+    return {
+        contentType: 'application/json',
+        size: 14772393959,
+        timeCreated: '2020-01-15T15:35:09.184Z',
+        timeUpdated: '2020-01-15T15:35:09.184Z',
+        bucket: 'fc-56ac46ea-efc4-4683-b6d5-6d95bed41c5e',
+        name: 'CCDG_13607/Project_CCDG_13607_B01_GRM_WGS.cram.2019-02-06/Sample_HG02014/analysis/HG02014.final.cram',
+        gsUri:
+            'gs://fc-56ac46ea-efc4-4683-b6d5-6d95bed41c5e' +
+            '/CCDG_13607' +
+            '/Project_CCDG_13607_B01_GRM_WGS.cram.2019-02-06' +
+            '/Sample_HG02014' +
+            '/analysis' +
+            '/HG02014.final.cram',
+        googleServiceAccount: expectedGoogleServiceAccount,
+        hashes: {
+            md5: 'bb193a5b603ae6ac5eb39890b6ca1bb5'
+        }
+    };
 };
 
 // HCA
-
+// returned via
+//   `curl https://drs.data.humancellatlas.org/ga4gh/dos/v1/dataobjects/4cf48dbf-cf09-452e-bb5b-fd016af0c747?version=2019-09-14T024754.281908Z`
 const hcaDosResponse = {
-    data_object:
-        {
-            id: "8aca942c-17f7-4e34-b8fd-3c12e50f9291",
-            urls:
-                [
-                    {
-                        url: "https://drs.data.humancellatlas.org/dss/files/8aca942c-17f7-4e34-b8fd-3c12e50f9291?version=2019-07-04T151444.185805Z&replica=aws&wait=1&fileName=SRR3879608_1.fastq.gz"
-                    },
-                    {
-                        url: "gs://org-hca-dss-checkout-prod/blobs/44d320c9606e32d6df04d8a4023e6474efaa2f99de436e07f7241942972d5703.c3349268e528c844c528a427aa13034e72b7b39d.16c68f2306435b7cf990153b37adeb20-134.64d51664"
-                    }
-                ],
-            size: "8933233597",
-            checksums:
-                [
-                    {
-                        checksum: "44d320c9606e32d6df04d8a4023e6474efaa2f99de436e07f7241942972d5703",
-                        type: "sha256"
-                    }
-                ],
-            aliases:
-                [
-                    "SRR3879608_1.fastq.gz"
-                ],
-            version: "2019-07-04T151444.185805Z",
-            name: "SRR3879608_1.fastq.gz"
-        }
+    data_object: {
+        id: '4cf48dbf-cf09-452e-bb5b-fd016af0c747',
+        urls: [
+            {
+                url:
+                    'https://drs.data.humancellatlas.org/dss/files/4cf48dbf-cf09-452e-bb5b-fd016af0c747' +
+                    '?version=2019-09-14T024754.281908Z' +
+                    '&replica=aws' +
+                    '&wait=1' +
+                    '&fileName=eb32bfc6-e7be-4093-8959-b8bf27f2404f.zarr%21.zattrs'
+            },
+            {
+                url:
+                    'gs://org-hca-dss-checkout-prod/blobs' +
+                    '/160fde1559f7154b03a6f645b4c7ff0eb2af37241e2cab3961e7780ead93860a' +
+                    '.b0fcf2baaadb4aa6545804998867eff29330762a' +
+                    '.d18ef9b8fd14ac922588baeec4853c0d' +
+                    '.0ba92b16'
+            }
+        ],
+        size: '148', // Yes, this is a string returned by the `curl` above
+        checksums: [
+            {
+                checksum: '160fde1559f7154b03a6f645b4c7ff0eb2af37241e2cab3961e7780ead93860a',
+                type: 'sha256'
+            }
+        ],
+        aliases: [
+            'eb32bfc6-e7be-4093-8959-b8bf27f2404f.zarr!.zattrs'
+        ],
+        version: '2019-09-14T024754.281908Z',
+        name: 'eb32bfc6-e7be-4093-8959-b8bf27f2404f.zarr!.zattrs'
+    }
 };
 
-const hcaDosMarthaResult = (expectedGoogleServiceAccount) => {
-    return {
-        contentType: 'application/octet-stream',
-        size: 8933233597,
-        timeCreated: null,
-        timeUpdated: null,
-        bucket: "org-hca-dss-checkout-prod",
-        name: "blobs/44d320c9606e32d6df04d8a4023e6474efaa2f99de436e07f7241942972d5703.c3349268e528c844c528a427aa13034e72b7b39d.16c68f2306435b7cf990153b37adeb20-134.64d51664",
-        gsUri: "gs://org-hca-dss-checkout-prod/blobs/44d320c9606e32d6df04d8a4023e6474efaa2f99de436e07f7241942972d5703.c3349268e528c844c528a427aa13034e72b7b39d.16c68f2306435b7cf990153b37adeb20-134.64d51664",
-        googleServiceAccount: expectedGoogleServiceAccount,
-        hashes: {
-            sha256: '44d320c9606e32d6df04d8a4023e6474efaa2f99de436e07f7241942972d5703'
-        }
-    };
+const hcaDosMarthaResult = {
+    contentType: 'application/octet-stream',
+    size: 148,
+    timeCreated: null,
+    timeUpdated: null,
+    bucket: 'org-hca-dss-checkout-prod',
+    name:
+        'blobs' +
+        '/160fde1559f7154b03a6f645b4c7ff0eb2af37241e2cab3961e7780ead93860a' +
+        '.b0fcf2baaadb4aa6545804998867eff29330762a' +
+        '.d18ef9b8fd14ac922588baeec4853c0d' +
+        '.0ba92b16',
+    gsUri:
+        'gs://org-hca-dss-checkout-prod/blobs' +
+        '/160fde1559f7154b03a6f645b4c7ff0eb2af37241e2cab3961e7780ead93860a' +
+        '.b0fcf2baaadb4aa6545804998867eff29330762a' +
+        '.d18ef9b8fd14ac922588baeec4853c0d' +
+        '.0ba92b16',
+    googleServiceAccount: null,
+    hashes: {
+        sha256: '160fde1559f7154b03a6f645b4c7ff0eb2af37241e2cab3961e7780ead93860a'
+    }
 };
 
 module.exports = {
     expectedObjWithMissingFields,
     dosObjectWithMissingFields,
     sampleDosResponse,
-    jadeDrsResponse,
-    hcaDosMarthaResult,
-    hcaDosResponse,
-    bdcDrsMarthaResult,
-    bdcDrsResponse,
-    kidsFirstDrsResponse,
-    anvilDrsMarthaResult,
-    anvilDrsResponse,
-    gen3CrdcDrsMarthaResult,
-    gen3CrdcResponse,
     sampleDosMarthaResult,
+    dataGuidsOrgResponse,
+    dataGuidsOrgMarthaResult,
+    jadeDrsResponse,
     jadeDrsMarthaResult,
+    hcaDosResponse,
+    hcaDosMarthaResult,
+    bdcDrsResponse,
+    bdcDrsMarthaResult,
+    anvilDrsResponse,
+    anvilDrsMarthaResult,
+    gen3CrdcResponse,
+    gen3CrdcDrsMarthaResult,
+    kidsFirstDrsResponse,
     kidsFirstDrsMarthaResult
 };
