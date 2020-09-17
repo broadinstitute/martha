@@ -105,29 +105,29 @@ Martha's `martha_v3` implementation translates requests-to and responses-from th
     - Requires OAuth for metadata: 🔐 Yes
     - Example: `drs://jade.datarepo-dev.broadinstitute.org/v1_0c86170e-312d-4b39-a0a4-2a2bfaa24c7a_c0e40912-8b14-43f6-9a2f-b278144d0060`
 - ❌ [DataGuids.org](https://dataguids.org/)
-    (ex: any drs://dg.* other than drs://dg.4503, drs://dg.712C, drs://dg.ANV0, and not drs://dataguids.org)
+    (any drs://dg.* other than drs://dg.4503, drs://dg.712C, drs://dg.ANV0, and not drs://dataguids.org)
     - Prod host: `gen3.biodatacatalyst.nhlbi.nih.gov`
     - Dev host: `staging.gen3.biodatacatalyst.nhlbi.nih.gov`
     - Martha testing: 🖐 Manual (in production)
     - Returns Bond SA: Yes, via the [Data Coordination Platform](https://data.humancellatlas.org/about) (DCP)
     - Requires OAuth for metadata: 🔓 No
     - Example: _unknown_
-- ❌ [DataGuids.org](https://dataguids.org/) (ex: drs://dg.4503 in prod and drs://dg.712C in non-prod)
+- ❌ [DataGuids.org](https://dataguids.org/) (drs://dg.4503 in prod and drs://dg.712C in non-prod)
     - Prod host: `gen3.biodatacatalyst.nhlbi.nih.gov`
     - Dev host: `staging.gen3.biodatacatalyst.nhlbi.nih.gov`
     - Martha testing: 🖐 Manual
     - Returns Bond SA: Yes, via the [Data Commons Framework](https://datascience.cancer.gov/data-commons/data-commons-framework) (DCF)
     - Requires OAuth for metadata: 🔓 No
     - Example: `drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0`
-- ❌ [Analysis, Visualization and Informatics Lab-space](https://www.genome.gov/Funded-Programs-Projects/Computational-Genomics-and-Data-Science-Program/Genomic-Analysis-Visualization-Informatics-Lab-space-AnVIL)
-    (AnVIL, ex: dg.ANV0)
+- ❌ The [Analysis, Visualization and Informatics Lab-space](https://www.genome.gov/Funded-Programs-Projects/Computational-Genomics-and-Data-Science-Program/Genomic-Analysis-Visualization-Informatics-Lab-space-AnVIL)
+    (The AnVIL, dg.ANV0)
     - Prod host: `gen3.theanvil.io`
     - Dev host: _unknown_
     - Martha testing: 🚫 Mock only
     - Returns Bond SA: Yes, via the AnVIL
     - Requires OAuth for metadata: 🔓 No
     - Example: `drs://dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`
-- ❌ [DataGuids.org](https://dataguids.org/) (ex: drs://dataguids.org, but not drs://dg.*)
+- ❌ [DataGuids.org](https://dataguids.org/) (drs://dataguids.org, but not drs://dg.*)
     - Prod host: `dataguids.org`
     - Dev host: _unknown_
     - Martha testing: 🚫 Mock only

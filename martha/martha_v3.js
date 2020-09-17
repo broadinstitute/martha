@@ -121,7 +121,7 @@ function determineDrsType (parsedUrl) {
         );
     }
 
-    // Compact the AnVIL
+    // Compact The AnVIL
     if (host === 'dg.anv0') {
         return new DrsType(
             DG_EXPANSION_THE_ANVIL,
@@ -131,7 +131,7 @@ function determineDrsType (parsedUrl) {
         );
     }
 
-    // Full the AnVIL
+    // Full The AnVIL
     if (host === DG_EXPANSION_THE_ANVIL) {
         return new DrsType(
             DG_EXPANSION_NONE,
@@ -171,9 +171,9 @@ function determineDrsType (parsedUrl) {
         );
     }
 
-    // Assume BDC compact but with dcf-fence
+    // Assume this is a BDC compact URI but using dcf-fence Bond provider.
     // If we don't recognize the dg.* assume like martha_v2 that everyone else
-    // speaks DOS, doesn't require auth, and uses dcf-fence
+    // speaks DOS, doesn't require auth, and uses dcf-fence.
     if (host.startsWith("dg.")) {
         return new DrsType(
             DG_EXPANSION_BIO_DATA_CATALYST,
@@ -185,7 +185,7 @@ function determineDrsType (parsedUrl) {
 
 
     // If we don't recognize the server assume like martha_v2 that everyone else
-    // speaks DOS, doesn't require auth, and uses dcf-fence
+    // speaks DOS, doesn't require auth, and uses dcf-fence.
     return new DrsType(
         DG_EXPANSION_NONE,
         PROTOCOL_PREFIX_DOS,
