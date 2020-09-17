@@ -30,7 +30,7 @@ const {
 
 const test = require('ava');
 const sinon = require('sinon');
-const { marthaV3Handler: marthaV3, determineDrsType } = require('../../martha/martha_v3');
+const { marthaV3Handler: marthaV3, determineDrsType, httpsUrlGenerator } = require('../../martha/martha_v3');
 const apiAdapter = require('../../common/api_adapter');
 const config = require('../../config.json');
 
@@ -370,7 +370,8 @@ test.serial('martha_v3 returns null for fields missing in drs and bond response'
 // Test utility for generating server URL from a DRS URL
 function determineDrsTypeTestWrapper(testUrl) {
     const parsedUrl = new URL(testUrl);
-    return determineDrsType(parsedUrl).urlGenerator(parsedUrl);
+    const { dataGuidExpansion, protocolPrefix } = determineDrsType(parsedUrl);
+    return httpsUrlGenerator(parsedUrl, dataGuidExpansion, protocolPrefix);
 }
 
 /**
@@ -487,4 +488,40 @@ test('should parse Data Object uri with host that looks like jade data repo host
 });
 /**
  * End Scenario 4
+ */
+
+/**
+ * determineDrsType(uri) -> drsUrl Scenario 5: data objects uri with the AnVIL data repo host
+ */
+test('should parse Data Object uri with the AnVIL prefix dg.ANV0', (t) => {
+    t.is(
+        determineDrsTypeTestWrapper(
+            'drs://dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0'),
+        'https://gen3.theanvil.io/ga4gh/dos/v1/dataobjects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0',
+    );
+});
+
+test('should parse Data Object uri with the AnVIL host', (t) => {
+    t.is(
+        determineDrsTypeTestWrapper(
+            'drs://gen3.theanvil.io/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0'),
+        'https://gen3.theanvil.io/ga4gh/dos/v1/dataobjects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0',
+    );
+});
+/**
+ * End Scenario 5
+ */
+
+/**
+ * determineDrsType(uri) -> drsUrl Scenario 6: data objects uri with the Kids First
+ */
+test('should parse Data Object uri with the Kids First repo as host', (t) => {
+    t.is(
+        determineDrsTypeTestWrapper(
+            'drs://data.kidsfirstdrc.org/ed6be7ab-068e-46c8-824a-f39cfbb885cc'),
+        'https://data.kidsfirstdrc.org/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc',
+    );
+});
+/**
+ * End Scenario 6
  */

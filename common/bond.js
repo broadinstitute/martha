@@ -17,10 +17,13 @@ const STAGING_DATASTAGE_NAMESPACE = 'dg.712c';
 const ANVIL_NAMESPACE = 'dg.anv0';
 const DATASTAGE_NAMESPACES = [PROD_DATASTAGE_NAMESPACE, STAGING_DATASTAGE_NAMESPACE];
 
+const ANVIL_HOSTNAME = 'gen3.theanvil.io';
+
 const bondBaseUrl = () => config.bondBaseUrl;
 
 // We are explicitly listing the DOS/DRS host/namespaces here for both production and staging environments.
 // At some point we expect to have a more sophisticated way to do this, but for now, we have to do it this way.
+// If you update this function update the README too!
 function determineBondProvider(urlString) {
     const url = URL.parse(urlString);
 
@@ -28,11 +31,11 @@ function determineBondProvider(urlString) {
         return BondProviders.FENCE;
     }
 
-    if (ANVIL_NAMESPACE === url.hostname.toLowerCase()) {
+    if ([ANVIL_NAMESPACE, ANVIL_HOSTNAME].includes(url.hostname.toLowerCase())) {
         return BondProviders.ANVIL;
     }
 
-    if (url.host.endsWith('.humancellatlas.org')) {
+    if (url.hostname.endsWith('.humancellatlas.org')) {
         return;
     }
 

@@ -123,14 +123,14 @@ Martha's `martha_v3` implementation translates requests-to and responses-from th
     (AnVIL, ex: dg.ANV0)
     - Prod host: `gen3.theanvil.io`
     - Dev host: _unknown_
-    - Martha testing: 🚫 No testing
+    - Martha testing: 🚫 Mock only
     - Returns Bond SA: Yes, via the AnVIL
     - Requires OAuth for metadata: 🔓 No
     - Example: `drs://dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`
 - ❌ [DataGuids.org](https://dataguids.org/) (ex: drs://dataguids.org, but not drs://dg.*)
     - Prod host: `dataguids.org`
     - Dev host: _unknown_
-    - Martha testing: 🚫 No testing
+    - Martha testing: 🚫 Mock only
     - Returns Bond SA: Yes
     - Requires OAuth for metadata: 🔓 No
     - Example: `dos://dataguids.org/a41b0c4f-ebfb-4277-a941-507340dea85d`
@@ -145,18 +145,25 @@ Martha's `martha_v3` implementation translates requests-to and responses-from th
 - ❌ [UCSC Single Cell Dev Server](https://drs.dev.singlecell.gi.ucsc.edu/)
     - Prod host: _unknown_
     - Dev host: `drs.dev.singlecell.gi.ucsc.edu`
-    - Martha testing: 🚫 No testing
-    - Returns Bond SA: No
+    - Martha testing: 🚫 Mock only
+    - Returns Bond SA: Yes, via the [Data Coordination Platform](https://data.humancellatlas.org/about) (DCP)
     - Requires OAuth for metadata: 🔐 Yes
     - Example:
     `drs://drs.dev.singlecell.gi.ucsc.edu/bee7a822-ea28-4374-8e18-8b9941392723?version=2019-05-15T205839.080730Z`
 - ❌ [Gabriella Miller Kids First Pediatric Data Resource](https://commonfund.nih.gov/kidsfirst/overview)
     - Prod host: `data.kidsfirstdrc.org`
     - Dev host: _unknown_
-    - Martha testing: 🚫 No testing
+    - Martha testing: 🚫 Mock only
     - Returns Bond SA: Yes, via the [Data Coordination Platform](https://data.humancellatlas.org/about) (DCP)
     - Requires OAuth for metadata: no
     - Example: `drs://data.kidsfirstdrc.org/ed6be7ab-068e-46c8-824a-f39cfbb885cc`
+- ❌ [Cancer Research Data Commons](https://datacommons.cancer.gov/) (CRDC)
+    - Prod host: `nci-crdc.datacommons.io`
+    - Dev host: `nci-crdc-staging.datacommons.io`
+    - Martha testing: 🚫 Mock only
+    - Returns Bond SA: Yes, via the [Data Coordination Platform](https://data.humancellatlas.org/about) (DCP)
+    - Requires OAuth for metadata: 🔓 No
+    - Example: `drs://nci-crdc.datacommons.io/0027045b-9ed6-45af-a68e-f55037b5184c`
 
 <sup>
 ✅ = DRS v1.0 hosts tested with Martha's `martha_v3` endpoint<br/>

@@ -6,10 +6,10 @@ const url = require('url');
 const BAD_REQUEST_ERROR_CODE = 400;
 const SERVER_ERROR_CODE = 500;
 
-const BOND_LINK_NONE = null; // Used for servers that should NOT contact bond
-const BOND_LINK_DCF_FENCE = 'dcf-fence'; // The default when we don't recognize the server
-const BOND_LINK_FENCE = 'fence';
-const BOND_LINK_ANVIL = 'anvil';
+const BOND_PROVIDER_NONE = null; // Used for servers that should NOT contact bond
+const BOND_PROVIDER_DCF_FENCE = 'dcf-fence'; // The default when we don't recognize the server
+const BOND_PROVIDER_FENCE = 'fence';
+const BOND_PROVIDER_ANVIL = 'anvil';
 
 const AUTH_REQUIRED = true;
 const AUTH_SKIPPED = false;
@@ -17,11 +17,18 @@ const AUTH_SKIPPED = false;
 const PROTOCOL_PREFIX_DOS='/ga4gh/dos/v1/dataobjects';
 const PROTOCOL_PREFIX_DRS='/ga4gh/drs/v1/objects';
 
+// TODO: Does dataguids.org actually have a resolution API??
+// Until we figure that out, we'll try to re-implement the mappings we know about here.
+const DG_EXPANSION_NONE = null;
+const DG_EXPANSION_BIO_DATA_CATALYST = config.dataObjectResolutionHost;
+const DG_EXPANSION_THE_ANVIL = 'gen3.theanvil.io';
+
 class DrsType {
-    constructor(urlGenerator, sendAuth, bondLink) {
-        this.urlGenerator = urlGenerator;
+    constructor(dataGuidExpansion, protocolPrefix, sendAuth, bondProvider) {
+        this.dataGuidExpansion = dataGuidExpansion;
+        this.protocolPrefix = protocolPrefix;
         this.sendAuth = sendAuth;
-        this.bondLink = bondLink;
+        this.bondProvider = bondProvider;
     }
 }
 
@@ -39,26 +46,20 @@ function fullUrlGenerator (parsedUrl, protocolPrefix) {
     });
 }
 
-function compactUrlGenerator (parsedUrl, protocolPrefix) {
+const compactUrlGenerator = (dataGuidExpansion) => function (parsedUrl, protocolPrefix) {
     return url.format({
         protocol: 'https',
-        hostname: config.dataObjectResolutionHost,
+        hostname: dataGuidExpansion,
         port: parsedUrl.port,
         pathname: `${protocolPrefix}/${parsedUrl.hostname}${parsedUrl.pathname || ''}`,
         search: parsedUrl.search
     });
-}
+};
 
-function drsFullUrlGenerator (parsedUrl) {
-    return fullUrlGenerator(parsedUrl, PROTOCOL_PREFIX_DRS);
-}
-
-function dosFullUrlGenerator (parsedUrl) {
-    return fullUrlGenerator(parsedUrl, PROTOCOL_PREFIX_DOS);
-}
-
-function dosCompactUrlGenerator (parsedUrl) {
-    return compactUrlGenerator(parsedUrl, PROTOCOL_PREFIX_DOS);
+// NOTE: reimplementation of dataObjectUriToHttps in helper.js
+function httpsUrlGenerator (parsedUrl, dataGuidExpansion, protocolPrefix) {
+    const generator = dataGuidExpansion ? compactUrlGenerator(dataGuidExpansion) : fullUrlGenerator;
+    return generator(parsedUrl, protocolPrefix);
 }
 
 /** *************************************************************************************************
@@ -91,58 +92,105 @@ function responseParser (response) {
  * Here is where all the logic lives that pairs a particular kind of URI with its
  * resolving-URL-generating parser, what path to use to make a Bond request for an SA (if any), and
  * a response parser.
+ *
+ * If you update this function update the README too!
  */
 
 function determineDrsType (parsedUrl) {
-    const host = parsedUrl.host.toLowerCase();
+    const host = parsedUrl.hostname.toLowerCase();
 
     // First handle servers that we know about...
 
+    // Compact BDC
     if (['dg.4503', 'dg.712c'].includes(host)) {
         return new DrsType(
-            dosCompactUrlGenerator,
+            DG_EXPANSION_BIO_DATA_CATALYST,
+            PROTOCOL_PREFIX_DOS,
             AUTH_SKIPPED,
-            BOND_LINK_FENCE,
+            BOND_PROVIDER_FENCE,
         );
     }
 
-    if ((host === 'dg.anv0')) {
+    // Full BDC
+    if (host === DG_EXPANSION_BIO_DATA_CATALYST) {
         return new DrsType(
-            dosCompactUrlGenerator,
+            DG_EXPANSION_NONE,
+            PROTOCOL_PREFIX_DOS,
             AUTH_SKIPPED,
-            BOND_LINK_ANVIL,
+            BOND_PROVIDER_FENCE,
         );
     }
 
+    // Compact the AnVIL
+    if (host === 'dg.anv0') {
+        return new DrsType(
+            DG_EXPANSION_THE_ANVIL,
+            PROTOCOL_PREFIX_DOS,
+            AUTH_SKIPPED,
+            BOND_PROVIDER_ANVIL,
+        );
+    }
+
+    // Full the AnVIL
+    if (host === DG_EXPANSION_THE_ANVIL) {
+        return new DrsType(
+            DG_EXPANSION_NONE,
+            PROTOCOL_PREFIX_DOS,
+            AUTH_SKIPPED,
+            BOND_PROVIDER_ANVIL,
+        );
+    }
+
+    // Full Jade Data Repo
     if ((/jade.*\.datarepo-.*\.broadinstitute\.org/).test(host)) {
         return new DrsType(
-            drsFullUrlGenerator,
+            DG_EXPANSION_NONE,
+            PROTOCOL_PREFIX_DRS,
             AUTH_REQUIRED,
-            BOND_LINK_NONE,
+            BOND_PROVIDER_NONE,
         );
     }
 
+    // Full HCA
     if (host.endsWith('.humancellatlas.org')) {
         return new DrsType(
-            dosFullUrlGenerator,
+            DG_EXPANSION_NONE,
+            PROTOCOL_PREFIX_DOS,
             AUTH_SKIPPED,
-            BOND_LINK_NONE,
+            BOND_PROVIDER_NONE,
         );
     }
 
+    // Full CRDC
     if (host.endsWith('.datacommons.io')) {
         return new DrsType(
-            drsFullUrlGenerator,
+            DG_EXPANSION_NONE,
+            PROTOCOL_PREFIX_DRS,
             AUTH_REQUIRED,
-            BOND_LINK_NONE,
+            BOND_PROVIDER_NONE,
         );
     }
 
-    // If we don't recognize the server assume like martha_v2 that everyone else needs dcf-fence
+    // Assume BDC compact but with dcf-fence
+    // If we don't recognize the dg.* assume like martha_v2 that everyone else
+    // speaks DOS, doesn't require auth, and uses dcf-fence
+    if (host.startsWith("dg.")) {
+        return new DrsType(
+            DG_EXPANSION_BIO_DATA_CATALYST,
+            PROTOCOL_PREFIX_DOS,
+            AUTH_SKIPPED,
+            BOND_PROVIDER_DCF_FENCE,
+        );
+    }
+
+
+    // If we don't recognize the server assume like martha_v2 that everyone else
+    // speaks DOS, doesn't require auth, and uses dcf-fence
     return new DrsType(
-        host.startsWith('dg.') ? dosCompactUrlGenerator : dosFullUrlGenerator,
+        DG_EXPANSION_NONE,
+        PROTOCOL_PREFIX_DOS,
         AUTH_SKIPPED,
-        BOND_LINK_DCF_FENCE,
+        BOND_PROVIDER_DCF_FENCE,
     );
 }
 
@@ -187,9 +235,9 @@ async function marthaV3Handler(req, res) {
         return;
     }
 
-    const {urlGenerator, sendAuth, bondLink} = determineDrsType(parsedUrl);
-    const drsUrl = urlGenerator(parsedUrl);
-    const bondUrl = bondLink && `${config.bondBaseUrl}/api/link/v1/${bondLink}/serviceaccount/key`;
+    const {dataGuidExpansion, protocolPrefix, sendAuth, bondProvider} = determineDrsType(parsedUrl);
+    const drsUrl = httpsUrlGenerator(parsedUrl, dataGuidExpansion, protocolPrefix);
+    const bondUrl = bondProvider && `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
     console.log(`Converting DRS URI to HTTPS: ${dataObjectUri} -> ${drsUrl}`);
 
     let response;
@@ -250,3 +298,4 @@ async function marthaV3Handler(req, res) {
 
 exports.marthaV3Handler = marthaV3Handler;
 exports.determineDrsType = determineDrsType;
+exports.httpsUrlGenerator = httpsUrlGenerator;

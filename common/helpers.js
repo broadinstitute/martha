@@ -55,7 +55,15 @@ function constructPath(pathParts) {
 }
 
 function determineHostname(someUrl) {
-    return isDataGuidsUrl(someUrl) ? config.dataObjectResolutionHost : someUrl.hostname;
+    if (!isDataGuidsUrl(someUrl)) {
+        return someUrl.hostname;
+    }
+
+    if (someUrl.hostname.toLowerCase() === 'dg.anv0') {
+        return 'gen3.theanvil.io';
+    }
+
+    return config.dataObjectResolutionHost;
 }
 
 function determinePathname(someUrl) {
@@ -84,6 +92,7 @@ function preserveHostnameCase(parsedUrl, rawUrl) {
 //      1. host part starts with "dg."
 //      2. host part DOES NOT start with "dg." AND path part is FALSY
 //      3. host part DOES NOT start with "dg." AND path part is TRUTHY
+// If you update this function update the README too!
 function dataObjectUriToHttps(dataObjectUri) {
     const parsedUrl = url.parse(dataObjectUri);
     if (parsedUrl.pathname === '/') {
