@@ -51,3 +51,14 @@ test('determineBondProvider should return the default BondProvider if the URL ho
 test('determineBondProvider should not return a provider if the URL host is JDR"', (t) => {
     t.falsy(determineBondProvider('drs://jade.datarepo-dev.broadinstitute.org/identifier'));
 });
+
+test('determineBondProvider should return the AnVIL BondProvider if the URL host is the AnVIL', (t) => {
+    t.is(determineBondProvider('drs://dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0'), BondProviders.ANVIL);
+});
+
+test('determineBondProvider should return the default BondProvider if the URL host is Kids First', (t) => {
+    t.is(
+        determineBondProvider('drs://data.kidsfirstdrc.org/ed6be7ab-068e-46c8-824a-f39cfbb885cc'),
+        BondProviders.default,
+    );
+});
