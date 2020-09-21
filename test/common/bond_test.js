@@ -48,20 +48,12 @@ test('determineBondProvider should return the default BondProvider if the URL ho
     t.is(determineBondProvider('drs://some-host/anything'), BondProviders.default);
 });
 
-test('determineBondProvider should return the "jade-data-repo" as the provider for JDR dev host"', (t) => {
-    t.is(determineBondProvider('drs://jade.datarepo-dev.broadinstitute.org/identifier'), BondProviders.JADE_DATA_REPO);
+test('determineBondProvider should not return a provider if the URL host is JDR dev"', (t) => {
+    t.falsy(determineBondProvider('drs://jade.datarepo-dev.broadinstitute.org/identifier'));
 });
 
-test('determineBondProvider should return the "jade-data-repo" as the provider for JDR staging host"', (t) => {
-    t.is(determineBondProvider('drs://data.staging.envs-terra.bio/identifier'), BondProviders.JADE_DATA_REPO);
-});
-
-test('determineBondProvider should return the "jade-data-repo" as the provider for JDR alpha host"', (t) => {
-    t.is(determineBondProvider('drs://data.alpha.envs-terra.bio/identifier'), BondProviders.JADE_DATA_REPO);
-});
-
-test('determineBondProvider should return the "jade-data-repo" as the provider for JDR prod host"', (t) => {
-    t.is(determineBondProvider('drs://jade-terra.datarepo-prod.broadinstitute.org/identifier'), BondProviders.JADE_DATA_REPO);
+test('determineBondProvider should not return a provider if the URL host is JDR prod"', (t) => {
+    t.falsy(determineBondProvider('drs://data.terra.bio/identifier'));
 });
 
 test('determineBondProvider should return the AnVIL BondProvider if the URL host is the AnVIL prefix dg.ANV0', (t) => {

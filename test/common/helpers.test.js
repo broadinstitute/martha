@@ -110,8 +110,8 @@ test('should parse Data Object uri with jade data repo DEV as host and path with
 
 test('should parse Data Object uri with jade data repo PROD as host', (t) => {
     t.is(
-        dataObjectUriToHttps('drs://jade-terra.datarepo-prod.broadinstitute.org/anything'),
-        'https://jade-terra.datarepo-prod.broadinstitute.org/ga4gh/drs/v1/objects/anything'
+        dataObjectUriToHttps('drs://data.terra.bio/anything'),
+        'https://data.terra.bio/ga4gh/drs/v1/objects/anything'
     );
 });
 

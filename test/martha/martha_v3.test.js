@@ -466,27 +466,6 @@ test('should parse Data Object uri with jade data repo DEV as host', (t) => {
     );
 });
 
-test('should parse Data Object uri with jade data repo STAGING as host', (t) => {
-    t.is(
-        determineDrsTypeTestWrapper('drs://data.staging.envs-terra.bio/v1_anything'),
-        'https://data.staging.envs-terra.bio/ga4gh/drs/v1/objects/v1_anything'
-    );
-});
-
-test('should parse Data Object uri with jade data repo ALPHA as host', (t) => {
-    t.is(
-        determineDrsTypeTestWrapper('drs://data.alpha.envs-terra.bio/v1_anything'),
-        'https://data.alpha.envs-terra.bio/ga4gh/drs/v1/objects/v1_anything'
-    );
-});
-
-test('should parse Data Object uri with jade data repo PROD as host', (t) => {
-    t.is(
-        determineDrsTypeTestWrapper('drs://jade-terra.datarepo-prod.broadinstitute.org/anything'),
-        'https://jade-terra.datarepo-prod.broadinstitute.org/ga4gh/drs/v1/objects/anything'
-    );
-});
-
 test('should parse Data Object uri with jade data repo DEV as host and path with snapshot id', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://jade.datarepo-dev.broadinstitute.org/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820'),
@@ -494,6 +473,19 @@ test('should parse Data Object uri with jade data repo DEV as host and path with
     );
 });
 
+test('should parse Data Object uri with jade data repo PROD as host', (t) => {
+    t.is(
+        determineDrsTypeTestWrapper('drs://data.terra.bio/anything'),
+        'https://data.terra.bio/ga4gh/drs/v1/objects/anything'
+    );
+});
+
+test('should parse Data Object uri with host that looks like jade data repo host', (t) => {
+    t.is(
+        determineDrsTypeTestWrapper('drs://jade-data-repo.datarepo-dev.broadinstitute.org/v1_anything'),
+        'https://jade-data-repo.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_anything'
+    );
+});
 /**
  * End Scenario 4
  */
