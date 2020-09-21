@@ -6,7 +6,7 @@ const moment = require('moment');
 const dataGuidsHostPrefix = 'dg.';
 const dosDataObjectPathPrefix = '/ga4gh/dos/v1/dataobjects/';
 const drsDataObjectPathPrefix = '/ga4gh/drs/v1/objects/';
-const jadeDataRepoHostRegex = /jade.*\.datarepo-.*\.broadinstitute\.org/;
+const jadeDataRepoHostRegex = /.*data.*[-.](broadinstitute\.org|terra\.bio)$/;
 
 // Regex drops any leading or trailing "/" characters and gives the path out of capture group 1
 const pathSlashRegex = /^\/?([^/]+.*?)\/?$/;
@@ -410,6 +410,7 @@ module.exports = {
     Response,
     promiseHandler,
     parseRequest,
+    jadeDataRepoHostRegex,
     hasJadeDataRepoHost,
     getMd5Checksum,
     convertToMarthaV3Response,
