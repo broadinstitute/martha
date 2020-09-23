@@ -6,7 +6,8 @@
  */
 
 const test = require('ava');
-const supertest = require('supertest')(process.env.BASE_URL);
+const config = require('../../common/config');
+const supertest = require('supertest')(config.testMarthaBaseUrl);
 const assert = require('assert');
 
 const publicFenceUrl = 'dos://dg.4503/preview_dos.json';

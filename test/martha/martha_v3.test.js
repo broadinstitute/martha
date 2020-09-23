@@ -32,7 +32,7 @@ const test = require('ava');
 const sinon = require('sinon');
 const { marthaV3Handler: marthaV3, determineDrsType, httpsUrlGenerator } = require('../../martha/martha_v3');
 const apiAdapter = require('../../common/api_adapter');
-const config = require('../../config.json');
+const config = require('../../common/config');
 
 const mockRequest = (req) => {
     req.method = 'POST';

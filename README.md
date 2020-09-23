@@ -263,6 +263,45 @@ Run the `npx` command using `--fix` flag: `npx eslint <file_name/directory_name>
 
 `npm test`
 
+### Run Integration Tests
+
+Prerequisites:
+- Access to Vault for retrieving integration test credentials
+- A checkout of [Bond](https://github.com/databiosphere/bond) to run Bond locally on `127.0.0.1:8080`
+- Python virtual environments to run parts of Bond in Python 2 and Python 3:
+  - [Recommendations from Bond](https://github.com/databiosphere/bond#virtualenv)
+  - [Conda](https://docs.conda.io/)
+  - [virtualenvwrapper](https://virtualenvwrapper.readthedocs.io)
+  - etc.
+
+Setup:
+- From your martha directory render the credentials for Martha's integration tests
+```
+docker \
+  run \
+  --rm \
+  --volume "$PWD:$PWD" \
+  --env INPUT_PATH="$PWD/automation" \
+  --env OUT_PATH="$PWD/automation" \
+  --env ENVIRONMENT=dev \
+  --env VAULT_TOKEN="$(cat ~/.vault-token)" \
+  broadinstitute/dsde-toolbox \
+  render-templates.sh
+```
+- Follow the steps referenced in ["Bond: Run
+  locally"](https://github.com/DataBiosphere/bond#run-locally) to start a local Bond server on `127.0.0.1:8080`
+  - Ensure you have rendered the Bond configs
+  - You be running two virtual environment sessions for Bond, one with Python 2 and one Python 3
+
+Running the Integration Tests:
+- After finishing your setup, start your martha emulator in a separate terminal
+  - Start Martha using `ENV=mock npm start`
+  - Console logs will print to the terminal
+  - Whenever you make changes you will need to kill and restart Martha
+  - Stop Martha using Control-C
+- Run Martha's integration tests via:
+  - `ENV=mock npm run-script integration`
+
 ## Deployment and Releasing
 
 * Deployments to the `cromwell-dev` tier are triggered manually by running `./deploy-cromwell-dev.sh`. The script will

@@ -1,13 +1,6 @@
-/** Run integration tests from the command line.  For example:
- *
- *    BASE_URL="https://us-central1-broad-dsde-dev.cloudfunctions.net" npm run-script integration_v3
- *
- * Run integration tests after a deployment to confirm that the functions deployed successfully
- * (these tests are currently run in Jenkins job 'martha-fiab-test-runner' inside a FIAB)
- */
-
 const test = require('ava');
-const supertest = require('supertest')(process.env.BASE_URL);
+const config = require('../../common/config');
+const supertest = require('supertest')(config.testMarthaBaseUrl);
 const assert = require('assert');
 const { GoogleToken } = require('gtoken');
 const { postJsonTo } = require('../../common/api_adapter');
@@ -15,9 +8,8 @@ const { postJsonTo } = require('../../common/api_adapter');
 let unauthorizedToken;
 let authorizedToken;
 
-const myEnv = process.env.ENV ? process.env.ENV : 'dev';
-const myBondBaseUrl = process.env.BOND_BASE_URL ? process.env.BOND_BASE_URL :
-    `https://bond-fiab.dsde-${myEnv}.broadinstitute.org:31443`;
+const myEnv = config.terraEnv;
+const myBondBaseUrl = config.testBondBaseUrl;
 const emailDomain = `${myEnv === 'qa' ? 'quality' : 'test'}.firecloud.org`;
 
 const keyFile = 'automation/firecloud-account.pem';

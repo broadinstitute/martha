@@ -1,5 +1,0 @@
-{
-    "dataObjectResolutionHost": "wb-mock-drs-dev.storage.googleapis.com",
-    "bondBaseUrl": "http://127.0.0.1:8080",
-    "samBaseUrl": "https://sam.dsde-dev.broadinstitute.org"
-}

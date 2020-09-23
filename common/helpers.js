@@ -1,5 +1,5 @@
 const url = require('url');
-const config = require('../config.json');
+const config = require('../common/config');
 
 const moment = require('moment');
 

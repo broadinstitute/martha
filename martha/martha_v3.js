@@ -1,5 +1,5 @@
 const { jadeDataRepoHostRegex, parseRequest, convertToMarthaV3Response, FailureResponse } = require('../common/helpers');
-const config = require('../config.json');
+const config = require('../common/config');
 const apiAdapter = require('../common/api_adapter');
 const url = require('url');
 

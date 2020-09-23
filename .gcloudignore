@@ -18,5 +18,7 @@ hooks
 node_modules
 test
 deploy_account.json
+**/*.ctmpl
 
 #!include:.gitignore
+!config.json

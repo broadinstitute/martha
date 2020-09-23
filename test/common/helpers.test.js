@@ -1,6 +1,6 @@
 const test = require('ava');
 const { dataObjectUriToHttps, jadeDataRepoHostRegex, samBaseUrl, getHashesMap, convertToMarthaV3Response, MarthaV3Response } = require('../../common/helpers');
-const config = require('../../config.json');
+const config = require('../../common/config');
 
 /**
  *Begin Scenario 1: data objects uri with non-dg host and path
