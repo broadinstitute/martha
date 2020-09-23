@@ -38,18 +38,18 @@ const jdrDevTestUrl = 'drs://jade.datarepo-dev.broadinstitute.org/v1_93dc1e76-8f
 
 
 test.before(async () => {
-    unauthorizedToken = await new GoogleToken({
+    unauthorizedToken = (await new GoogleToken({
         keyFile,
         email: serviceAccountEmail,
         sub: unauthorizedEmail,
         scope: scopes
-    }).getToken();
-    authorizedToken = await new GoogleToken({
+    }).getToken()).access_token;
+    authorizedToken = (await new GoogleToken({
         keyFile,
         email: serviceAccountEmail,
         sub: authorizedEmail,
         scope: scopes
-    }).getToken();
+    }).getToken()).access_token;
 
     await postJsonTo(fenceAuthLink, `Bearer ${authorizedToken}`);
 });

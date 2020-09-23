@@ -35,18 +35,18 @@ const fenceAuthLink =
     '&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback';
 
 test.before(async () => {
-    unauthorizedToken = await new GoogleToken({
+    unauthorizedToken = (await new GoogleToken({
         keyFile: keyFile,
         email: serviceAccountEmail,
         sub: unauthorizedEmail,
         scope: scopes
-    }).getToken();
-    authorizedToken = await new GoogleToken({
+    }).getToken()).access_token;
+    authorizedToken = (await new GoogleToken({
         keyFile: keyFile,
         email: serviceAccountEmail,
         sub: authorizedEmail,
         scope: scopes
-    }).getToken();
+    }).getToken()).access_token;
 
     await postJsonTo(fenceAuthLink, `Bearer ${authorizedToken}`);
 });
