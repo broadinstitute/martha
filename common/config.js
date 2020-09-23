@@ -10,7 +10,6 @@ const ENV_DEV='dev';
 const ENV_PROD='prod';
 const ENV_CROMWELL_DEV='cromwell-dev';
 
-// The env to run or test Martha/Terra
 const marthaEnv = process.env.ENV || ENV_DEV;
 const terraEnv =
     (() => {
@@ -22,7 +21,7 @@ const terraEnv =
         }
     })();
 
-// Defaults
+// Start with the defaults...
 const configDefaults = {
     samBaseUrl:
         `https://sam.dsde-${terraEnv}.broadinstitute.org`,
@@ -61,12 +60,12 @@ const configDefaults = {
         })(),
 };
 
-// Override defaults with config.json
+// ...override defaults with config.json...
 const configPath = process.env.MARTHA_CONFIG_FILE || path.join(__dirname, '../config.json');
 const configText = fs.existsSync(configPath) ? fs.readFileSync(configPath) : '{}';
 const configJson = JSON.parse(configText);
 
-// Enable setting integration test variables using environment variables.
+// ... finally enable setting integration test variables using environment variables.
 // noinspection JSCheckFunctionSignatures
 const configEnv =
     (({
@@ -86,11 +85,11 @@ function removeUndefined(orig) {
 
 /**
  * @type {object}
- * @property {string} marthaEnv - What environment to use for various servers such as Martha, Bond, and BDC-or-mock-drs.
- *      One of: 'prod', 'staging', 'qa', 'perf', 'alpha', 'dev', 'cromwell-dev', 'mock'.
- *      Default: `dev`.
- * @property {string} terraEnv - What Terra environment the tests are being run in.
+ * @property {string} terraEnv - What Terra environment to use for various servers such as Sam or Bond.
  *      One of: 'prod', 'staging', 'qa', 'perf', 'alpha', 'dev'.
+ *      Default: `dev`.
+ * @property {string} marthaEnv - An expanded set of environments to use for Martha and BDC-or-Mock-DRS.
+ *      One of: 'prod', 'staging', 'qa', 'perf', 'alpha', 'dev', 'cromwell-dev', 'mock'.
  *      Default: `dev`.
  * @property {string} samBaseUrl - Base URL for calling Sam.
  *      Default: Sam in dsde-dev.
@@ -104,8 +103,8 @@ function removeUndefined(orig) {
  *      Default: Bond in FiaB.
  */
 const configExport = Object.freeze({
-    marthaEnv,
     terraEnv,
+    marthaEnv,
     ...removeUndefined(configDefaults),
     ...removeUndefined(configJson),
     ...removeUndefined(configEnv),
