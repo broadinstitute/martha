@@ -7,7 +7,7 @@
 
 const test = require('ava');
 const config = require('../../common/config');
-const supertest = require('supertest')(config.testMarthaBaseUrl);
+const supertest = require('supertest')(config.itMarthaBaseUrl);
 
 // NOTE: We can only test failure cases of fileSummaryV1Handler.
 // Because these smoketests are executed by a Google Service Account, we are unable to test fileSummaryV1Handler (with Authz)

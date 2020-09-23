@@ -10,10 +10,7 @@ const ENV_DEV='dev';
 const ENV_PROD='prod';
 const ENV_CROMWELL_DEV='cromwell-dev';
 
-// Environmental defaults: 'dev'
-
-// The env to test martha:
-//   Options: 'prod', 'staging', 'qa', 'perf', 'alpha', 'dev', 'cromwell-dev', 'mock'
+// The env to run or test Martha/Terra
 const marthaEnv = process.env.ENV || ENV_DEV;
 const terraEnv =
     (() => {
@@ -37,24 +34,6 @@ const configDefaults = {
             default: return `https://broad-bond-${terraEnv}.appspot.com`;
             }
         })(),
-    testMarthaBaseUrl:
-        (() => {
-            // noinspection JSUnreachableSwitchBranches
-            switch (marthaEnv) {
-            case ENV_MOCK: return 'http://localhost:8010';
-            default:
-            }
-        })(),
-    testBondBaseUrl:
-        (() => {
-            // noinspection JSUnreachableSwitchBranches
-            switch (marthaEnv) {
-            case ENV_MOCK: return 'http://127.0.0.1:8080';
-            // For integration tests, match the config rendered by config.json.ctmpl and being used by the Martha
-            // instance running in a FiaB container
-            default: return `https://bond-fiab.dsde-${terraEnv}.broadinstitute.org:31443`;
-            }
-        })(),
     dataObjectResolutionHost:
         (() => {
             // noinspection JSUnreachableSwitchBranches
@@ -64,6 +43,22 @@ const configDefaults = {
             default: return 'staging.gen3.biodatacatalyst.nhlbi.nih.gov';
             }
         })(),
+    itMarthaBaseUrl:
+        (() => {
+            // noinspection JSUnreachableSwitchBranches
+            switch (marthaEnv) {
+            case ENV_MOCK: return 'http://localhost:8010';
+            default: return `https://martha-fiab.dsde-${terraEnv}.broadinstitute.org:32443`;
+            }
+        })(),
+    itBondBaseUrl:
+        (() => {
+            // noinspection JSUnreachableSwitchBranches
+            switch (marthaEnv) {
+            case ENV_MOCK: return 'http://127.0.0.1:8080';
+            default: return `https://bond-fiab.dsde-${terraEnv}.broadinstitute.org:31443`;
+            }
+        })(),
 };
 
 // Override defaults with config.json
@@ -71,16 +66,15 @@ const configPath = process.env.MARTHA_CONFIG_FILE || path.join(__dirname, '../co
 const configText = fs.existsSync(configPath) ? fs.readFileSync(configPath) : '{}';
 const configJson = JSON.parse(configText);
 
-// Override config.json with environment variables
+// Enable setting integration test variables using environment variables.
 // noinspection JSCheckFunctionSignatures
 const configEnv =
     (({
         BASE_URL,
         BOND_BASE_URL,
     }) => ({
-        bondBaseUrl: BOND_BASE_URL,
-        testMarthaBaseUrl: BASE_URL,
-        testBondBaseUrl: BOND_BASE_URL,
+        itMarthaBaseUrl: BASE_URL,
+        itBondBaseUrl: BOND_BASE_URL,
     }))(process.env);
 
 // Remove undefined fields
@@ -90,6 +84,25 @@ function removeUndefined(orig) {
     return obj;
 }
 
+/**
+ * @type {object}
+ * @property {string} marthaEnv - What environment to use for various servers such as Martha, Bond, and BDC-or-mock-drs.
+ *      One of: 'prod', 'staging', 'qa', 'perf', 'alpha', 'dev', 'cromwell-dev', 'mock'.
+ *      Default: `dev`.
+ * @property {string} terraEnv - What Terra environment the tests are being run in.
+ *      One of: 'prod', 'staging', 'qa', 'perf', 'alpha', 'dev'.
+ *      Default: `dev`.
+ * @property {string} samBaseUrl - Base URL for calling Sam.
+ *      Default: Sam in dsde-dev.
+ * @property {string} bondBaseUrl - Base URL for calling Bond.
+ *      Default: Bond in dsde-dev.
+ * @property {string} dataObjectResolutionHost - Host (hostname + port) for calling BDC-or-mock-drs.
+ *      Default: BDC staging.
+ * @property {string} itMarthaBaseUrl - Base URL for calling Martha from integration-test code.
+ *      Default: Martha in FiaB.
+ * @property {string} itBondBaseUrl - Base URL for calling Bond from integration-test code.
+ *      Default: Bond in FiaB.
+ */
 const configExport = Object.freeze({
     marthaEnv,
     terraEnv,

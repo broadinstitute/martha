@@ -7,7 +7,7 @@
 
 const test = require('ava');
 const config = require('../../common/config');
-const supertest = require('supertest')(config.testMarthaBaseUrl);
+const supertest = require('supertest')(config.itMarthaBaseUrl);
 const assert = require('assert');
 
 const publicFenceUrl = 'dos://dg.4503/preview_dos.json';

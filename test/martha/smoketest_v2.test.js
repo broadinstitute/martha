@@ -7,7 +7,7 @@
 
 const test = require('ava');
 const config = require('../../common/config');
-const supertest = require('supertest')(config.testMarthaBaseUrl);
+const supertest = require('supertest')(config.itMarthaBaseUrl);
 
 // NOTE: We are only testing one variation of the successful martha_v2 test.
 // Because these smoketests are executed by a Google Service Account, we are unable to test martha_v2 (with Authz)

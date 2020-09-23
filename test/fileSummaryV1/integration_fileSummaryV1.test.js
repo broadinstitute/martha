@@ -1,6 +1,6 @@
 const test = require('ava');
 const config = require('../../common/config');
-const supertest = require('supertest')(config.testMarthaBaseUrl);
+const supertest = require('supertest')(config.itMarthaBaseUrl);
 const assert = require('assert');
 const { GoogleToken } = require('gtoken');
 const { postJsonTo } = require('../../common/api_adapter');
@@ -9,7 +9,7 @@ let unauthorizedToken;
 let authorizedToken;
 
 const myEnv = config.terraEnv;
-const myBondBaseUrl = config.testBondBaseUrl;
+const myBondBaseUrl = config.itBondBaseUrl;
 const emailDomain = `${myEnv === 'qa' ? 'quality' : 'test'}.firecloud.org`;
 
 const keyFile = 'automation/firecloud-account.pem';
