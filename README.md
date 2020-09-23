@@ -50,6 +50,7 @@ It will always return an object with the same properties:
  name:                  string [resolver sometimes returns null],
  gsUri:                 string [resolver sometimes returns null],
  googleServiceAccount:  object [null unless the DOS url belongs to a Bond supported host],
+ fileName:              string [resolver sometimes returns null],
  hashes:                object [contains the hashes type and their checksum value; if unknown, it returns null]
 ```
 
@@ -65,6 +66,7 @@ Example response for /martha_v3:
     "name": "dd3c716a-852f-4d74-9073-9920e835ec8a/f3b148ac-1802-4acc-a0b9-610ea266fb61",
     "gsUri": "gs://my-bucket/dd3c716a-852f-4d74-9073-9920e835ec8a/f3b148ac-1802-4acc-a0b9-610ea266fb61",
     "googleServiceAccount": null,
+    "fileName": "hello.txt",
     "hashes": {
         "md5": "336ea55913bc261b72875bd259753046",
         "sha256": "f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44",
@@ -77,6 +79,7 @@ The fields are:
 - `gsUri`: The full Google Cloud Storage URI/URL/path to the blob storing the data
 - `bucket`: The [bucket name](https://cloud.google.com/storage/docs/key-terms#bucket-names) part of the `gsUri`
 - `name`: The [object name](https://cloud.google.com/storage/docs/key-terms#object-names) part of the `gsUri`
+- `fileName`: The file name for the blob found at `gsUri`
 - `contentType`: The type of data stored in the blob found at `gsUri`
 - `size`: The size of the blob found at `gsUri`
 - `hashes`: The various hash types and values for the blob found at `gsUri`

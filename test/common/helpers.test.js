@@ -236,6 +236,7 @@ test('convertToMarthaV3Response should return null for all fields in an unlikely
         null,
         null,
         null,
+        null,
         null
     );
     t.deepEqual(convertToMarthaV3Response({}, {}), expectedResponse);
@@ -260,6 +261,7 @@ test('convertToMarthaV3Response should return null for fields that are missing i
         null,
         null,
         null,
+        '123.mapped.abc.bam',
         null
     );
 
@@ -288,6 +290,7 @@ test('convertToMarthaV3Response should return null for fields that are empty in 
         null,
         null,
         null,
+        '123.mapped.abc.bam',
         null
     );
 
@@ -329,6 +332,7 @@ test('convertToMarthaV3Response should return null for googleServiceAccount if b
         '123',
         'gs://abc/123',
         null,
+        '123.mapped.abc.bam',
         { md5: '123abc' }
     );
 
