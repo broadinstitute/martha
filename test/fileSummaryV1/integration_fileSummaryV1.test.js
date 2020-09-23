@@ -1,3 +1,10 @@
+/** Run integration tests from the command line.  For example:
+ *
+ *    BASE_URL="https://us-central1-broad-dsde-dev.cloudfunctions.net" npm run-script integration_fileSummaryV1
+ *
+ * Run integration tests after a deployment to confirm that the functions deployed successfully
+ */
+
 const test = require('ava');
 const config = require('../../common/config');
 const supertest = require('supertest')(config.itMarthaBaseUrl);

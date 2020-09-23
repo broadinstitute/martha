@@ -300,7 +300,7 @@ Running the Integration Tests:
   - Whenever you make changes you will need to kill and restart Martha
   - Stop Martha using Control-C
 - Run Martha's integration tests via:
-  - `ENV=mock npm run-script integration`
+  - `ENV=mock npm run integration`
 
 ## Deployment and Releasing
 

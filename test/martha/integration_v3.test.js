@@ -1,3 +1,11 @@
+/** Run integration tests from the command line.  For example:
+ *
+ *    BASE_URL="https://us-central1-broad-dsde-dev.cloudfunctions.net" npm run-script integration_v3
+ *
+ * Run integration tests after a deployment to confirm that the functions deployed successfully
+ * (these tests are currently run in Jenkins job 'martha-fiab-test-runner' inside a FIAB)
+ */
+
 const test = require('ava');
 const config = require('../../common/config');
 const supertest = require('supertest')(config.itMarthaBaseUrl);
