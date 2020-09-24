@@ -10,52 +10,52 @@ const ENV_DEV='dev';
 const ENV_PROD='prod';
 const ENV_CROMWELL_DEV='cromwell-dev';
 
-const marthaEnv = process.env.ENV || ENV_DEV;
-const terraEnv =
+const marthaEnv = (process.env.ENV || ENV_DEV).toLowerCase();
+const dsdeEnv =
     (() => {
         // noinspection JSUnreachableSwitchBranches
         switch (marthaEnv) {
-        case ENV_MOCK: return 'dev';
-        case ENV_CROMWELL_DEV: return 'dev';
-        default: return marthaEnv;
+            case ENV_MOCK: return 'dev';
+            case ENV_CROMWELL_DEV: return 'dev';
+            default: return marthaEnv;
         }
-    })();
+    })().toLowerCase();
 
 // Start with the defaults...
 const configDefaults = {
     samBaseUrl:
-        `https://sam.dsde-${terraEnv}.broadinstitute.org`,
+        `https://sam.dsde-${dsdeEnv}.broadinstitute.org`,
     bondBaseUrl:
         (() => {
             // noinspection JSUnreachableSwitchBranches
             switch (marthaEnv) {
-            case ENV_MOCK: return 'http://127.0.0.1:8080';
-            default: return `https://broad-bond-${terraEnv}.appspot.com`;
+                case ENV_MOCK: return 'http://127.0.0.1:8080';
+                default: return `https://broad-bond-${dsdeEnv}.appspot.com`;
             }
         })(),
     dataObjectResolutionHost:
         (() => {
             // noinspection JSUnreachableSwitchBranches
             switch (marthaEnv) {
-            case ENV_MOCK: return 'wb-mock-drs-dev.storage.googleapis.com';
-            case ENV_PROD: return 'gen3.biodatacatalyst.nhlbi.nih.gov';
-            default: return 'staging.gen3.biodatacatalyst.nhlbi.nih.gov';
+                case ENV_MOCK: return 'wb-mock-drs-dev.storage.googleapis.com';
+                case ENV_PROD: return 'gen3.biodatacatalyst.nhlbi.nih.gov';
+                default: return 'staging.gen3.biodatacatalyst.nhlbi.nih.gov';
             }
         })(),
     itMarthaBaseUrl:
         (() => {
             // noinspection JSUnreachableSwitchBranches
             switch (marthaEnv) {
-            case ENV_MOCK: return 'http://localhost:8010';
-            default: return `https://martha-fiab.dsde-${terraEnv}.broadinstitute.org:32443`;
+                case ENV_MOCK: return 'http://localhost:8010';
+                default: return `https://martha-fiab.dsde-${dsdeEnv}.broadinstitute.org:32443`;
             }
         })(),
     itBondBaseUrl:
         (() => {
             // noinspection JSUnreachableSwitchBranches
             switch (marthaEnv) {
-            case ENV_MOCK: return 'http://127.0.0.1:8080';
-            default: return `https://bond-fiab.dsde-${terraEnv}.broadinstitute.org:31443`;
+                case ENV_MOCK: return 'http://127.0.0.1:8080';
+                default: return `https://bond-fiab.dsde-${dsdeEnv}.broadinstitute.org:31443`;
             }
         })(),
 };
@@ -65,7 +65,7 @@ const configPath = process.env.MARTHA_CONFIG_FILE || path.join(__dirname, '../co
 const configText = fs.existsSync(configPath) ? fs.readFileSync(configPath) : '{}';
 const configJson = JSON.parse(configText);
 
-// ... finally enable setting integration test variables using environment variables.
+// ...finally enable setting integration test variables using environment variables.
 // noinspection JSCheckFunctionSignatures
 const configEnv =
     (({
@@ -85,7 +85,7 @@ function removeUndefined(orig) {
 
 /**
  * @type {object}
- * @property {string} terraEnv - What Terra environment to use for various servers such as Sam or Bond.
+ * @property {string} dsdeEnv - Which DSDE environment to use for various servers such as Sam or Bond.
  *      One of: 'prod', 'staging', 'qa', 'perf', 'alpha', 'dev'.
  *      Default: `dev`.
  * @property {string} marthaEnv - An expanded set of environments to use for Martha and BDC-or-Mock-DRS.
@@ -103,7 +103,7 @@ function removeUndefined(orig) {
  *      Default: Bond in FiaB.
  */
 const configExport = Object.freeze({
-    terraEnv,
+    dsdeEnv,
     marthaEnv,
     ...removeUndefined(configDefaults),
     ...removeUndefined(configJson),

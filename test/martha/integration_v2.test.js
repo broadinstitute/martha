@@ -15,7 +15,7 @@ const { postJsonTo } = require('../../common/api_adapter');
 let unauthorizedToken;
 let authorizedToken;
 
-const myEnv = config.terraEnv;
+const myEnv = config.dsdeEnv;
 const myBondBaseUrl = config.itBondBaseUrl;
 const emailDomain = `${myEnv === 'qa' ? 'quality' : 'test'}.firecloud.org`;
 
