@@ -34,19 +34,19 @@ replaced with the functions-framework. https://github.com/googlearchive/cloud-fu
  */
 exports.index = (req, res) => {
     switch (req.path) {
-    case '/martha_v2':
-    case '/dockerized-martha/us-central1/martha_v2':
-        return exports.martha_v2(req, res);
-    case '/martha_v3':
-    case '/dockerized-martha/us-central1/martha_v3':
-        return exports.martha_v3(req, res);
-    case '/fileSummaryV1':
-    case '/dockerized-martha/us-central1/fileSummaryV1':
-        return exports.fileSummaryV1(req, res);
-    case '/getSignedUrlV1':
-    case '/dockerized-martha/us-central1/getSignedUrlV1':
-        return exports.getSignedUrlV1(req, res);
-    default:
-        res.send('function not defined');
+        case '/martha_v2':
+        case '/dockerized-martha/us-central1/martha_v2':
+            return exports.martha_v2(req, res);
+        case '/martha_v3':
+        case '/dockerized-martha/us-central1/martha_v3':
+            return exports.martha_v3(req, res);
+        case '/fileSummaryV1':
+        case '/dockerized-martha/us-central1/fileSummaryV1':
+            return exports.fileSummaryV1(req, res);
+        case '/getSignedUrlV1':
+        case '/dockerized-martha/us-central1/getSignedUrlV1':
+            return exports.getSignedUrlV1(req, res);
+        default:
+            res.send('function not defined');
     }
 };

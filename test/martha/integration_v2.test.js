@@ -6,7 +6,8 @@
  */
 
 const test = require('ava');
-const supertest = require('supertest')(process.env.BASE_URL);
+const config = require('../../common/config');
+const supertest = require('supertest')(config.itMarthaBaseUrl);
 const assert = require('assert');
 const { GoogleToken } = require('gtoken');
 const { postJsonTo } = require('../../common/api_adapter');
@@ -14,11 +15,8 @@ const { postJsonTo } = require('../../common/api_adapter');
 let unauthorizedToken;
 let authorizedToken;
 
-const myEnv = process.env.ENV ? process.env.ENV : 'dev';
-const myBondBaseUrl =
-    process.env.BOND_BASE_URL ?
-        process.env.BOND_BASE_URL :
-        `https://bond-fiab.dsde-${myEnv}.broadinstitute.org:31443`;
+const myEnv = config.dsdeEnv;
+const myBondBaseUrl = config.itBondBaseUrl;
 const emailDomain = `${myEnv === 'qa' ? 'quality' : 'test'}.firecloud.org`;
 
 const keyFile = 'automation/firecloud-account.pem';
@@ -35,18 +33,18 @@ const fenceAuthLink =
     '&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback';
 
 test.before(async () => {
-    unauthorizedToken = await new GoogleToken({
+    unauthorizedToken = (await new GoogleToken({
         keyFile: keyFile,
         email: serviceAccountEmail,
         sub: unauthorizedEmail,
         scope: scopes
-    }).getToken();
-    authorizedToken = await new GoogleToken({
+    }).getToken()).access_token;
+    authorizedToken = (await new GoogleToken({
         keyFile: keyFile,
         email: serviceAccountEmail,
         sub: authorizedEmail,
         scope: scopes
-    }).getToken();
+    }).getToken()).access_token;
 
     await postJsonTo(fenceAuthLink, `Bearer ${authorizedToken}`);
 });

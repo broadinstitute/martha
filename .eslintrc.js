@@ -115,7 +115,13 @@ module.exports = {
             "error",
             "beside"                                 // beside: disallows a newline before an arrow function body
         ],
-        "indent": "error",                           // enforces a consistent indentation style. Default is 4 spaces
+        "indent": [
+            "error",                                 // enforces a consistent indentation style. Default is 4 spaces
+            4,                                       // enforces a consistent indentation style. Default is 4 spaces
+            {
+                "SwitchCase": 1                      // enforces indentation level for case clauses in switch statements
+            }
+        ],
         "init-declarations": "off",                  // enforcing or eliminating variable initializations during declaration
         "jsx-quotes": "error",                       // enforces the consistent use of either double or single quotes in JSX attributes. Default: double quotes
         "key-spacing": "error",                      // enforces consistent spacing between keys and values in object literal properties. Default: space after colon

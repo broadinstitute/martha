@@ -7,7 +7,8 @@
  */
 
 const test = require('ava');
-const supertest = require('supertest')(process.env.BASE_URL);
+const config = require('../../common/config');
+const supertest = require('supertest')(config.itMarthaBaseUrl);
 const assert = require('assert');
 const { GoogleToken } = require('gtoken');
 const { postJsonTo } = require('../../common/api_adapter');
@@ -15,9 +16,8 @@ const { postJsonTo } = require('../../common/api_adapter');
 let unauthorizedToken;
 let authorizedToken;
 
-const myEnv = process.env.ENV ? process.env.ENV : 'dev';
-const myBondBaseUrl = process.env.BOND_BASE_URL ? process.env.BOND_BASE_URL :
-    `https://bond-fiab.dsde-${myEnv}.broadinstitute.org:31443`;
+const myEnv = config.dsdeEnv;
+const myBondBaseUrl = config.itBondBaseUrl;
 const emailDomain = `${myEnv === 'qa' ? 'quality' : 'test'}.firecloud.org`;
 
 const keyFile = 'automation/firecloud-account.pem';
@@ -38,18 +38,18 @@ const jdrDevTestUrl = 'drs://jade.datarepo-dev.broadinstitute.org/v1_93dc1e76-8f
 
 
 test.before(async () => {
-    unauthorizedToken = await new GoogleToken({
+    unauthorizedToken = (await new GoogleToken({
         keyFile,
         email: serviceAccountEmail,
         sub: unauthorizedEmail,
         scope: scopes
-    }).getToken();
-    authorizedToken = await new GoogleToken({
+    }).getToken()).access_token;
+    authorizedToken = (await new GoogleToken({
         keyFile,
         email: serviceAccountEmail,
         sub: authorizedEmail,
         scope: scopes
-    }).getToken();
+    }).getToken()).access_token;
 
     await postJsonTo(fenceAuthLink, `Bearer ${authorizedToken}`);
 });
@@ -236,6 +236,7 @@ test.cb('integration_v3 responds with Data Object for authorized user for jade d
                         'gs://broad-jade-dev-data-bucket/fd8d8492-ad02-447d-b54e-35a7ffd0e7a5/' +
                         '8b07563a-542f-4b5c-9e00-e8fe6b1861de',
                     googleServiceAccount: null,
+                    fileName: 'HG00096.mapped.ILLUMINA.bwa.GBR.low_coverage.20120522.bam',
                     hashes: {
                         md5: '336ea55913bc261b72875bd259753046',
                         crc32c: 'ecb19226'
