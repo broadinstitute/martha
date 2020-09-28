@@ -15,7 +15,7 @@ function aggregateResponses(responses) {
 }
 
 function marthaV2Handler(req, res) {
-    const dataObjectUri = parseRequest(req);
+    const { url: dataObjectUri } = parseRequest(req);
     if (!dataObjectUri) {
         res.status(400).send('Request must specify the URL of a DOS object');
         return;

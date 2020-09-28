@@ -101,8 +101,7 @@ test.cb('integration_v3 fails when no "authorization" header is provided for pub
         });
 });
 
-// Skipping the test until dos://dg.XXXX supports DRS. WA-193
-test.cb.skip('integration_v3 responds with Data Object and service account for a public url', (t) => {
+test.cb('integration_v3 succeeds for a public url', (t) => {
     supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
@@ -110,7 +109,7 @@ test.cb.skip('integration_v3 responds with Data Object and service account for a
         .send({ url: publicFenceUrl })
         .expect((response) => {
             assert.strictEqual(response.statusCode, 200, 'Incorrect status code');
-            assert(response.body.dos, 'No Data Object found');
+            assert(response.body.gsUri, 'No gsUri found');
             assert(response.body.googleServiceAccount, 'No Google Service Account found');
         })
         .end((error, response) => {
@@ -165,8 +164,7 @@ test.cb('integration_v3 fails when no "authorization" header is provided for a p
         });
 });
 
-// Skipping the test until dos://dg.XXXX supports DRS. WA-193
-test.cb.skip('integration_v3 responds with Data Object and service account when "authorization" header is provided for a protected url', (t) => {
+test.cb('integration_v3 succeeds for a protected url', (t) => {
     supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
@@ -174,7 +172,7 @@ test.cb.skip('integration_v3 responds with Data Object and service account when 
         .send({ url: protectedFenceUrl })
         .expect((response) => {
             assert.strictEqual(response.statusCode, 200, 'Incorrect status code');
-            assert(response.body.dos, 'No Data Object found');
+            assert(response.body.gsUri, 'No gsUri found');
             assert(response.body.googleServiceAccount, 'No Google Service Account found');
         })
         .end((error, response) => {

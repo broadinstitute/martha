@@ -28,18 +28,18 @@ Production: https://us-central1-broad-dsde-prod.cloudfunctions.net/martha_v2
 To call `martha_v3`, perform an HTTP `POST` to the appropriate URL. The `content-type` of your request should be either
 `application/json` or `application/x-www-form-urlencoded` with the content/body of your request encoded accordingly.
 
-The body of the request must be a JSON Object with one value:
+The body of the request must be a JSON object with at least one value:
 a [DOS](https://data-object-service.readthedocs.io/en/latest/) or [DRS](https://ga4gh.github.io/data-repository-service-schemas/docs) URL. You must also specify an `Authorization` header on
 the request with a valid OAuth bearer token. Martha uses the URL to retrieve a data object, unpacks it, and returns
 a standard JSON Object containing the object metadata and (optionally) the private key information for the
 [Google Service Account](https://cloud.google.com/iam/docs/understanding-service-accounts) that you may use to access
-the underlying resource. The Google Service Account information will only be included in the response if the     URL
+the underlying resource. The Google Service Account information will only be included in the response if the URL
 should return the service account from the account linking service [Bond](https://github.com/DataBiosphere/bond#readme).
 
 Staging: https://us-central1-broad-dsde-staging.cloudfunctions.net/martha_v3
 Production: https://us-central1-broad-dsde-prod.cloudfunctions.net/martha_v3
 
-It will always return an object with the same properties:
+It will return an object with the properties:
 
 ```
  contentType:           string [resolver sometimes returns null],
@@ -86,6 +86,28 @@ The fields are:
 - `timeCreated`: The time of creation for the data found at `gsUri`
 - `timeUpdated`: The time of last update for the data found at `gsUri`
 - `googleServiceAccount`: An optional service account that should be used to access the `gsUri`
+
+The body of the request JSON object may also contain a key named `fields` with a value of an array of strings. The
+response will only contain the fields listed in the array. The array should only contain field names from the above
+list.
+
+Example request to return all fields:
+```
+curl \
+    localhost:8010/martha_v3 \
+    --header 'Authorization: Bearer <token>' \
+    --header 'Content-Type: application/json' \
+    --data '{"url": "dos://foo/bar"}'
+```
+
+Example request to return only `hashes` and `size`:
+```
+curl \
+    localhost:8010/martha_v3 \
+    --header 'Authorization: Bearer <token>' \
+    --header 'Content-Type: application/json' \
+    --data '{"url": "dos://foo/bar", "fields": ["hashes", "size"]}'
+```
 
 **NOTE:**
 
@@ -263,7 +285,7 @@ Run the `npx` command using `--fix` flag: `npx eslint <file_name/directory_name>
 
 `npm test`
 
-### Run Integration Tests
+## Run Integration Tests
 
 Prerequisites:
 - Access to Vault for retrieving integration test credentials

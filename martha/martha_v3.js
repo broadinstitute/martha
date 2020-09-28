@@ -1,10 +1,46 @@
-const { jadeDataRepoHostRegex, parseRequest, convertToMarthaV3Response, FailureResponse } = require('../common/helpers');
+const {
+    jadeDataRepoHostRegex,
+    parseRequest,
+    convertToMarthaV3Response,
+    logAndSendBadRequest,
+    logAndSendServerError,
+} = require('../common/helpers');
 const config = require('../common/config');
 const apiAdapter = require('../common/api_adapter');
 const url = require('url');
+const mask = require('json-mask');
 
-const BAD_REQUEST_ERROR_CODE = 400;
-const SERVER_ERROR_CODE = 500;
+// All fields that can be returned in the martha_v3 response
+const ALL_FIELDS = [
+    "gsUri",
+    "bucket",
+    "name",
+    "fileName",
+    "contentType",
+    "size",
+    "hashes",
+    "timeCreated",
+    "timeUpdated",
+    "googleServiceAccount",
+];
+
+// Response fields dependent on the DOS or DRS servers
+const DRS_FIELDS = [
+    "gsUri",
+    "bucket",
+    "name",
+    "fileName",
+    "contentType",
+    "size",
+    "hashes",
+    "timeCreated",
+    "timeUpdated",
+];
+
+// Response fields dependent on Bond
+const BOND_FIELDS = [
+    "googleServiceAccount",
+];
 
 const BOND_PROVIDER_NONE = null; // Used for servers that should NOT contact bond
 const BOND_PROVIDER_DCF_FENCE = 'dcf-fence'; // The default when we don't recognize the server
@@ -23,6 +59,7 @@ const DG_EXPANSION_NONE = null;
 const DG_EXPANSION_BIO_DATA_CATALYST = config.dataObjectResolutionHost;
 const DG_EXPANSION_THE_ANVIL = 'gen3.theanvil.io';
 
+// noinspection JSUnusedGlobalSymbols
 class DrsType {
     constructor(dataGuidExpansion, protocolPrefix, sendAuth, bondProvider) {
         this.dataGuidExpansion = dataGuidExpansion;
@@ -68,7 +105,7 @@ function httpsUrlGenerator (parsedUrl, dataGuidExpansion, protocolPrefix) {
 
 function responseParser (response) {
     // If this is not a DOS response, assume it's already DRS and return it.
-    if (!response.data_object) { return response; }
+    if (!response || !response.data_object) { return response; }
 
     // Otherwise, find the DOS fields and convert them to DRS.
     const {
@@ -194,7 +231,7 @@ function determineDrsType (parsedUrl) {
     );
 }
 
-function validateRequest(dataObjectUri, auth) {
+function validateRequest(dataObjectUri, auth, requestedFields) {
     if (!dataObjectUri) {
         throw new Error('URL of a DRS object is missing.');
     }
@@ -202,19 +239,41 @@ function validateRequest(dataObjectUri, auth) {
     if (!auth) {
         throw new Error('Authorization header is missing.');
     }
+
+    if (!Array.isArray(requestedFields)) {
+        throw new Error(`Fields was not an array.`);
+    }
+
+    const invalidFields = requestedFields.filter((field) => !ALL_FIELDS.includes(field));
+    if (invalidFields.length !== 0) {
+        throw new Error(
+            `Fields '${invalidFields.join("','")}' are not supported. ` +
+            `Supported fields are '${ALL_FIELDS.join("', '")}'.`
+        );
+    }
+}
+
+/**
+ * Used to check if any of the requested fields overlap with fields dependent on an underlying service.
+ *
+ * @param {string[]} requestedFields
+ * @param {string[]} serviceFields
+ * @returns {boolean} true if the requested fields overlap
+ */
+function overlapFields(requestedFields, serviceFields) {
+    // via https://medium.com/@alvaro.saburido/set-theory-for-arrays-in-es6-eb2f20a61848
+    return requestedFields.filter((field) => serviceFields.includes(field)).length !== 0;
 }
 
 async function marthaV3Handler(req, res) {
-    const dataObjectUri = parseRequest(req);
+    const { url: dataObjectUri, fields: requestedFields = ALL_FIELDS } = parseRequest(req);
     const auth = req && req.headers && req.headers.authorization;
     console.log(`Received URL '${dataObjectUri}' from IP '${req.ip}'`);
 
     try {
-        validateRequest(dataObjectUri, auth);
+        validateRequest(dataObjectUri, auth, requestedFields);
     } catch (error) {
-        console.error(error);
-        const failureResponse = new FailureResponse(BAD_REQUEST_ERROR_CODE, `Request is invalid. ${error.message}`);
-        res.status(BAD_REQUEST_ERROR_CODE).send(failureResponse);
+        logAndSendBadRequest(res, error);
         return;
     }
 
@@ -222,78 +281,52 @@ async function marthaV3Handler(req, res) {
     try {
         parsedUrl = new URL(dataObjectUri);
     } catch (error) {
-        console.error(error);
-        const failureResponse = new FailureResponse(BAD_REQUEST_ERROR_CODE, error.message);
-        res.status(BAD_REQUEST_ERROR_CODE).send(failureResponse);
+        logAndSendBadRequest(res, error);
         return;
     }
 
     if (!parsedUrl.hostname || (!parsedUrl.pathname && parsedUrl.hostname.toLowerCase().startsWith('dg.'))) {
-        console.error(`"${url.format(parsedUrl)}" is missing a host and/or a path.`);
-        const failureResponse = new FailureResponse(BAD_REQUEST_ERROR_CODE, `"${dataObjectUri}" is not a properly-formatted URI.`);
-        res.status(BAD_REQUEST_ERROR_CODE).send(failureResponse);
+        logAndSendBadRequest(res, new Error(`"${url.format(parsedUrl)}" is missing a host and/or a path.`));
         return;
     }
 
     const {dataGuidExpansion, protocolPrefix, sendAuth, bondProvider} = determineDrsType(parsedUrl);
     const drsUrl = httpsUrlGenerator(parsedUrl, dataGuidExpansion, protocolPrefix);
     const bondUrl = bondProvider && `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
-    console.log(`Converting DRS URI to HTTPS: ${dataObjectUri} -> ${drsUrl}`);
+    console.log(`Converted DRS URI to HTTPS: ${dataObjectUri} -> ${drsUrl}`);
 
     let response;
-    try {
-        response = await apiAdapter.getJsonFrom(drsUrl, sendAuth ? auth : null);
-    } catch (err) {
-        console.log('Received error while resolving DRS URL.');
-        console.error(err);
-
-        const errorStatusCode = err.status;
-        if (typeof errorStatusCode === 'undefined') {
-            const failureResponse = new FailureResponse(SERVER_ERROR_CODE, `Received error while resolving DRS URL. ${err.message}`);
-            res.status(SERVER_ERROR_CODE).send(failureResponse);
-        } else {
-            res.status(errorStatusCode).send(err);
+    if (overlapFields(requestedFields, DRS_FIELDS)) {
+        try {
+            response = await apiAdapter.getJsonFrom(drsUrl, sendAuth ? auth : null);
+        } catch (error) {
+            logAndSendServerError(res, error, 'Received error while resolving DRS URL.');
+            return;
         }
-        return;
     }
 
     let drsResponse;
     try {
         drsResponse = responseParser(response);
-    } catch (err) {
-        console.log('Received error while parsing response from DRS URL.');
-        console.error(err);
-
-        const errorStatusCode = err.status;
-        if (typeof errorStatusCode === 'undefined') {
-            const failureResponse = new FailureResponse(SERVER_ERROR_CODE, `Received error while parsing response from DRS URL. ${err.message}`);
-            res.status(SERVER_ERROR_CODE).send(failureResponse);
-        } else {
-            res.status(errorStatusCode).send(err);
-        }
+    } catch (error) {
+        logAndSendServerError(res, error, 'Received error while parsing response from DRS URL.');
         return;
     }
 
     let bondSA;
-    if (bondUrl) {
+    if (bondUrl && overlapFields(requestedFields, BOND_FIELDS)) {
         try {
             bondSA = await apiAdapter.getJsonFrom(bondUrl, auth);
-        } catch (err) {
-            console.log('Received error contacting Bond.');
-            console.error(err);
-
-            const errorStatusCode = err.status;
-            if (typeof errorStatusCode === 'undefined') {
-                const failureResponse = new FailureResponse(SERVER_ERROR_CODE, `Received error while getting SA from Bond. ${err.message}`);
-                res.status(SERVER_ERROR_CODE).send(failureResponse);
-            } else {
-                res.status(errorStatusCode).send(err);
-            }
+        } catch (error) {
+            logAndSendServerError(res, error, 'Received error contacting Bond.');
             return;
         }
     }
 
-    res.status(200).send(convertToMarthaV3Response(drsResponse, bondSA));
+    const fullResponse = requestedFields.length ? convertToMarthaV3Response(drsResponse, bondSA) : {};
+    const partialResponse = mask(fullResponse, requestedFields.join(","));
+
+    res.status(200).send(partialResponse);
 }
 
 exports.marthaV3Handler = marthaV3Handler;

@@ -21,6 +21,7 @@
     "@google-cloud/storage": "^5.3.0",
     "cors": "^2.8.5",
     "gtoken": "^5.0.3",
+    "json-mask": "^1.0.2",
     "moment": "^2.29.0",
     "superagent": "^6.1.0"
   },

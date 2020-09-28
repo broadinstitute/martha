@@ -17,6 +17,12 @@ const dosObjectWithMissingFields = {
     }
 };
 
+const dosObjectWithInvalidFields = {
+    "data_object": {
+        urls: 'gs://i/should/have/been/an/array',
+    }
+};
+
 const expectedObjWithMissingFields = {
     contentType: 'application/octet-stream',
     size: 123456,
@@ -490,6 +496,7 @@ const hcaDosMarthaResult = {
 module.exports = {
     expectedObjWithMissingFields,
     dosObjectWithMissingFields,
+    dosObjectWithInvalidFields,
     sampleDosResponse,
     sampleDosMarthaResult,
     dataGuidsOrgResponse,

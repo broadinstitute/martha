@@ -62,7 +62,7 @@ const configDefaults = {
 
 // ...override defaults with config.json...
 const configPath = process.env.MARTHA_CONFIG_FILE || path.join(__dirname, '../config.json');
-const configText = fs.existsSync(configPath) ? fs.readFileSync(configPath) : '{}';
+const configText = marthaEnv !== ENV_MOCK && fs.existsSync(configPath) ? fs.readFileSync(configPath) : '{}';
 const configJson = JSON.parse(configText);
 
 // ...finally enable setting integration test variables using environment variables.
