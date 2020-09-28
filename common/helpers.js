@@ -8,6 +8,9 @@ const dosDataObjectPathPrefix = '/ga4gh/dos/v1/dataobjects/';
 const drsDataObjectPathPrefix = '/ga4gh/drs/v1/objects/';
 const jadeDataRepoHostRegex = /.*data.*[-.](broadinstitute\.org|terra\.bio)$/;
 
+const BAD_REQUEST_ERROR_CODE = 400;
+const SERVER_ERROR_CODE = 500;
+
 // Regex drops any leading or trailing "/" characters and gives the path out of capture group 1
 const pathSlashRegex = /^\/?([^/]+.*?)\/?$/;
 
@@ -119,7 +122,7 @@ function dataObjectUriToHttps(dataObjectUri) {
 // This function counts on the request posing data as "application/json" content-type.
 // See: https://cloud.google.com/functions/docs/writing/http#parsing_http_requests for more details
 function parseRequest(req) {
-    return req && req.body && req.body.url;
+    return (req && req.body) || {};
 }
 
 /**
@@ -193,6 +196,7 @@ class MarthaV3Response extends CommonFileInfoResponse {
     }
 }
 
+// noinspection JSUnusedGlobalSymbols
 /**
  * Response class for /fileSummaryV1
  */
@@ -317,9 +321,10 @@ function getHashesMap(checksumArray) {
  *     bytes
  * @param {string} drsResponse.access_methods[].access_url.url A fully resolvable URL that can be used to fetch the
  *     actual object bytes
- * @returns {string} The gs access url if found
+ * @returns {(string|undefined)} The gs access url if found
  */
 function getGsUrlFromDrsObject(drsResponse) {
+    if (!drsResponse) { return; }
     const accessMethods = drsResponse.access_methods || [];
     const gsAccessMethod = accessMethods.find((e) => e.type === 'gs') || {};
     const gsAccessUrl = gsAccessMethod.access_url || {};
@@ -364,7 +369,7 @@ function convertToMarthaV3Response(drsResponse, googleSA) {
         size: maybeNumberSize,
         updated_time: updatedTime,
         name: maybeFileName,
-    } = drsResponse;
+    } = drsResponse || {};
 
     // Some (but not all!) DRS servers return time without a timezone (see example responses in `_martha_v3_resources.js`)
     // Instead of letting JS assume that a timezoneless time is local TZ, explicitly assign it to be UTC
@@ -412,6 +417,21 @@ function convertToMarthaV3Response(drsResponse, googleSA) {
     );
 }
 
+function logAndSendBadRequest(res, error) {
+    console.error(error);
+    const failureResponse = new FailureResponse(BAD_REQUEST_ERROR_CODE, `Request is invalid. ${error.message}`);
+    res.status(BAD_REQUEST_ERROR_CODE).send(failureResponse);
+}
+
+function logAndSendServerError(res, error, description) {
+    console.error(description);
+    console.error(error);
+
+    const errorStatusCode = isNullish(error.status) ? SERVER_ERROR_CODE : error.status;
+    const failureResponse = new FailureResponse(errorStatusCode, `${description} ${error.message}`);
+    res.status(errorStatusCode).send(failureResponse);
+}
+
 module.exports = {
     dataObjectUriToHttps,
     samBaseUrl,
@@ -426,5 +446,7 @@ module.exports = {
     getHashesMap,
     FileSummaryV1Response,
     MarthaV3Response,
-    FailureResponse
+    FailureResponse,
+    logAndSendBadRequest,
+    logAndSendServerError,
 };

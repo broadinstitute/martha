@@ -25,6 +25,7 @@ const {
     gen3CrdcDrsMarthaResult,
     gen3CrdcResponse,
     dosObjectWithMissingFields,
+    dosObjectWithInvalidFields,
     expectedObjWithMissingFields
 } = require('./_martha_v3_resources.js');
 
@@ -33,6 +34,7 @@ const sinon = require('sinon');
 const { marthaV3Handler: marthaV3, determineDrsType, httpsUrlGenerator } = require('../../martha/martha_v3');
 const apiAdapter = require('../../common/api_adapter');
 const config = require('../../common/config');
+const mask = require('json-mask');
 
 const mockRequest = (req) => {
     req.method = 'POST';
@@ -129,6 +131,112 @@ test.serial('martha_v3 resolves successfully and ignores extra data submitted be
     t.is(actualProvider, expectedProvider);
 });
 
+test.serial('martha_v3 does not call Bond when only DRS fields are requested', async (t) => {
+    getJsonFromApiStub.onFirstCall().resolves(sampleDosResponse);
+    const response = mockResponse();
+    await marthaV3(mockRequest({
+        body: {
+            url: 'dos://abc/123',
+            fields: ['gsUri', 'size', 'hashes', 'timeUpdated', 'fileName'],
+        }
+    }), response);
+    const result = response.send.lastCall.args[0];
+    t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
+    t.deepEqual(
+        { ...result },
+        mask(sampleDosMarthaResult(googleSAKeyObject), 'gsUri,size,hashes,timeUpdated,fileName'),
+    );
+    t.falsy(result.googleServiceAccount);
+    t.is(response.statusCode, 200);
+});
+
+test.serial('martha_v3 does not call DRS when only Bond fields are requested', async (t) => {
+    getJsonFromApiStub.onFirstCall().resolves(googleSAKeyObject);
+    const response = mockResponse();
+    await marthaV3(mockRequest({
+        body: {
+            url: 'dos://abc/123',
+            fields: ['googleServiceAccount'],
+        }
+    }), response);
+    const result = response.send.lastCall.args[0];
+    t.true(getJsonFromApiStub.calledOnce); // DRS was not called
+    t.deepEqual(
+        { ...result },
+        mask(sampleDosMarthaResult(googleSAKeyObject), 'googleServiceAccount'),
+    );
+    t.is(response.statusCode, 200);
+    const requestedBondUrl = getJsonFromApiStub.firstCall.args[0];
+    const matches = requestedBondUrl.match(bondRegEx);
+    t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
+    const expectedProvider = 'dcf-fence';
+    const actualProvider = matches[2];
+    t.is(actualProvider, expectedProvider);
+});
+
+test.serial('martha_v3 calls no endpoints when no fields are requested', async (t) => {
+    const response = mockResponse();
+    await marthaV3(mockRequest({
+        body: {
+            url: 'dos://abc/123',
+            fields: [],
+        }
+    }), response);
+    t.true(getJsonFromApiStub.notCalled); // Neither Bond nor DRS was called
+    const result = response.send.lastCall.args[0];
+    t.deepEqual({ ...result }, {});
+    t.is(response.statusCode, 200);
+});
+
+test.serial('martha_v3 returns an error when fields is not an array', async (t) => {
+    const response = mockResponse();
+    await marthaV3(mockRequest({
+        body: {
+            url: 'dos://abc/123',
+            fields: 'gsUri',
+        }
+    }), response);
+    t.true(getJsonFromApiStub.notCalled); // Neither Bond nor DRS was called
+    const result = response.send.lastCall.args[0];
+    t.deepEqual(
+        { ...result },
+        {
+            response: {
+                status: 400,
+                text: "Request is invalid. Fields was not an array.",
+            },
+            status: 400,
+        },
+    );
+    t.is(response.statusCode, 400);
+});
+
+test.serial('martha_v3 returns an error when an invalid field is requested', async (t) => {
+    const response = mockResponse();
+    await marthaV3(mockRequest({
+        body: {
+            url: 'dos://abc/123',
+            fields: ['gsUri', 'size', 'hashes', 'timeUpdated', 'fileName', 'googleServiceAccount', 'meaningOfLife'],
+        }
+    }), response);
+    t.true(getJsonFromApiStub.notCalled); // Neither Bond nor DRS was called
+    const result = response.send.lastCall.args[0];
+    t.deepEqual(
+        { ...result },
+        {
+            response: {
+                status: 400,
+                text:
+                    "Request is invalid. Fields 'meaningOfLife' are not supported. Supported fields are " +
+                    "'gsUri', 'bucket', 'name', 'fileName', 'contentType', 'size', 'hashes', " +
+                    "'timeCreated', 'timeUpdated', 'googleServiceAccount'.",
+            },
+            status: 400,
+        },
+    );
+    t.is(response.statusCode, 400);
+});
+
 test.serial('martha_v3 should return 400 if a Data Object without authorization header is provided', async (t) => {
     getJsonFromApiStub.onFirstCall().resolves(sampleDosResponse);
     const response = mockResponse();
@@ -151,6 +259,16 @@ test.serial('martha_v3 should return 400 if not given a url', async (t) => {
     t.is(result.response.text, 'Request is invalid. URL of a DRS object is missing.');
 });
 
+test.serial('martha_v3 should return 400 if given a dg URL without a path', async (t) => {
+    getJsonFromApiStub.onFirstCall().resolves(sampleDosResponse);
+    const response = mockResponse();
+    await marthaV3(mockRequest({ body: { 'url': 'dos://dg.abc' } }), response);
+    const result = response.send.lastCall.args[0];
+    t.is(response.statusCode, 400);
+    t.is(result.status, 400);
+    t.is(result.response.text, 'Request is invalid. "dos://dg.abc" is missing a host and/or a path.');
+});
+
 test.serial('martha_v3 should return 400 if no data is posted with the request', async (t) => {
     const response = mockResponse();
     await marthaV3(mockRequest({}), response);
@@ -166,12 +284,11 @@ test.serial('martha_v3 should return 400 if given a \'url\' with an invalid valu
     const result = response.send.lastCall.args[0];
     t.is(response.statusCode, 400);
     t.is(result.status, 400);
-    t.is(result.response.text, 'Invalid URL: Not a valid URI');
+    t.is(result.response.text, 'Request is invalid. Invalid URL: Not a valid URI');
 });
 
 test.serial('martha_v3 should return 500 if Data Object resolution fails', async (t) => {
-    getJsonFromApiStub.restore();
-    sandbox.stub(apiAdapter, getJsonFromApiMethodName).rejects(new Error('Data Object Resolution forced to fail by testing stub'));
+    getJsonFromApiStub.onFirstCall().rejects(new Error('Data Object Resolution forced to fail by testing stub'));
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
     const result = response.send.lastCall.args[0];
@@ -180,15 +297,29 @@ test.serial('martha_v3 should return 500 if Data Object resolution fails', async
     t.is(result.response.text, 'Received error while resolving DRS URL. Data Object Resolution forced to fail by testing stub');
 });
 
-test.serial('martha_v3 should return 500 if key retrieval from bond fails', async (t) => {
-    getJsonFromApiStub.restore();
-    sandbox.stub(apiAdapter, getJsonFromApiMethodName).rejects(new Error('Bond key lookup forced to fail by testing stub'));
+test.serial('martha_v3 should return the underlying status if Data Object resolution fails', async (t) => {
+    const error = new Error('Data Object Resolution forced to fail by testing stub');
+    error.status = 418;
+    getJsonFromApiStub.onFirstCall().rejects(error);
+    const response = mockResponse();
+    await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
+    const result = response.send.lastCall.args[0];
+    t.is(response.statusCode, 418);
+    t.is(result.status, 418);
+    t.is(
+        result.response.text,
+        'Received error while resolving DRS URL. Data Object Resolution forced to fail by testing stub',
+    );
+});
+
+test.serial('martha_v3 should return 500 if key retrieval from Bond fails', async (t) => {
+    getJsonFromApiStub.onSecondCall().rejects(new Error('Bond key lookup forced to fail by testing stub'));
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
     const result = response.send.lastCall.args[0];
     t.is(response.statusCode, 500);
     t.is(result.status, 500);
-    t.is(result.response.text, 'Received error while resolving DRS URL. Bond key lookup forced to fail by testing stub');
+    t.is(result.response.text, 'Received error contacting Bond. Bond key lookup forced to fail by testing stub');
 });
 
 test.serial('martha_v3 calls bond Bond with the "dcf-fence" provider when the Data Object URL host is not "dg.4503"', async (t) => {
@@ -213,17 +344,6 @@ test.serial('martha_v3 calls bond Bond with the "fence" provider when the Data O
     const expectedProvider = 'fence';
     const actualProvider = matches[2];
     t.is(actualProvider, expectedProvider);
-});
-
-test.serial('martha_v3 does not call Bond or return SA key when the Data Object URL host endswith ".humancellatlas.org', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(sampleDosResponse);
-    const response = mockResponse();
-    await marthaV3(mockRequest({ body: { 'url': 'drs://someservice.humancellatlas.org/this_part_can_be_anything' } }), response);
-    const result = response.send.lastCall.args[0];
-    t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
-    t.deepEqual({ ...result }, sampleDosMarthaResult(null));
-    t.falsy(result.googleServiceAccount);
-    t.is(response.statusCode, 200);
 });
 
 test.serial(
@@ -353,10 +473,6 @@ test.serial('martha_v3 parses HCA response correctly', async (t) => {
 });
 
 test.serial('martha_v3 returns null for fields missing in drs and bond response', async (t) => {
-    // update the stub to return DRS response with missing fields only for this test
-    sandbox.restore();
-    getJsonFromApiStub.onFirstCall().resolves(sampleDosResponse);
-    getJsonFromApiStub = sandbox.stub(apiAdapter, getJsonFromApiMethodName);
     getJsonFromApiStub.onFirstCall().resolves(dosObjectWithMissingFields);
     getJsonFromApiStub.onSecondCall().resolves(null);
 
@@ -365,6 +481,26 @@ test.serial('martha_v3 returns null for fields missing in drs and bond response'
     const result = response.send.lastCall.args[0];
     t.deepEqual({ ...result }, expectedObjWithMissingFields);
     t.is(response.statusCode, 200);
+});
+
+test.serial('martha_v3 should return 500 if Data Object parsing fails', async (t) => {
+    getJsonFromApiStub.onFirstCall().resolves(dosObjectWithInvalidFields);
+    getJsonFromApiStub.onSecondCall().resolves(null);
+
+    const response = mockResponse();
+    await marthaV3(mockRequest({ body: { 'url': 'drs://abc/123' } }), response);
+    const result = response.send.lastCall.args[0];
+    t.deepEqual(
+        { ...result },
+        {
+            response: {
+                status: 500,
+                text: 'Received error while parsing response from DRS URL. urls.filter is not a function',
+            },
+            status: 500,
+        },
+    );
+    t.is(response.statusCode, 500);
 });
 
 // Test utility for generating server URL from a DRS URL
@@ -423,6 +559,13 @@ test('determineDrsType should parse "drs://dg." Data Object uri with query part'
     t.is(
         determineDrsTypeTestWrapper('drs://dg.2345/bar?version=1&bananas=yummy'),
         `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/dg.2345/bar?version=1&bananas=yummy`
+    );
+});
+
+test('determineDrsType should parse "dos://" Data Object uri with an expanded host and path', (t) => {
+    t.is(
+        determineDrsTypeTestWrapper(`dos://${config.dataObjectResolutionHost}/dg.2345/bar`),
+        `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/dg.2345/bar`
     );
 });
 /**

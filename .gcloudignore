@@ -12,13 +12,20 @@
 # below:
 .git
 .gitignore
+.dockerignore
 .circleci
 docker
+docs
 hooks
+images
 node_modules
 test
+minnie-kenny.*
 deploy_account.json
 **/*.ctmpl
+**/*.md
+**/*.txt
+**/*.sh
 
 #!include:.gitignore
 !config.json
