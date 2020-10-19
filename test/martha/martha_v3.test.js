@@ -229,7 +229,7 @@ test.serial('martha_v3 returns an error when an invalid field is requested', asy
                 text:
                     "Request is invalid. Fields 'meaningOfLife' are not supported. Supported fields are " +
                     "'gsUri', 'bucket', 'name', 'fileName', 'contentType', 'size', 'hashes', " +
-                    "'timeCreated', 'timeUpdated', 'googleServiceAccount'.",
+                    "'timeCreated', 'timeUpdated', 'googleServiceAccount', 'bondProvider'.",
             },
             status: 400,
         },

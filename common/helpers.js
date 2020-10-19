@@ -176,6 +176,7 @@ class MarthaV3Response extends CommonFileInfoResponse {
         name,
         gsUri,
         googleServiceAccount,
+        bondProvider,
         fileName,
         hashesMap
     ) {
@@ -192,6 +193,7 @@ class MarthaV3Response extends CommonFileInfoResponse {
         this.hashes = hashesMap || null;
         this.timeUpdated = updated || null;
         this.fileName = fileName || null;
+        this.bondProvider = bondProvider || null;
         delete this.updated;
     }
 }
@@ -342,26 +344,27 @@ function getGsUrlFromDrsObject(drsResponse) {
  * Input fields are defined by:
  *     https://ga4gh.github.io/data-repository-service-schemas/preview/release/drs-1.0.0/docs/
  *
- * @param {Object} drsResponse DRS v1.x response
+ * @param {?Object} [drsResponse] DRS v1.x response
  * @param {string} [drsResponse.name] A string that can be used to name a drs object
  * @param {Object[]} [drsResponse.access_methods] The list of access methods that can be used to fetch the drs object
  * @param {Object} [drsResponse.access_methods[].access_url] An AccessURL that can be used to fetch the actual object
  *     bytes
- * @param {string} drsResponse.access_methods[].access_url.url A fully resolvable URL that can be used to fetch the
+ * @param {string} [drsResponse.access_methods[].access_url.url] A fully resolvable URL that can be used to fetch the
  *     actual object bytes
- * @param {string} drsResponse.access_methods[].type Type of the access method
- * @param {Object[]} drsResponse.checksums The checksum of the drs object
- * @param {string} drsResponse.checksums[].checksum The hex-string encoded checksum for the data
- * @param {string} drsResponse.checksums[].type The digest method used to create the checksum
- * @param {string} drsResponse.created_time Timestamp of content creation in RFC3339
+ * @param {string} [drsResponse.access_methods[].type] Type of the access method
+ * @param {Object[]} [drsResponse.checksums] The checksum of the drs object
+ * @param {string} [drsResponse.checksums[].checksum] The hex-string encoded checksum for the data
+ * @param {string} [drsResponse.checksums[].type] The digest method used to create the checksum
+ * @param {string} [drsResponse.created_time] Timestamp of content creation in RFC3339
  * @param {string} [drsResponse.mime_type] A string providing the mime-type of the drs object
- * @param {number} drsResponse.size The blob size in bytes
+ * @param {number} [drsResponse.size] The blob size in bytes
  * @param {string} [drsResponse.updated_time] Timestamp of content update in RFC3339, identical to created_time in
  *     systems that do not support updates
- * @param {Object} [googleSA] A google service account json
+ * @param {?string} [bondProvider] The Bond provider
+ * @param {?Object} [googleSA] A google service account json
  * @returns {MarthaV3Response} The drs object converted to a martha file info response
  */
-function convertToMarthaV3Response(drsResponse, googleSA) {
+function convertToMarthaV3Response(drsResponse, bondProvider, googleSA) {
     const {
         checksums,
         created_time: createdTime,
@@ -412,6 +415,7 @@ function convertToMarthaV3Response(drsResponse, googleSA) {
         name,
         gsUrl,
         googleServiceAccount,
+        bondProvider,
         fileName,
         hashesMap
     );

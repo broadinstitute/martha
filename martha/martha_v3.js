@@ -22,6 +22,7 @@ const ALL_FIELDS = [
     "timeCreated",
     "timeUpdated",
     "googleServiceAccount",
+    "bondProvider",
 ];
 
 // Response fields dependent on the DOS or DRS servers
@@ -323,7 +324,7 @@ async function marthaV3Handler(req, res) {
         }
     }
 
-    const fullResponse = requestedFields.length ? convertToMarthaV3Response(drsResponse, bondSA) : {};
+    const fullResponse = requestedFields.length ? convertToMarthaV3Response(drsResponse, bondProvider, bondSA) : {};
     const partialResponse = mask(fullResponse, requestedFields.join(","));
 
     res.status(200).send(partialResponse);
