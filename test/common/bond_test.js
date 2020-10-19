@@ -64,7 +64,7 @@ test('determineBondProvider should return the AnVIL BondProvider if the URL host
     t.is(determineBondProvider('drs://gen3.theanvil.io/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0'), BondProviders.ANVIL);
 });
 
-test('determineBondProvider should return the default BondProvider if the URL host is Kids First', (t) => {
+test('determineBondProvider should return the dcf-fence BondProvider if the URL host is Kids First', (t) => {
     t.is(
         determineBondProvider('drs://data.kidsfirstdrc.org/ed6be7ab-068e-46c8-824a-f39cfbb885cc'),
         BondProviders.DCF_FENCE,
@@ -79,7 +79,7 @@ test('determineBondProvider should return the dcf-fence BondProvider if the URL 
 });
 
 test(
-    'determineBondProvider should return the default BondProvider if the URL host is drs.dev.singlecell.gi.ucsc.edu',
+    'determineBondProvider should return the dcf-fence BondProvider if the URL host is drs.dev.singlecell.gi.ucsc.edu',
     (t) => {
         t.is(
             determineBondProvider(
