@@ -204,7 +204,7 @@ function determineDrsType (parsedUrl) {
             DG_EXPANSION_NONE,
             PROTOCOL_PREFIX_DRS,
             AUTH_REQUIRED,
-            BOND_PROVIDER_NONE,
+            BOND_PROVIDER_DCF_FENCE,
         );
     }
 

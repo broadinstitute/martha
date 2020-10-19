@@ -67,14 +67,14 @@ test('determineBondProvider should return the AnVIL BondProvider if the URL host
 test('determineBondProvider should return the default BondProvider if the URL host is Kids First', (t) => {
     t.is(
         determineBondProvider('drs://data.kidsfirstdrc.org/ed6be7ab-068e-46c8-824a-f39cfbb885cc'),
-        BondProviders.default,
+        BondProviders.DCF_FENCE,
     );
 });
 
-test('determineBondProvider should return the default BondProvider if the URL host is CRDC', (t) => {
+test('determineBondProvider should return the dcf-fence BondProvider if the URL host is CRDC', (t) => {
     t.is(
         determineBondProvider('drs://nci-crdc.datacommons.io/0027045b-9ed6-45af-a68e-f55037b5184c'),
-        BondProviders.default,
+        BondProviders.DCF_FENCE,
     );
 });
 
@@ -86,7 +86,7 @@ test(
                 'drs://drs.dev.singlecell.gi.ucsc.edu' +
                 '/bee7a822-ea28-4374-8e18-8b9941392723?version=2019-05-15T205839.080730Z'
             ),
-            BondProviders.default,
+            BondProviders.DCF_FENCE,
         );
     }
 );
