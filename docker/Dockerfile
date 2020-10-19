@@ -1,4 +1,4 @@
-FROM node:12
+FROM node:12-buster
 
 ## Prepare the image
 ENV DEBIAN_FRONTEND noninteractive
