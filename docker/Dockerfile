@@ -1,3 +1,4 @@
+# NOTE: If editing this file then check if cleanup of .trivyignore is needed also!
 FROM node:12-buster
 
 ## Prepare the image
@@ -37,3 +38,14 @@ EXPOSE 8010
 
 ENTRYPOINT ["npm"]
 CMD ["start"]
+
+# Need to update for Trivy found CVE-2019-20367 in libbsd0 0.9.1-2
+# Feel free to remove after upgrading the docker image
+# - https://packages.debian.org/search?keywords=libbsd0
+# - https://security-tracker.debian.org/tracker/CVE-2019-20367
+# NOTE: If removing this block then update/remove .trivyignore also!
+RUN printf "deb http://deb.debian.org/debian testing main\n" >> /etc/apt/sources.list \
+    && printf "deb-src http://deb.debian.org/debian testing main\n" >> /etc/apt/sources.list \
+    && apt-get update \
+    && apt-get -t testing -y install libbsd0=0.10.0-1 \
+    && apt-get clean
