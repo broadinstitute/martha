@@ -39,6 +39,10 @@ function determineBondProvider(urlString) {
         return;
     }
 
+    if (url.hostname.endsWith('.datacommons.io')) {
+        return BondProviders.DCF_FENCE;
+    }
+
     if (hasJadeDataRepoHost(url)) {
         return;
     }
