@@ -395,10 +395,15 @@ test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
         response,
     );
     const result = response.send.lastCall.args[0];
-    t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
-    t.deepEqual({ ...result }, gen3CrdcDrsMarthaResult);
-    t.falsy(result.googleServiceAccount);
+    t.true(getJsonFromApiStub.calledTwice); // Bond was called to get SA key
+    t.deepEqual({ ...result }, gen3CrdcDrsMarthaResult(googleSAKeyObject));
     t.is(response.statusCode, 200);
+    const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
+    const matches = requestedBondUrl.match(bondRegEx);
+    t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
+    const expectedProvider = 'dcf-fence';
+    const actualProvider = matches[2];
+    t.is(actualProvider, expectedProvider);
 });
 
 test.serial('martha_v3 parses BDC response correctly', async (t) => {

@@ -135,14 +135,14 @@ Martha's `martha_v3` implementation translates requests-to and responses-from th
     - Prod host: `gen3.biodatacatalyst.nhlbi.nih.gov`
     - Dev host: `staging.gen3.biodatacatalyst.nhlbi.nih.gov`
     - Martha testing: 🖐 Manual (in production)
-    - Returns Bond SA: Yes, via the [Data Coordination Platform](https://data.humancellatlas.org/about) (DCP)
+    - Returns Bond SA: Yes, Bond provider `dcf-fence`
     - Requires OAuth for metadata: 🔓 No
     - Example: _unknown_
 - ❌ [DataGuids.org](https://dataguids.org/) (drs://dg.4503 in prod and drs://dg.712C in non-prod)
     - Prod host: `gen3.biodatacatalyst.nhlbi.nih.gov`
     - Dev host: `staging.gen3.biodatacatalyst.nhlbi.nih.gov`
     - Martha testing: 🖐 Manual
-    - Returns Bond SA: Yes, via the [Data Commons Framework](https://datascience.cancer.gov/data-commons/data-commons-framework) (DCF)
+    - Returns Bond SA: Yes, Bond provider `fence`
     - Requires OAuth for metadata: 🔓 No
     - Example: `drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0`
 - ❌ The [Analysis, Visualization and Informatics Lab-space](https://www.genome.gov/Funded-Programs-Projects/Computational-Genomics-and-Data-Science-Program/Genomic-Analysis-Visualization-Informatics-Lab-space-AnVIL)
@@ -150,14 +150,14 @@ Martha's `martha_v3` implementation translates requests-to and responses-from th
     - Prod host: `gen3.theanvil.io`
     - Dev host: _unknown_
     - Martha testing: 🚫 Mock only
-    - Returns Bond SA: Yes, via the AnVIL
+    - Returns Bond SA: Yes, Bond provider `anvil`
     - Requires OAuth for metadata: 🔓 No
     - Example: `drs://dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`
 - ❌ [DataGuids.org](https://dataguids.org/) (drs://dataguids.org, but not drs://dg.*)
     - Prod host: `dataguids.org`
     - Dev host: _unknown_
     - Martha testing: 🚫 Mock only
-    - Returns Bond SA: Yes
+    - Returns Bond SA: Yes, Bond provider `dcf-fence`
     - Requires OAuth for metadata: 🔓 No
     - Example: `dos://dataguids.org/a41b0c4f-ebfb-4277-a941-507340dea85d`
 - ❌ [Human Cell Atlas](https://github.com/HumanCellAtlas/data-store) (HCA)
@@ -172,7 +172,7 @@ Martha's `martha_v3` implementation translates requests-to and responses-from th
     - Prod host: _unknown_
     - Dev host: `drs.dev.singlecell.gi.ucsc.edu`
     - Martha testing: 🚫 Mock only
-    - Returns Bond SA: Yes, via the [Data Coordination Platform](https://data.humancellatlas.org/about) (DCP)
+    - Returns Bond SA: Yes, Bond provider `dcf-fence`
     - Requires OAuth for metadata: 🔐 Yes
     - Example:
     `drs://drs.dev.singlecell.gi.ucsc.edu/bee7a822-ea28-4374-8e18-8b9941392723?version=2019-05-15T205839.080730Z`
@@ -180,14 +180,14 @@ Martha's `martha_v3` implementation translates requests-to and responses-from th
     - Prod host: `data.kidsfirstdrc.org`
     - Dev host: _unknown_
     - Martha testing: 🚫 Mock only
-    - Returns Bond SA: Yes, via the [Data Coordination Platform](https://data.humancellatlas.org/about) (DCP)
+    - Returns Bond SA: Yes, Bond provider `dcf-fence`
     - Requires OAuth for metadata: no
     - Example: `drs://data.kidsfirstdrc.org/ed6be7ab-068e-46c8-824a-f39cfbb885cc`
 - ❌ [Cancer Research Data Commons](https://datacommons.cancer.gov/) (CRDC)
     - Prod host: `nci-crdc.datacommons.io`
     - Dev host: `nci-crdc-staging.datacommons.io`
     - Martha testing: 🚫 Mock only
-    - Returns Bond SA: Yes, via the [Data Coordination Platform](https://data.humancellatlas.org/about) (DCP)
+    - Returns Bond SA: Yes, Bond provider `dcf-fence`
     - Requires OAuth for metadata: 🔓 No
     - Example: `drs://nci-crdc.datacommons.io/0027045b-9ed6-45af-a68e-f55037b5184c`
 

@@ -243,7 +243,7 @@ const gen3CrdcResponse = {
     version: "5eb15d8b"
 };
 
-const gen3CrdcDrsMarthaResult = {
+const gen3CrdcDrsMarthaResult = (expectedGoogleServiceAccount) => { return {
     contentType: 'application/json',
     size: 6703858793,
     timeCreated: '2018-06-27T10:28:06.398Z',
@@ -255,13 +255,13 @@ const gen3CrdcDrsMarthaResult = {
     gsUri:
         'gs://gdc-tcga-phs000178-controlled/BRCA/RNA/RNA-Seq/UNC-LCCC/ILLUMINA' +
         '/UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz',
-    googleServiceAccount: null,
+    googleServiceAccount: expectedGoogleServiceAccount,
     bondProvider: null,
     fileName: 'UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz',
     hashes: {
         md5: '2edd5fdb4f1deac4ef2bdf969de9f8ad'
     }
-};
+}; };
 
 // Anvil
 
