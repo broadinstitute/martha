@@ -44,7 +44,7 @@ const mask = require('json-mask');
 const mockRequest = (req) => {
     req.method = 'POST';
     req.headers = { authorization: 'bearer abc123' };
-    if (req.body && req.body.fields === undefined) {
+    if (req.body && typeof req.body.fields === "undefined") {
         req.body.fields = allMarthaFields;
     }
     return req;
