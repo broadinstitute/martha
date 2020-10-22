@@ -31,7 +31,12 @@ const {
 
 const test = require('ava');
 const sinon = require('sinon');
-const { marthaV3Handler: marthaV3, determineDrsType, httpsUrlGenerator } = require('../../martha/martha_v3');
+const {
+    marthaV3Handler: marthaV3,
+    determineDrsType,
+    httpsUrlGenerator,
+    allMarthaFields,
+} = require('../../martha/martha_v3');
 const apiAdapter = require('../../common/api_adapter');
 const config = require('../../common/config');
 const mask = require('json-mask');
@@ -39,6 +44,9 @@ const mask = require('json-mask');
 const mockRequest = (req) => {
     req.method = 'POST';
     req.headers = { authorization: 'bearer abc123' };
+    if (req.body && req.body.fields === undefined) {
+        req.body.fields = allMarthaFields;
+    }
     return req;
 };
 

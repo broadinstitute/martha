@@ -25,6 +25,19 @@ const ALL_FIELDS = [
     "bondProvider",
 ];
 
+const DEFAULT_FIELDS = [
+    "gsUri",
+    "bucket",
+    "name",
+    "fileName",
+    "contentType",
+    "size",
+    "hashes",
+    "timeCreated",
+    "timeUpdated",
+    "googleServiceAccount",
+];
+
 // Response fields dependent on the DOS or DRS servers
 const DRS_FIELDS = [
     "gsUri",
@@ -267,7 +280,7 @@ function overlapFields(requestedFields, serviceFields) {
 }
 
 async function marthaV3Handler(req, res) {
-    const { url: dataObjectUri, fields: requestedFields = ALL_FIELDS } = parseRequest(req);
+    const { url: dataObjectUri, fields: requestedFields = DEFAULT_FIELDS } = parseRequest(req);
     const auth = req && req.headers && req.headers.authorization;
     console.log(`Received URL '${dataObjectUri}' from IP '${req.ip}'`);
 
@@ -333,3 +346,4 @@ async function marthaV3Handler(req, res) {
 exports.marthaV3Handler = marthaV3Handler;
 exports.determineDrsType = determineDrsType;
 exports.httpsUrlGenerator = httpsUrlGenerator;
+exports.allMarthaFields = ALL_FIELDS;
