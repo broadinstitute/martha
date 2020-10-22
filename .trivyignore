@@ -1,0 +1,10 @@
+# NOTE: If editing this file then check if cleanup of docker/Dockerfile is needed also!
+
+# We actually upgrade libbsd0 in docker/Dockerfile so the image should
+# not be vulnerable for this CVE.
+#
+# However, trivy thinks there is no fix available in Debian-buster,
+# so trivy sees buster+libbsd0 and thinks "it must still be vulnerable".
+#
+# https://github.com/aquasecurity/trivy/issues/399#issuecomment-581747772
+CVE-2019-20367
