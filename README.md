@@ -6,23 +6,10 @@ Martha
 Google Cloud Functions for resolving [DOS](https://data-object-service.readthedocs.io/en/latest/) URIs.
 
 # Martha v1
-Removed as of March 2020. Please use Martha v2.
+Removed as of March 2020. Please use Martha v3.
 
 # Martha v2
-To call `martha_v2`, perform an HTTP `POST` to the appropriate URL. The `content-type` of your request should be either
-`application/json` or `application/x-www-form-urlencoded` with the content/body of your request encoded accordingly.
-
-The body of the request must be a JSON Object with one value:
-a [DOS](https://data-object-service.readthedocs.io/en/latest/) URL. You may also specify an `Authorization` header on
-the request with a valid OAuth bearer token. Martha uses the DOS URL to retrieve a data object, unpacks it, and returns
-a JSON Object containing one or two values: the list of URIs where the underlying resource may be accessed, and
-(optionally) the private key information for the
-[Google Service Account](https://cloud.google.com/iam/docs/understanding-service-accounts) that you may use to access
-the underlying resource. The Google Service Account information will only be included in the response if you provided an
-`Authorization` header on your request.
-
-Staging: https://us-central1-broad-dsde-staging.cloudfunctions.net/martha_v2
-Production: https://us-central1-broad-dsde-prod.cloudfunctions.net/martha_v2
+Removed as of November 2020. Please use Martha v3.
 
 # Martha v3
 To call `martha_v3`, perform an HTTP `POST` to the appropriate URL. The `content-type` of your request should be either
