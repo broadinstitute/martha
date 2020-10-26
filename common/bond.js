@@ -1,7 +1,6 @@
 const config = require('../common/config');
 const URL = require('url');
 const { hasJadeDataRepoHost } = require('../common/helpers.js');
-const apiAdapter = require('../common/api_adapter.js');
 
 const BondProviders = Object.freeze({
     FENCE: 'fence',

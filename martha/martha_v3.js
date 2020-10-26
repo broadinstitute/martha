@@ -329,4 +329,4 @@ async function marthaV3Handler(req, res) {
     res.status(200).send(partialResponse);
 }
 
-module.exports = {determineDrsType, httpsUrlGenerator, marthaV3Handler}
+module.exports = {determineDrsType, httpsUrlGenerator, marthaV3Handler};
