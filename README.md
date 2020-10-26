@@ -86,6 +86,7 @@ The fields are:
 - `timeCreated`: The time of creation for the data found at `gsUri`
 - `timeUpdated`: The time of last update for the data found at `gsUri`
 - `googleServiceAccount`: An optional service account that should be used to access the `gsUri`
+- `bondProvider`: An optional Bond provider that may be used to retrieve credentials to access the `gsUri`.
 
 The body of the request JSON object may also contain a key named `fields` with a value of an array of strings. The
 response will only contain the fields listed in the array. The array should only contain field names from the above
@@ -100,13 +101,13 @@ curl \
     --data '{"url": "dos://foo/bar"}'
 ```
 
-Example request to return only `hashes` and `size`:
+Example request to return only `hashes`, `size`, and `bondProvider`:
 ```
 curl \
     localhost:8010/martha_v3 \
     --header 'Authorization: Bearer <token>' \
     --header 'Content-Type: application/json' \
-    --data '{"url": "dos://foo/bar", "fields": ["hashes", "size"]}'
+    --data '{"url": "dos://foo/bar", "fields": ["hashes", "size", "bondProvider"]}'
 ```
 
 **NOTE:**

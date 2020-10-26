@@ -31,7 +31,12 @@ const {
 
 const test = require('ava');
 const sinon = require('sinon');
-const { marthaV3Handler: marthaV3, determineDrsType, httpsUrlGenerator } = require('../../martha/martha_v3');
+const {
+    marthaV3Handler: marthaV3,
+    determineDrsType,
+    httpsUrlGenerator,
+    allMarthaFields,
+} = require('../../martha/martha_v3');
 const apiAdapter = require('../../common/api_adapter');
 const config = require('../../common/config');
 const mask = require('json-mask');
@@ -39,6 +44,9 @@ const mask = require('json-mask');
 const mockRequest = (req) => {
     req.method = 'POST';
     req.headers = { authorization: 'bearer abc123' };
+    if (req.body && typeof req.body.fields === "undefined") {
+        req.body.fields = allMarthaFields;
+    }
     return req;
 };
 
@@ -229,7 +237,7 @@ test.serial('martha_v3 returns an error when an invalid field is requested', asy
                 text:
                     "Request is invalid. Fields 'meaningOfLife' are not supported. Supported fields are " +
                     "'gsUri', 'bucket', 'name', 'fileName', 'contentType', 'size', 'hashes', " +
-                    "'timeCreated', 'timeUpdated', 'googleServiceAccount'.",
+                    "'timeCreated', 'timeUpdated', 'googleServiceAccount', 'bondProvider'.",
             },
             status: 400,
         },
