@@ -22,6 +22,20 @@ const ALL_FIELDS = [
     "timeCreated",
     "timeUpdated",
     "googleServiceAccount",
+    "bondProvider",
+];
+
+const DEFAULT_FIELDS = [
+    "gsUri",
+    "bucket",
+    "name",
+    "fileName",
+    "contentType",
+    "size",
+    "hashes",
+    "timeCreated",
+    "timeUpdated",
+    "googleServiceAccount",
 ];
 
 // Response fields dependent on the DOS or DRS servers
@@ -266,7 +280,7 @@ function overlapFields(requestedFields, serviceFields) {
 }
 
 async function marthaV3Handler(req, res) {
-    const { url: dataObjectUri, fields: requestedFields = ALL_FIELDS } = parseRequest(req);
+    const { url: dataObjectUri, fields: requestedFields = DEFAULT_FIELDS } = parseRequest(req);
     const auth = req && req.headers && req.headers.authorization;
     console.log(`Received URL '${dataObjectUri}' from IP '${req.ip}'`);
 
@@ -323,10 +337,13 @@ async function marthaV3Handler(req, res) {
         }
     }
 
-    const fullResponse = requestedFields.length ? convertToMarthaV3Response(drsResponse, bondSA) : {};
+    const fullResponse = requestedFields.length ? convertToMarthaV3Response(drsResponse, bondProvider, bondSA) : {};
     const partialResponse = mask(fullResponse, requestedFields.join(","));
 
     res.status(200).send(partialResponse);
 }
 
-module.exports = {determineDrsType, httpsUrlGenerator, marthaV3Handler};
+exports.marthaV3Handler = marthaV3Handler;
+exports.determineDrsType = determineDrsType;
+exports.httpsUrlGenerator = httpsUrlGenerator;
+exports.allMarthaFields = ALL_FIELDS;
