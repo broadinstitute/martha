@@ -35,7 +35,7 @@ test('determineBondProvider should be "dcf-fence" if the URL host is "dg.4DFC"',
     t.is(determineBondProvider('drs://dg.4DFC/anything'), BondProviders.DCF_FENCE);
 });
 
-test('determineBondProvider should be "dcf-fence" if the URL host is "dg.F82A1A"', (t) => {
+test('determineBondProvider should not return a provider if the URL host is "dg.F82A1A"', (t) => {
     t.falsy(determineBondProvider('drs://dg.F82A1A/anything'));
 });
 
