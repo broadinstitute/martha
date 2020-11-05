@@ -369,7 +369,7 @@ test('convertToMarthaV3Response should return null for googleServiceAccount if b
 });
 
 function testFailureResponse(t, res, expectedStatus, expectedText) {
-    t.true(FailureResponse.prototype.isPrototypeOf(res.send.firstCall.firstArg));
+    t.true(Object.prototype.isPrototypeOf.call(FailureResponse.prototype, res.send.firstCall.firstArg));
     t.is(res.status.firstCall.firstArg, expectedStatus);
     t.is(res.send.firstCall.firstArg.status, expectedStatus);
     t.is(res.send.firstCall.firstArg.response.status, expectedStatus);

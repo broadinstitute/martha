@@ -145,11 +145,7 @@ function expandCibSuffix(cibHost, cibSuffix, cibSeparator) {
     Search for `%2F` in the Nov 4 version of this doc:
     - https://docs.google.com/document/d/1Wf4enSGOEXD5_AE-uzLoYqjIp5MnePbZ6kYTVFp1WoM/edit?pli=1#heading=h.hrp7xfocdccz
      */
-    if (cibSeparator === '/') {
-        return suffix;
-    } else {
-        return encodeURIComponent(suffix);
-    }
+    return cibSeparator === '/' ? suffix : encodeURIComponent(suffix);
 }
 
 /**
@@ -191,7 +187,6 @@ function getHttpsUrlParts(url) {
         /(?:dos|drs):\/\/(?<host>dg\.[0-9a-z-]+)(?<separator>\/)(?<suffix>[^?]*)(?<query>\?(.*))?/i,
     ];
 
-    // Non-W3C CIB URIs encode the protocol suffix
     const cibRegExp = cibRegExps.find((cibRegExp) => cibRegExp.exec(url));
     if (cibRegExp) {
         const cibMatch = cibRegExp.exec(url);

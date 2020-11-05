@@ -12,7 +12,6 @@
     "smoketest_fileSummaryV1": "ava -m smoketest_fileSummaryV1*",
     "integration": "ava --timeout 10m --match integration*",
     "integration_v2": "ava -m integration_v2*",
-    "test_helper": "ava --match helpers*",
     "integration_v3": "ava --timeout 10m --match integration_v3*",
     "integration_fileSummaryV1": "ava -m integration_fileSummaryV1*",
     "report-coverage": "nyc report --reporter=text-lcov > coverage.lcov"

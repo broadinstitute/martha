@@ -438,17 +438,7 @@ function logAndSendServerError(res, error, description) {
     https://visionmedia.github.io/superagent/#response-text
      */
     if (error.response && error.response.text) {
-        // First get the text
         message = error.response.text;
-        try {
-            // See if the text is actually json with a 'message' itself
-            const messageObject = JSON.parse(error.response.text);
-            if (messageObject.message) {
-                message = messageObject.message;
-            }
-        } catch {
-            /* ignore */
-        }
     }
 
     /*
