@@ -135,3 +135,23 @@ test.serial(
         t.is(fakeSignedUrl, result.url);
     }
 );
+
+test.serial(
+    'getSignedUrlV1 should return error text',
+    async (t) => {
+        const error = new Error('this is a test');
+        error.stack = null;
+        getJsonFromApiStub.rejects(error);
+        const response = mockResponse();
+        await getSignedUrlV1(mockRequest({
+            body: {
+                bucket: 'testBucket',
+                object: 'testObjectKey',
+                dataObjectUri: 'dos://dataguids.org/a41b0c4f-ebfb-4277-a941-507340dea85d'
+            }
+        }), response);
+        t.regex(getJsonFromApiStub.firstCall.args[0], bondSAKeyUrlRegEx); // User SA key obtained from Bond/Fence
+        t.is(response.statusCode, 500);
+        t.is(response.send.lastCall.args[0], 'Error: this is a test');
+    }
+);

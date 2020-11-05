@@ -1,6 +1,24 @@
 const test = require('ava');
-const { dataObjectUriToHttps, jadeDataRepoHostRegex, samBaseUrl, getHashesMap, convertToMarthaV3Response, MarthaV3Response } = require('../../common/helpers');
+const sinon = require('sinon');
+const {
+    dataObjectUriToHttps,
+    jadeDataRepoHostRegex,
+    samBaseUrl,
+    getHashesMap,
+    convertToMarthaV3Response,
+    MarthaV3Response,
+    FailureResponse,
+    logAndSendBadRequest,
+    logAndSendServerError,
+} = require('../../common/helpers');
 const config = require('../../common/config');
+
+const mockResponse = () => {
+    const res = {};
+    res.status = sinon.stub().returns(res);
+    res.send = sinon.stub().returns(res);
+    return res;
+};
 
 /**
  *Begin Scenario 1: data objects uri with non-dg host and path
@@ -63,6 +81,13 @@ test('dataObjectUriToHttps should throw an error when given a "dg.*" host with n
             message: `Data Object URIs with either 'dg.*' or '${jadeDataRepoHostRegex}' as host are required to have a path: "dos://dg.4503"`
         },
         'Should have thrown error but didnt!'
+    );
+});
+
+test('dataObjectUriToHttps should parse "drs://dg.ANV0" Data Object uri', (t) => {
+    t.is(
+        dataObjectUriToHttps('drs://dg.ANV0/bar'),
+        `https://gen3.theanvil.io/ga4gh/dos/v1/dataobjects/dg.ANV0/bar`,
     );
 });
 /**
@@ -341,4 +366,102 @@ test('convertToMarthaV3Response should return null for googleServiceAccount if b
     );
 
     t.deepEqual(convertToMarthaV3Response(mockDrsResponse), expectedResponse);
+});
+
+function testFailureResponse(t, res, expectedStatus, expectedText) {
+    t.true(FailureResponse.prototype.isPrototypeOf(res.send.firstCall.firstArg));
+    t.is(res.status.firstCall.firstArg, expectedStatus);
+    t.is(res.send.firstCall.firstArg.status, expectedStatus);
+    t.is(res.send.firstCall.firstArg.response.status, expectedStatus);
+    t.is(res.send.firstCall.firstArg.response.text, expectedText);
+}
+
+test('helpers logAndSendBadRequest should send failures', (t) => {
+    const res = mockResponse();
+    const error = new Error('this is a test');
+    error.stack = null;
+    logAndSendBadRequest(res, error);
+    testFailureResponse(t, res, 400, 'Request is invalid. this is a test');
+});
+
+test('helpers logAndSendServerError should send a string failure', (t) => {
+    const res = mockResponse();
+    const error = new Error('this is a test');
+    error.stack = null;
+    logAndSendServerError(res, error, 'description');
+    testFailureResponse(t, res, 500, 'description this is a test');
+});
+
+test('helpers logAndSendServerError should send a superagent failure', (t) => {
+    const res = mockResponse();
+    const superAgentFields = {
+        status: 401,
+        response: {
+            req: {
+                method: "GET",
+                url: "http://127.0.0.1:8080/api/link/v1/fence/serviceaccount/key",
+                headers: {
+                    authorization: "foo"
+                }
+            },
+            header: {
+                'content-type': 'application/json',
+                'content-length': '248',
+                'access-control-allow-origin': '*',
+                'server': 'Werkzeug/0.16.0 Python/3.8.6',
+                'date': 'Thu, 05 Nov 2020 02:00:36 GMT'
+            },
+            status: 401,
+            text:
+                '{"error":' +
+                '{"code":401,"errors":[' +
+                '{' +
+                '"domain":"global",' +
+                '"message":"Malformed Authorization header, must be in the form of \\"bearer [token]\\".",' +
+                '"reason":"required"' +
+                '}],' +
+                '"message":"Malformed Authorization header, must be in the form of \\"bearer [token]\\"."}}\n'
+        }
+    };
+    const error = new Error("this is a test");
+    error.stack = null;
+    Object.assign(error, superAgentFields);
+    logAndSendServerError(res, error, 'superagent');
+    testFailureResponse(
+        t,
+        res,
+        401,
+        'superagent Malformed Authorization header, must be in the form of "bearer [token]".',
+    );
+});
+
+test('helpers logAndSendServerError should send a Bond failure', (t) => {
+    const res = mockResponse();
+    const bondErrorJson = {
+        error: {
+            code: 401,
+            errors: [
+                {
+                    domain: 'global',
+                    message:
+                        'Invalid authorization token. ' +
+                        'b\'{\\n  "error": "invalid_token",\\n  "error_description": "Invalid Value"\\n}\\n\'',
+                    reason: 'required'
+                }
+            ],
+            message:
+                'Invalid authorization token. ' +
+                'b\'{\\n  "error": "invalid_token",\\n  "error_description": "Invalid Value"\\n}\\n\''
+        }
+    };
+    const error = new Error(JSON.stringify(bondErrorJson));
+    error.stack = null;
+    logAndSendServerError(res, error, 'Bond');
+    testFailureResponse(
+        t,
+        res,
+        500,
+        'Bond Invalid authorization token. ' +
+        'b\'{\\n  "error": "invalid_token",\\n  "error_description": "Invalid Value"\\n}\\n\'',
+    );
 });

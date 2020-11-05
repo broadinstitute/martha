@@ -9,11 +9,13 @@ const getSignedUrlV1 = promiseHandler(async (req) => {
     const provider = dataObjectUri && determineBondProvider(dataObjectUri);
     try {
         const credentials = provider ?
-            (await apiAdapter.getJsonFrom(`${bondBaseUrl()}/api/link/v1/${provider}/serviceaccount/key`, auth)).data :
+            (await apiAdapter.getJsonFrom(`${bondBaseUrl()}/api/link/v1/${provider}/serviceaccount/key`, 'foo')).data :
             await apiAdapter.getJsonFrom(`${samBaseUrl()}/api/google/v1/user/petServiceAccount/key`, auth);
         const url = await createSignedGsUrl.createSignedGsUrl(credentials, {bucket, name});
         return new Response(200, { url });
     } catch (e) {
+        console.info(typeof e);
+        console.info(JSON.stringify(e, null, '  '));
         throw provider && e.response ? new Response(e.status, JSON.parse(e.response.text).error) : e;
     }
 });
