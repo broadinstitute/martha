@@ -131,7 +131,7 @@ Martha's `martha_v3` implementation translates requests-to and responses-from th
     - Requires OAuth for metadata: 🔐 Yes
     - Example: `drs://jade.datarepo-dev.broadinstitute.org/v1_0c86170e-312d-4b39-a0a4-2a2bfaa24c7a_c0e40912-8b14-43f6-9a2f-b278144d0060`
 - ❌ [DataGuids.org](https://dataguids.org/)
-    (any drs://dg.* other than drs://dg.4503, drs://dg.712C, drs://dg.ANV0, dg.4DFC, drs://dg.F82A1A,
+    (any drs://dg.* other than drs://dg.4503, drs://dg.712C, drs://dg.ANV0, drs://dg.4DFC, drs://dg.F82A1A,
      and not drs://dataguids.org)
     - Prod host: `gen3.biodatacatalyst.nhlbi.nih.gov`
     - Dev host: `staging.gen3.biodatacatalyst.nhlbi.nih.gov`

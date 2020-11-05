@@ -164,7 +164,7 @@ function getHttpsUrlParts(url) {
     - https://broadworkbench.atlassian.net/browse/BT-4?focusedCommentId=35980
     - etc.
 
-    Note: GA4GH CIB URIs are are incompatible with W3C/IETF URIs and the various standard libraries that parse them:
+    Note: GA4GH CIB URIs are incompatible with W3C/IETF URIs and the various standard libraries that parse them:
     - https://en.wikipedia.org/wiki/Uniform_Resource_Identifier#Definition
     - https://tools.ietf.org/html/rfc3986
     - https://cr.openjdk.java.net/~dfuchs/writeups/updating-uri/
