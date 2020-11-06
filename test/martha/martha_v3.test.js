@@ -87,6 +87,11 @@ test.serial('martha_v3 resolves a valid DOS-style url', async (t) => {
     t.true(getJsonFromApiStub.calledTwice); // Bond was called to get SA key
     t.deepEqual({ ...result }, sampleDosMarthaResult(googleSAKeyObject));
     t.is(response.statusCode, 200);
+    t.is(
+        getJsonFromApiStub.firstCall.args[0],
+        'https://abc/ga4gh/dos/v1/dataobjects/123',
+    );
+    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
@@ -109,6 +114,11 @@ test.serial('martha_v3 resolves a valid DRS-style url', async (t) => {
     t.true(getJsonFromApiStub.calledTwice); // Bond was called to get SA key
     t.deepEqual({ ...result }, sampleDosMarthaResult(googleSAKeyObject));
     t.is(response.statusCode, 200);
+    t.is(
+        getJsonFromApiStub.firstCall.args[0],
+        'https://abc/ga4gh/dos/v1/dataobjects/123',
+    );
+    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
@@ -131,6 +141,11 @@ test.serial('martha_v3 resolves successfully and ignores extra data submitted be
     t.true(getJsonFromApiStub.calledTwice); // Bond was called to get SA key
     t.deepEqual({ ...result }, sampleDosMarthaResult(googleSAKeyObject));
     t.is(response.statusCode, 200);
+    t.is(
+        getJsonFromApiStub.firstCall.args[0],
+        'https://abc/ga4gh/dos/v1/dataobjects/123',
+    );
+    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
@@ -156,6 +171,11 @@ test.serial('martha_v3 does not call Bond when only DRS fields are requested', a
     );
     t.falsy(result.googleServiceAccount);
     t.is(response.statusCode, 200);
+    t.is(
+        getJsonFromApiStub.firstCall.args[0],
+        'https://abc/ga4gh/dos/v1/dataobjects/123',
+    );
+    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
 });
 
 test.serial('martha_v3 does not call DRS when only Bond fields are requested', async (t) => {
@@ -211,7 +231,7 @@ test.serial('martha_v3 returns an error when fields is not an array', async (t) 
         {
             response: {
                 status: 400,
-                text: "Request is invalid. Fields was not an array.",
+                text: "Request is invalid. 'fields' was not an array.",
             },
             status: 400,
         },
@@ -264,7 +284,7 @@ test.serial('martha_v3 should return 400 if not given a url', async (t) => {
     const result = response.send.lastCall.args[0];
     t.is(response.statusCode, 400);
     t.is(result.status, 400);
-    t.is(result.response.text, 'Request is invalid. URL of a DRS object is missing.');
+    t.is(result.response.text, "Request is invalid. 'url' is missing.");
 });
 
 test.serial('martha_v3 should return 400 if given a dg URL without a path', async (t) => {
@@ -277,13 +297,23 @@ test.serial('martha_v3 should return 400 if given a dg URL without a path', asyn
     t.is(result.response.text, 'Request is invalid. "dos://dg.abc" is missing a host and/or a path.');
 });
 
+test.serial('martha_v3 should return 400 if given a dg URL with only a path', async (t) => {
+    getJsonFromApiStub.onFirstCall().resolves(sampleDosResponse);
+    const response = mockResponse();
+    await marthaV3(mockRequest({ body: { 'url': 'dos:///dg.abc' } }), response);
+    const result = response.send.lastCall.args[0];
+    t.is(response.statusCode, 400);
+    t.is(result.status, 400);
+    t.is(result.response.text, 'Request is invalid. "dos:///dg.abc" is missing a host and/or a path.');
+});
+
 test.serial('martha_v3 should return 400 if no data is posted with the request', async (t) => {
     const response = mockResponse();
     await marthaV3(mockRequest({}), response);
     const result = response.send.lastCall.args[0];
     t.is(response.statusCode, 400);
     t.is(result.status, 400);
-    t.is(result.response.text, 'Request is invalid. URL of a DRS object is missing.');
+    t.is(result.response.text, "Request is invalid. 'url' is missing.");
 });
 
 test.serial('martha_v3 should return 400 if given a \'url\' with an invalid value', async (t) => {
@@ -367,6 +397,11 @@ test.serial(
         t.true(getJsonFromApiStub.calledTwice); // Bond was called to get SA key
         t.deepEqual({ ...result }, dataGuidsOrgMarthaResult(googleSAKeyObject));
         t.is(response.statusCode, 200);
+        t.is(
+            getJsonFromApiStub.firstCall.args[0],
+            'https://dataguids.org/ga4gh/dos/v1/dataobjects/a41b0c4f-ebfb-4277-a941-507340dea85d',
+        );
+        t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
         const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
         const matches = requestedBondUrl.match(bondRegEx);
         t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
@@ -385,6 +420,11 @@ test.serial('martha_v3 does not call Bond or return SA key when the host url is 
     t.deepEqual({ ...result }, jadeDrsMarthaResult);
     t.falsy(result.googleServiceAccount);
     t.is(response.statusCode, 200);
+    t.is(
+        getJsonFromApiStub.firstCall.args[0],
+        'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/abc',
+    );
+    t.is(getJsonFromApiStub.firstCall.args[1], 'bearer abc123');
 });
 
 test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
@@ -398,6 +438,35 @@ test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
     t.true(getJsonFromApiStub.calledTwice); // Bond was called to get SA key
     t.deepEqual({ ...result }, gen3CrdcDrsMarthaResult(googleSAKeyObject));
     t.is(response.statusCode, 200);
+    t.is(
+        getJsonFromApiStub.firstCall.args[0],
+        'https://nci-crdc-staging.datacommons.io/ga4gh/drs/v1/objects/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
+    );
+    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
+    const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
+    const matches = requestedBondUrl.match(bondRegEx);
+    t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
+    const expectedProvider = 'dcf-fence';
+    const actualProvider = matches[2];
+    t.is(actualProvider, expectedProvider);
+});
+
+test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t) => {
+    getJsonFromApiStub.onFirstCall().resolves(gen3CrdcResponse);
+    const response = mockResponse();
+    await marthaV3(
+        mockRequest({ body: { 'url': 'dos://dg.4DFC:206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc' } }),
+        response,
+    );
+    const result = response.send.lastCall.args[0];
+    t.true(getJsonFromApiStub.calledTwice); // Bond was called to get SA key
+    t.deepEqual({ ...result }, gen3CrdcDrsMarthaResult(googleSAKeyObject));
+    t.is(response.statusCode, 200);
+    t.is(
+        getJsonFromApiStub.firstCall.args[0],
+        'https://nci-crdc.datacommons.io/ga4gh/drs/v1/objects/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
+    );
+    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
@@ -417,6 +486,37 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
     t.true(getJsonFromApiStub.calledTwice); // Bond was called to get SA key
     t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject));
     t.is(response.statusCode, 200);
+    t.is(
+        getJsonFromApiStub.firstCall.args[0],
+        'https://staging.gen3.biodatacatalyst.nhlbi.nih.gov/ga4gh/dos/v1/dataobjects' +
+        '/dg.4503/fc046e84-6cf9-43a3-99cc-ffa2964b88cb',
+    );
+    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
+    const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
+    const matches = requestedBondUrl.match(bondRegEx);
+    t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
+    const expectedProvider = 'fence';
+    const actualProvider = matches[2];
+    t.is(actualProvider, expectedProvider);
+});
+
+test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
+    getJsonFromApiStub.onFirstCall().resolves(bdcDrsResponse);
+    const response = mockResponse();
+    await marthaV3(
+        mockRequest({ body: { 'url': 'drs://dg.712c/fc046e84-6cf9-43a3-99cc-ffa2964b88cb' } }),
+        response,
+    );
+    const result = response.send.lastCall.args[0];
+    t.true(getJsonFromApiStub.calledTwice); // Bond was called to get SA key
+    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject));
+    t.is(response.statusCode, 200);
+    t.is(
+        getJsonFromApiStub.firstCall.args[0],
+        'https://staging.gen3.biodatacatalyst.nhlbi.nih.gov/ga4gh/dos/v1/dataobjects' +
+        '/dg.712c/fc046e84-6cf9-43a3-99cc-ffa2964b88cb',
+    );
+    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
@@ -436,6 +536,35 @@ test.serial('martha_v3 parses Anvil response correctly', async (t) => {
     t.true(getJsonFromApiStub.calledTwice); // Bond was called to get SA key
     t.deepEqual({ ...result }, anvilDrsMarthaResult(googleSAKeyObject));
     t.is(response.statusCode, 200);
+    t.is(
+        getJsonFromApiStub.firstCall.args[0],
+        'https://gen3.theanvil.io/ga4gh/dos/v1/dataobjects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0',
+    );
+    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
+    const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
+    const matches = requestedBondUrl.match(bondRegEx);
+    t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
+    const expectedProvider = 'anvil';
+    const actualProvider = matches[2];
+    t.is(actualProvider, expectedProvider);
+});
+
+test.serial('martha_v3 parses a The AnVIL CIB URI response correctly', async (t) => {
+    getJsonFromApiStub.onFirstCall().resolves(anvilDrsResponse);
+    const response = mockResponse();
+    await marthaV3(
+        mockRequest({ body: { 'url': 'drs://dg.ANV0:dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0' } }),
+        response,
+    );
+    const result = response.send.lastCall.args[0];
+    t.true(getJsonFromApiStub.calledTwice); // Bond was called to get SA key
+    t.deepEqual({ ...result }, anvilDrsMarthaResult(googleSAKeyObject));
+    t.is(response.statusCode, 200);
+    t.is(
+        getJsonFromApiStub.firstCall.args[0],
+        'https://gen3.theanvil.io/ga4gh/dos/v1/dataobjects/dg.ANV0%2F00008531-03d7-418c-b3d3-b7b22b5381a0',
+    );
+    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
@@ -455,6 +584,35 @@ test.serial('martha_v3 parses Kids First response correctly', async (t) => {
     t.true(getJsonFromApiStub.calledTwice); // Bond was called to get SA key
     t.deepEqual({ ...result }, kidsFirstDrsMarthaResult(googleSAKeyObject));
     t.is(response.statusCode, 200);
+    t.is(
+        getJsonFromApiStub.firstCall.args[0],
+        'https://data.kidsfirstdrc.org/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc',
+    );
+    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
+    const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
+    const matches = requestedBondUrl.match(bondRegEx);
+    t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
+    const expectedProvider = 'dcf-fence';
+    const actualProvider = matches[2];
+    t.is(actualProvider, expectedProvider);
+});
+
+test.serial('martha_v3 parses a Kids First CIB URI response correctly', async (t) => {
+    getJsonFromApiStub.onFirstCall().resolves(kidsFirstDrsResponse);
+    const response = mockResponse();
+    await marthaV3(
+        mockRequest({ body: { 'url': 'drs://dg.F82A1A:ed6be7ab-068e-46c8-824a-f39cfbb885cc' } }),
+        response
+    );
+    const result = response.send.lastCall.args[0];
+    t.true(getJsonFromApiStub.calledTwice); // Bond was called to get SA key
+    t.deepEqual({ ...result }, kidsFirstDrsMarthaResult(googleSAKeyObject));
+    t.is(response.statusCode, 200);
+    t.is(
+        getJsonFromApiStub.firstCall.args[0],
+        'https://data.kidsfirstdrc.org/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc',
+    );
+    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
@@ -483,6 +641,12 @@ test.serial('martha_v3 parses HCA response correctly', async (t) => {
     t.deepEqual({ ...result }, hcaDosMarthaResult);
     t.falsy(result.googleServiceAccount);
     t.is(response.statusCode, 200);
+    t.is(
+        getJsonFromApiStub.firstCall.args[0],
+        'https://drs.data.humancellatlas.org/ga4gh/dos/v1/dataobjects' +
+        '/4bb2740b-e6b2-4c99-824e-6963d505cda0?version=2019-05-15T210546.628682Z',
+    );
+    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
 });
 
 test.serial('martha_v3 returns null for fields missing in drs and bond response', async (t) => {
@@ -518,9 +682,8 @@ test.serial('martha_v3 should return 500 if Data Object parsing fails', async (t
 
 // Test utility for generating server URL from a DRS URL
 function determineDrsTypeTestWrapper(testUrl) {
-    const parsedUrl = new URL(testUrl);
-    const { dataGuidExpansion, protocolPrefix } = determineDrsType(parsedUrl);
-    return httpsUrlGenerator(parsedUrl, dataGuidExpansion, protocolPrefix);
+    const drsType = determineDrsType(testUrl);
+    return httpsUrlGenerator(drsType);
 }
 
 /**
@@ -586,30 +749,13 @@ test('determineDrsType should parse "dos://" Data Object uri with an expanded ho
  */
 
 /**
- * determineDrsType(uri) -> drsUrl Scenario 3: data objects uri with non-dg host and NO path
- */
-test('should parse "dos://dg." Data Object uri with only a host part without a path', (t) => {
-    t.is(
-        determineDrsTypeTestWrapper('dos://dg.bAz'),
-        `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/dg.bAz`
-    );
-});
-
-test('should parse "drs://foo-bar.baz" Data Object uri with only a host part without a path', (t) => {
-    t.is(
-        determineDrsTypeTestWrapper('drs://foo-BAR.baz'),
-        `https://foo-BAR.baz/ga4gh/dos/v1/dataobjects/foo-BAR.baz`
-    );
-});
-
-test('should parse "drs://dg." Data Object uri with only a host part with a query part', (t) => {
-    t.is(
-        determineDrsTypeTestWrapper('drs://dg.foo-bar-baz?version=1&bananas=yummy'),
-        `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/dg.foo-bar-baz?version=1&bananas=yummy`
-    );
-});
-/**
- * End Scenario 3
+ * Scenario 3 was all kinds of busted URIs. We have seen ZERO evidence of them IRL / Prod / docs. So no more jumping
+ * through hoops to support hypothetical URIs here in the tests.
+ *
+ * See the Git history for `martha_v2`, latest Martha README, and other tickets for more info/context:
+ * - https://docs.google.com/document/d/1Wf4enSGOEXD5_AE-uzLoYqjIp5MnePbZ6kYTVFp1WoM/edit
+ * - https://broadworkbench.atlassian.net/browse/BT-4?focusedCommentId=35980
+ * - etc.
  */
 
 /**
