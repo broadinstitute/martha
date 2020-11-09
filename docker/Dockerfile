@@ -4,7 +4,7 @@ FROM node:12.19.0-buster
 ## Prepare the image
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update \
-    && apt-get install -y -qq --no-install-recommends unzip \
+    && apt-get install -y -qq --no-install-recommends unzip mariadb-common \
     && apt-get clean
 
 # Install the Google Cloud SDK
