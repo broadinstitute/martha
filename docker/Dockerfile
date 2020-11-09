@@ -4,7 +4,10 @@ FROM node:12.19.0-buster
 ## Prepare the image
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update \
-    && apt-get install -y -qq --no-install-recommends unzip \
+    && apt-get install -y -qq --no-install-recommends \
+    unzip \
+    mariadb-common \
+    libmariadb3 \
     && apt-get clean
 
 # Install the Google Cloud SDK
@@ -41,6 +44,7 @@ CMD ["start"]
 
 # Need to update for Trivy found CVE-2019-20367 in libbsd0 0.9.1-2
 # Feel free to remove after upgrading the docker image to a debian release newer than buster
+# - https://github.com/aquasecurity/trivy/issues/722
 # - https://packages.debian.org/search?keywords=libbsd0
 # - https://security-tracker.debian.org/tracker/CVE-2019-20367
 # NOTE: If removing this block then update/remove .trivyignore also!
