@@ -118,7 +118,8 @@ Martha's `martha_v3` implementation translates requests-to and responses-from th
     - Requires OAuth for metadata: 🔐 Yes
     - Example: `drs://jade.datarepo-dev.broadinstitute.org/v1_0c86170e-312d-4b39-a0a4-2a2bfaa24c7a_c0e40912-8b14-43f6-9a2f-b278144d0060`
 - ❌ [DataGuids.org](https://dataguids.org/)
-    (any drs://dg.* other than drs://dg.4503, drs://dg.712C, drs://dg.ANV0, and not drs://dataguids.org)
+    (any drs://dg.* other than drs://dg.4503, drs://dg.712C, drs://dg.ANV0, drs://dg.4DFC, drs://dg.F82A1A,
+     and not drs://dataguids.org)
     - Prod host: `gen3.biodatacatalyst.nhlbi.nih.gov`
     - Dev host: `staging.gen3.biodatacatalyst.nhlbi.nih.gov`
     - Martha testing: 🖐 Manual (in production)
@@ -164,13 +165,14 @@ Martha's `martha_v3` implementation translates requests-to and responses-from th
     - Example:
     `drs://drs.dev.singlecell.gi.ucsc.edu/bee7a822-ea28-4374-8e18-8b9941392723?version=2019-05-15T205839.080730Z`
 - ❌ [Gabriella Miller Kids First Pediatric Data Resource](https://commonfund.nih.gov/kidsfirst/overview)
+    (drs://dg.F82A1A)
     - Prod host: `data.kidsfirstdrc.org`
     - Dev host: _unknown_
     - Martha testing: 🚫 Mock only
     - Returns Bond SA: Yes, Bond provider `dcf-fence`
-    - Requires OAuth for metadata: no
+    - Requires OAuth for metadata: 🔓 No
     - Example: `drs://data.kidsfirstdrc.org/ed6be7ab-068e-46c8-824a-f39cfbb885cc`
-- ❌ [Cancer Research Data Commons](https://datacommons.cancer.gov/) (CRDC)
+- ❌ [Cancer Research Data Commons](https://datacommons.cancer.gov/) (CRDC, drs://dg.4DFC)
     - Prod host: `nci-crdc.datacommons.io`
     - Dev host: `nci-crdc-staging.datacommons.io`
     - Martha testing: 🚫 Mock only
@@ -183,10 +185,19 @@ Martha's `martha_v3` implementation translates requests-to and responses-from th
 ❌ = Hosts that either a) don't support DRS v1.0, or b) haven't been tested with Martha's `martha_v3` endpoint
 </sup>
 
-Other DRS servers might work with Martha's `martha_v3` endpoint, however only the servers above are officially supported.
+Other DRS servers might work with Martha's `martha_v3` endpoint, however only the servers above are officially
+supported. For more information see these documents:
+
+- [Mapping Data GUIDs to DRS Server
+    Hostnames](https://docs.google.com/document/d/1Sp-FS9v8wIi-85knvrJqrunxq7b_24phu_MFHtdQZB8/edit)
+- [DRS 1.1 Transition within
+    NCPI](https://docs.google.com/document/d/1Wf4enSGOEXD5_AE-uzLoYqjIp5MnePbZ6kYTVFp1WoM/edit)
+- [Getting Through the DRS 1.1 Compact Identifier Transition for
+    Gen3/Terra](https://docs.google.com/document/d/1Sw-XZvIbxjG2w2UYdLwCN7TJ4raKhYLzRrveWaYguGM/edit)
+
 If you have an additional server you'd like to add to Martha, please store the test credentials in Vault and submit a PR
-with both the integration test and updated documentation. If you do not have direct acces to Vault, please contact us
-via [Jira](https://broadworkbench.atlassian.net/projects/WA/issues) to have your test credentials stored. NOTE: You will
+with both the integration test and updated documentation. If you do not have direct access to Vault, please contact us
+via [Jira](https://broadworkbench.atlassian.net/projects/BT/issues) to have your test credentials stored. NOTE: You will
 need to create a free account to access the Jira board.
 
 # File Summary v1

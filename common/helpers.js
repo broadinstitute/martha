@@ -362,14 +362,14 @@ function getGsUrlFromDrsObject(drsResponse) {
  *     systems that do not support updates
  * @param {?string} [bondProvider] The Bond provider
  * @param {?Object} [googleSA] A google service account json
- * @returns {MarthaV3Response} The drs object converted to a martha file info response
+ * @returns {MarthaV3Response} The drs object converted to a martha_v3 response
  */
 function convertToMarthaV3Response(drsResponse, bondProvider, googleSA) {
     const {
         checksums,
-        created_time: createdTime,
         mime_type: mimeType = 'application/octet-stream',
         size: maybeNumberSize,
+        created_time: createdTime,
         updated_time: updatedTime,
         name: maybeFileName,
     } = drsResponse || {};
@@ -431,8 +431,30 @@ function logAndSendServerError(res, error, description) {
     console.error(description);
     console.error(error);
 
+    let message = error.message;
+
+    /*
+    Parse superagent responses
+    https://visionmedia.github.io/superagent/#response-text
+     */
+    if (error.response && error.response.text) {
+        message = error.response.text;
+    }
+
+    /*
+    Parse Bond responses
+     */
+    try {
+        const messageObject = JSON.parse(message);
+        if (messageObject.error && messageObject.error.message) {
+            message = messageObject.error.message;
+        }
+    } catch {
+        /* ignore */
+    }
+
     const errorStatusCode = isNullish(error.status) ? SERVER_ERROR_CODE : error.status;
-    const failureResponse = new FailureResponse(errorStatusCode, `${description} ${error.message}`);
+    const failureResponse = new FailureResponse(errorStatusCode, `${description} ${message}`);
     res.status(errorStatusCode).send(failureResponse);
 }
 

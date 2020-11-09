@@ -10,13 +10,12 @@ const BondProviders = Object.freeze({
         return this.DCF_FENCE;
     }
 });
-
+// CIB URIs via https://docs.google.com/document/d/1Wf4enSGOEXD5_AE-uzLoYqjIp5MnePbZ6kYTVFp1WoM/edit#
 const PROD_DATASTAGE_NAMESPACE = 'dg.4503';
 const STAGING_DATASTAGE_NAMESPACE = 'dg.712c';
 const ANVIL_NAMESPACE = 'dg.anv0';
-const DATASTAGE_NAMESPACES = [PROD_DATASTAGE_NAMESPACE, STAGING_DATASTAGE_NAMESPACE];
-
-const ANVIL_HOSTNAME = 'gen3.theanvil.io';
+const CRDC_NAMESPACE = 'dg.4dfc';
+const KIDS_FIRST_NAMESPACE = 'dg.f82a1a';
 
 const bondBaseUrl = () => config.bondBaseUrl;
 
@@ -24,13 +23,23 @@ const bondBaseUrl = () => config.bondBaseUrl;
 // At some point we expect to have a more sophisticated way to do this, but for now, we have to do it this way.
 // If you update this function update the README too!
 function determineBondProvider(urlString) {
-    const url = URL.parse(urlString);
 
-    if (DATASTAGE_NAMESPACES.includes(url.hostname.toLowerCase())) {
-        return BondProviders.FENCE;
+    const dgRegex = /(?:dos|drs):\/\/(dg.[a-z0-9-]+).*/i;
+    const match = dgRegex.exec(urlString);
+    if (match) {
+        switch (match[1].toLowerCase()) {
+            case PROD_DATASTAGE_NAMESPACE: return BondProviders.FENCE;
+            case STAGING_DATASTAGE_NAMESPACE: return BondProviders.FENCE;
+            case ANVIL_NAMESPACE: return BondProviders.ANVIL;
+            case CRDC_NAMESPACE: return BondProviders.DCF_FENCE;
+            case KIDS_FIRST_NAMESPACE: return;
+            default: return BondProviders.default;
+        }
     }
 
-    if ([ANVIL_NAMESPACE, ANVIL_HOSTNAME].includes(url.hostname.toLowerCase())) {
+    const url = URL.parse(urlString);
+
+    if (url.hostname.endsWith('.theanvil.io')) {
         return BondProviders.ANVIL;
     }
 
