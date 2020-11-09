@@ -525,6 +525,31 @@ test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
     t.is(actualProvider, expectedProvider);
 });
 
+test.serial('martha_v3 parses uppercase BDC staging response correctly', async (t) => {
+    getJsonFromApiStub.onFirstCall().resolves(bdcDrsResponse);
+    const response = mockResponse();
+    await marthaV3(
+        mockRequest({ body: { 'url': 'drs://dg.712C/fc046e84-6cf9-43a3-99cc-ffa2964b88cb' } }),
+        response,
+    );
+    const result = response.send.lastCall.args[0];
+    t.true(getJsonFromApiStub.calledTwice); // Bond was called to get SA key
+    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject));
+    t.is(response.statusCode, 200);
+    t.is(
+        getJsonFromApiStub.firstCall.args[0],
+        'https://staging.gen3.biodatacatalyst.nhlbi.nih.gov/ga4gh/dos/v1/dataobjects' +
+        '/dg.712C/fc046e84-6cf9-43a3-99cc-ffa2964b88cb',
+    );
+    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
+    const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
+    const matches = requestedBondUrl.match(bondRegEx);
+    t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
+    const expectedProvider = 'fence';
+    const actualProvider = matches[2];
+    t.is(actualProvider, expectedProvider);
+});
+
 test.serial('martha_v3 parses Anvil response correctly', async (t) => {
     getJsonFromApiStub.onFirstCall().resolves(anvilDrsResponse);
     const response = mockResponse();
