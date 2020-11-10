@@ -504,7 +504,7 @@ test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
     getJsonFromApiStub.onFirstCall().resolves(bdcDrsResponse);
     const response = mockResponse();
     await marthaV3(
-        mockRequest({ body: { 'url': 'drs://dg.712c/fc046e84-6cf9-43a3-99cc-ffa2964b88cb' } }),
+        mockRequest({ body: { 'url': 'drs://dg.712C/fc046e84-6cf9-43a3-99cc-ffa2964b88cb' } }),
         response,
     );
     const result = response.send.lastCall.args[0];
@@ -514,7 +514,7 @@ test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
     t.is(
         getJsonFromApiStub.firstCall.args[0],
         'https://staging.gen3.biodatacatalyst.nhlbi.nih.gov/ga4gh/dos/v1/dataobjects' +
-        '/dg.712c/fc046e84-6cf9-43a3-99cc-ffa2964b88cb',
+        '/dg.712C/fc046e84-6cf9-43a3-99cc-ffa2964b88cb',
     );
     t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];

@@ -200,7 +200,8 @@ function getHttpsUrlParts(url) {
                 ),
             httpsUrlSearch: cibMatch.groups.query,
             // See `determineDrsType` for more info on this `martha_v2` backwards compatibility
-            httpsUrlMaybeNotBdc: ![DG_COMPACT_BDC_PROD, DG_COMPACT_BDC_STAGING].includes(cibMatch.groups.host),
+            httpsUrlMaybeNotBdc:
+                ![DG_COMPACT_BDC_PROD, DG_COMPACT_BDC_STAGING].includes(cibMatch.groups.host.toLowerCase()),
         };
     }
 
