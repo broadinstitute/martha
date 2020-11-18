@@ -38,6 +38,4 @@ function getServiceAccountKey(url, auth, isDataObject) {
     }
 }
 
-exports.maybeTalkToBond = maybeTalkToBond;
-exports.maybeTalkToSam = maybeTalkToSam;
 exports.getServiceAccountKey = getServiceAccountKey;

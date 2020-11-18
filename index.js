@@ -4,13 +4,12 @@
  */
 
 const corsMiddleware = require('cors')();
-const { marthaV2Handler } = require('./martha/martha_v2');
 const { marthaV3Handler } = require('./martha/martha_v3');
 const { fileSummaryV1Handler } = require('./fileSummaryV1/fileSummaryV1');
 const getSignedUrlV1 = require('./handlers/getSignedUrlV1');
 
 exports.martha_v2 = (req, res) => {
-    corsMiddleware(req, res, () => marthaV2Handler(req, res));
+    corsMiddleware(req, res, () => res.send('function not defined'));
 };
 
 exports.martha_v3 = (req, res) => {
@@ -34,9 +33,6 @@ replaced with the functions-framework. https://github.com/googlearchive/cloud-fu
  */
 exports.index = (req, res) => {
     switch (req.path) {
-        case '/martha_v2':
-        case '/dockerized-martha/us-central1/martha_v2':
-            return exports.martha_v2(req, res);
         case '/martha_v3':
         case '/dockerized-martha/us-central1/martha_v3':
             return exports.martha_v3(req, res);

@@ -83,7 +83,4 @@ function postJsonTo(url, authorization, payload) {
     return postReq.then((response) => response.body);
 }
 
-exports.get = get;
-exports.getHeaders = getHeaders;
-exports.getJsonFrom = getJsonFrom;
-exports.postJsonTo = postJsonTo;
+module.exports = {get, getHeaders, getJsonFrom, postJsonTo};
