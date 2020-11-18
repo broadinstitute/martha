@@ -6,10 +6,10 @@ Martha
 Google Cloud Functions for resolving [DOS](https://data-object-service.readthedocs.io/en/latest/) URIs.
 
 # Martha v1
-Removed as of March 2020. Please use Martha v3.
+Removed as of March 2020; please use Martha v3. [If you are using Terra Notebook Utilities and are not sure about how to use the right endpoint, see this article](https://support.terra.bio/hc/en-us/articles/360052637791-Update-your-Terra-Notebooks-Utilities-for-continued-access-to-data-via-DRS-DOS).
 
 # Martha v2
-Removed as of November 2020. Please use Martha v3.
+Removed as of November 2020; please use Martha v3. [If you are using Terra Notebook Utilities and are not sure about how to use the right endpoint, see this article](https://support.terra.bio/hc/en-us/articles/360052637791-Update-your-Terra-Notebooks-Utilities-for-continued-access-to-data-via-DRS-DOS).
 
 # Martha v3
 To call `martha_v3`, perform an HTTP `POST` to the appropriate URL. The `content-type` of your request should be either
