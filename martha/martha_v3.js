@@ -273,7 +273,7 @@ function determineDrsType(url) {
     if (host === DG_EXPANSION_BDC && !urlParts.httpsUrlMaybeNotBdc) {
         return new DrsType(
             urlParts,
-            PROTOCOL_PREFIX_DOS,
+            PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_FENCE,
         );
@@ -283,7 +283,7 @@ function determineDrsType(url) {
     if (host === DG_EXPANSION_THE_ANVIL) {
         return new DrsType(
             urlParts,
-            PROTOCOL_PREFIX_DOS,
+            PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_ANVIL,
         );
