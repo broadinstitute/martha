@@ -329,11 +329,11 @@ docker \
 
 Running the Integration Tests:
 - After finishing your setup, start your martha emulator in a separate terminal
-  - Start Martha using `ENV=mock npm start`
+  - Start Martha using `ENV=mock npm start`. This will start the functions-framework to listen for requests on port 8010.
   - Console logs will print to the terminal
   - Whenever you make changes you will need to kill and restart Martha
   - Stop Martha using Control-C
-- Run Martha's integration tests via:
+- In a separate terminal window, run Martha's integration tests via:
   - `ENV=mock npm run integration`
 
 ## Deployment and Releasing
