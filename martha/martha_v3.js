@@ -60,6 +60,7 @@ const BOND_PROVIDER_NONE = null; // Used for servers that should NOT contact bon
 const BOND_PROVIDER_DCF_FENCE = 'dcf-fence'; // The default when we don't recognize the server
 const BOND_PROVIDER_FENCE = 'fence';
 const BOND_PROVIDER_ANVIL = 'anvil';
+const ACCESS_METHOD_TYPE_GCS = 'gs';
 
 const AUTH_REQUIRED = true;
 const AUTH_SKIPPED = false;
@@ -82,11 +83,20 @@ const DG_COMPACT_KIDS_FIRST = 'dg.f82a1a';
 
 // noinspection JSUnusedGlobalSymbols
 class DrsType {
-    constructor(urlParts, protocolPrefix, sendAuth, bondProvider) {
+    constructor(urlParts, protocolPrefix, sendAuth, bondProvider, accessMethodType) {
         this.urlParts = urlParts;
         this.protocolPrefix = protocolPrefix;
         this.sendAuth = sendAuth;
         this.bondProvider = bondProvider;
+        this.accessMethodType = accessMethodType;
+    }
+}
+
+function getDrsAccessId(drsResponse) {
+    for (let accessMethod of drsResponse.access_methods) {
+        if (accessMethod.type === ACCESS_METHOD_TYPE_GCS) {
+            return accessMethod.access_id;
+        }
     }
 }
 
@@ -224,6 +234,17 @@ function httpsUrlGenerator(drsType) {
         protocol: 'https',
         hostname: urlParts.httpsUrlHost,
         pathname: `${protocolPrefix}/${urlParts.protocolSuffix}`,
+        port: urlParts.httpsUrlPort,
+        search: urlParts.httpsUrlSearch
+    });
+}
+
+function generateAccessUrl(drsType, accessId) {
+    const { urlParts, protocolPrefix } = drsType;
+    return url.format({
+        protocol: 'https',
+        hostname: urlParts.httpsUrlHost,
+        pathname: `${protocolPrefix}/${urlParts.protocolSuffix}/access/${accessId}`,
         port: urlParts.httpsUrlPort,
         search: urlParts.httpsUrlSearch
     });
