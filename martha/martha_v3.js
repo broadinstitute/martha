@@ -83,12 +83,11 @@ const DG_COMPACT_KIDS_FIRST = 'dg.f82a1a';
 
 // noinspection JSUnusedGlobalSymbols
 class DrsType {
-    constructor(urlParts, protocolPrefix, sendAuth, bondProvider, accessMethodType) {
+    constructor(urlParts, protocolPrefix, sendAuth, bondProvider) {
         this.urlParts = urlParts;
         this.protocolPrefix = protocolPrefix;
         this.sendAuth = sendAuth;
         this.bondProvider = bondProvider;
-        this.accessMethodType = accessMethodType;
     }
 }
 
