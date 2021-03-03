@@ -63,7 +63,16 @@ const mockResponse = () => {
 
 const googleSAKeyObject = { key: 'A Google Service Account private key json object' };
 
+const bondAccessTokenResponse = {
+    token: 'string',
+    expires_at: 'string'
+}
+
+const drsSignedUrlResponse = { url: 'an-example-url' }
+
 const bondRegEx = /^https:\/\/([^/]+)\/api\/link\/v1\/([a-z-]+)\/serviceaccount\/key$/;
+
+const bondAccessTokenRegEx = /^https:\/\/([^/]+)\/api\/link\/v1\/([a-z-]+)\/accesstoken$/;
 
 let getJsonFromApiStub;
 const getJsonFromApiMethodName = 'getJsonFrom';
@@ -476,23 +485,50 @@ test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t)
 });
 
 test.serial('martha_v3 parses BDC response correctly', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(bdcDrsResponse);
+    // Rotated once from Michael Baumann's sequence diagram so that call 0 is the second call down from the top,
+    // call 3 is the top call.
+    // https://lucid.app/lucidchart/428a0bdd-a884-4fc7-9a49-7bf300ef6777/edit?shared=true&page=0_0#
+    getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
+    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.onCall(2).resolves(drsSignedUrlResponse);
+    getJsonFromApiStub.onCall(3).resolves(googleSAKeyObject)
+
     const response = mockResponse();
     await marthaV3(
         mockRequest({ body: { 'url': 'drs://dg.4503/fc046e84-6cf9-43a3-99cc-ffa2964b88cb' } }),
         response,
     );
     const result = response.send.lastCall.args[0];
-    t.true(getJsonFromApiStub.calledTwice); // Bond was called to get SA key
-    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject));
+    // Bond was called twice to get SA key and access token.
+    // DRS server was called twice to get DRS response and signed URL.
+    // 2 + 2 = 4.
+    t.true(getJsonFromApiStub.callCount(4));
+
+    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, drsSignedUrlResponse.url));
     t.is(response.statusCode, 200);
+
     t.is(
-        getJsonFromApiStub.firstCall.args[0],
-        'https://staging.gen3.biodatacatalyst.nhlbi.nih.gov/ga4gh/dos/v1/dataobjects' +
+        getJsonFromApiStub.call(0).args[0],
+        'https://staging.gen3.biodatacatalyst.nhlbi.nih.gov/ga4gh/drs/v1/objects' +
         '/dg.4503/fc046e84-6cf9-43a3-99cc-ffa2964b88cb',
     );
-    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
-    const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
+    t.falsy(getJsonFromApiStub.call(0).args[1]); // no auth passed
+
+    const requestedBondAccessToken = getJsonFromApiStub.call(1).args[0]
+    const accessTokenMatches = requestedBondAccessToken.match(bondAccessTokenRegEx)
+    t.truthy(accessTokenMatches, 'Bond access token URL called does not match Bond access token URL regular expression')
+    const expectedAccessTokenProvider = 'fence';
+    const actualAccessTokenProvider = accessTokenMatches[2];
+    t.is(actualAccessTokenProvider, expectedAccessTokenProvider);
+
+    t.is(
+        getJsonFromApiStub.call(2).args[0],
+    'https://staging.gen3.biodatacatalyst.nhlbi.nih.gov/ga4gh/drs/v1/objects' +
+        '/dg.4503/fc046e84-6cf9-43a3-99cc-ffa2964b88cb/access/gs',
+    );
+    t.falsy(getJsonFromApiStub.call(2).args[1]); // no auth passed
+
+    const requestedBondUrl = getJsonFromApiStub.call(3).args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
     const expectedProvider = 'fence';

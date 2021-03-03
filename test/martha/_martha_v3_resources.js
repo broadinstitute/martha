@@ -401,7 +401,7 @@ const bdcDrsResponse = {
     'version': 'd87455aa'
 };
 
-const bdcDrsMarthaResult = (expectedGoogleServiceAccount) => {
+const bdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedSignedUrl) => {
     return {
         contentType: 'application/json',
         size: 14772393959,
@@ -422,7 +422,7 @@ const bdcDrsMarthaResult = (expectedGoogleServiceAccount) => {
         hashes: {
             md5: 'bb193a5b603ae6ac5eb39890b6ca1bb5'
         },
-        signedUrl: ''
+        signedUrl: expectedSignedUrl
     };
 };
 
