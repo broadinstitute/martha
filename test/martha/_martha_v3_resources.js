@@ -435,7 +435,8 @@ const bdcDrsMarthaResult = (expectedGoogleServiceAccount) => {
         fileName: 'HG02014.final.cram',
         hashes: {
             md5: 'bb193a5b603ae6ac5eb39890b6ca1bb5'
-        }
+        },
+        signedUrl: ''
     };
 };
 
