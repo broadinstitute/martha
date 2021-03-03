@@ -382,7 +382,8 @@ async function marthaV3Handler(req, res) {
 
     const httpsMetadataUrl = httpsUrlGenerator(drsType);
     const {sendAuth, bondProvider} = drsType;
-    const bondUrl = bondProvider && `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
+    const bondSAKeyUrl = bondProvider && `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
+    const bondAccessTokenUrl = bondProvider && `${config.bondBaseUrl}/api/link/v1/${bondProvider}/accesstoken`;
     console.log(
         `Converted DRS URI to HTTPS: ${url} -> ${httpsMetadataUrl} ` +
         `with auth required '${sendAuth}' and bond provider '${bondProvider}'`
@@ -406,10 +407,24 @@ async function marthaV3Handler(req, res) {
         return;
     }
 
-    let bondSA;
-    if (bondUrl && overlapFields(requestedFields, BOND_FIELDS)) {
+    // do more stuff here, i.e. get signed URL
+    // first, fetch access token from bond
+    // TODO: allow this to be not done based on requested data
+    let accessToken;
+    if (bondAccessTokenUrl) {
         try {
-            bondSA = await apiAdapter.getJsonFrom(bondUrl, auth);
+            const accessTokenResponse = await apiAdapter.getJsonFrom(bondAccessTokenUrl, auth);
+            accessToken = accessTokenResponse.token;
+        } catch (error) {
+            logAndSendServerError(res, error, 'Received error contacting Bond.');
+            return;
+        }
+    }
+
+    let bondSA;
+    if (bondSAKeyUrl && overlapFields(requestedFields, BOND_FIELDS)) {
+        try {
+            bondSA = await apiAdapter.getJsonFrom(bondSAKeyUrl, auth);
         } catch (error) {
             logAndSendServerError(res, error, 'Received error contacting Bond.');
             return;
