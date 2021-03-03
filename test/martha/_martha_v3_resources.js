@@ -381,36 +381,24 @@ const kidsFirstDrsMarthaResult = (expectedGoogleServiceAccount) => {
 // BDC
 
 const bdcDrsResponse = {
-    access_methods:
-        [
-            {
-                access_id: "gs",
-                access_url:
-                    {
-                        url: "gs://fc-56ac46ea-efc4-4683-b6d5-6d95bed41c5e/CCDG_13607/Project_CCDG_13607_B01_GRM_WGS.cram.2019-02-06/Sample_HG02014/analysis/HG02014.final.cram"
-                    },
-                region: "",
-                type: "gs"
-            }
-        ],
-    aliases: [],
-    checksums:
-        [
-            {
-                checksum: "bb193a5b603ae6ac5eb39890b6ca1bb5",
-                type: "md5"
-            }
-        ],
-    contents: [],
-    created_time: "2020-01-15T15:35:09.184152",
-    description: "",
-    id: "dg.4503/fc046e84-6cf9-43a3-99cc-ffa2964b88cb",
-    mime_type: "application/json",
-    name: "",
-    self_uri: "drs://gen3.biodatacatalyst.nhlbi.nih.gov/dg.4503/fc046e84-6cf9-43a3-99cc-ffa2964b88cb",
-    size: 14772393959,
-    updated_time: "2020-01-15T15:35:09.184160",
-    version: "f443f632"
+    'access_methods': [{
+        'access_id': 'gs',
+        'access_url': { 'url': 'gs://fc-56ac46ea-efc4-4683-b6d5-6d95bed41c5e/CCDG_13607/Project_CCDG_13607_B01_GRM_WGS.cram.2019-02-06/Sample_HG01131/analysis/HG01131.final.cram.crai' },
+        'region': '', 'type': 'gs'
+    }],
+    'aliases': [],
+    'checksums': [{ 'checksum': '8bec761c8a626356eb34dbdfe20649b4', 'type': 'md5' }],
+    'contents': [],
+    'created_time': '2020-01-15T17:46:25.694142',
+    'description': null,
+    'form': 'object',
+    'id': 'dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+    'mime_type': 'application/json',
+    'name': null,
+    'self_uri': 'drs://staging.gen3.biodatacatalyst.nhlbi.nih.gov/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+    'size': 1386553,
+    'updated_time': '2020-01-15T17:46:25.694148',
+    'version': 'd87455aa'
 };
 
 const bdcDrsMarthaResult = (expectedGoogleServiceAccount) => {
@@ -433,7 +421,8 @@ const bdcDrsMarthaResult = (expectedGoogleServiceAccount) => {
         fileName: 'HG02014.final.cram',
         hashes: {
             md5: 'bb193a5b603ae6ac5eb39890b6ca1bb5'
-        }
+        },
+        signedUrl: ''
     };
 };
 
