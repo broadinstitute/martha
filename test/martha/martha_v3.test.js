@@ -66,7 +66,7 @@ const googleSAKeyObject = { key: 'A Google Service Account private key json obje
 const bondAccessTokenResponse = {
     token: 'string',
     expires_at: 'string'
-}
+};
 
 const drsSignedUrlResponse = { url: 'an-example-url' }
 
