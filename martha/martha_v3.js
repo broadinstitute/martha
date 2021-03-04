@@ -92,7 +92,7 @@ class DrsType {
 }
 
 function getDrsAccessId(drsResponse) {
-    for (let accessMethod of drsResponse.access_methods) {
+    for (const accessMethod of drsResponse.access_methods) {
         if (accessMethod.type === ACCESS_METHOD_TYPE_GCS) {
             return accessMethod.access_id;
         }
@@ -422,9 +422,14 @@ async function marthaV3Handler(req, res) {
         }
     }
 
+    // TODO: should we know from the DrsType whether an `access_id` is expected
+    // -or- should we use the absence of an `access_id` to know we don't need a second DRS server request
+
     let drsResponse;
+    let accessId;
     try {
         drsResponse = responseParser(response);
+        accessId = getDrsAccessId(drsResponse);
     } catch (error) {
         logAndSendServerError(res, error, 'Received error while parsing response from DRS URL.');
         return;
@@ -440,6 +445,19 @@ async function marthaV3Handler(req, res) {
             accessToken = accessTokenResponse.token;
         } catch (error) {
             logAndSendServerError(res, error, 'Received error contacting Bond.');
+            return;
+        }
+    }
+
+    let signedUrl;
+    if (bondAccessTokenUrl && accessId) {
+        try {
+            const httpsAccessUrl = generateAccessUrl(drsType, accessId);
+            const accessTokenAuth = `Bearer: ${accessToken}`;
+            const response = await apiAdapter.getJsonFrom(httpsAccessUrl, accessTokenAuth);
+            signedUrl = response.url;
+        } catch (error) {
+            logAndSendServerError(res, error, 'Received error contacting DRS provider.');
             return;
         }
     }
