@@ -404,23 +404,23 @@ const bdcDrsResponse = {
 const bdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedSignedUrl) => {
     return {
         contentType: 'application/json',
-        size: 14772393959,
-        timeCreated: '2020-01-15T15:35:09.184Z',
-        timeUpdated: '2020-01-15T15:35:09.184Z',
+        size: 1386553,
+        timeCreated: '2020-01-15T17:46:25.694Z',
+        timeUpdated: '2020-01-15T17:46:25.694Z',
         bucket: 'fc-56ac46ea-efc4-4683-b6d5-6d95bed41c5e',
-        name: 'CCDG_13607/Project_CCDG_13607_B01_GRM_WGS.cram.2019-02-06/Sample_HG02014/analysis/HG02014.final.cram',
+        name: 'CCDG_13607/Project_CCDG_13607_B01_GRM_WGS.cram.2019-02-06/Sample_HG01131/analysis/HG01131.final.cram.crai',
         gsUri:
             'gs://fc-56ac46ea-efc4-4683-b6d5-6d95bed41c5e' +
             '/CCDG_13607' +
             '/Project_CCDG_13607_B01_GRM_WGS.cram.2019-02-06' +
-            '/Sample_HG02014' +
+            '/Sample_HG01131' +
             '/analysis' +
-            '/HG02014.final.cram',
+            '/HG01131.final.cram.crai',
         googleServiceAccount: expectedGoogleServiceAccount,
         bondProvider: 'fence',
-        fileName: 'HG02014.final.cram',
+        fileName: 'HG01131.final.cram.crai',
         hashes: {
-            md5: 'bb193a5b603ae6ac5eb39890b6ca1bb5'
+            md5: '8bec761c8a626356eb34dbdfe20649b4'
         },
         signedUrl: expectedSignedUrl
     };

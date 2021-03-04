@@ -23,6 +23,7 @@ const ALL_FIELDS = [
     'timeUpdated',
     'googleServiceAccount',
     'bondProvider',
+    'signedUrl'
 ];
 
 const DEFAULT_FIELDS = [
@@ -293,7 +294,7 @@ function determineDrsType(url) {
     if (host === DG_EXPANSION_BDC && !urlParts.httpsUrlMaybeNotBdc) {
         return new DrsType(
             urlParts,
-            PROTOCOL_PREFIX_DOS,
+            PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_FENCE,
         );
@@ -453,7 +454,7 @@ async function marthaV3Handler(req, res) {
     if (bondAccessTokenUrl && accessId) {
         try {
             const httpsAccessUrl = generateAccessUrl(drsType, accessId);
-            const accessTokenAuth = `Bearer: ${accessToken}`;
+            const accessTokenAuth = `Bearer ${accessToken}`;
             const response = await apiAdapter.getJsonFrom(httpsAccessUrl, accessTokenAuth);
             signedUrl = response.url;
         } catch (error) {
@@ -472,7 +473,7 @@ async function marthaV3Handler(req, res) {
         }
     }
 
-    const fullResponse = requestedFields.length ? convertToMarthaV3Response(drsResponse, bondProvider, bondSA) : {};
+    const fullResponse = requestedFields.length ? convertToMarthaV3Response(drsResponse, bondProvider, bondSA, signedUrl) : {};
     const partialResponse = mask(fullResponse, requestedFields.join(","));
 
     res.status(200).send(partialResponse);

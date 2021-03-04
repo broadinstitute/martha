@@ -64,11 +64,11 @@ const mockResponse = () => {
 const googleSAKeyObject = { key: 'A Google Service Account private key json object' };
 
 const bondAccessTokenResponse = {
-    token: 'string',
-    expires_at: 'string'
+    token: 'my-fake-token',
+    expires_at: 'NEVER'
 };
 
-const drsSignedUrlResponse = { url: 'an-example-url' }
+const drsSignedUrlResponse = { url: 'an-example-url' };
 
 const bondRegEx = /^https:\/\/([^/]+)\/api\/link\/v1\/([a-z-]+)\/serviceaccount\/key$/;
 
@@ -495,7 +495,7 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
 
     const response = mockResponse();
     await marthaV3(
-        mockRequest({ body: { 'url': 'drs://dg.4503/fc046e84-6cf9-43a3-99cc-ffa2964b88cb' } }),
+        mockRequest({ body: { 'url': 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0' } }),
         response,
     );
     const result = response.send.lastCall.args[0];
@@ -508,13 +508,13 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
     t.is(response.statusCode, 200);
 
     t.is(
-        getJsonFromApiStub.call(0).args[0],
+        getJsonFromApiStub.getCall(0).args[0],
         'https://staging.gen3.biodatacatalyst.nhlbi.nih.gov/ga4gh/drs/v1/objects' +
-        '/dg.4503/fc046e84-6cf9-43a3-99cc-ffa2964b88cb',
+        '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
     );
-    t.falsy(getJsonFromApiStub.call(0).args[1]); // no auth passed
+    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
 
-    const requestedBondAccessToken = getJsonFromApiStub.call(1).args[0];
+    const requestedBondAccessToken = getJsonFromApiStub.getCall(1).args[0];
     const accessTokenMatches = requestedBondAccessToken.match(bondAccessTokenRegEx);
     t.truthy(accessTokenMatches, 'Bond access token URL called does not match Bond access token URL regular expression');
     const expectedAccessTokenProvider = 'fence';
@@ -522,13 +522,13 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
     t.is(actualAccessTokenProvider, expectedAccessTokenProvider);
 
     t.is(
-        getJsonFromApiStub.call(2).args[0],
+        getJsonFromApiStub.getCall(2).args[0],
         'https://staging.gen3.biodatacatalyst.nhlbi.nih.gov/ga4gh/drs/v1/objects' +
-        '/dg.4503/fc046e84-6cf9-43a3-99cc-ffa2964b88cb/access/gs',
+        '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0/access/gs',
     );
-    t.is(getJsonFromApiStub.call(2).args[1], bondAccessTokenResponse.token);
+    t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
 
-    const requestedBondUrl = getJsonFromApiStub.call(3).args[0];
+    const requestedBondUrl = getJsonFromApiStub.getCall(3).args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
     const expectedProvider = 'fence';
