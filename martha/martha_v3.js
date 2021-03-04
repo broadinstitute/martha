@@ -23,6 +23,7 @@ const ALL_FIELDS = [
     'timeUpdated',
     'googleServiceAccount',
     'bondProvider',
+    'signedUrl'
 ];
 
 const DEFAULT_FIELDS = [
@@ -450,7 +451,7 @@ async function marthaV3Handler(req, res) {
     if (bondAccessTokenUrl && accessId) {
         try {
             const httpsAccessUrl = generateAccessUrl(drsType, accessId);
-            const accessTokenAuth = `Bearer: ${accessToken}`;
+            const accessTokenAuth = `Bearer ${accessToken}`;
             const response = await apiAdapter.getJsonFrom(httpsAccessUrl, accessTokenAuth);
             signedUrl = response.url;
         } catch (error) {
@@ -469,7 +470,7 @@ async function marthaV3Handler(req, res) {
         }
     }
 
-    const fullResponse = requestedFields.length ? convertToMarthaV3Response(drsResponse, bondProvider, bondSA) : {};
+    const fullResponse = requestedFields.length ? convertToMarthaV3Response(drsResponse, bondProvider, bondSA, signedUrl) : {};
     const partialResponse = mask(fullResponse, requestedFields.join(","));
 
     res.status(200).send(partialResponse);
