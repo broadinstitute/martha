@@ -84,6 +84,7 @@ const sampleDosMarthaResult = (expectedGoogleServiceAccount) => {
         googleServiceAccount: expectedGoogleServiceAccount,
         bondProvider: 'dcf-fence',
         fileName: 'my_data',
+        signedUrl: null,
         hashes: {
             md5: '336ea55913bc261b72875bd259753046',
             sha256: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44',
