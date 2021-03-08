@@ -549,7 +549,7 @@ test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
     t.is(response.statusCode, 200);
     t.is(
         getJsonFromApiStub.firstCall.args[0],
-        'https://staging.gen3.biodatacatalyst.nhlbi.nih.gov/ga4gh/dos/v1/dataobjects' +
+        'https://staging.gen3.biodatacatalyst.nhlbi.nih.gov/ga4gh/drs/v1/objects' +
         '/dg.712C/fc046e84-6cf9-43a3-99cc-ffa2964b88cb',
     );
     t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
@@ -574,7 +574,7 @@ test.serial('martha_v3 parses Anvil response correctly', async (t) => {
     t.is(response.statusCode, 200);
     t.is(
         getJsonFromApiStub.firstCall.args[0],
-        'https://gen3.theanvil.io/ga4gh/dos/v1/dataobjects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0',
+        'https://gen3.theanvil.io/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0',
     );
     t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
@@ -598,7 +598,7 @@ test.serial('martha_v3 parses a The AnVIL CIB URI response correctly', async (t)
     t.is(response.statusCode, 200);
     t.is(
         getJsonFromApiStub.firstCall.args[0],
-        'https://gen3.theanvil.io/ga4gh/dos/v1/dataobjects/dg.ANV0%2F00008531-03d7-418c-b3d3-b7b22b5381a0',
+        'https://gen3.theanvil.io/ga4gh/drs/v1/objects/dg.ANV0%2F00008531-03d7-418c-b3d3-b7b22b5381a0',
     );
     t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
@@ -774,10 +774,10 @@ test('determineDrsType should parse "drs://dg." Data Object uri with query part'
     );
 });
 
-test('determineDrsType should parse "dos://" Data Object uri with an expanded host and path', (t) => {
+test('determineDrsType should parse "drs://" Data Object uri with an expanded host and path', (t) => {
     t.is(
         determineDrsTypeTestWrapper(`dos://${config.dataObjectResolutionHost}/dg.2345/bar`),
-        `https://${config.dataObjectResolutionHost}/ga4gh/dos/v1/dataobjects/dg.2345/bar`
+        `https://${config.dataObjectResolutionHost}/ga4gh/drs/v1/objects/dg.2345/bar`
     );
 });
 /**
@@ -834,14 +834,14 @@ test('should parse Data Object uri with host that looks like jade data repo host
 test('should parse Data Object uri with the AnVIL prefix dg.ANV0', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0'),
-        'https://gen3.theanvil.io/ga4gh/dos/v1/dataobjects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0',
+        'https://gen3.theanvil.io/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0',
     );
 });
 
 test('should parse Data Object uri with the AnVIL host', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://gen3.theanvil.io/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0'),
-        'https://gen3.theanvil.io/ga4gh/dos/v1/dataobjects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0',
+        'https://gen3.theanvil.io/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0',
     );
 });
 /**
