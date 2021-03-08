@@ -88,12 +88,13 @@ test.serial.afterEach(() => {
     sandbox.restore();
 });
 
+// Test the "default" case because we don't know who you are.
 test.serial('martha_v3 resolves a valid DOS-style url', async (t) => {
     getJsonFromApiStub.onFirstCall().resolves(sampleDosResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
     const result = response.send.lastCall.args[0];
-    t.is(getJsonFromApiStub.callCount, 4); // Bond was called to get SA key
+    t.is(getJsonFromApiStub.callCount, 2); // Bond was called to get SA key
     t.deepEqual({ ...result }, sampleDosMarthaResult(googleSAKeyObject));
     t.is(response.statusCode, 200);
     t.is(
