@@ -10,7 +10,22 @@ const apiAdapter = require('../common/api_adapter');
 const url = require('url');
 const mask = require('json-mask');
 
-// All fields that can be returned in the martha_v3 response
+// Fields Martha returns for legacy DOS servers.
+const ALL_FIELDS_DOS = [
+    'gsUri',
+    'bucket',
+    'name',
+    'fileName',
+    'contentType',
+    'size',
+    'hashes',
+    'timeCreated',
+    'timeUpdated',
+    'googleServiceAccount',
+    'bondProvider'
+];
+
+// All fields that can be returned in the martha_v3 response.
 const ALL_FIELDS = [
     'gsUri',
     'bucket',
@@ -481,3 +496,4 @@ exports.marthaV3Handler = marthaV3Handler;
 exports.determineDrsType = determineDrsType;
 exports.httpsUrlGenerator = httpsUrlGenerator;
 exports.allMarthaFields = ALL_FIELDS;
+exports.allMarthaFieldsDos = ALL_FIELDS_DOS;
