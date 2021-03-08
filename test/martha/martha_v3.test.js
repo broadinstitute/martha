@@ -93,7 +93,7 @@ test.serial('martha_v3 resolves a valid DOS-style url', async (t) => {
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
     const result = response.send.lastCall.args[0];
-    t.true(getJsonFromApiStub.calledTwice); // Bond was called to get SA key
+    t.is(getJsonFromApiStub.callCount, 4); // Bond was called to get SA key
     t.deepEqual({ ...result }, sampleDosMarthaResult(googleSAKeyObject));
     t.is(response.statusCode, 200);
     t.is(
