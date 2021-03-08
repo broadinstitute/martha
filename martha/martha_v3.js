@@ -92,6 +92,7 @@ class DrsType {
     }
 }
 
+/* Returns undefined if the matching access method does not have an access_id. */
 function getDrsAccessId(drsResponse) {
     for (const accessMethod of drsResponse.access_methods) {
         if (accessMethod.type === ACCESS_METHOD_TYPE_GCS) {
@@ -440,7 +441,7 @@ async function marthaV3Handler(req, res) {
     // first, fetch access token from bond
     // TODO: allow this to be not done based on requested data
     let accessToken;
-    if (bondAccessTokenUrl) {
+    if (bondAccessTokenUrl && accessId) {
         try {
             const accessTokenResponse = await apiAdapter.getJsonFrom(bondAccessTokenUrl, auth);
             accessToken = accessTokenResponse.token;
