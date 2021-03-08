@@ -36,7 +36,6 @@ const {
     determineDrsType,
     httpsUrlGenerator,
     allMarthaFields,
-    allMarthaFieldsDos
 } = require('../../martha/martha_v3');
 const apiAdapter = require('../../common/api_adapter');
 const config = require('../../common/config');
@@ -93,7 +92,7 @@ test.serial.afterEach(() => {
 test.serial('martha_v3 resolves a valid DOS-style url', async (t) => {
     getJsonFromApiStub.onFirstCall().resolves(sampleDosResponse);
     const response = mockResponse();
-    await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }, allMarthaFieldsDos), response);
+    await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
     const result = response.send.lastCall.args[0];
     t.is(getJsonFromApiStub.callCount, 2); // Bond was called to get SA key
     t.deepEqual({ ...result }, sampleDosMarthaResult(googleSAKeyObject));
