@@ -8,7 +8,7 @@ Martha Release Checklist
 
 ## Steps
 
-[ ] Create a Github ticket for Martha release and copy this checklist there.
+- [ ] Create a Github ticket for Martha release and copy this checklist there.  
 [ ] Create a git tag for the new version of Martha to be deployed and push it to the github repo (if done locally).
     - e.g.: `git tag -a 1.5.2 -m "1.5.2"`
     - [tags for past releases](https://github.com/broadinstitute/martha/releases) to figure out what the last tag was
@@ -55,7 +55,7 @@ Martha Release Checklist
           }
         }
         ```
-[ ] Deploy and test on prod (including manual test)
+[] Deploy and test on prod (including manual test)
      1. Go to the [Jenkins prod manual deploy project](https://fcprod-jenkins.dsp-techops.broadinstitute.org/job/martha-manual-deploy/) and click on the "Build with Parameters" link.  For the parameters, you want to select the tag you just created (you shouldn't have a choice for TARGET).  Do not proceed until the job ends successfully.
          - You will need to be on the Broad network in order to have access.
      1. [Run the full manual test on the prod environment](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng)
