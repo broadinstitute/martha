@@ -69,10 +69,13 @@ const PROTOCOL_PREFIX_DRS='/ga4gh/drs/v1/objects';
 
 // TODO: Does dataguids.org actually have a resolution API??
 // Until we figure that out, we'll try to re-implement the mappings we know about here.
-const DG_EXPANSION_BDC = config.dataObjectResolutionHost;
-const DG_EXPANSION_THE_ANVIL = 'gen3.theanvil.io';
-const DG_EXPANSION_CRDC = 'nci-crdc.datacommons.io';
-const DG_EXPANSION_KIDS_FIRST = 'data.kidsfirstdrc.org';
+const {
+    bioDataCatalyst: DG_EXPANSION_BDC,
+    theAnvil: DG_EXPANSION_THE_ANVIL,
+    crdc: DG_EXPANSION_CRDC,
+    kidsFirst: DG_EXPANSION_KIDS_FIRST
+} = config.dataObjectResolutionHost;
+
 // CIB URIs via https://docs.google.com/document/d/1Wf4enSGOEXD5_AE-uzLoYqjIp5MnePbZ6kYTVFp1WoM/edit#
 const DG_COMPACT_BDC_PROD = 'dg.4503';
 const DG_COMPACT_BDC_STAGING = 'dg.712c';
