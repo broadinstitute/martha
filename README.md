@@ -149,7 +149,7 @@ Martha's `martha_v3` implementation translates requests-to and responses-from th
 - ❌ The [Analysis, Visualization and Informatics Lab-space](https://www.genome.gov/Funded-Programs-Projects/Computational-Genomics-and-Data-Science-Program/Genomic-Analysis-Visualization-Informatics-Lab-space-AnVIL)
     (The AnVIL, dg.ANV0)
     - Prod host: `gen3.theanvil.io`
-    - Dev host: _unknown_
+    - Dev host: `staging.theanvil.io`
     - Martha testing: 🚫 Mock only
     - Returns Bond SA: Yes, Bond provider `anvil`
     - Requires OAuth for metadata: 🔓 No
@@ -180,7 +180,7 @@ Martha's `martha_v3` implementation translates requests-to and responses-from th
 - ❌ [Gabriella Miller Kids First Pediatric Data Resource](https://commonfund.nih.gov/kidsfirst/overview)
     (drs://dg.F82A1A)
     - Prod host: `data.kidsfirstdrc.org`
-    - Dev host: _unknown_
+    - Dev host: `gen3staging.kidsfirstdrc.org`
     - Martha testing: 🚫 Mock only
     - Returns Bond SA: Yes, Bond provider `dcf-fence`
     - Requires OAuth for metadata: 🔓 No
