@@ -9,15 +9,15 @@ Martha Release Checklist
 ## Steps
 
 - [ ] Create a Github ticket for Martha release and copy this checklist there.  
-[ ] Create a git tag for the new version of Martha to be deployed and push it to the github repo (if done locally).
-    - e.g.: `git tag -a 1.5.2 -m "1.5.2"`
-    - [tags for past releases](https://github.com/broadinstitute/martha/releases) to figure out what the last tag was
-    - [compare the latest code with the last version](https://github.com/broadinstitute/martha/compare) to figure out what the next tag should be using [semantic versioning](https://semver.org/)
-    - [if you're looking for even more info on tags](https://git-scm.com/book/en/v2/Git-Basics-Tagging#_creating_tags) 
-[ ] This should trigger a Circle CI build of a docker image with that new tag as its name. Confirm that this has happened
-   by listing the google tags.
-    - Run: `gcloud container images describe us.gcr.io/broad-dsp-gcr-public/martha:<tag>`
-    - e.g.: `gcloud container images describe us.gcr.io/broad-dsp-gcr-public/martha:1.5.2`
+- [ ] Create a git tag for the new version of Martha to be deployed and push it to the github repo (if done locally).  
+    - e.g.: `git tag -a 1.5.2 -m "1.5.2"`  
+    - [tags for past releases](https://github.com/broadinstitute/martha/releases) to figure out what the last tag was  
+    - [compare the latest code with the last version](https://github.com/broadinstitute/martha/compare) to figure out what the next tag should be using [semantic versioning](https://semver.org/)  
+    - [if you're looking for even more info on tags](https://git-scm.com/book/en/v2/Git-Basics-Tagging#_creating_tags)  
+- [ ] This should trigger a Circle CI build of a docker image with that new tag as its name. Confirm that this has happened
+   by listing the google tags.  
+    - Run: `gcloud container images describe us.gcr.io/broad-dsp-gcr-public/martha:<tag>`  
+    - e.g.: `gcloud container images describe us.gcr.io/broad-dsp-gcr-public/martha:1.5.2`  
 [ ] Deploy and test on dev (including manual test)
     1. Go to the [Jenkins manual deploy project](https://fc-jenkins.dsp-techops.broadinstitute.org/job/martha-manual-deploy/) and click on the "Build with Parameters" link.  For the parameters, you want to select the tag you just created and "dev" as the TARGET.  Do not proceed until the job ends successfully.
         - You will need to be on the Broad network in order to have access.
