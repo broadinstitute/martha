@@ -85,7 +85,7 @@ test.cb('smoketest_v3 fails when unauthorized user is resolving jade data repo u
         .set('Authorization', `Bearer y29.abc.123-456`)
         .send({ url: jdrDevTestUrl })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 500, 'This user should be unauthorized in Jade Data Repo');
+            assert.strictEqual(response.statusCode, 401, 'This user should be unauthorized in Jade Data Repo');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
