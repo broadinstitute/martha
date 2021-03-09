@@ -197,13 +197,15 @@ test.serial('martha_v3 does not call DRS when only Bond fields are requested', a
             fields: ['googleServiceAccount'],
         }
     }), response);
+    // TODO: Move all status code checks directly after call to marthaV3()
+    t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
-    t.true(getJsonFromApiStub.calledOnce); // DRS was not called
+    // TODO: Use sinon.asert instead of .calledOnce AND .callCount() (or whatever it was called)
+    sinon.assert.callCount(getJsonFromApiStub, 1); // DRS was not called
     t.deepEqual(
         { ...result },
         mask(sampleDosMarthaResult(googleSAKeyObject), 'googleServiceAccount'),
     );
-    t.is(response.statusCode, 200);
     const requestedBondUrl = getJsonFromApiStub.firstCall.args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');

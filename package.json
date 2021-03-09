@@ -7,7 +7,7 @@
     "start": "functions-framework --target=index --port=8010",
     "test": "./minnie-kenny.sh && nyc --reporter=html --reporter=text ava -m !smoketest* -m !live_test* -m !integration*",
     "mobTest": "ava -m 'martha_v3 parses BDC response correctly' # TODO: delete this before merging!",
-    "mobCurrent": "ava -m 'martha_v3 resolves a valid DOS-style url' # TODO: delete this before merging!",
+    "mobCurrent": "ava -m 'martha_v3 does not call DRS when only Bond fields are requested' # TODO: delete this before merging!",
     "smoketest": "ava --timeout 10m --match smoketest*",
     "smoketest_v2": "ava -m smoketest_v2*",
     "smoketest_v3": "ava --timeout 10m --match smoketest_v3*",
