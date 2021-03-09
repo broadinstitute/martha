@@ -258,7 +258,7 @@ test.cb('integration_v3 fails when unauthorized user is resolving jade data repo
         .set('Authorization', `Bearer ${unauthorizedToken}`)
         .send({ url: jdrDevTestUrl })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 500, 'This user should be unauthorized in Jade Data Repo');
+            assert.strictEqual(response.statusCode, 401, 'This user should be unauthorized in Jade Data Repo');
         })
         .end((error, response) => {
             if (error) { t.log(response.body); }
