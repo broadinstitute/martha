@@ -55,7 +55,7 @@ Martha Release Checklist
           }
         }
         ```
-- [] Deploy and test on prod (including manual test)  
+- [ ] Deploy and test on prod (including manual test)  
      1. Go to the [Jenkins prod manual deploy project](https://fcprod-jenkins.dsp-techops.broadinstitute.org/job/martha-manual-deploy/) and click on the "Build with Parameters" link.  For the parameters, you want to select the tag you just created (you shouldn't have a choice for TARGET).  Do not proceed until the job ends successfully.  
          - You will need to be on the Broad network in order to have access.  
      1. [Run the full manual test on the prod environment](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng)  
