@@ -272,7 +272,7 @@ function generateAccessUrl(drsType, accessId) {
 
 function responseParser (response) {
     // If this is not a DOS response, assume it's already DRS and return it.
-    if (!response || !response.data_object) { return response; }
+    if (!response.data_object) { return response; }
 
     // Otherwise, find the DOS fields and convert them to DRS.
     const {
@@ -444,12 +444,14 @@ async function marthaV3Handler(req, res) {
 
     let drsResponse;
     let accessId;
-    try {
-        drsResponse = responseParser(response);
-        accessId = getDrsAccessId(drsResponse);
-    } catch (error) {
-        logAndSendServerError(res, error, 'Received error while parsing response from DRS URL.');
-        return;
+    if (response) {
+        try {
+            drsResponse = responseParser(response);
+            accessId = getDrsAccessId(drsResponse);
+        } catch (error) {
+            logAndSendServerError(res, error, 'Received error while parsing response from DRS URL.');
+            return;
+        }
     }
 
     // do more stuff here, i.e. get signed URL
