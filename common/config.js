@@ -33,6 +33,8 @@ const configDefaults = {
                 default: return `https://broad-bond-${dsdeEnv}.appspot.com`;
             }
         })(),
+    // MLC could use some navigator-type advice on what this should look like in the post-BT-163 world.
+    // I made some assumptions in the config.json.ctmpl that I am no longer so confident about.
     dataObjectResolutionHost:
         (() => {
             // noinspection JSUnreachableSwitchBranches
