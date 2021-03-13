@@ -42,6 +42,7 @@ const configDefaults = {
                 default: return 'staging.gen3.biodatacatalyst.nhlbi.nih.gov';
             }
         })(),
+    // MLC add the BT-163 non-prod hosts here as per the `dataObjectResolutionHost` case above.
     itMarthaBaseUrl:
         (() => {
             // noinspection JSUnreachableSwitchBranches
