@@ -631,22 +631,24 @@ test.serial('martha_v3 parses a The AnVIL CIB URI response correctly', async (t)
 });
 
 test.serial('martha_v3 parses Kids First response correctly', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(kidsFirstDrsResponse);
+    getJsonFromApiStub.onCall(0).resolves(kidsFirstDrsResponse);
+    getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
     const response = mockResponse();
     await marthaV3(
         mockRequest({ body: { 'url': 'drs://data.kidsfirstdrc.org/ed6be7ab-068e-46c8-824a-f39cfbb885cc' } }),
         response
     );
-    const result = response.send.lastCall.args[0];
-    t.true(getJsonFromApiStub.calledTwice); // Bond was called to get SA key
-    t.deepEqual({ ...result }, kidsFirstDrsMarthaResult(googleSAKeyObject));
     t.is(response.statusCode, 200);
+
+    const result = response.send.lastCall.args[0];
+    sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
+    t.deepEqual({ ...result }, kidsFirstDrsMarthaResult(googleSAKeyObject));
     t.is(
         getJsonFromApiStub.firstCall.args[0],
         'https://data.kidsfirstdrc.org/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc',
     );
     t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
-    const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
+    const requestedBondUrl = getJsonFromApiStub.getCall(1).args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
     const expectedProvider = 'dcf-fence';
@@ -655,22 +657,24 @@ test.serial('martha_v3 parses Kids First response correctly', async (t) => {
 });
 
 test.serial('martha_v3 parses a Kids First CIB URI response correctly', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(kidsFirstDrsResponse);
+    getJsonFromApiStub.onCall(0).resolves(kidsFirstDrsResponse);
+    getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
     const response = mockResponse();
     await marthaV3(
         mockRequest({ body: { 'url': 'drs://dg.F82A1A:ed6be7ab-068e-46c8-824a-f39cfbb885cc' } }),
         response
     );
-    const result = response.send.lastCall.args[0];
-    t.true(getJsonFromApiStub.calledTwice); // Bond was called to get SA key
-    t.deepEqual({ ...result }, kidsFirstDrsMarthaResult(googleSAKeyObject));
     t.is(response.statusCode, 200);
+
+    const result = response.send.lastCall.args[0];
+    sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
+    t.deepEqual({ ...result }, kidsFirstDrsMarthaResult(googleSAKeyObject));
     t.is(
         getJsonFromApiStub.firstCall.args[0],
         'https://data.kidsfirstdrc.org/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc',
     );
     t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
-    const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
+    const requestedBondUrl = getJsonFromApiStub.getCall(1).args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
     const expectedProvider = 'dcf-fence';
