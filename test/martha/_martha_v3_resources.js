@@ -255,6 +255,7 @@ const gen3CrdcDrsMarthaResult = (expectedGoogleServiceAccount) => { return {
     name:
         'BRCA/RNA/RNA-Seq/UNC-LCCC/ILLUMINA' +
         '/UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz',
+    signedUrl: 'an-example-url',
     gsUri:
         'gs://gdc-tcga-phs000178-controlled/BRCA/RNA/RNA-Seq/UNC-LCCC/ILLUMINA' +
         '/UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz',

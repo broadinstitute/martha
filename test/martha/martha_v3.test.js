@@ -200,7 +200,7 @@ test.serial('martha_v3 does not call DRS when only Bond fields are requested', a
     // TODO: Move all status code checks directly after call to marthaV3()
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
-    // TODO: Use sinon.asert instead of .calledOnce AND .callCount() (or whatever it was called)
+    // TODO: Use sinon.assert instead of .calledOnce AND .callCount() (or whatever it was called)
     sinon.assert.callCount(getJsonFromApiStub, 1); // DRS was not called
     t.deepEqual(
         { ...result },
@@ -440,22 +440,25 @@ test.serial('martha_v3 does not call Bond or return SA key when the host url is 
 });
 
 test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(gen3CrdcResponse);
+    getJsonFromApiStub.onCall(0).resolves(gen3CrdcResponse);
+    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.onCall(2).resolves(drsSignedUrlResponse);
+    getJsonFromApiStub.onCall(3).resolves(googleSAKeyObject);
     const response = mockResponse();
     await marthaV3(
         mockRequest({ body: { 'url': 'dos://nci-crdc-staging.datacommons.io/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc' } }),
         response,
     );
-    const result = response.send.lastCall.args[0];
-    t.true(getJsonFromApiStub.calledTwice); // Bond was called to get SA key
-    t.deepEqual({ ...result }, gen3CrdcDrsMarthaResult(googleSAKeyObject));
     t.is(response.statusCode, 200);
+    const result = response.send.lastCall.args[0];
+    sinon.assert.callCount(getJsonFromApiStub, 4); // Bond was called to get SA key
+    t.deepEqual({ ...result }, gen3CrdcDrsMarthaResult(googleSAKeyObject));
     t.is(
         getJsonFromApiStub.firstCall.args[0],
         'https://nci-crdc-staging.datacommons.io/ga4gh/drs/v1/objects/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
     );
     t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
-    const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
+    const requestedBondUrl = getJsonFromApiStub.getCall(3).args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
     const expectedProvider = 'dcf-fence';
