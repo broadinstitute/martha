@@ -132,6 +132,7 @@ const dataGuidsOrgMarthaResult = (expectedGoogleServiceAccount) => {
         timeUpdated: '2018-06-26T18:53:21.416Z',
         bucket: 'gdc-tcga-phs000178-open',
         name: 'a41b0c4f-ebfb-4277-a941-507340dea85d/nationwidechildrens.org_clinical.TCGA-56-A4BY.xml',
+        signedUrl: null,
         gsUri:
             'gs://gdc-tcga-phs000178-open/a41b0c4f-ebfb-4277-a941-507340dea85d' +
             '/nationwidechildrens.org_clinical.TCGA-56-A4BY.xml',
