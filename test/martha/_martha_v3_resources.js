@@ -304,7 +304,7 @@ const anvilDrsResponse = {
     version: "0a4262ff"
 };
 
-const anvilDrsMarthaResult = (expectedGoogleServiceAccount) => {
+const anvilDrsMarthaResult = (expectedGoogleServiceAccount, expectedSignedUrl) => {
     return {
         contentType: 'application/json',
         size: 143562155,
@@ -314,6 +314,7 @@ const anvilDrsMarthaResult = (expectedGoogleServiceAccount) => {
         name:
             'GTEx_Analysis_2017-06-05_v8_RNAseq_bigWig_files' +
             '/GTEX-1GZHY-0011-R6a-SM-9OSWL.Aligned.sortedByCoord.out.patched.md.bigWig',
+        signedUrl: expectedSignedUrl,
         gsUri:
             'gs://fc-secure-ff8156a3-ddf3-42e4-9211-0fd89da62108/GTEx_Analysis_2017-06-05_v8_RNAseq_bigWig_files' +
             '/GTEX-1GZHY-0011-R6a-SM-9OSWL.Aligned.sortedByCoord.out.patched.md.bigWig',
