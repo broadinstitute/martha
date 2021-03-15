@@ -512,7 +512,7 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
     // Bond was called twice to get SA key and access token.
     // DRS server was called twice to get DRS response and signed URL.
     // 2 + 2 = 4.
-    t.is(getJsonFromApiStub.callCount, 4);
+    sinon.assert.callCount(getJsonFromApiStub, 4);
 
     t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, drsSignedUrlResponse.url));
     t.is(response.statusCode, 200);
@@ -547,23 +547,26 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
 });
 
 test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(bdcDrsResponse);
+    getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
+    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.onCall(2).resolves(drsSignedUrlResponse);
+    getJsonFromApiStub.onCall(3).resolves(googleSAKeyObject);
     const response = mockResponse();
     await marthaV3(
         mockRequest({ body: { 'url': 'drs://dg.712C/fc046e84-6cf9-43a3-99cc-ffa2964b88cb' } }),
         response,
     );
-    const result = response.send.lastCall.args[0];
-    t.true(getJsonFromApiStub.calledTwice); // Bond was called to get SA key
-    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject));
     t.is(response.statusCode, 200);
+    const result = response.send.lastCall.args[0];
+    sinon.assert.callCount(getJsonFromApiStub, 4);
+    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, drsSignedUrlResponse.url));
     t.is(
         getJsonFromApiStub.firstCall.args[0],
         'https://staging.gen3.biodatacatalyst.nhlbi.nih.gov/ga4gh/drs/v1/objects' +
         '/dg.712C/fc046e84-6cf9-43a3-99cc-ffa2964b88cb',
     );
     t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
-    const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
+    const requestedBondUrl = getJsonFromApiStub.getCall(3).args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
     const expectedProvider = 'fence';
