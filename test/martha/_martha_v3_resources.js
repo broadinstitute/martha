@@ -374,6 +374,7 @@ const kidsFirstDrsMarthaResult = (expectedGoogleServiceAccount) => {
         timeUpdated: '2018-05-23T12:32:32.594Z',
         bucket: null, // expected, uses S3
         name: null, // there is definitely a name in the server response, why isn't Martha using it?
+        signedUrl: null,
         gsUri: null, // expected, uses S3
         googleServiceAccount: expectedGoogleServiceAccount,
         bondProvider: 'dcf-fence',
