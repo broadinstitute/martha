@@ -35,16 +35,53 @@ const configDefaults = {
         })(),
     // MLC could use some navigator-type advice on what this should look like in the post-BT-163 world.
     // I made some assumptions in the config.json.ctmpl that I am no longer so confident about.
-    dataObjectResolutionHost:
-        (() => {
-            // noinspection JSUnreachableSwitchBranches
-            switch (marthaEnv) {
-                case ENV_MOCK: return 'wb-mock-drs-dev.storage.googleapis.com';
-                case ENV_PROD: return 'gen3.biodatacatalyst.nhlbi.nih.gov';
-                default: return 'staging.gen3.biodatacatalyst.nhlbi.nih.gov';
-            }
-        })(),
-    // MLC add the BT-163 non-prod hosts here as per the `dataObjectResolutionHost` case above.
+    dataObjectResolutionHost: {
+        bioDataCatalyst:
+            (() => {
+                // noinspection JSUnreachableSwitchBranches
+                switch (marthaEnv) {
+                    case ENV_MOCK:
+                        return 'wb-mock-drs-dev.storage.googleapis.com';
+                    case ENV_PROD:
+                        return 'gen3.biodatacatalyst.nhlbi.nih.gov';
+                    default:
+                        return 'staging.gen3.biodatacatalyst.nhlbi.nih.gov';
+                }
+            })(),
+        theAnvil:
+            (() => {
+                switch (marthaEnv) {
+                    case ENV_MOCK:
+                        return 'wb-mock-drs-dev.storage.googleapis.com';
+                    case ENV_PROD:
+                        return 'gen3.theanvil.io';
+                    default:
+                        return 'staging.theanvil.io';
+                }
+            })(),
+        crdc:
+            (() => {
+                switch (marthaEnv) {
+                    case ENV_MOCK:
+                        return 'wb-mock-drs-dev.storage.googleapis.com';
+                    case ENV_PROD:
+                        return 'nci-crdc.datacommons.io';
+                    default:
+                        return 'nci-crdc-staging.datacommons.io';
+                }
+            })(),
+        kidsFirst:
+            (() => {
+                switch (marthaEnv) {
+                    case ENV_MOCK:
+                        return 'wb-mock-drs-dev.storage.googleapis.com';
+                    case ENV_PROD:
+                        return 'data.kidsfirstdrc.org';
+                    default:
+                        return 'gen3staging.kidsfirstdrc.org';
+                }
+            })
+    },
     itMarthaBaseUrl:
         (() => {
             // noinspection JSUnreachableSwitchBranches
