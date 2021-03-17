@@ -66,7 +66,7 @@ function determineHostname(someUrl) {
         return config.theAnvilHost;
     }
 
-    return config.dataObjectResolutionHost;
+    return config.bioDataCatalystHost;
 }
 
 function determinePathname(someUrl) {
