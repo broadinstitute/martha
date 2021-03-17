@@ -741,6 +741,29 @@ test.serial('martha_v3 should return 500 if Data Object parsing fails', async (t
 
 test.serial('martha_v3 should return 500 on exception trying to get access token from Bond', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
+    getJsonFromApiStub.onCall(1).resolves(null);
+
+    const response = mockResponse();
+    await marthaV3(
+        mockRequest({ body: { 'url': 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0' } }),
+        response,
+    );
+    const result = response.send.lastCall.args[0];
+    t.deepEqual(
+        { ...result },
+        {
+            response: {
+                status: 500,
+                text: "Received error contacting Bond. Cannot read property 'token' of null"
+            },
+            status: 500,
+        },
+    );
+    t.is(response.statusCode, 500);
+});
+
+test.serial('martha_v3 should return 500 on exception trying to get signed URL from DRS provider', async (t) => {
+    getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
     getJsonFromApiStub.onCall(2).resolves(null);
 
