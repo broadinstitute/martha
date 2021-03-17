@@ -69,19 +69,19 @@ test('determineBondProvider should return the AnVIL BondProvider if the URL host
 });
 
 test('determineBondProvider should return the AnVIL BondProvider if the URL host is the AnVIL host', (t) => {
-    t.is(determineBondProvider('drs://gen3.theanvil.io/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0'), BondProviders.ANVIL);
+    t.is(determineBondProvider(`drs://${config.theAnvilHost}/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`), BondProviders.ANVIL);
 });
 
 test('determineBondProvider should return the dcf-fence BondProvider if the URL host is Kids First', (t) => {
     t.is(
-        determineBondProvider('drs://data.kidsfirstdrc.org/ed6be7ab-068e-46c8-824a-f39cfbb885cc'),
+        determineBondProvider(`drs://${config.kidsFirstHost}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
         BondProviders.DCF_FENCE,
     );
 });
 
 test('determineBondProvider should return the dcf-fence BondProvider if the URL host is CRDC', (t) => {
     t.is(
-        determineBondProvider('drs://nci-crdc.datacommons.io/0027045b-9ed6-45af-a68e-f55037b5184c'),
+        determineBondProvider(`drs://${config.crdcHost}/0027045b-9ed6-45af-a68e-f55037b5184c`),
         BondProviders.DCF_FENCE,
     );
 });
