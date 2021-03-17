@@ -33,33 +33,50 @@ const configDefaults = {
                 default: return `https://broad-bond-${dsdeEnv}.appspot.com`;
             }
         })(),
-    // MLC could use some pre-PR navigator opinions on what I've done here.
-    dataObjectResolutionHost:
+    bioDataCatalystHost:
       (() => {
         switch (marthaEnv) {
             case ENV_MOCK:
-                return {
-                    bioDataCatalyst: 'wb-mock-drs-dev.storage.googleapis.com',
-                    theAnvil: 'wb-mock-drs-dev.storage.googleapis.com',
-                    crdc: 'wb-mock-drs-dev.storage.googleapis.com',
-                    kidsFirst: 'wb-mock-drs-dev.storage.googleapis.com'
-                }
+                return 'wb-mock-drs-dev.storage.googleapis.com'
             case ENV_PROD:
-                return {
-                    bioDataCatalyst: 'gen3.biodatacatalyst.nhlbi.nih.gov',
-                    theAnvil: 'gen3.theanvil.io',
-                    crdc: 'nci-crdc.datacommons.io',
-                    kidsFirst: 'data.kidsfirstdrc.org'
-                }
+                return 'gen3.biodatacatalyst.nhlbi.nih.gov'
             default:
-                return {
-                    bioDataCatalyst: 'staging.gen3.biodatacatalyst.nhlbi.nih.gov',
-                    theAnvil: 'staging.theanvil.io',
-                    crdc: 'nci-crdc-staging.datacommons.io',
-                    kidsFirst: 'gen3staging.kidsfirstdrc.org'
-                }
+                return 'staging.gen3.biodatacatalyst.nhlbi.nih.gov'
         }
       })(),
+    theAnvilHost:
+        (() => {
+            switch (marthaEnv) {
+                case ENV_MOCK:
+                    return 'wb-mock-drs-dev.storage.googleapis.com';
+                case ENV_PROD:
+                    return 'gen3.theanvil.io';
+                default:
+                    return 'staging.theanvil.io';
+            }
+        })(),
+    crdcHost:
+        (() => {
+            switch (marthaEnv) {
+                case ENV_MOCK:
+                    return 'wb-mock-drs-dev.storage.googleapis.com';
+                case ENV_PROD:
+                    return 'nci-crdc.datacommons.io';
+                default:
+                    return 'nci-crdc-staging.datacommons.io';
+            }
+        })(),
+    kidsFirstHost:
+        (() => {
+            switch (marthaEnv) {
+                case ENV_MOCK:
+                    return 'wb-mock-drs-dev.storage.googleapis.com';
+                case ENV_PROD:
+                    return 'data.kidsfirstdrc.org';
+                default:
+                    return 'gen3staging.kidsfirstdrc.org';
+            }
+        })(),
     itMarthaBaseUrl:
         (() => {
             // noinspection JSUnreachableSwitchBranches
@@ -113,8 +130,14 @@ function removeUndefined(orig) {
  *      Default: Sam in dsde-dev.
  * @property {string} bondBaseUrl - Base URL for calling Bond.
  *      Default: Bond in dsde-dev.
- * @property {string} dataObjectResolutionHost - Host (hostname + port) for calling BDC-or-mock-drs.
- *      Default: BDC staging.
+ * @property {string} bioDataCatalystHost Host (hostname + port) for calling DRS resolvers (production or staging)
+ *      or mock DRS for BioData Catalyst.
+ * @property {string} theAnvilHost (hostname + port) for calling DRS resolvers (production or staging)
+ *      or mock DRS for the AnVIL.
+ * @property {string} crdcHost (hostname + port) for calling DRS resolvers (production or staging)
+ *      or mock DRS for CRDC.
+ * @property {string} kidsFirstHost (hostname + port) for calling DRS resolvers (production or staging)
+ *      or mock DRS for Kids First.
  * @property {string} itMarthaBaseUrl - Base URL for calling Martha from integration-test code.
  *      Default: Martha in FiaB.
  * @property {string} itBondBaseUrl - Base URL for calling Bond from integration-test code.

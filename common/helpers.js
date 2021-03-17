@@ -62,9 +62,8 @@ function determineHostname(someUrl) {
         return someUrl.hostname;
     }
 
-    // MLC this...
     if (someUrl.hostname.toLowerCase() === 'dg.anv0') {
-        return 'gen3.theanvil.io';
+        return config.theAnvilHost;
     }
 
     return config.dataObjectResolutionHost;

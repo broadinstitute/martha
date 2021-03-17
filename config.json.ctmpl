@@ -3,12 +3,10 @@
 {{with $dnsDomain := env "DNS_DOMAIN"}}
 
 {
-    "dataObjectResolutionHost": {
-        "bioDataCatalyst": {{if eq $runContext "fiab"}}"wb-mock-drs-dev.storage.googleapis.com"{{else if eq $environment "prod"}}"gen3.biodatacatalyst.nhlbi.nih.gov"{{else}}"staging.gen3.biodatacatalyst.nhlbi.nih.gov"{{end}},
-        "theAnvil": {{if eq $runContext "fiab"}}"wb-mock-drs-dev.storage.googleapis.com"{{else if eq $environment "prod"}}"gen3.theanvil.io"{{else}}"staging.theanvil.io"{{end}},
-        "crdc": {{if eq $runContext "fiab"}}"wb-mock-drs-dev.storage.googleapis.com"{{else if eq $environment "prod"}}"nci-crdc.datacommons.io"{{else}}"nci-crdc-staging.datacommons.io"{{end}},
-        "kidsFirst": {{if eq $runContext "fiab"}}"wb-mock-drs-dev.storage.googleapis.com"{{else if eq $environment "prod"}}"data.kidsfirstdrc.org"{{else}}"gen3staging.kidsfirstdrc.org"{{end}}
-    }
+    "bioDataCatalystHost": {{if eq $runContext "fiab"}}"wb-mock-drs-dev.storage.googleapis.com"{{else if eq $environment "prod"}}"gen3.biodatacatalyst.nhlbi.nih.gov"{{else}}"staging.gen3.biodatacatalyst.nhlbi.nih.gov"{{end}},
+    "theAnvilHost": {{if eq $runContext "fiab"}}"wb-mock-drs-dev.storage.googleapis.com"{{else if eq $environment "prod"}}"gen3.theanvil.io"{{else}}"staging.theanvil.io"{{end}},
+    "crdcHost": {{if eq $runContext "fiab"}}"wb-mock-drs-dev.storage.googleapis.com"{{else if eq $environment "prod"}}"nci-crdc.datacommons.io"{{else}}"nci-crdc-staging.datacommons.io"{{end}},
+    "kidsFirstHost": {{if eq $runContext "fiab"}}"wb-mock-drs-dev.storage.googleapis.com"{{else if eq $environment "prod"}}"data.kidsfirstdrc.org"{{else}}"gen3staging.kidsfirstdrc.org"{{end}}
     "bondBaseUrl": {{if eq $runContext "fiab"}}"https://bond-fiab.{{$dnsDomain}}"{{else}}"https://broad-bond-{{$environment}}.appspot.com"{{end}},
     "samBaseUrl": {{if eq $runContext "fiab"}}"https://sam-fiab.{{$dnsDomain}}"{{else}}"https://sam.dsde-{{$environment}}.broadinstitute.org"{{end}}
 }

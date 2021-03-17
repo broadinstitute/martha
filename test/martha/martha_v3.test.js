@@ -431,7 +431,7 @@ test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
     getJsonFromApiStub.onFirstCall().resolves(gen3CrdcResponse);
     const response = mockResponse();
     await marthaV3(
-        mockRequest({ body: { 'url': 'dos://nci-crdc-staging.datacommons.io/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc' } }),
+        mockRequest({ body: { 'url': `dos://${config.crdcHost}/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc` } }),
         response,
     );
     const result = response.send.lastCall.args[0];
@@ -440,7 +440,7 @@ test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
     t.is(response.statusCode, 200);
     t.is(
         getJsonFromApiStub.firstCall.args[0],
-        'https://nci-crdc-staging.datacommons.io/ga4gh/drs/v1/objects/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
+        `https://${config.crdcHost}/ga4gh/drs/v1/objects/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc`,
     );
     t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
@@ -464,7 +464,7 @@ test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t)
     t.is(response.statusCode, 200);
     t.is(
         getJsonFromApiStub.firstCall.args[0],
-        'https://nci-crdc.datacommons.io/ga4gh/drs/v1/objects/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
+        'https://nci-crdc-staging.datacommons.io/ga4gh/drs/v1/objects/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
     );
     t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
@@ -538,7 +538,7 @@ test.serial('martha_v3 parses Anvil response correctly', async (t) => {
     t.is(response.statusCode, 200);
     t.is(
         getJsonFromApiStub.firstCall.args[0],
-        'https://gen3.theanvil.io/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0',
+        'https://staging.theanvil.io/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0',
     );
     t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
@@ -562,7 +562,7 @@ test.serial('martha_v3 parses a The AnVIL CIB URI response correctly', async (t)
     t.is(response.statusCode, 200);
     t.is(
         getJsonFromApiStub.firstCall.args[0],
-        'https://gen3.theanvil.io/ga4gh/drs/v1/objects/dg.ANV0%2F00008531-03d7-418c-b3d3-b7b22b5381a0',
+        'https://staging.theanvil.io/ga4gh/drs/v1/objects/dg.ANV0%2F00008531-03d7-418c-b3d3-b7b22b5381a0',
     );
     t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
@@ -610,7 +610,7 @@ test.serial('martha_v3 parses a Kids First CIB URI response correctly', async (t
     t.is(response.statusCode, 200);
     t.is(
         getJsonFromApiStub.firstCall.args[0],
-        'https://data.kidsfirstdrc.org/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc',
+        'https://gen3staging.kidsfirstdrc.org/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc',
     );
     t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
@@ -798,14 +798,14 @@ test('should parse Data Object uri with host that looks like jade data repo host
 test('should parse Data Object uri with the AnVIL prefix dg.ANV0', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0'),
-        'https://gen3.theanvil.io/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0',
+        'https://staging.theanvil.io/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0',
     );
 });
 
 test('should parse Data Object uri with the AnVIL host', (t) => {
     t.is(
-        determineDrsTypeTestWrapper('drs://gen3.theanvil.io/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0'),
-        'https://gen3.theanvil.io/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0',
+        determineDrsTypeTestWrapper(`drs://${config.theAnvilHost}/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`),
+        `https://${config.theAnvilHost}/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`,
     );
 });
 /**
@@ -817,8 +817,8 @@ test('should parse Data Object uri with the AnVIL host', (t) => {
  */
 test('should parse Data Object uri with the Kids First repo as host', (t) => {
     t.is(
-        determineDrsTypeTestWrapper('drs://data.kidsfirstdrc.org/ed6be7ab-068e-46c8-824a-f39cfbb885cc'),
-        'https://data.kidsfirstdrc.org/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc',
+        determineDrsTypeTestWrapper(`drs://${config.kidsFirstHost}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
+        `https://${config.kidsFirstHost}/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
     );
 });
 /**
