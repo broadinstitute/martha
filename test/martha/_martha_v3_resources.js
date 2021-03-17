@@ -449,66 +449,66 @@ const bdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedSignedUrl) => 
 // HCA
 // returned via
 //   `curl https://drs.data.humancellatlas.org/ga4gh/dos/v1/dataobjects/4cf48dbf-cf09-452e-bb5b-fd016af0c747?version=2019-09-14T024754.281908Z`
+// TODO: clean up formatting before merging this branch
 const hcaDosResponse = {
-    data_object: {
-        id: '4cf48dbf-cf09-452e-bb5b-fd016af0c747',
-        urls: [
-            {
-                url:
-                    'https://drs.data.humancellatlas.org/dss/files/4cf48dbf-cf09-452e-bb5b-fd016af0c747' +
-                    '?version=2019-09-14T024754.281908Z' +
-                    '&replica=aws' +
-                    '&wait=1' +
-                    '&fileName=eb32bfc6-e7be-4093-8959-b8bf27f2404f.zarr%21.zattrs'
+    "id": "v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe",
+    "name": "E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz",
+    "self_uri": null,
+    "size": 438932948,
+    "created_time": "2020-12-17T21:01:25.906Z",
+    "updated_time": "2020-12-17T21:01:25.906Z",
+    "version": "0",
+    "mime_type": null,
+    "checksums": [
+        {
+            "checksum": "5acd55ef",
+            "type": "crc32c"
+        }
+    ],
+    "access_methods": [
+        {
+            "type": "gs",
+            "access_url": {
+                "url": "gs://broad-jade-dev-data-bucket/ecb5601e-9026-428c-b49d-3c5f1807ecb7/e37266ba-790d-4641-aa76-854d94be2fbe/E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz",
+                "headers": null
             },
-            {
-                url:
-                    'gs://org-hca-dss-checkout-prod/blobs' +
-                    '/160fde1559f7154b03a6f645b4c7ff0eb2af37241e2cab3961e7780ead93860a' +
-                    '.b0fcf2baaadb4aa6545804998867eff29330762a' +
-                    '.d18ef9b8fd14ac922588baeec4853c0d' +
-                    '.0ba92b16'
-            }
-        ],
-        size: '148', // Yes, this is a string returned by the `curl` above
-        checksums: [
-            {
-                checksum: '160fde1559f7154b03a6f645b4c7ff0eb2af37241e2cab3961e7780ead93860a',
-                type: 'sha256'
-            }
-        ],
-        aliases: [
-            'eb32bfc6-e7be-4093-8959-b8bf27f2404f.zarr!.zattrs'
-        ],
-        version: '2019-09-14T024754.281908Z',
-        name: 'eb32bfc6-e7be-4093-8959-b8bf27f2404f.zarr!.zattrs'
-    }
+            "access_id": null,
+            "region": "us-central1"
+        },
+        {
+            "type": "https",
+            "access_url": {
+                "url": "https://www.googleapis.com/storage/v1/b/broad-jade-dev-data-bucket/o/ecb5601e-9026-428c-b49d-3c5f1807ecb7%2Fe37266ba-790d-4641-aa76-854d94be2fbe%2FE18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz?alt=media",
+                "headers": [
+                    "Authorization: Bearer ya29.12345"
+                ]
+            },
+            "access_id": null,
+            "region": "us-central1"
+        }
+    ],
+    "contents": null,
+    "description": null,
+    "aliases": [
+        "/hca_dev_20201217_test4/5acd55ef/E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz"
+    ]
 };
 
 const hcaDosMarthaResult = {
-    contentType: 'application/octet-stream',
-    size: 148,
-    timeCreated: null,
-    timeUpdated: null,
-    bucket: 'org-hca-dss-checkout-prod',
-    name:
-        'blobs' +
-        '/160fde1559f7154b03a6f645b4c7ff0eb2af37241e2cab3961e7780ead93860a' +
-        '.b0fcf2baaadb4aa6545804998867eff29330762a' +
-        '.d18ef9b8fd14ac922588baeec4853c0d' +
-        '.0ba92b16',
-    gsUri:
-        'gs://org-hca-dss-checkout-prod/blobs' +
-        '/160fde1559f7154b03a6f645b4c7ff0eb2af37241e2cab3961e7780ead93860a' +
-        '.b0fcf2baaadb4aa6545804998867eff29330762a' +
-        '.d18ef9b8fd14ac922588baeec4853c0d' +
-        '.0ba92b16',
-    googleServiceAccount: null,
     bondProvider: null,
-    fileName: 'eb32bfc6-e7be-4093-8959-b8bf27f2404f.zarr!.zattrs',
+    gsUri: 'gs://broad-jade-dev-data-bucket/ecb5601e-9026-428c-b49d-3c5f1807ecb7/e37266ba-790d-4641-aa76-854d94be2fbe/E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz',
+    bucket: 'broad-jade-dev-data-bucket',
+    name: 'ecb5601e-9026-428c-b49d-3c5f1807ecb7/e37266ba-790d-4641-aa76-854d94be2fbe/E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz',
+    signedUrl: null,
+    fileName: 'E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz',
+    contentType: null,
+    size: 438932948,
     hashes: {
-        sha256: '160fde1559f7154b03a6f645b4c7ff0eb2af37241e2cab3961e7780ead93860a'
-    }
+        crc32c: '5acd55ef'
+    },
+    timeCreated: '2020-12-17T21:01:25.906Z',
+    timeUpdated: '2020-12-17T21:01:25.906Z',
+    googleServiceAccount: null
 };
 
 module.exports = {
