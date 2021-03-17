@@ -437,6 +437,7 @@ const bdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedSignedUrl) => 
 // returned via
 //   `curl https://drs.data.humancellatlas.org/ga4gh/dos/v1/dataobjects/4cf48dbf-cf09-452e-bb5b-fd016af0c747?version=2019-09-14T024754.281908Z`
 // TODO: clean up formatting before merging this branch
+const fakeToken = "Definitely not a real token"
 const hcaDosResponse = {
     "id": "v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe",
     "name": "E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz",
@@ -467,7 +468,7 @@ const hcaDosResponse = {
             "access_url": {
                 "url": "https://www.googleapis.com/storage/v1/b/broad-jade-dev-data-bucket/o/ecb5601e-9026-428c-b49d-3c5f1807ecb7%2Fe37266ba-790d-4641-aa76-854d94be2fbe%2FE18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz?alt=media",
                 "headers": [
-                    "Authorization: Bearer ya29.12345"
+                    `Authorization: Bearer ${fakeToken}`
                 ]
             },
             "access_id": null,
