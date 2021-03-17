@@ -690,8 +690,7 @@ test.serial('martha_v3 parses HCA response correctly', async (t) => {
             {
                 body: {
                     'url':
-                        'dos://drs.data.humancellatlas.org/4bb2740b-e6b2-4c99-824e-6963d505cda0' +
-                        '?version=2019-05-15T210546.628682Z'
+                        'drs://jade.datarepo-dev.broadinstitute.org/v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe'
                 }
             }
         ),
@@ -704,8 +703,7 @@ test.serial('martha_v3 parses HCA response correctly', async (t) => {
     t.is(response.statusCode, 200);
     t.is(
         getJsonFromApiStub.firstCall.args[0],
-        'https://drs.data.humancellatlas.org/ga4gh/dos/v1/dataobjects' +
-        '/4bb2740b-e6b2-4c99-824e-6963d505cda0?version=2019-05-15T210546.628682Z',
+        'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe',
     );
     t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
 });
