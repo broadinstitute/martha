@@ -103,6 +103,7 @@ class DrsType {
 
 /* Returns undefined if the matching access method does not have an access_id. */
 function getDrsAccessId(drsResponse) {
+    if (!drsResponse || !drsResponse.access_methods) return;
     for (const accessMethod of drsResponse.access_methods) {
         if (accessMethod.type === ACCESS_METHOD_TYPE_GCS) {
             return accessMethod.access_id;
@@ -266,7 +267,7 @@ function generateAccessUrl(drsType, accessId) {
 
 function responseParser (response) {
     // If this is not a DOS response, assume it's already DRS and return it.
-    if (!response.data_object) { return response; }
+    if (!response || !response.data_object) { return response; }
 
     // Otherwise, find the DOS fields and convert them to DRS.
     const {
@@ -441,14 +442,12 @@ async function marthaV3Handler(req, res) {
 
     let drsResponse;
     let accessId;
-    if (response) {
-        try {
-            drsResponse = responseParser(response);
-            accessId = getDrsAccessId(drsResponse);
-        } catch (error) {
-            logAndSendServerError(res, error, 'Received error while parsing response from DRS URL.');
-            return;
-        }
+    try {
+        drsResponse = responseParser(response);
+        accessId = getDrsAccessId(drsResponse);
+    } catch (error) {
+        logAndSendServerError(res, error, 'Received error while parsing response from DRS URL.');
+        return;
     }
 
     // do more stuff here, i.e. get signed URL
