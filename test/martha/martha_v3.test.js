@@ -81,7 +81,7 @@ const sandbox = sinon.createSandbox();
 test.serial.beforeEach(() => {
     sandbox.restore(); // If one test fails, the .afterEach() block will not execute, so always clean the slate here
     getJsonFromApiStub = sandbox.stub(apiAdapter, getJsonFromApiMethodName);
-    getJsonFromApiStub.onSecondCall().resolves(googleSAKeyObject);
+    getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
 });
 
 test.serial.afterEach(() => {
@@ -90,19 +90,19 @@ test.serial.afterEach(() => {
 
 // Test the "default" case because we don't know who you are.
 test.serial('martha_v3 resolves a valid DOS-style url', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(sampleDosResponse);
+    getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
-    const result = response.send.lastCall.args[0];
-    t.is(getJsonFromApiStub.callCount, 2); // Bond was called to get SA key
-    t.deepEqual({ ...result }, sampleDosMarthaResult(googleSAKeyObject));
     t.is(response.statusCode, 200);
+    const result = response.send.lastCall.args[0];
+    sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
+    t.deepEqual({ ...result }, sampleDosMarthaResult(googleSAKeyObject));
     t.is(
-        getJsonFromApiStub.firstCall.args[0],
+        getJsonFromApiStub.getCall(0).args[0],
         'https://abc/ga4gh/dos/v1/dataobjects/123',
     );
-    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
-    const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
+    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
+    const requestedBondUrl = getJsonFromApiStub.getCall(1).args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
     const expectedProvider = 'dcf-fence';
@@ -117,19 +117,19 @@ test.serial('martha_v3 resolves a valid DOS-style url', async (t) => {
 // [0] https://ucsc-cgl.atlassian.net/browse/AZUL-702
 // [1] https://broadinstitute.slack.com/archives/G011ZUKHCUX/p1597694952108600
 test.serial('martha_v3 resolves a valid DRS-style url', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(sampleDosResponse);
+    getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'drs://abc/123' } }), response);
-    const result = response.send.lastCall.args[0];
-    t.true(getJsonFromApiStub.calledTwice); // Bond was called to get SA key
-    t.deepEqual({ ...result }, sampleDosMarthaResult(googleSAKeyObject));
     t.is(response.statusCode, 200);
+    const result = response.send.lastCall.args[0];
+    sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
+    t.deepEqual({ ...result }, sampleDosMarthaResult(googleSAKeyObject));
     t.is(
-        getJsonFromApiStub.firstCall.args[0],
+        getJsonFromApiStub.getCall(0).args[0],
         'https://abc/ga4gh/dos/v1/dataobjects/123',
     );
-    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
-    const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
+    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
+    const requestedBondUrl = getJsonFromApiStub.getCall(1).args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
     const expectedProvider = 'dcf-fence';
@@ -138,7 +138,7 @@ test.serial('martha_v3 resolves a valid DRS-style url', async (t) => {
 });
 
 test.serial('martha_v3 resolves successfully and ignores extra data submitted besides a \'url\'', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(sampleDosResponse);
+    getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({
         body: {
@@ -147,16 +147,16 @@ test.serial('martha_v3 resolves successfully and ignores extra data submitted be
             foo: 'bar'
         }
     }), response);
-    const result = response.send.lastCall.args[0];
-    t.true(getJsonFromApiStub.calledTwice); // Bond was called to get SA key
-    t.deepEqual({ ...result }, sampleDosMarthaResult(googleSAKeyObject));
     t.is(response.statusCode, 200);
+    const result = response.send.lastCall.args[0];
+    sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
+    t.deepEqual({ ...result }, sampleDosMarthaResult(googleSAKeyObject));
     t.is(
-        getJsonFromApiStub.firstCall.args[0],
+        getJsonFromApiStub.getCall(0).args[0],
         'https://abc/ga4gh/dos/v1/dataobjects/123',
     );
-    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
-    const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
+    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
+    const requestedBondUrl = getJsonFromApiStub.getCall(1).args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
     const expectedProvider = 'dcf-fence';
@@ -165,7 +165,7 @@ test.serial('martha_v3 resolves successfully and ignores extra data submitted be
 });
 
 test.serial('martha_v3 does not call Bond when only DRS fields are requested', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(sampleDosResponse);
+    getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({
         body: {
@@ -173,23 +173,23 @@ test.serial('martha_v3 does not call Bond when only DRS fields are requested', a
             fields: ['gsUri', 'size', 'hashes', 'timeUpdated', 'fileName'],
         }
     }), response);
+    t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
-    t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
+    sinon.assert.callCount(getJsonFromApiStub, 1); // Bond was not called to get SA key
     t.deepEqual(
         { ...result },
         mask(sampleDosMarthaResult(googleSAKeyObject), 'gsUri,size,hashes,timeUpdated,fileName'),
     );
     t.falsy(result.googleServiceAccount);
-    t.is(response.statusCode, 200);
     t.is(
-        getJsonFromApiStub.firstCall.args[0],
+        getJsonFromApiStub.getCall(0).args[0],
         'https://abc/ga4gh/dos/v1/dataobjects/123',
     );
-    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
+    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
 });
 
 test.serial('martha_v3 does not call DRS when only Bond fields are requested', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(googleSAKeyObject);
+    getJsonFromApiStub.onCall(0).resolves(googleSAKeyObject);
     const response = mockResponse();
     await marthaV3(mockRequest({
         body: {
@@ -197,16 +197,14 @@ test.serial('martha_v3 does not call DRS when only Bond fields are requested', a
             fields: ['googleServiceAccount'],
         }
     }), response);
-    // TODO: Move all status code checks directly after call to marthaV3()
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
-    // TODO: Use sinon.assert instead of .calledOnce AND .callCount() (or whatever it was called)
     sinon.assert.callCount(getJsonFromApiStub, 1); // DRS was not called
     t.deepEqual(
         { ...result },
         mask(sampleDosMarthaResult(googleSAKeyObject), 'googleServiceAccount'),
     );
-    const requestedBondUrl = getJsonFromApiStub.firstCall.args[0];
+    const requestedBondUrl = getJsonFromApiStub.getCall(0).args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
     const expectedProvider = 'dcf-fence';
@@ -222,10 +220,10 @@ test.serial('martha_v3 calls no endpoints when no fields are requested', async (
             fields: [],
         }
     }), response);
-    t.true(getJsonFromApiStub.notCalled); // Neither Bond nor DRS was called
+    t.is(response.statusCode, 200);
+    sinon.assert.callCount(getJsonFromApiStub, 0); // Neither Bond nor DRS was called
     const result = response.send.lastCall.args[0];
     t.deepEqual({ ...result }, {});
-    t.is(response.statusCode, 200);
 });
 
 test.serial('martha_v3 returns an error when fields is not an array', async (t) => {
@@ -236,7 +234,8 @@ test.serial('martha_v3 returns an error when fields is not an array', async (t) 
             fields: 'gsUri',
         }
     }), response);
-    t.true(getJsonFromApiStub.notCalled); // Neither Bond nor DRS was called
+    t.is(response.statusCode, 400);
+    sinon.assert.callCount(getJsonFromApiStub, 0); // Neither Bond nor DRS was called
     const result = response.send.lastCall.args[0];
     t.deepEqual(
         { ...result },
@@ -248,7 +247,6 @@ test.serial('martha_v3 returns an error when fields is not an array', async (t) 
             status: 400,
         },
     );
-    t.is(response.statusCode, 400);
 });
 
 test.serial('martha_v3 returns an error when an invalid field is requested', async (t) => {
@@ -259,7 +257,8 @@ test.serial('martha_v3 returns an error when an invalid field is requested', asy
             fields: ['gsUri', 'size', 'hashes', 'timeUpdated', 'fileName', 'googleServiceAccount', 'meaningOfLife'],
         }
     }), response);
-    t.true(getJsonFromApiStub.notCalled); // Neither Bond nor DRS was called
+    t.is(response.statusCode, 400);
+    sinon.assert.callCount(getJsonFromApiStub, 0); // Neither Bond nor DRS was called
     const result = response.send.lastCall.args[0];
     t.deepEqual(
         { ...result },
@@ -274,47 +273,46 @@ test.serial('martha_v3 returns an error when an invalid field is requested', asy
             status: 400,
         },
     );
-    t.is(response.statusCode, 400);
 });
 
 test.serial('martha_v3 should return 400 if a Data Object without authorization header is provided', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(sampleDosResponse);
+    getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
     const response = mockResponse();
     const mockReq = mockRequest({ body: { 'url': 'dos://abc/123' } });
     delete mockReq.headers.authorization;
     await marthaV3(mockReq, response);
-    const result = response.send.lastCall.args[0];
     t.is(response.statusCode, 400);
+    const result = response.send.lastCall.args[0];
     t.is(result.status, 400);
     t.is(result.response.text, 'Request is invalid. Authorization header is missing.');
 });
 
 test.serial('martha_v3 should return 400 if not given a url', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(sampleDosResponse);
+    getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'uri': 'dos://abc/123' } }), response);
-    const result = response.send.lastCall.args[0];
     t.is(response.statusCode, 400);
+    const result = response.send.lastCall.args[0];
     t.is(result.status, 400);
     t.is(result.response.text, "Request is invalid. 'url' is missing.");
 });
 
 test.serial('martha_v3 should return 400 if given a dg URL without a path', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(sampleDosResponse);
+    getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://dg.abc' } }), response);
-    const result = response.send.lastCall.args[0];
     t.is(response.statusCode, 400);
+    const result = response.send.lastCall.args[0];
     t.is(result.status, 400);
     t.is(result.response.text, 'Request is invalid. "dos://dg.abc" is missing a host and/or a path.');
 });
 
 test.serial('martha_v3 should return 400 if given a dg URL with only a path', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(sampleDosResponse);
+    getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos:///dg.abc' } }), response);
-    const result = response.send.lastCall.args[0];
     t.is(response.statusCode, 400);
+    const result = response.send.lastCall.args[0];
     t.is(result.status, 400);
     t.is(result.response.text, 'Request is invalid. "dos:///dg.abc" is missing a host and/or a path.');
 });
@@ -322,8 +320,8 @@ test.serial('martha_v3 should return 400 if given a dg URL with only a path', as
 test.serial('martha_v3 should return 400 if no data is posted with the request', async (t) => {
     const response = mockResponse();
     await marthaV3(mockRequest({}), response);
-    const result = response.send.lastCall.args[0];
     t.is(response.statusCode, 400);
+    const result = response.send.lastCall.args[0];
     t.is(result.status, 400);
     t.is(result.response.text, "Request is invalid. 'url' is missing.");
 });
@@ -331,18 +329,18 @@ test.serial('martha_v3 should return 400 if no data is posted with the request',
 test.serial('martha_v3 should return 400 if given a \'url\' with an invalid value', async (t) => {
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { url: 'Not a valid URI' } }), response);
-    const result = response.send.lastCall.args[0];
     t.is(response.statusCode, 400);
+    const result = response.send.lastCall.args[0];
     t.is(result.status, 400);
     t.is(result.response.text, 'Request is invalid. Invalid URL: Not a valid URI');
 });
 
 test.serial('martha_v3 should return 500 if Data Object resolution fails', async (t) => {
-    getJsonFromApiStub.onFirstCall().rejects(new Error('Data Object Resolution forced to fail by testing stub'));
+    getJsonFromApiStub.onCall(0).rejects(new Error('Data Object Resolution forced to fail by testing stub'));
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
-    const result = response.send.lastCall.args[0];
     t.is(response.statusCode, 500);
+    const result = response.send.lastCall.args[0];
     t.is(result.status, 500);
     t.is(result.response.text, 'Received error while resolving DRS URL. Data Object Resolution forced to fail by testing stub');
 });
@@ -350,11 +348,11 @@ test.serial('martha_v3 should return 500 if Data Object resolution fails', async
 test.serial('martha_v3 should return the underlying status if Data Object resolution fails', async (t) => {
     const error = new Error('Data Object Resolution forced to fail by testing stub');
     error.status = 418;
-    getJsonFromApiStub.onFirstCall().rejects(error);
+    getJsonFromApiStub.onCall(0).rejects(error);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
-    const result = response.send.lastCall.args[0];
     t.is(response.statusCode, 418);
+    const result = response.send.lastCall.args[0];
     t.is(result.status, 418);
     t.is(
         result.response.text,
@@ -363,20 +361,20 @@ test.serial('martha_v3 should return the underlying status if Data Object resolu
 });
 
 test.serial('martha_v3 should return 500 if key retrieval from Bond fails', async (t) => {
-    getJsonFromApiStub.onSecondCall().rejects(new Error('Bond key lookup forced to fail by testing stub'));
+    getJsonFromApiStub.onCall(1).rejects(new Error('Bond key lookup forced to fail by testing stub'));
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
-    const result = response.send.lastCall.args[0];
     t.is(response.statusCode, 500);
+    const result = response.send.lastCall.args[0];
     t.is(result.status, 500);
     t.is(result.response.text, 'Received error contacting Bond. Bond key lookup forced to fail by testing stub');
 });
 
 test.serial('martha_v3 calls bond Bond with the "dcf-fence" provider when the Data Object URL host is not "dg.4503"', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(sampleDosResponse);
+    getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
-    const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
+    const requestedBondUrl = getJsonFromApiStub.getCall(1).args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
     const expectedProvider = 'dcf-fence';
@@ -385,10 +383,10 @@ test.serial('martha_v3 calls bond Bond with the "dcf-fence" provider when the Da
 });
 
 test.serial('martha_v3 calls bond Bond with the "fence" provider when the Data Object URL host is "dg.4503"', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(sampleDosResponse);
+    getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'drs://dg.4503/this_part_can_be_anything' } }), response);
-    const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
+    const requestedBondUrl = getJsonFromApiStub.getCall(1).args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
     const expectedProvider = 'fence';
@@ -399,22 +397,22 @@ test.serial('martha_v3 calls bond Bond with the "fence" provider when the Data O
 test.serial(
     'martha_v3 does call Bond and return SA key when the host url is for dataguids.org',
     async (t) => {
-        getJsonFromApiStub.onFirstCall().resolves(dataGuidsOrgResponse);
+        getJsonFromApiStub.onCall(0).resolves(dataGuidsOrgResponse);
         const response = mockResponse();
         await marthaV3(
             mockRequest({ body: { 'url': 'dos://dataguids.org/a41b0c4f-ebfb-4277-a941-507340dea85d' } }),
             response
         );
-        const result = response.send.lastCall.args[0];
-        t.true(getJsonFromApiStub.calledTwice); // Bond was called to get SA key
-        t.deepEqual({ ...result }, dataGuidsOrgMarthaResult(googleSAKeyObject));
         t.is(response.statusCode, 200);
+        const result = response.send.lastCall.args[0];
+        sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
+        t.deepEqual({ ...result }, dataGuidsOrgMarthaResult(googleSAKeyObject));
         t.is(
-            getJsonFromApiStub.firstCall.args[0],
+            getJsonFromApiStub.getCall(0).args[0],
             'https://dataguids.org/ga4gh/dos/v1/dataobjects/a41b0c4f-ebfb-4277-a941-507340dea85d',
         );
-        t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
-        const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
+        t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
+        const requestedBondUrl = getJsonFromApiStub.getCall(1).args[0];
         const matches = requestedBondUrl.match(bondRegEx);
         t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
         const expectedProvider = 'dcf-fence';
@@ -424,19 +422,19 @@ test.serial(
 );
 
 test.serial('martha_v3 does not call Bond or return SA key when the host url is for jade data repo', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(jadeDrsResponse);
+    getJsonFromApiStub.onCall(0).resolves(jadeDrsResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'drs://jade.datarepo-dev.broadinstitute.org/abc' } }), response);
+    t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
-    t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
+    sinon.assert.callCount(getJsonFromApiStub, 1); // Bond was not called to get SA key
     t.deepEqual({ ...result }, jadeDrsMarthaResult);
     t.falsy(result.googleServiceAccount);
-    t.is(response.statusCode, 200);
     t.is(
-        getJsonFromApiStub.firstCall.args[0],
+        getJsonFromApiStub.getCall(0).args[0],
         'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/abc',
     );
-    t.is(getJsonFromApiStub.firstCall.args[1], 'bearer abc123');
+    t.is(getJsonFromApiStub.getCall(0).args[1], 'bearer abc123');
 });
 
 test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
@@ -454,10 +452,10 @@ test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
     sinon.assert.callCount(getJsonFromApiStub, 4);
     t.deepEqual({ ...result }, gen3CrdcDrsMarthaResult(googleSAKeyObject));
     t.is(
-        getJsonFromApiStub.firstCall.args[0],
+        getJsonFromApiStub.getCall(0).args[0],
         'https://nci-crdc-staging.datacommons.io/ga4gh/drs/v1/objects/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
     );
-    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
+    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.getCall(3).args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
@@ -467,7 +465,6 @@ test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
 });
 
 test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t) => {
-    // getJsonFromApiStub.onFirstCall().resolves(gen3CrdcResponse);
     getJsonFromApiStub.onCall(0).resolves(gen3CrdcResponse);
     getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
     getJsonFromApiStub.onCall(2).resolves(drsSignedUrlResponse);
@@ -482,10 +479,10 @@ test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t)
     sinon.assert.callCount(getJsonFromApiStub, 4);
     t.deepEqual({ ...result }, gen3CrdcDrsMarthaResult(googleSAKeyObject));
     t.is(
-        getJsonFromApiStub.firstCall.args[0],
+        getJsonFromApiStub.getCall(0).args[0],
         'https://nci-crdc.datacommons.io/ga4gh/drs/v1/objects/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
     );
-    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
+    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.getCall(3).args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
@@ -508,6 +505,7 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
         mockRequest({ body: { 'url': 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0' } }),
         response,
     );
+    t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
     // Bond was called twice to get SA key and access token.
     // DRS server was called twice to get DRS response and signed URL.
@@ -515,7 +513,6 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
     sinon.assert.callCount(getJsonFromApiStub, 4);
 
     t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, drsSignedUrlResponse.url));
-    t.is(response.statusCode, 200);
 
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
@@ -561,11 +558,11 @@ test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
     sinon.assert.callCount(getJsonFromApiStub, 4);
     t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, drsSignedUrlResponse.url));
     t.is(
-        getJsonFromApiStub.firstCall.args[0],
+        getJsonFromApiStub.getCall(0).args[0],
         'https://staging.gen3.biodatacatalyst.nhlbi.nih.gov/ga4gh/drs/v1/objects' +
         '/dg.712C/fc046e84-6cf9-43a3-99cc-ffa2964b88cb',
     );
-    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
+    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.getCall(3).args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
@@ -590,10 +587,10 @@ test.serial('martha_v3 parses Anvil response correctly', async (t) => {
     sinon.assert.callCount(getJsonFromApiStub, 4); // Bond was called to get SA key
     t.deepEqual({ ...result }, anvilDrsMarthaResult(googleSAKeyObject, drsSignedUrlResponse.url));
     t.is(
-        getJsonFromApiStub.firstCall.args[0],
+        getJsonFromApiStub.getCall(0).args[0],
         'https://gen3.theanvil.io/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0',
     );
-    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
+    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.getCall(3).args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
@@ -618,10 +615,10 @@ test.serial('martha_v3 parses a The AnVIL CIB URI response correctly', async (t)
     sinon.assert.callCount(getJsonFromApiStub, 4); // Bond was called to get SA key
     t.deepEqual({ ...result }, anvilDrsMarthaResult(googleSAKeyObject, drsSignedUrlResponse.url));
     t.is(
-        getJsonFromApiStub.firstCall.args[0],
+        getJsonFromApiStub.getCall(0).args[0],
         'https://gen3.theanvil.io/ga4gh/drs/v1/objects/dg.ANV0%2F00008531-03d7-418c-b3d3-b7b22b5381a0',
     );
-    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
+    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.getCall(3).args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
@@ -644,10 +641,10 @@ test.serial('martha_v3 parses Kids First response correctly', async (t) => {
     sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
     t.deepEqual({ ...result }, kidsFirstDrsMarthaResult(googleSAKeyObject));
     t.is(
-        getJsonFromApiStub.firstCall.args[0],
+        getJsonFromApiStub.getCall(0).args[0],
         'https://data.kidsfirstdrc.org/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc',
     );
-    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
+    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.getCall(1).args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
@@ -670,10 +667,10 @@ test.serial('martha_v3 parses a Kids First CIB URI response correctly', async (t
     sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
     t.deepEqual({ ...result }, kidsFirstDrsMarthaResult(googleSAKeyObject));
     t.is(
-        getJsonFromApiStub.firstCall.args[0],
+        getJsonFromApiStub.getCall(0).args[0],
         'https://data.kidsfirstdrc.org/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc',
     );
-    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
+    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.getCall(1).args[0];
     const matches = requestedBondUrl.match(bondRegEx);
     t.truthy(matches, 'Bond URL called does not match Bond URL regular expression');
@@ -683,7 +680,7 @@ test.serial('martha_v3 parses a Kids First CIB URI response correctly', async (t
 });
 
 test.serial('martha_v3 parses HCA response correctly', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(hcaDosResponse);
+    getJsonFromApiStub.onCall(0).resolves(hcaDosResponse);
     const response = mockResponse();
     await marthaV3(
         mockRequest(
@@ -696,35 +693,36 @@ test.serial('martha_v3 parses HCA response correctly', async (t) => {
         ),
         response
     );
+    t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
-    t.true(getJsonFromApiStub.calledOnce); // Bond was not called to get SA key
+    sinon.assert.callCount(getJsonFromApiStub, 1); // Bond was not called to get SA key
     t.deepEqual({ ...result }, hcaDosMarthaResult);
     t.falsy(result.googleServiceAccount);
-    t.is(response.statusCode, 200);
     t.is(
-        getJsonFromApiStub.firstCall.args[0],
+        getJsonFromApiStub.getCall(0).args[0],
         'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe',
     );
-    t.is(getJsonFromApiStub.firstCall.args[1], 'bearer abc123');
+    t.is(getJsonFromApiStub.getCall(0).args[1], 'bearer abc123');
 });
 
 test.serial('martha_v3 returns null for fields missing in drs and bond response', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(dosObjectWithMissingFields);
-    getJsonFromApiStub.onSecondCall().resolves(null);
+    getJsonFromApiStub.onCall(0).resolves(dosObjectWithMissingFields);
+    getJsonFromApiStub.onCall(1).resolves(null);
 
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'drs://abc/123' } }), response);
+    t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
     t.deepEqual({ ...result }, expectedObjWithMissingFields);
-    t.is(response.statusCode, 200);
 });
 
 test.serial('martha_v3 should return 500 if Data Object parsing fails', async (t) => {
-    getJsonFromApiStub.onFirstCall().resolves(dosObjectWithInvalidFields);
-    getJsonFromApiStub.onSecondCall().resolves(null);
+    getJsonFromApiStub.onCall(0).resolves(dosObjectWithInvalidFields);
+    getJsonFromApiStub.onCall(1).resolves(null);
 
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'drs://abc/123' } }), response);
+    t.is(response.statusCode, 500);
     const result = response.send.lastCall.args[0];
     t.deepEqual(
         { ...result },
@@ -736,7 +734,6 @@ test.serial('martha_v3 should return 500 if Data Object parsing fails', async (t
             status: 500,
         },
     );
-    t.is(response.statusCode, 500);
 });
 
 test.serial('martha_v3 should return 500 on exception trying to get access token from Bond', async (t) => {
@@ -748,6 +745,7 @@ test.serial('martha_v3 should return 500 on exception trying to get access token
         mockRequest({ body: { 'url': 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0' } }),
         response,
     );
+    t.is(response.statusCode, 500);
     const result = response.send.lastCall.args[0];
     t.deepEqual(
         { ...result },
@@ -759,7 +757,6 @@ test.serial('martha_v3 should return 500 on exception trying to get access token
             status: 500,
         },
     );
-    t.is(response.statusCode, 500);
 });
 
 test.serial('martha_v3 should return 500 on exception trying to get signed URL from DRS provider', async (t) => {
@@ -772,6 +769,7 @@ test.serial('martha_v3 should return 500 on exception trying to get signed URL f
         mockRequest({ body: { 'url': 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0' } }),
         response,
     );
+    t.is(response.statusCode, 500);
     const result = response.send.lastCall.args[0];
     t.deepEqual(
         { ...result },
@@ -783,7 +781,6 @@ test.serial('martha_v3 should return 500 on exception trying to get signed URL f
             status: 500,
         },
     );
-    t.is(response.statusCode, 500);
 });
 
 // Test utility for generating server URL from a DRS URL
