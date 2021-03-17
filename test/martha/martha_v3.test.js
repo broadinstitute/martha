@@ -705,7 +705,7 @@ test.serial('martha_v3 parses HCA response correctly', async (t) => {
         getJsonFromApiStub.firstCall.args[0],
         'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe',
     );
-    t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
+    t.is(getJsonFromApiStub.firstCall.args[1], 'bearer abc123');
 });
 
 test.serial('martha_v3 returns null for fields missing in drs and bond response', async (t) => {
