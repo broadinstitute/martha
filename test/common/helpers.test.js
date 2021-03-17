@@ -87,7 +87,7 @@ test('dataObjectUriToHttps should throw an error when given a "dg.*" host with n
 test('dataObjectUriToHttps should parse "drs://dg.ANV0" Data Object uri', (t) => {
     t.is(
         dataObjectUriToHttps('drs://dg.ANV0/bar'),
-        `https://staging.theanvil.io/ga4gh/dos/v1/dataobjects/dg.ANV0/bar`,
+        `https://${config.theAnvilHost}/ga4gh/dos/v1/dataobjects/dg.ANV0/bar`,
     );
 });
 /**
