@@ -30,6 +30,7 @@ const expectedObjWithMissingFields = {
     timeUpdated: null,
     bucket: null,
     name: null,
+    signedUrl: null,
     gsUri: null,
     googleServiceAccount: null,
     bondProvider: 'dcf-fence',
