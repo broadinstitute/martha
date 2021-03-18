@@ -273,7 +273,7 @@ function determineDrsType(url) {
     // First handle servers that we know about...
 
     // BDC, but skip DOS/DRS URIs that might be a fake `martha_v2`-compatible BDC
-    if (host === DG_EXPANSION_BDC && !urlParts.httpsUrlMaybeNotBdc) {
+    if ((host === config.HOST_BIODATA_CATALYST_PROD || host === config.HOST_BIODATA_CATALYST_STAGING) && !urlParts.httpsUrlMaybeNotBdc) {
         return new DrsType(
             urlParts,
             PROTOCOL_PREFIX_DRS,
@@ -283,7 +283,7 @@ function determineDrsType(url) {
     }
 
     // The AnVIL
-    if (host === DG_EXPANSION_THE_ANVIL) {
+    if ((host === config.HOST_THE_ANVIL_PROD || host === config.HOST_THE_ANVIL_STAGING)) {
         return new DrsType(
             urlParts,
             PROTOCOL_PREFIX_DRS,

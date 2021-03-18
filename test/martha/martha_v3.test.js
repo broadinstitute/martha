@@ -431,7 +431,7 @@ test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
     getJsonFromApiStub.onFirstCall().resolves(gen3CrdcResponse);
     const response = mockResponse();
     await marthaV3(
-        mockRequest({ body: { 'url': `dos://${config.crdcHost}/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc` } }),
+        mockRequest({ body: { 'url': `dos://${config.HOST_CRDC_STAGING}/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc` } }),
         response,
     );
     const result = response.send.lastCall.args[0];
@@ -440,7 +440,7 @@ test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
     t.is(response.statusCode, 200);
     t.is(
         getJsonFromApiStub.firstCall.args[0],
-        `https://${config.crdcHost}/ga4gh/drs/v1/objects/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc`,
+        `https://${config.HOST_CRDC_STAGING}/ga4gh/drs/v1/objects/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc`,
     );
     t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
@@ -488,7 +488,7 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
     t.is(response.statusCode, 200);
     t.is(
         getJsonFromApiStub.firstCall.args[0],
-        `https://${config.bioDataCatalystHost}/ga4gh/drs/v1/objects` +
+        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
         '/dg.4503/fc046e84-6cf9-43a3-99cc-ffa2964b88cb',
     );
     t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
@@ -513,7 +513,7 @@ test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
     t.is(response.statusCode, 200);
     t.is(
         getJsonFromApiStub.firstCall.args[0],
-        `https://${config.bioDataCatalystHost}/ga4gh/drs/v1/objects` +
+        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
         '/dg.712C/fc046e84-6cf9-43a3-99cc-ffa2964b88cb',
     );
     t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
@@ -802,12 +802,20 @@ test('should parse Data Object uri with the AnVIL prefix dg.ANV0', (t) => {
     );
 });
 
-test('should parse Data Object uri with the AnVIL host', (t) => {
+test('should parse Data Object uri with the AnVIL prod host', (t) => {
     t.is(
-        determineDrsTypeTestWrapper(`drs://${config.theAnvilHost}/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`),
-        `https://${config.theAnvilHost}/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`,
+        determineDrsTypeTestWrapper(`drs://${config.HOST_THE_ANVIL_PROD}/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`),
+        `https://${config.HOST_THE_ANVIL_PROD}/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`,
     );
 });
+
+test('should parse Data Object uri with the AnVIL staging host', (t) => {
+    t.is(
+        determineDrsTypeTestWrapper(`drs://${config.HOST_THE_ANVIL_STAGING}/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`),
+        `https://${config.HOST_THE_ANVIL_STAGING}/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`,
+    );
+});
+
 /**
  * End Scenario 5
  */
@@ -815,12 +823,20 @@ test('should parse Data Object uri with the AnVIL host', (t) => {
 /**
  * determineDrsType(uri) -> drsUrl Scenario 6: data objects uri with the Kids First
  */
-test('should parse Data Object uri with the Kids First repo as host', (t) => {
+test('should parse Data Object uri with the Kids First prod repo as host', (t) => {
     t.is(
-        determineDrsTypeTestWrapper(`drs://${config.kidsFirstHost}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
-        `https://${config.kidsFirstHost}/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
+        determineDrsTypeTestWrapper(`drs://${config.HOST_KIDS_FIRST_PROD}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
+        `https://${config.HOST_KIDS_FIRST_PROD}/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
     );
 });
+
+test('should parse Data Object uri with the Kids First staging repo as host', (t) => {
+    t.is(
+        determineDrsTypeTestWrapper(`drs://${config.HOST_KIDS_FIRST_STAGING}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
+        `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
+    );
+});
+
 /**
  * End Scenario 6
  */
