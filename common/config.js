@@ -44,16 +44,16 @@ const configDefaults = {
             }
         })(),
     bioDataCatalystHost:
-      (() => {
-        switch (marthaEnv) {
-            case ENV_MOCK:
-                return HOST_MOCK_DRS;
-            case ENV_PROD:
-                return HOST_BIODATA_CATALYST_PROD;
-            default:
-                return HOST_BIODATA_CATALYST_STAGING;
-        }
-      })(),
+        (() => {
+            switch (marthaEnv) {
+                case ENV_MOCK:
+                    return HOST_MOCK_DRS;
+                case ENV_PROD:
+                    return HOST_BIODATA_CATALYST_PROD;
+                default:
+                    return HOST_BIODATA_CATALYST_STAGING;
+            }
+        })(),
     theAnvilHost:
         (() => {
             switch (marthaEnv) {
