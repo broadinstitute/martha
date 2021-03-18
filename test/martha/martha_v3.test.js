@@ -738,12 +738,20 @@ test('determineDrsType should parse "drs://dg." Data Object uri with query part'
     );
 });
 
-test('determineDrsType should parse "drs://" Data Object uri with an expanded host and path', (t) => {
+test('determineDrsType should parse "drs://" Data Object uri with an expanded host and path for prod', (t) => {
     t.is(
-        determineDrsTypeTestWrapper(`dos://${config.bioDataCatalystHost}/dg.2345/bar`),
-        `https://${config.bioDataCatalystHost}/ga4gh/drs/v1/objects/dg.2345/bar`
+        determineDrsTypeTestWrapper(`dos://${config.HOST_BIODATA_CATALYST_PROD}/dg.2345/bar`),
+        `https://${config.HOST_BIODATA_CATALYST_PROD}/ga4gh/drs/v1/objects/dg.2345/bar`
     );
 });
+
+test('determineDrsType should parse "drs://" Data Object uri with an expanded host and path for staging', (t) => {
+    t.is(
+        determineDrsTypeTestWrapper(`dos://${config.HOST_BIODATA_CATALYST_STAGING}/dg.2345/bar`),
+        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.2345/bar`
+    );
+});
+
 /**
  * End Scenario 2
  */
