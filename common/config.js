@@ -10,6 +10,16 @@ const ENV_DEV='dev';
 const ENV_PROD='prod';
 const ENV_CROMWELL_DEV='cromwell-dev';
 
+const HOST_MOCK_DRS='wb-mock-drs-dev.storage.googleapis.com';
+const HOST_BIODATA_CATALYST_PROD = 'gen3.biodatacatalyst.nhlbi.nih.gov';
+const HOST_BIODATA_CATALYST_STAGING = 'staging.gen3.biodatacatalyst.nhlbi.nih.gov';
+const HOST_THE_ANVIL_PROD = 'gen3.theanvil.io';
+const HOST_THE_ANVIL_STAGING = 'staging.theanvil.io';
+const HOST_CRDC_PROD = 'nci-crdc.datacommons.io';
+const HOST_CRDC_STAGING = 'nci-crdc-staging.datacommons.io';
+const HOST_KIDS_FIRST_PROD = 'data.kidsfirstdrc.org';
+const HOST_KIDS_FIRST_STAGING = 'gen3staging.kidsfirstdrc.org';
+
 const marthaEnv = (process.env.ENV || ENV_DEV).toLowerCase();
 const dsdeEnv =
     (() => {
@@ -37,44 +47,44 @@ const configDefaults = {
       (() => {
         switch (marthaEnv) {
             case ENV_MOCK:
-                return 'wb-mock-drs-dev.storage.googleapis.com'
+                return HOST_MOCK_DRS;
             case ENV_PROD:
-                return 'gen3.biodatacatalyst.nhlbi.nih.gov'
+                return HOST_BIODATA_CATALYST_PROD
             default:
-                return 'staging.gen3.biodatacatalyst.nhlbi.nih.gov'
+                return HOST_BIODATA_CATALYST_STAGING;
         }
       })(),
     theAnvilHost:
         (() => {
             switch (marthaEnv) {
                 case ENV_MOCK:
-                    return 'wb-mock-drs-dev.storage.googleapis.com';
+                    return HOST_MOCK_DRS;
                 case ENV_PROD:
-                    return 'gen3.theanvil.io';
+                    return HOST_THE_ANVIL_PROD;
                 default:
-                    return 'staging.theanvil.io';
+                    return HOST_THE_ANVIL_STAGING;
             }
         })(),
     crdcHost:
         (() => {
             switch (marthaEnv) {
                 case ENV_MOCK:
-                    return 'wb-mock-drs-dev.storage.googleapis.com';
+                    return HOST_MOCK_DRS;
                 case ENV_PROD:
-                    return 'nci-crdc.datacommons.io';
+                    return HOST_CRDC_PROD;
                 default:
-                    return 'nci-crdc-staging.datacommons.io';
+                    return HOST_CRDC_STAGING;
             }
         })(),
     kidsFirstHost:
         (() => {
             switch (marthaEnv) {
                 case ENV_MOCK:
-                    return 'wb-mock-drs-dev.storage.googleapis.com';
+                    return HOST_MOCK_DRS;
                 case ENV_PROD:
-                    return 'data.kidsfirstdrc.org';
+                    return HOST_KIDS_FIRST_PROD;
                 default:
-                    return 'gen3staging.kidsfirstdrc.org';
+                    return HOST_KIDS_FIRST_STAGING;
             }
         })(),
     itMarthaBaseUrl:
