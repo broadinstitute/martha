@@ -68,20 +68,38 @@ test('determineBondProvider should return the AnVIL BondProvider if the URL host
     t.is(determineBondProvider('drs://dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0'), BondProviders.ANVIL);
 });
 
-test('determineBondProvider should return the AnVIL BondProvider if the URL host is the AnVIL host', (t) => {
-    t.is(determineBondProvider(`drs://${config.theAnvilHost}/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`), BondProviders.ANVIL);
+test('determineBondProvider should return the AnVIL BondProvider if the URL host is the AnVIL prod host', (t) => {
+    t.is(determineBondProvider(`drs://${config.HOST_THE_ANVIL_PROD}/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`), BondProviders.ANVIL);
 });
 
-test('determineBondProvider should return the dcf-fence BondProvider if the URL host is Kids First', (t) => {
+test('determineBondProvider should return the AnVIL BondProvider if the URL host is the AnVIL staging host', (t) => {
+    t.is(determineBondProvider(`drs://${config.HOST_THE_ANVIL_STAGING}/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`), BondProviders.ANVIL);
+});
+
+test('determineBondProvider should return the dcf-fence BondProvider if the URL host is Kids First prod', (t) => {
     t.is(
-        determineBondProvider(`drs://${config.kidsFirstHost}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
+        determineBondProvider(`drs://${config.HOST_KIDS_FIRST_PROD}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
         BondProviders.DCF_FENCE,
     );
 });
 
-test('determineBondProvider should return the dcf-fence BondProvider if the URL host is CRDC', (t) => {
+test('determineBondProvider should return the dcf-fence BondProvider if the URL host is Kids First staging', (t) => {
     t.is(
-        determineBondProvider(`drs://${config.crdcHost}/0027045b-9ed6-45af-a68e-f55037b5184c`),
+        determineBondProvider(`drs://${config.HOST_KIDS_FIRST_STAGING}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
+        BondProviders.DCF_FENCE,
+    );
+});
+
+test('determineBondProvider should return the dcf-fence BondProvider if the URL host is CRDC prod', (t) => {
+    t.is(
+        determineBondProvider(`drs://${config.HOST_CRDC_PROD}/0027045b-9ed6-45af-a68e-f55037b5184c`),
+        BondProviders.DCF_FENCE,
+    );
+});
+
+test('determineBondProvider should return the dcf-fence BondProvider if the URL host is CRDC staging', (t) => {
+    t.is(
+        determineBondProvider(`drs://${config.HOST_CRDC_STAGING}/0027045b-9ed6-45af-a68e-f55037b5184c`),
         BondProviders.DCF_FENCE,
     );
 });

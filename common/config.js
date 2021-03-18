@@ -154,6 +154,14 @@ function removeUndefined(orig) {
  *      Default: Bond in FiaB.
  */
 const configExport = Object.freeze({
+    HOST_BIODATA_CATALYST_PROD,
+    HOST_BIODATA_CATALYST_STAGING,
+    HOST_THE_ANVIL_PROD,
+    HOST_THE_ANVIL_STAGING,
+    HOST_CRDC_PROD,
+    HOST_CRDC_STAGING,
+    HOST_KIDS_FIRST_PROD,
+    HOST_KIDS_FIRST_STAGING,
     dsdeEnv,
     marthaEnv,
     ...removeUndefined(configDefaults),
