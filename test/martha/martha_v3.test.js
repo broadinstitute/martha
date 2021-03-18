@@ -577,7 +577,7 @@ test.serial('martha_v3 parses Kids First response correctly', async (t) => {
     getJsonFromApiStub.onFirstCall().resolves(kidsFirstDrsResponse);
     const response = mockResponse();
     await marthaV3(
-        mockRequest({ body: { 'url': 'drs://data.kidsfirstdrc.org/ed6be7ab-068e-46c8-824a-f39cfbb885cc' } }),
+        mockRequest({ body: { 'url': `drs://${config.HOST_KIDS_FIRST_PROD}/ed6be7ab-068e-46c8-824a-f39cfbb885cc` } }),
         response
     );
     const result = response.send.lastCall.args[0];
@@ -586,7 +586,7 @@ test.serial('martha_v3 parses Kids First response correctly', async (t) => {
     t.is(response.statusCode, 200);
     t.is(
         getJsonFromApiStub.firstCall.args[0],
-        'https://data.kidsfirstdrc.org/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc',
+        `https://${config.HOST_KIDS_FIRST_PROD}/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
     );
     t.falsy(getJsonFromApiStub.firstCall.args[1]); // no auth passed
     const requestedBondUrl = getJsonFromApiStub.secondCall.args[0];
