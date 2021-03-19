@@ -68,7 +68,7 @@ const bondAccessTokenResponse = {
     expires_at: 'NEVER'
 };
 
-const drsSignedUrlResponse = { url: 'an-example-url' };
+const drsAccessUrlResponse = { url: 'an-example-url' };
 
 const bondRegEx = /^https:\/\/([^/]+)\/api\/link\/v1\/([a-z-]+)\/serviceaccount\/key$/;
 
@@ -440,7 +440,7 @@ test.serial('martha_v3 does not call Bond or return SA key when the host url is 
 test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(gen3CrdcResponse);
     getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
-    getJsonFromApiStub.onCall(2).resolves(drsSignedUrlResponse);
+    getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
     getJsonFromApiStub.onCall(3).resolves(googleSAKeyObject);
     const response = mockResponse();
     await marthaV3(
@@ -467,7 +467,7 @@ test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
 test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(gen3CrdcResponse);
     getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
-    getJsonFromApiStub.onCall(2).resolves(drsSignedUrlResponse);
+    getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
     getJsonFromApiStub.onCall(3).resolves(googleSAKeyObject);
     const response = mockResponse();
     await marthaV3(
@@ -497,7 +497,7 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
     // https://lucid.app/lucidchart/428a0bdd-a884-4fc7-9a49-7bf300ef6777/edit?shared=true&page=0_0#
     getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
-    getJsonFromApiStub.onCall(2).resolves(drsSignedUrlResponse);
+    getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
     getJsonFromApiStub.onCall(3).resolves(googleSAKeyObject);
 
     const response = mockResponse();
@@ -512,7 +512,7 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
     // 2 + 2 = 4.
     sinon.assert.callCount(getJsonFromApiStub, 4);
 
-    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, drsSignedUrlResponse.url));
+    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse.url));
 
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
@@ -546,7 +546,7 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
 test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
-    getJsonFromApiStub.onCall(2).resolves(drsSignedUrlResponse);
+    getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
     getJsonFromApiStub.onCall(3).resolves(googleSAKeyObject);
     const response = mockResponse();
     await marthaV3(
@@ -556,7 +556,7 @@ test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
     sinon.assert.callCount(getJsonFromApiStub, 4);
-    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, drsSignedUrlResponse.url));
+    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse));
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
         `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
@@ -574,7 +574,7 @@ test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
 test.serial('martha_v3 parses Anvil response correctly', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(anvilDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
-    getJsonFromApiStub.onCall(2).resolves(drsSignedUrlResponse);
+    getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
     getJsonFromApiStub.onCall(3).resolves(googleSAKeyObject);
     const response = mockResponse();
     await marthaV3(
@@ -585,7 +585,7 @@ test.serial('martha_v3 parses Anvil response correctly', async (t) => {
 
     const result = response.send.lastCall.args[0];
     sinon.assert.callCount(getJsonFromApiStub, 4); // Bond was called to get SA key
-    t.deepEqual({ ...result }, anvilDrsMarthaResult(googleSAKeyObject, drsSignedUrlResponse.url));
+    t.deepEqual({ ...result }, anvilDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse.url));
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
         `https://${config.HOST_THE_ANVIL_STAGING}/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`,
@@ -602,7 +602,7 @@ test.serial('martha_v3 parses Anvil response correctly', async (t) => {
 test.serial('martha_v3 parses a The AnVIL CIB URI response correctly', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(anvilDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
-    getJsonFromApiStub.onCall(2).resolves(drsSignedUrlResponse);
+    getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
     getJsonFromApiStub.onCall(3).resolves(googleSAKeyObject);
     const response = mockResponse();
     await marthaV3(
@@ -613,7 +613,7 @@ test.serial('martha_v3 parses a The AnVIL CIB URI response correctly', async (t)
 
     const result = response.send.lastCall.args[0];
     sinon.assert.callCount(getJsonFromApiStub, 4); // Bond was called to get SA key
-    t.deepEqual({ ...result }, anvilDrsMarthaResult(googleSAKeyObject, drsSignedUrlResponse.url));
+    t.deepEqual({ ...result }, anvilDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse.url));
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
         `https://${config.HOST_THE_ANVIL_STAGING}/ga4gh/drs/v1/objects/dg.ANV0%2F00008531-03d7-418c-b3d3-b7b22b5381a0`,

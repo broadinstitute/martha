@@ -177,7 +177,7 @@ class MarthaV3Response extends CommonFileInfoResponse {
         bondProvider,
         fileName,
         hashesMap,
-        signedUrl
+        accessUrl
     ) {
         super(
             contentType,
@@ -193,7 +193,7 @@ class MarthaV3Response extends CommonFileInfoResponse {
         this.timeUpdated = updated || null;
         this.fileName = fileName || null;
         this.bondProvider = bondProvider || null;
-        this.signedUrl = signedUrl || null;
+        this.accessUrl = accessUrl || null;
         delete this.updated;
     }
 }
@@ -362,10 +362,12 @@ function getGsUrlFromDrsObject(drsResponse) {
  *     systems that do not support updates
  * @param {?string} [bondProvider] The Bond provider
  * @param {?Object} [googleSA] A google service account json
- * @param {?string} [signedUrl] A signed URL to the object
+ * @param {?Object} [accessUrl] An access URL
+ * @param {string} accessUrl.url A URL used to fetch object bytes
+ * @param {?string[]} [accessUrl.headers] An optional list of headers to include in the HTTP request to url
  * @returns {MarthaV3Response} The drs object converted to a martha_v3 response
  */
-function convertToMarthaV3Response(drsResponse, bondProvider, googleSA, signedUrl) {
+function convertToMarthaV3Response(drsResponse, bondProvider, googleSA, accessUrl) {
     const {
         checksums,
         mime_type: mimeType = 'application/octet-stream',
@@ -419,7 +421,7 @@ function convertToMarthaV3Response(drsResponse, bondProvider, googleSA, signedUr
         bondProvider,
         fileName,
         hashesMap,
-        signedUrl
+        accessUrl
     );
 }
 

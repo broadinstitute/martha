@@ -32,7 +32,7 @@ const expectedObjWithMissingFields = {
     timeUpdated: null,
     bucket: null,
     name: null,
-    signedUrl: null,
+    accessUrl: null,
     gsUri: null,
     googleServiceAccount: null,
     bondProvider: 'dcf-fence',
@@ -85,7 +85,7 @@ const sampleDosMarthaResult = (expectedGoogleServiceAccount) => {
         googleServiceAccount: expectedGoogleServiceAccount,
         bondProvider: 'dcf-fence',
         fileName: 'my_data',
-        signedUrl: null,
+        accessUrl: null,
         hashes: {
             md5: '336ea55913bc261b72875bd259753046',
             sha256: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44',
@@ -135,7 +135,7 @@ const dataGuidsOrgMarthaResult = (expectedGoogleServiceAccount) => {
         timeUpdated: '2018-06-26T18:53:21.416Z',
         bucket: 'gdc-tcga-phs000178-open',
         name: 'a41b0c4f-ebfb-4277-a941-507340dea85d/nationwidechildrens.org_clinical.TCGA-56-A4BY.xml',
-        signedUrl: null,
+        accessUrl: null,
         gsUri:
             'gs://gdc-tcga-phs000178-open/a41b0c4f-ebfb-4277-a941-507340dea85d' +
             '/nationwidechildrens.org_clinical.TCGA-56-A4BY.xml',
@@ -192,7 +192,7 @@ const jadeDrsMarthaResult = {
     timeUpdated: '2020-04-27T15:56:09.696Z',
     bucket: 'broad-jade-dev-data-bucket',
     name: 'fd8d8492-ad02-447d-b54e-35a7ffd0e7a5/8b07563a-542f-4b5c-9e00-e8fe6b1861de',
-    signedUrl: null,
+    accessUrl: null,
     gsUri:
         'gs://broad-jade-dev-data-bucket/fd8d8492-ad02-447d-b54e-35a7ffd0e7a5/8b07563a-542f-4b5c-9e00-e8fe6b1861de',
     googleServiceAccount: null,
@@ -375,7 +375,7 @@ const kidsFirstDrsMarthaResult = (expectedGoogleServiceAccount) => {
         timeUpdated: '2018-05-23T12:32:32.594Z',
         bucket: null, // expected, uses S3
         name: null, // there is definitely a name in the server response, why isn't Martha using it?
-        signedUrl: null,
+        accessUrl: null,
         gsUri: null, // expected, uses S3
         googleServiceAccount: expectedGoogleServiceAccount,
         bondProvider: 'dcf-fence',
@@ -422,7 +422,7 @@ const bdcDrsResponse = {
     version: "f443f632"
 };
 
-const bdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedSignedUrl) => {
+const bdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl) => {
     return {
         contentType: 'application/json',
         size: 1386553,
@@ -443,7 +443,7 @@ const bdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedSignedUrl) => 
         hashes: {
             md5: '8bec761c8a626356eb34dbdfe20649b4'
         },
-        signedUrl: expectedSignedUrl
+        accessUrl: expectedAccessUrl
     };
 };
 
@@ -501,7 +501,7 @@ const hcaDosMarthaResult = {
     gsUri: 'gs://broad-jade-dev-data-bucket/ecb5601e-9026-428c-b49d-3c5f1807ecb7/e37266ba-790d-4641-aa76-854d94be2fbe/E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz',
     bucket: 'broad-jade-dev-data-bucket',
     name: 'ecb5601e-9026-428c-b49d-3c5f1807ecb7/e37266ba-790d-4641-aa76-854d94be2fbe/E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz',
-    signedUrl: null,
+    accessUrl: null,
     fileName: 'E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz',
     contentType: null,
     size: 438932948,

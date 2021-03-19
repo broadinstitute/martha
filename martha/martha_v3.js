@@ -38,7 +38,7 @@ const ALL_FIELDS = [
     'timeUpdated',
     'googleServiceAccount',
     'bondProvider',
-    'signedUrl'
+    'accessUrl'
 ];
 
 const DEFAULT_FIELDS = [
@@ -464,13 +464,12 @@ async function marthaV3Handler(req, res) {
         }
     }
 
-    let signedUrl;
+    let accessUrl;
     if (bondAccessTokenUrl && accessId) {
         try {
             const httpsAccessUrl = generateAccessUrl(drsType, accessId);
             const accessTokenAuth = `Bearer ${accessToken}`;
-            const response = await apiAdapter.getJsonFrom(httpsAccessUrl, accessTokenAuth);
-            signedUrl = response.url;
+            accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, accessTokenAuth);
         } catch (error) {
             logAndSendServerError(res, error, 'Received error contacting DRS provider.');
             return;
@@ -487,7 +486,7 @@ async function marthaV3Handler(req, res) {
         }
     }
 
-    const fullResponse = requestedFields.length ? convertToMarthaV3Response(drsResponse, bondProvider, bondSA, signedUrl) : {};
+    const fullResponse = requestedFields.length ? convertToMarthaV3Response(drsResponse, bondProvider, bondSA, accessUrl) : {};
     const partialResponse = mask(fullResponse, requestedFields.join(","));
 
     res.status(200).send(partialResponse);
