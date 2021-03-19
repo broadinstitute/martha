@@ -103,7 +103,9 @@ class DrsType {
 
 /* Returns undefined if the matching access method does not have an access_id. */
 function getDrsAccessId(drsResponse) {
-    if (!drsResponse || !drsResponse.access_methods) return;
+    if (!drsResponse || !drsResponse.access_methods) {
+        return;
+    }
     for (const accessMethod of drsResponse.access_methods) {
         if (accessMethod.type === ACCESS_METHOD_TYPE_GCS) {
             return accessMethod.access_id;

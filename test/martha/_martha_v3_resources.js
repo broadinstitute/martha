@@ -451,7 +451,7 @@ const bdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl) => 
 // returned via
 //   `curl https://drs.data.humancellatlas.org/ga4gh/dos/v1/dataobjects/4cf48dbf-cf09-452e-bb5b-fd016af0c747?version=2019-09-14T024754.281908Z`
 // TODO: clean up formatting before merging this branch
-const fakeToken = "Definitely not a real token"
+const fakeToken = "Definitely not a real token";
 const hcaDosResponse = {
     "id": "v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe",
     "name": "E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz",
