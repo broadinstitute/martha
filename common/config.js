@@ -154,6 +154,7 @@ function removeUndefined(orig) {
  *      Default: Bond in FiaB.
  */
 const configExport = Object.freeze({
+    HOST_MOCK_DRS,
     HOST_BIODATA_CATALYST_PROD,
     HOST_BIODATA_CATALYST_STAGING,
     HOST_THE_ANVIL_PROD,

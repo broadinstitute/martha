@@ -273,7 +273,9 @@ function determineDrsType(url) {
     // First handle servers that we know about...
 
     // BDC, but skip DOS/DRS URIs that might be a fake `martha_v2`-compatible BDC
-    if ((host === config.HOST_BIODATA_CATALYST_PROD || host === config.HOST_BIODATA_CATALYST_STAGING) && !urlParts.httpsUrlMaybeNotBdc) {
+    const bioDataCatalystHosts = [
+        config.HOST_BIODATA_CATALYST_PROD, config.HOST_BIODATA_CATALYST_STAGING, config.HOST_MOCK_DRS]
+    if (bioDataCatalystHosts.includes(host) && !urlParts.httpsUrlMaybeNotBdc) {
         return new DrsType(
             urlParts,
             PROTOCOL_PREFIX_DRS,
