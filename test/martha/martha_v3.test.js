@@ -268,7 +268,7 @@ test.serial('martha_v3 returns an error when an invalid field is requested', asy
                 text:
                     "Request is invalid. Fields 'meaningOfLife' are not supported. Supported fields are " +
                     "'gsUri', 'bucket', 'name', 'fileName', 'contentType', 'size', 'hashes', " +
-                    "'timeCreated', 'timeUpdated', 'googleServiceAccount', 'bondProvider', 'signedUrl'.",
+                    "'timeCreated', 'timeUpdated', 'googleServiceAccount', 'bondProvider', 'accessUrl'.",
             },
             status: 400,
         },
@@ -450,7 +450,7 @@ test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
     sinon.assert.callCount(getJsonFromApiStub, 4);
-    t.deepEqual({ ...result }, gen3CrdcDrsMarthaResult(googleSAKeyObject));
+    t.deepEqual({ ...result }, gen3CrdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse));
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
         `https://${config.HOST_CRDC_STAGING}/ga4gh/drs/v1/objects/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc`,
@@ -477,7 +477,7 @@ test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t)
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
     sinon.assert.callCount(getJsonFromApiStub, 4);
-    t.deepEqual({ ...result }, gen3CrdcDrsMarthaResult(googleSAKeyObject));
+    t.deepEqual({ ...result }, gen3CrdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse));
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
         `https://${config.HOST_CRDC_STAGING}/ga4gh/drs/v1/objects/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc`,
@@ -512,7 +512,7 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
     // 2 + 2 = 4.
     sinon.assert.callCount(getJsonFromApiStub, 4);
 
-    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse.url));
+    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse));
 
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
@@ -585,7 +585,7 @@ test.serial('martha_v3 parses Anvil response correctly', async (t) => {
 
     const result = response.send.lastCall.args[0];
     sinon.assert.callCount(getJsonFromApiStub, 4); // Bond was called to get SA key
-    t.deepEqual({ ...result }, anvilDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse.url));
+    t.deepEqual({ ...result }, anvilDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse));
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
         `https://${config.HOST_THE_ANVIL_STAGING}/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`,
@@ -613,7 +613,7 @@ test.serial('martha_v3 parses a The AnVIL CIB URI response correctly', async (t)
 
     const result = response.send.lastCall.args[0];
     sinon.assert.callCount(getJsonFromApiStub, 4); // Bond was called to get SA key
-    t.deepEqual({ ...result }, anvilDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse.url));
+    t.deepEqual({ ...result }, anvilDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse));
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
         `https://${config.HOST_THE_ANVIL_STAGING}/ga4gh/drs/v1/objects/dg.ANV0%2F00008531-03d7-418c-b3d3-b7b22b5381a0`,
@@ -762,7 +762,7 @@ test.serial('martha_v3 should return 500 on exception trying to get access token
 test.serial('martha_v3 should return 500 on exception trying to get signed URL from DRS provider', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
-    getJsonFromApiStub.onCall(2).resolves(null);
+    getJsonFromApiStub.onCall(2).throws(new Error("Test exception: simulated error from DRS provider"));
 
     const response = mockResponse();
     await marthaV3(
@@ -776,7 +776,7 @@ test.serial('martha_v3 should return 500 on exception trying to get signed URL f
         {
             response: {
                 status: 500,
-                text: "Received error contacting DRS provider. Cannot read property 'url' of null"
+                text: "Received error contacting DRS provider. Test exception: simulated error from DRS provider"
             },
             status: 500,
         },

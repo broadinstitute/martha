@@ -249,7 +249,7 @@ const gen3CrdcResponse = {
     version: "5eb15d8b"
 };
 
-const gen3CrdcDrsMarthaResult = (expectedGoogleServiceAccount) => { return {
+const gen3CrdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl) => { return {
     contentType: 'application/json',
     size: 6703858793,
     timeCreated: '2018-06-27T10:28:06.398Z',
@@ -258,7 +258,7 @@ const gen3CrdcDrsMarthaResult = (expectedGoogleServiceAccount) => { return {
     name:
         'BRCA/RNA/RNA-Seq/UNC-LCCC/ILLUMINA' +
         '/UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz',
-    signedUrl: 'an-example-url',
+    accessUrl: expectedAccessUrl,
     gsUri:
         'gs://gdc-tcga-phs000178-controlled/BRCA/RNA/RNA-Seq/UNC-LCCC/ILLUMINA' +
         '/UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz',
@@ -305,7 +305,7 @@ const anvilDrsResponse = {
     version: "0a4262ff"
 };
 
-const anvilDrsMarthaResult = (expectedGoogleServiceAccount, expectedSignedUrl) => {
+const anvilDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl) => {
     return {
         contentType: 'application/json',
         size: 143562155,
@@ -315,7 +315,7 @@ const anvilDrsMarthaResult = (expectedGoogleServiceAccount, expectedSignedUrl) =
         name:
             'GTEx_Analysis_2017-06-05_v8_RNAseq_bigWig_files' +
             '/GTEX-1GZHY-0011-R6a-SM-9OSWL.Aligned.sortedByCoord.out.patched.md.bigWig',
-        signedUrl: expectedSignedUrl,
+        accessUrl: expectedAccessUrl,
         gsUri:
             'gs://fc-secure-ff8156a3-ddf3-42e4-9211-0fd89da62108/GTEx_Analysis_2017-06-05_v8_RNAseq_bigWig_files' +
             '/GTEX-1GZHY-0011-R6a-SM-9OSWL.Aligned.sortedByCoord.out.patched.md.bigWig',
