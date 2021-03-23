@@ -264,18 +264,21 @@ function responseParser (response) {
  * a response parser.
  *
  * If you update this function update the README too!
+ *
+ * @param url {string} The URL to be tested
+ * @param bioDataCatalystHost {string} The hostname for BioData Catalyst in this environment
+ * @param theAnvilHost {string} The hostname for The AnVIL in this environment
+ * @return {DrsType}
  */
 
-function determineDrsType(url) {
+function determineDrsType(url, bioDataCatalystHost = DG_EXPANSION_BDC, theAnvilHost = DG_EXPANSION_THE_ANVIL) {
     const urlParts = getHttpsUrlParts(url);
     const host = urlParts.httpsUrlHost;
 
     // First handle servers that we know about...
 
     // BDC, but skip DOS/DRS URIs that might be a fake `martha_v2`-compatible BDC
-    const bioDataCatalystHosts = [
-        config.HOST_BIODATA_CATALYST_PROD, config.HOST_BIODATA_CATALYST_STAGING, config.HOST_MOCK_DRS];
-    if (bioDataCatalystHosts.includes(host) && !urlParts.httpsUrlMaybeNotBdc) {
+    if (host === bioDataCatalystHost && !urlParts.httpsUrlMaybeNotBdc) {
         return new DrsType(
             urlParts,
             PROTOCOL_PREFIX_DRS,
@@ -285,7 +288,7 @@ function determineDrsType(url) {
     }
 
     // The AnVIL
-    if ((host === config.HOST_THE_ANVIL_PROD || host === config.HOST_THE_ANVIL_STAGING)) {
+    if (host === theAnvilHost) {
         return new DrsType(
             urlParts,
             PROTOCOL_PREFIX_DRS,
@@ -434,3 +437,5 @@ exports.marthaV3Handler = marthaV3Handler;
 exports.determineDrsType = determineDrsType;
 exports.httpsUrlGenerator = httpsUrlGenerator;
 exports.allMarthaFields = ALL_FIELDS;
+exports.DG_EXPANSION_BDC = DG_EXPANSION_BDC;
+exports.DG_EXPANSION_THE_ANVIL = DG_EXPANSION_THE_ANVIL;

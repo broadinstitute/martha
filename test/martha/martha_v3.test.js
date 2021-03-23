@@ -36,6 +36,8 @@ const {
     determineDrsType,
     httpsUrlGenerator,
     allMarthaFields,
+    DG_EXPANSION_BDC,
+    DG_EXPANSION_THE_ANVIL
 } = require('../../martha/martha_v3');
 const apiAdapter = require('../../common/api_adapter');
 const config = require('../../common/config');
@@ -680,11 +682,21 @@ test.serial('martha_v3 should return 500 if Data Object parsing fails', async (t
     t.is(response.statusCode, 500);
 });
 
-// Test utility for generating server URL from a DRS URL
-function determineDrsTypeTestWrapper(testUrl) {
-    const drsType = determineDrsType(testUrl);
+
+function determineDrsTypeWrapperNamed({
+    testUrl,
+    bdcHost = DG_EXPANSION_BDC,
+    theAnvilHost = DG_EXPANSION_THE_ANVIL
+}) {
+    const drsType = determineDrsType(testUrl, bdcHost, theAnvilHost);
     return httpsUrlGenerator(drsType);
 }
+
+// Test utility for generating server URL from a DRS URL
+function determineDrsTypeTestWrapper(testUrl) {
+    return determineDrsTypeWrapperNamed({testUrl});
+}
+
 
 /**
  * determineDrsType(uri) -> drsUrl Scenario 1: data objects uri with non-dg host and path
@@ -740,7 +752,10 @@ test('determineDrsType should parse "drs://dg." Data Object uri with query part'
 
 test('determineDrsType should parse "drs://" Data Object uri with an expanded host and path for prod', (t) => {
     t.is(
-        determineDrsTypeTestWrapper(`dos://${config.HOST_BIODATA_CATALYST_PROD}/dg.2345/bar`),
+        determineDrsTypeWrapperNamed({
+            testUrl: `dos://${config.HOST_BIODATA_CATALYST_PROD}/dg.2345/bar`,
+            bdcHost: config.HOST_BIODATA_CATALYST_PROD
+        }),
         `https://${config.HOST_BIODATA_CATALYST_PROD}/ga4gh/drs/v1/objects/dg.2345/bar`
     );
 });
@@ -812,7 +827,10 @@ test('should parse Data Object uri with the AnVIL prefix dg.ANV0', (t) => {
 
 test('should parse Data Object uri with the AnVIL prod host', (t) => {
     t.is(
-        determineDrsTypeTestWrapper(`drs://${config.HOST_THE_ANVIL_PROD}/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`),
+        determineDrsTypeWrapperNamed({
+            testUrl: `drs://${config.HOST_THE_ANVIL_PROD}/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`,
+            theAnvilHost: config.HOST_THE_ANVIL_PROD
+        }),
         `https://${config.HOST_THE_ANVIL_PROD}/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`,
     );
 });
