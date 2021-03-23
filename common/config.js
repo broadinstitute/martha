@@ -20,91 +20,113 @@ const HOST_CRDC_STAGING = 'nci-crdc-staging.datacommons.io';
 const HOST_KIDS_FIRST_PROD = 'data.kidsfirstdrc.org';
 const HOST_KIDS_FIRST_STAGING = 'gen3staging.kidsfirstdrc.org';
 
+/**
+ * Return the DSDE environment for the specified Martha environment.
+ * @param _marthaEnv {string} Martha environment, should be one of the constants ENV_MOCK, ENV_DEV, ENV_PROD,
+ *        or ENV_CROMWELL_DEV.
+ * @returns {string}
+ */
+function dsdeEnvFrom(_marthaEnv) {
+    switch (_marthaEnv) {
+        case ENV_MOCK: return 'dev';
+        case ENV_CROMWELL_DEV: return 'dev';
+        default: return _marthaEnv.toLowerCase();
+    }
+}
+
+/**
+ * Return a configuration object with default values for the specified Martha and DSDE environments.
+ * @param _marthaEnv
+ * @param _dsdeEnv
+ * @returns {{theAnvilHost: (string), crdcHost: (string), kidsFirstHost: (string), bondBaseUrl: string, itMarthaBaseUrl: string, itBondBaseUrl: string, samBaseUrl: string, bioDataCatalystHost: (string)}}
+ */
+function configDefaultsFrom(_marthaEnv, _dsdeEnv) {
+    return {
+        samBaseUrl:
+            `https://sam.dsde-${_dsdeEnv}.broadinstitute.org`,
+        bondBaseUrl:
+            (() => {
+                // noinspection JSUnreachableSwitchBranches
+                switch (_marthaEnv) {
+                    case ENV_MOCK:
+                        return 'http://127.0.0.1:8080';
+                    default:
+                        return `https://broad-bond-${_dsdeEnv}.appspot.com`;
+                }
+            })(),
+        bioDataCatalystHost:
+            (() => {
+                switch (_marthaEnv) {
+                    case ENV_MOCK:
+                        return HOST_MOCK_DRS;
+                    case ENV_PROD:
+                        return HOST_BIODATA_CATALYST_PROD;
+                    default:
+                        return HOST_BIODATA_CATALYST_STAGING;
+                }
+            })(),
+        theAnvilHost:
+            (() => {
+                switch (_marthaEnv) {
+                    case ENV_MOCK:
+                        return HOST_MOCK_DRS;
+                    case ENV_PROD:
+                        return HOST_THE_ANVIL_PROD;
+                    default:
+                        return HOST_THE_ANVIL_STAGING;
+                }
+            })(),
+        crdcHost:
+            (() => {
+                switch (_marthaEnv) {
+                    case ENV_MOCK:
+                        return HOST_MOCK_DRS;
+                    case ENV_PROD:
+                        return HOST_CRDC_PROD;
+                    default:
+                        return HOST_CRDC_STAGING;
+                }
+            })(),
+        kidsFirstHost:
+            (() => {
+                switch (_marthaEnv) {
+                    case ENV_MOCK:
+                        return HOST_MOCK_DRS;
+                    case ENV_PROD:
+                        return HOST_KIDS_FIRST_PROD;
+                    default:
+                        return HOST_KIDS_FIRST_STAGING;
+                }
+            })(),
+        itMarthaBaseUrl:
+            (() => {
+                // noinspection JSUnreachableSwitchBranches
+                switch (_marthaEnv) {
+                    case ENV_MOCK:
+                        return 'http://localhost:8010';
+                    default:
+                        return `https://martha-fiab.dsde-${_dsdeEnv}.broadinstitute.org:32443`;
+                }
+            })(),
+        itBondBaseUrl:
+            (() => {
+                // noinspection JSUnreachableSwitchBranches
+                switch (_marthaEnv) {
+                    case ENV_MOCK:
+                        return 'http://127.0.0.1:8080';
+                    default:
+                        return `https://bond-fiab.dsde-${_dsdeEnv}.broadinstitute.org:31443`;
+                }
+            })(),
+    };
+}
+
 const marthaEnv = (process.env.ENV || ENV_DEV).toLowerCase();
-const dsdeEnv =
-    (() => {
-        // noinspection JSUnreachableSwitchBranches
-        switch (marthaEnv) {
-            case ENV_MOCK: return 'dev';
-            case ENV_CROMWELL_DEV: return 'dev';
-            default: return marthaEnv;
-        }
-    })().toLowerCase();
+
+const dsdeEnv = dsdeEnvFrom(marthaEnv);
 
 // Start with the defaults...
-const configDefaults = {
-    samBaseUrl:
-        `https://sam.dsde-${dsdeEnv}.broadinstitute.org`,
-    bondBaseUrl:
-        (() => {
-            // noinspection JSUnreachableSwitchBranches
-            switch (marthaEnv) {
-                case ENV_MOCK: return 'http://127.0.0.1:8080';
-                default: return `https://broad-bond-${dsdeEnv}.appspot.com`;
-            }
-        })(),
-    bioDataCatalystHost:
-        (() => {
-            switch (marthaEnv) {
-                case ENV_MOCK:
-                    return HOST_MOCK_DRS;
-                case ENV_PROD:
-                    return HOST_BIODATA_CATALYST_PROD;
-                default:
-                    return HOST_BIODATA_CATALYST_STAGING;
-            }
-        })(),
-    theAnvilHost:
-        (() => {
-            switch (marthaEnv) {
-                case ENV_MOCK:
-                    return HOST_MOCK_DRS;
-                case ENV_PROD:
-                    return HOST_THE_ANVIL_PROD;
-                default:
-                    return HOST_THE_ANVIL_STAGING;
-            }
-        })(),
-    crdcHost:
-        (() => {
-            switch (marthaEnv) {
-                case ENV_MOCK:
-                    return HOST_MOCK_DRS;
-                case ENV_PROD:
-                    return HOST_CRDC_PROD;
-                default:
-                    return HOST_CRDC_STAGING;
-            }
-        })(),
-    kidsFirstHost:
-        (() => {
-            switch (marthaEnv) {
-                case ENV_MOCK:
-                    return HOST_MOCK_DRS;
-                case ENV_PROD:
-                    return HOST_KIDS_FIRST_PROD;
-                default:
-                    return HOST_KIDS_FIRST_STAGING;
-            }
-        })(),
-    itMarthaBaseUrl:
-        (() => {
-            // noinspection JSUnreachableSwitchBranches
-            switch (marthaEnv) {
-                case ENV_MOCK: return 'http://localhost:8010';
-                default: return `https://martha-fiab.dsde-${dsdeEnv}.broadinstitute.org:32443`;
-            }
-        })(),
-    itBondBaseUrl:
-        (() => {
-            // noinspection JSUnreachableSwitchBranches
-            switch (marthaEnv) {
-                case ENV_MOCK: return 'http://127.0.0.1:8080';
-                default: return `https://bond-fiab.dsde-${dsdeEnv}.broadinstitute.org:31443`;
-            }
-        })(),
-};
-
+const configDefaults = configDefaultsFrom(marthaEnv, dsdeEnv);
 // ...override defaults with config.json...
 const configPath = process.env.MARTHA_CONFIG_FILE || path.join(__dirname, '../config.json');
 const configText = marthaEnv !== ENV_MOCK && fs.existsSync(configPath) ? fs.readFileSync(configPath) : '{}';
