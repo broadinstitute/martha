@@ -36,27 +36,27 @@ function dsdeEnvFrom(_marthaEnv) {
 
 /**
  * Return a configuration object with default values for the specified Martha and DSDE environments.
- * @param _marthaEnv
- * @param _dsdeEnv
+ * @param marthaEnv
+ * @param dsdeEnv
  * @returns {{theAnvilHost: (string), crdcHost: (string), kidsFirstHost: (string), bondBaseUrl: string, itMarthaBaseUrl: string, itBondBaseUrl: string, samBaseUrl: string, bioDataCatalystHost: (string)}}
  */
-function configDefaultsFrom(_marthaEnv, _dsdeEnv) {
+function configDefaultsForEnv({marthaEnv, dsdeEnv = dsdeEnvFrom(marthaEnv)}) {
     return {
         samBaseUrl:
-            `https://sam.dsde-${_dsdeEnv}.broadinstitute.org`,
+            `https://sam.dsde-${dsdeEnv}.broadinstitute.org`,
         bondBaseUrl:
             (() => {
                 // noinspection JSUnreachableSwitchBranches
-                switch (_marthaEnv) {
+                switch (marthaEnv) {
                     case ENV_MOCK:
                         return 'http://127.0.0.1:8080';
                     default:
-                        return `https://broad-bond-${_dsdeEnv}.appspot.com`;
+                        return `https://broad-bond-${dsdeEnv}.appspot.com`;
                 }
             })(),
         bioDataCatalystHost:
             (() => {
-                switch (_marthaEnv) {
+                switch (marthaEnv) {
                     case ENV_MOCK:
                         return HOST_MOCK_DRS;
                     case ENV_PROD:
@@ -67,7 +67,7 @@ function configDefaultsFrom(_marthaEnv, _dsdeEnv) {
             })(),
         theAnvilHost:
             (() => {
-                switch (_marthaEnv) {
+                switch (marthaEnv) {
                     case ENV_MOCK:
                         return HOST_MOCK_DRS;
                     case ENV_PROD:
@@ -78,7 +78,7 @@ function configDefaultsFrom(_marthaEnv, _dsdeEnv) {
             })(),
         crdcHost:
             (() => {
-                switch (_marthaEnv) {
+                switch (marthaEnv) {
                     case ENV_MOCK:
                         return HOST_MOCK_DRS;
                     case ENV_PROD:
@@ -89,7 +89,7 @@ function configDefaultsFrom(_marthaEnv, _dsdeEnv) {
             })(),
         kidsFirstHost:
             (() => {
-                switch (_marthaEnv) {
+                switch (marthaEnv) {
                     case ENV_MOCK:
                         return HOST_MOCK_DRS;
                     case ENV_PROD:
@@ -101,21 +101,21 @@ function configDefaultsFrom(_marthaEnv, _dsdeEnv) {
         itMarthaBaseUrl:
             (() => {
                 // noinspection JSUnreachableSwitchBranches
-                switch (_marthaEnv) {
+                switch (marthaEnv) {
                     case ENV_MOCK:
                         return 'http://localhost:8010';
                     default:
-                        return `https://martha-fiab.dsde-${_dsdeEnv}.broadinstitute.org:32443`;
+                        return `https://martha-fiab.dsde-${dsdeEnv}.broadinstitute.org:32443`;
                 }
             })(),
         itBondBaseUrl:
             (() => {
                 // noinspection JSUnreachableSwitchBranches
-                switch (_marthaEnv) {
+                switch (marthaEnv) {
                     case ENV_MOCK:
                         return 'http://127.0.0.1:8080';
                     default:
-                        return `https://bond-fiab.dsde-${_dsdeEnv}.broadinstitute.org:31443`;
+                        return `https://bond-fiab.dsde-${dsdeEnv}.broadinstitute.org:31443`;
                 }
             })(),
     };
@@ -126,7 +126,7 @@ const marthaEnv = (process.env.ENV || ENV_DEV).toLowerCase();
 const dsdeEnv = dsdeEnvFrom(marthaEnv);
 
 // Start with the defaults...
-const configDefaults = configDefaultsFrom(marthaEnv, dsdeEnv);
+const configDefaults = configDefaultsForEnv({ marthaEnv, dsdeEnv });
 // ...override defaults with config.json...
 const configPath = process.env.MARTHA_CONFIG_FILE || path.join(__dirname, '../config.json');
 const configText = marthaEnv !== ENV_MOCK && fs.existsSync(configPath) ? fs.readFileSync(configPath) : '{}';
@@ -185,6 +185,12 @@ const configExport = Object.freeze({
     HOST_CRDC_STAGING,
     HOST_KIDS_FIRST_PROD,
     HOST_KIDS_FIRST_STAGING,
+    ENV_PROD,
+    ENV_DEV,
+    ENV_MOCK,
+    ENV_CROMWELL_DEV,
+    dsdeEnvFrom,
+    configDefaultsForEnv,
     dsdeEnv,
     marthaEnv,
     ...removeUndefined(configDefaults),
