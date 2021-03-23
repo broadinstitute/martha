@@ -33,7 +33,7 @@ const test = require('ava');
 const sinon = require('sinon');
 const {
     marthaV3Handler: marthaV3,
-    determineDrsType,
+    determineDrsTypeNamed,
     httpsUrlGenerator,
     allMarthaFields,
     DG_EXPANSION_BDC,
@@ -682,13 +682,19 @@ test.serial('martha_v3 should return 500 if Data Object parsing fails', async (t
     t.is(response.statusCode, 500);
 });
 
-
+/**
+ * Determine DRS type using the specified named parameters.
+ * @param testUrl {string}
+ * @param bioDataCatalystHost {string}
+ * @param theAnvilHost {string}
+ * @return {string}
+ */
 function determineDrsTypeWrapperNamed({
     testUrl,
-    bdcHost = DG_EXPANSION_BDC,
+    bioDataCatalystHost = DG_EXPANSION_BDC,
     theAnvilHost = DG_EXPANSION_THE_ANVIL
 }) {
-    const drsType = determineDrsType(testUrl, bdcHost, theAnvilHost);
+    const drsType = determineDrsTypeNamed({url: testUrl, bioDataCatalystHost, theAnvilHost});
     return httpsUrlGenerator(drsType);
 }
 
@@ -754,7 +760,7 @@ test('determineDrsType should parse "drs://" Data Object uri with an expanded ho
     t.is(
         determineDrsTypeWrapperNamed({
             testUrl: `dos://${config.HOST_BIODATA_CATALYST_PROD}/dg.2345/bar`,
-            bdcHost: config.HOST_BIODATA_CATALYST_PROD
+            bioDataCatalystHost: config.HOST_BIODATA_CATALYST_PROD
         }),
         `https://${config.HOST_BIODATA_CATALYST_PROD}/ga4gh/drs/v1/objects/dg.2345/bar`
     );

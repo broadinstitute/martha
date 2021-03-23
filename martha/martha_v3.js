@@ -270,8 +270,11 @@ function responseParser (response) {
  * @param theAnvilHost {string} The hostname for The AnVIL in this environment
  * @return {DrsType}
  */
-
-function determineDrsType(url, bioDataCatalystHost = DG_EXPANSION_BDC, theAnvilHost = DG_EXPANSION_THE_ANVIL) {
+function determineDrsTypeNamed({
+    url,
+    bioDataCatalystHost = DG_EXPANSION_BDC,
+    theAnvilHost = DG_EXPANSION_THE_ANVIL
+}) {
     const urlParts = getHttpsUrlParts(url);
     const host = urlParts.httpsUrlHost;
 
@@ -335,6 +338,20 @@ function determineDrsType(url, bioDataCatalystHost = DG_EXPANSION_BDC, theAnvilH
         AUTH_SKIPPED,
         BOND_PROVIDER_DCF_FENCE,
     );
+}
+
+/**
+ * Call determineDrsTypeNamed using default environment-derived values for BioData Catalyst and The AnVIL hosts.
+ *
+ * @param url {string} URL to be analyzed
+ * @return {DrsType}
+ */
+function determineDrsType(url) {
+    return determineDrsTypeNamed({
+        url,
+        bioDataCatalystHost: DG_EXPANSION_BDC,
+        theAnvilHost: DG_EXPANSION_THE_ANVIL
+    });
 }
 
 function validateRequest(url, auth, requestedFields) {
@@ -434,7 +451,7 @@ async function marthaV3Handler(req, res) {
 }
 
 exports.marthaV3Handler = marthaV3Handler;
-exports.determineDrsType = determineDrsType;
+exports.determineDrsTypeNamed = determineDrsTypeNamed;
 exports.httpsUrlGenerator = httpsUrlGenerator;
 exports.allMarthaFields = ALL_FIELDS;
 exports.DG_EXPANSION_BDC = DG_EXPANSION_BDC;
