@@ -25,6 +25,12 @@ const HOST_CRDC_STAGING = 'nci-crdc-staging.datacommons.io';
 const HOST_KIDS_FIRST_PROD = 'data.kidsfirstdrc.org';
 const HOST_KIDS_FIRST_STAGING = 'gen3staging.kidsfirstdrc.org';
 
+function validateMarthaEnvironment(marthaEnv) {
+    if (!MARTHA_ENVS.includes(marthaEnv)) {
+        throw new Error(`Unrecognized Martha environment '${marthaEnv}', should be one of ${MARTHA_ENVS.join(', ')}.`);
+    }
+}
+
 /**
  * Return the DSDE environment for the specified Martha environment.
  * @param marthaEnv {string} Martha environment, the value for one of the constants
@@ -32,9 +38,7 @@ const HOST_KIDS_FIRST_STAGING = 'gen3staging.kidsfirstdrc.org';
  * @returns {string} DSDE_ENV_DEV or DSDE_ENV_PROD.
  */
 function dsdeEnvFrom(marthaEnv) {
-    if (!MARTHA_ENVS.includes(marthaEnv)) {
-        throw new Error(`Unrecognized Martha environment '${marthaEnv}', should be one of ${MARTHA_ENVS.join(', ')}.`);
-    }
+    validateMarthaEnvironment(marthaEnv);
     if (marthaEnv === ENV_PROD) { return DSDE_ENV_PROD; }
     return DSDE_ENV_DEV;
 }
@@ -48,10 +52,7 @@ function dsdeEnvFrom(marthaEnv) {
  * @returns {{theAnvilHost: (string), crdcHost: (string), kidsFirstHost: (string), bondBaseUrl: string, itMarthaBaseUrl: string, itBondBaseUrl: string, samBaseUrl: string, bioDataCatalystHost: (string)}}
  */
 function configDefaultsForEnv({marthaEnv, dsdeEnv = dsdeEnvFrom(marthaEnv)}) {
-    if (!MARTHA_ENVS.includes(marthaEnv)) {
-        throw new Error(`Unrecognized Martha environment '${marthaEnv}', should be one of ${MARTHA_ENVS.join(', ')}.`);
-    }
-
+    validateMarthaEnvironment(marthaEnv);
     if (!DSDE_ENVS.includes(dsdeEnv)) {
         throw new Error(`Unrecognized DSDE environment '${dsdeEnv}', should be one of ${DSDE_ENVS.join(', ')}.`);
     }
