@@ -70,10 +70,11 @@ const PROTOCOL_PREFIX_DRS='/ga4gh/drs/v1/objects';
 // TODO: Does dataguids.org actually have a resolution API??
 // Until we figure that out, we'll try to re-implement the mappings we know about here.
 const {
-    bioDataCatalystHost: DG_EXPANSION_BDC,
-    theAnvilHost: DG_EXPANSION_THE_ANVIL,
-    crdcHost: DG_EXPANSION_CRDC,
-    kidsFirstHost: DG_EXPANSION_KIDS_FIRST
+    bioDataCatalystHost,
+    theAnvilHost,
+    crdcHost,
+    kidsFirstHost,
+    HOST_MOCK_DRS
 } = config;
 
 // CIB URIs via https://docs.google.com/document/d/1Wf4enSGOEXD5_AE-uzLoYqjIp5MnePbZ6kYTVFp1WoM/edit#
@@ -102,13 +103,13 @@ class DrsType {
  */
 function expandCibHost(cibHost) {
     switch (cibHost.toLowerCase()) {
-        case DG_COMPACT_BDC_PROD: return DG_EXPANSION_BDC;
-        case DG_COMPACT_BDC_STAGING: return DG_EXPANSION_BDC;
-        case DG_COMPACT_THE_ANVIL: return DG_EXPANSION_THE_ANVIL;
-        case DG_COMPACT_CRDC: return DG_EXPANSION_CRDC;
-        case DG_COMPACT_KIDS_FIRST: return DG_EXPANSION_KIDS_FIRST;
+        case DG_COMPACT_BDC_PROD: return bioDataCatalystHost;
+        case DG_COMPACT_BDC_STAGING: return bioDataCatalystHost;
+        case DG_COMPACT_THE_ANVIL: return theAnvilHost;
+        case DG_COMPACT_CRDC: return crdcHost;
+        case DG_COMPACT_KIDS_FIRST: return kidsFirstHost;
         // Someday we'll throw an error. For now replicate the behavior of `martha_v2`.
-        default: return DG_EXPANSION_BDC;
+        default: return bioDataCatalystHost;
     }
 }
 
@@ -275,7 +276,7 @@ function determineDrsType(url) {
     // First handle servers that we know about...
 
     // BDC, but skip DOS/DRS URIs that might be a fake `martha_v2`-compatible BDC
-    if (host === DG_EXPANSION_BDC && !urlParts.httpsUrlMaybeNotBdc) {
+    if (host === bioDataCatalystHost && !urlParts.httpsUrlMaybeNotBdc) {
         return new DrsType(
             urlParts,
             PROTOCOL_PREFIX_DRS,
@@ -434,4 +435,4 @@ exports.marthaV3Handler = marthaV3Handler;
 exports.determineDrsType = determineDrsType;
 exports.httpsUrlGenerator = httpsUrlGenerator;
 exports.allMarthaFields = ALL_FIELDS;
-exports.DG_EXPANSION_BDC = DG_EXPANSION_BDC;
+exports.DG_EXPANSION_BDC = bioDataCatalystHost;
