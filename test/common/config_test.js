@@ -2,19 +2,12 @@ const test = require('ava');
 const config = require('../../common/config');
 
 test('dsdeEnvFrom should say prod for prod and dev for all other Martha environments', (t) => {
-    const envs = [
-        config.ENV_MOCK,
-        config.ENV_DEV,
-        config.ENV_PROD,
-        config.ENV_CROMWELL_DEV
-    ];
-
     function expectation(env) {
         if (env === config.ENV_PROD) { return config.ENV_PROD; }
         return config.ENV_DEV;
     }
 
-    for (const env of envs) {
+    for (const env of config.MARTHA_ENVS) {
         t.is(config.dsdeEnvFrom(env), expectation(env));
     }
 });
