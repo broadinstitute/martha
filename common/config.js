@@ -39,8 +39,7 @@ function validateMarthaEnvironment(marthaEnv) {
  */
 function dsdeEnvFrom(marthaEnv) {
     validateMarthaEnvironment(marthaEnv);
-    if (marthaEnv === ENV_PROD) { return DSDE_ENV_PROD; }
-    return DSDE_ENV_DEV;
+    return marthaEnv === ENV_PROD ? DSDE_ENV_PROD : DSDE_ENV_DEV;
 }
 
 /**
