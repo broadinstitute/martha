@@ -9,11 +9,6 @@ const ENV_MOCK='mock';
 const ENV_DEV='dev';
 const ENV_PROD='prod';
 const ENV_CROMWELL_DEV='cromwell-dev';
-const MARTHA_ENVS = [ENV_MOCK, ENV_DEV, ENV_PROD, ENV_CROMWELL_DEV];
-
-const DSDE_ENV_DEV='dev';
-const DSDE_ENV_PROD='prod';
-const DSDE_ENVS = [DSDE_ENV_DEV, DSDE_ENV_PROD];
 
 const HOST_MOCK_DRS='wb-mock-drs-dev.storage.googleapis.com';
 const HOST_BIODATA_CATALYST_PROD = 'gen3.biodatacatalyst.nhlbi.nih.gov';
@@ -25,41 +20,30 @@ const HOST_CRDC_STAGING = 'nci-crdc-staging.datacommons.io';
 const HOST_KIDS_FIRST_PROD = 'data.kidsfirstdrc.org';
 const HOST_KIDS_FIRST_STAGING = 'gen3staging.kidsfirstdrc.org';
 
-function validateMarthaEnvironment(marthaEnv) {
-    if (!MARTHA_ENVS.includes(marthaEnv)) {
-        throw new Error(`Unrecognized Martha environment '${marthaEnv}', should be one of ${MARTHA_ENVS.join(', ')}.`);
-    }
-}
-
-function validateDsdeEnvironment(dsdeEnv) {
-    if (!DSDE_ENVS.includes(dsdeEnv)) {
-        throw new Error(`Unrecognized DSDE environment '${dsdeEnv}', should be one of ${DSDE_ENVS.join(', ')}.`);
-    }
-}
-
 /**
  * Return the DSDE environment for the specified Martha environment.
- * @param marthaEnv {string} Martha environment, the value for one of the constants
- *        ENV_MOCK, ENV_DEV, ENV_PROD, or ENV_CROMWELL_DEV.
- * @returns {string} DSDE_ENV_DEV or DSDE_ENV_PROD.
+ * @param marthaEnv {string} Martha environment
+ * @returns {string} DSDE environment
  */
 function dsdeEnvFrom(marthaEnv) {
-    validateMarthaEnvironment(marthaEnv);
-    return marthaEnv === ENV_PROD ? DSDE_ENV_PROD : DSDE_ENV_DEV;
+    const lowerMarthaEnv = marthaEnv.toLowerCase();
+    switch (lowerMarthaEnv) {
+        case ENV_MOCK:
+        case ENV_CROMWELL_DEV:
+        case ENV_DEV:
+            return ENV_DEV;
+        default:
+            return lowerMarthaEnv;
+    }
 }
 
 /**
  * Return a configuration object with default values for the specified Martha and DSDE environments.
- * @param marthaEnv {string} Martha environment, the value for one of the constants
- *        ENV_MOCK, ENV_DEV, ENV_PROD, or ENV_CROMWELL_DEV.
- * @param dsdeEnv {string?} If specified, the value for one of the constants DSDE_ENV_DEV or DSDE_ENV_PROD.
- *        If not specified, dsdeEnv is calculated from marthaEnv using the function dsdeEnvFrom above.
+ * @param marthaEnv {string} Martha environment (mock, dev, prod etc.)
+ * @param dsdeEnv {string} The DSDE environment (qa, staging, dev, prod etc.)
  * @returns {{theAnvilHost: (string), crdcHost: (string), kidsFirstHost: (string), bondBaseUrl: string, itMarthaBaseUrl: string, itBondBaseUrl: string, samBaseUrl: string, bioDataCatalystHost: (string)}}
  */
 function configDefaultsForEnv({marthaEnv, dsdeEnv = dsdeEnvFrom(marthaEnv)}) {
-    validateMarthaEnvironment(marthaEnv);
-    validateDsdeEnvironment(dsdeEnv);
-
     return {
         samBaseUrl:
             `https://sam.dsde-${dsdeEnv}.broadinstitute.org`,
@@ -143,7 +127,6 @@ function parseConfigJson({marthaEnv, configPath}) {
 }
 
 const marthaEnv = (process.env.ENV || ENV_DEV).toLowerCase();
-
 const dsdeEnv = dsdeEnvFrom(marthaEnv);
 
 // Start with the defaults...
@@ -211,10 +194,6 @@ const configExport = Object.freeze({
     ENV_DEV,
     ENV_MOCK,
     ENV_CROMWELL_DEV,
-    MARTHA_ENVS,
-    validateMarthaEnvironment,
-    validateDsdeEnvironment,
-    dsdeEnvFrom,
     configDefaultsForEnv,
     parseConfigJson,
     dsdeEnv,

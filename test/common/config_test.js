@@ -3,17 +3,6 @@ const config = require('../../common/config');
 const fs = require('fs');
 const tmp = require('tmp');
 
-test('dsdeEnvFrom should say prod for prod and dev for all other Martha environments', (t) => {
-    function expectation(env) {
-        if (env === config.ENV_PROD) { return config.ENV_PROD; }
-        return config.ENV_DEV;
-    }
-
-    for (const env of config.MARTHA_ENVS) {
-        t.is(config.dsdeEnvFrom(env), expectation(env));
-    }
-});
-
 test('configDefaultsFrom should get the right answer for the mock environment', (t) => {
     const expectedForMock = {
         samBaseUrl: `https://sam.dsde-dev.broadinstitute.org`,
@@ -68,16 +57,6 @@ test('configDefaultsFrom should get the right answer for the production environm
         itBondBaseUrl: 'https://bond-fiab.dsde-prod.broadinstitute.org:31443'
     };
     t.deepEqual(config.configDefaultsForEnv({ marthaEnv: config.ENV_PROD }), expectedForProduction);
-});
-
-test('config validateMarthaEnvironment should return an error for the wrong environment', (t) => {
-    const error = t.throws(() => config.validateMarthaEnvironment('unknown'));
-    t.is(error.message, "Unrecognized Martha environment 'unknown', should be one of mock, dev, prod, cromwell-dev.");
-});
-
-test('config validateDsdeEnvironment should return an error for the wrong environment', (t) => {
-    const error = t.throws(() => config.validateDsdeEnvironment('unknown'));
-    t.is(error.message, "Unrecognized DSDE environment 'unknown', should be one of dev, prod.");
 });
 
 test('config parseConfigJson should parse a temp file in ENV_DEV', (t) => {
