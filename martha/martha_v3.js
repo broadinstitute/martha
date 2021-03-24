@@ -74,7 +74,6 @@ const {
     theAnvilHost,
     crdcHost,
     kidsFirstHost,
-    HOST_MOCK_DRS
 } = config;
 
 // CIB URIs via https://docs.google.com/document/d/1Wf4enSGOEXD5_AE-uzLoYqjIp5MnePbZ6kYTVFp1WoM/edit#
