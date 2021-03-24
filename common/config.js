@@ -31,6 +31,12 @@ function validateMarthaEnvironment(marthaEnv) {
     }
 }
 
+function validateDsdeEnvironment(dsdeEnv) {
+    if (!DSDE_ENVS.includes(dsdeEnv)) {
+        throw new Error(`Unrecognized DSDE environment '${dsdeEnv}', should be one of ${DSDE_ENVS.join(', ')}.`);
+    }
+}
+
 /**
  * Return the DSDE environment for the specified Martha environment.
  * @param marthaEnv {string} Martha environment, the value for one of the constants
@@ -52,9 +58,7 @@ function dsdeEnvFrom(marthaEnv) {
  */
 function configDefaultsForEnv({marthaEnv, dsdeEnv = dsdeEnvFrom(marthaEnv)}) {
     validateMarthaEnvironment(marthaEnv);
-    if (!DSDE_ENVS.includes(dsdeEnv)) {
-        throw new Error(`Unrecognized DSDE environment '${dsdeEnv}', should be one of ${DSDE_ENVS.join(', ')}.`);
-    }
+    validateDsdeEnvironment(dsdeEnv);
 
     return {
         samBaseUrl:
@@ -202,6 +206,8 @@ const configExport = Object.freeze({
     ENV_MOCK,
     ENV_CROMWELL_DEV,
     MARTHA_ENVS,
+    validateMarthaEnvironment,
+    validateDsdeEnvironment,
     dsdeEnvFrom,
     configDefaultsForEnv,
     dsdeEnv,

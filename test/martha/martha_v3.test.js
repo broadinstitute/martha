@@ -798,6 +798,8 @@ test('should parse Data Object uri with host that looks like jade data repo host
 
 /**
  * determineDrsType(uri) -> drsUrl Scenario 5: data objects uri with the AnVIL data repo host
+ *
+ * TODO: Test prod expansion of compact identifiers
  */
 test('should parse Data Object uri with the AnVIL prefix dg.ANV0', (t) => {
     t.is(
@@ -826,7 +828,16 @@ test('should parse Data Object uri with the AnVIL staging host', (t) => {
 
 /**
  * determineDrsType(uri) -> drsUrl Scenario 6: data objects uri with the Kids First
+ *
+ * TODO: Test prod expansion of compact identifiers
  */
+test('should parse Data Object uri with the Kids First prefix dg.F82A1A', (t) => {
+    t.is(
+        determineDrsTypeTestWrapper('drs://dg.F82A1A/ed6be7ab-068e-46c8-824a-f39cfbb885cc'),
+        `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
+    );
+});
+
 test('should parse Data Object uri with the Kids First prod repo as host', (t) => {
     t.is(
         determineDrsTypeTestWrapper(`drs://${config.HOST_KIDS_FIRST_PROD}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
@@ -843,4 +854,64 @@ test('should parse Data Object uri with the Kids First staging repo as host', (t
 
 /**
  * End Scenario 6
+ */
+
+/**
+ * determineDrsType(uri) -> drsUrl Scenario 7: data objects uri with CRDC
+ *
+ * TODO: Test prod expansion of compact identifiers
+ */
+test('should parse Data Object uri with CRDC prefix dg.4DFC', (t) => {
+    t.is(
+        determineDrsTypeTestWrapper('drs://dg.4DFC/ed6be7ab-068e-46c8-824a-f39cfbb885cc'),
+        `https://${config.HOST_CRDC_STAGING}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
+    );
+});
+
+test('should parse Data Object uri with CRDC prod repo as host', (t) => {
+    t.is(
+        determineDrsTypeTestWrapper(`drs://${config.HOST_CRDC_PROD}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
+        `https://${config.HOST_CRDC_PROD}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
+    );
+});
+
+test('should parse Data Object uri with CRDC staging repo as host', (t) => {
+    t.is(
+        determineDrsTypeTestWrapper(`drs://${config.HOST_CRDC_STAGING}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
+        `https://${config.HOST_CRDC_STAGING}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
+    );
+});
+
+/**
+ * End Scenario 7
+ */
+
+/**
+ * determineDrsType(uri) -> drsUrl Scenario 8: data objects uri with BDC
+ *
+ * TODO: Test prod expansion of compact identifiers
+ */
+test('should parse Data Object uri with BDC prefix dg.712C', (t) => {
+    t.is(
+        determineDrsTypeTestWrapper('drs://dg.712C/fc046e84-6cf9-43a3-99cc-ffa2964b88cb'),
+        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.712C/fc046e84-6cf9-43a3-99cc-ffa2964b88cb`,
+    );
+});
+
+test('should parse Data Object uri with BDC prod repo as host', (t) => {
+    t.is(
+        determineDrsTypeTestWrapper(`drs://${config.HOST_BIODATA_CATALYST_PROD}/fc046e84-6cf9-43a3-99cc-ffa2964b88cb`),
+        `https://${config.HOST_BIODATA_CATALYST_PROD}/ga4gh/drs/v1/objects/fc046e84-6cf9-43a3-99cc-ffa2964b88cb`,
+    );
+});
+
+test('should parse Data Object uri with BDC staging repo as host', (t) => {
+    t.is(
+        determineDrsTypeTestWrapper(`drs://${config.HOST_BIODATA_CATALYST_STAGING}/fc046e84-6cf9-43a3-99cc-ffa2964b88cb`),
+        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/fc046e84-6cf9-43a3-99cc-ffa2964b88cb`,
+    );
+});
+
+/**
+ * End Scenario 8
  */
