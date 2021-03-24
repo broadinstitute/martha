@@ -36,8 +36,7 @@ const {
     determineDrsTypeNamed,
     httpsUrlGenerator,
     allMarthaFields,
-    DG_EXPANSION_BDC,
-    DG_EXPANSION_THE_ANVIL
+    DG_EXPANSION_BDC
 } = require('../../martha/martha_v3');
 const apiAdapter = require('../../common/api_adapter');
 const config = require('../../common/config');
@@ -691,10 +690,9 @@ test.serial('martha_v3 should return 500 if Data Object parsing fails', async (t
  */
 function determineDrsTypeWrapperNamed({
     testUrl,
-    bioDataCatalystHost = DG_EXPANSION_BDC,
-    theAnvilHost = DG_EXPANSION_THE_ANVIL
+    bioDataCatalystHost = DG_EXPANSION_BDC
 }) {
-    const drsType = determineDrsTypeNamed({url: testUrl, bioDataCatalystHost, theAnvilHost});
+    const drsType = determineDrsTypeNamed({url: testUrl, bioDataCatalystHost});
     return httpsUrlGenerator(drsType);
 }
 

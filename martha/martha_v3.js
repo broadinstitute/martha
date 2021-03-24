@@ -267,13 +267,11 @@ function responseParser (response) {
  *
  * @param url {string} The URL to be tested
  * @param bioDataCatalystHost {string} The hostname for BioData Catalyst in this environment
- * @param theAnvilHost {string} The hostname for The AnVIL in this environment
  * @return {DrsType}
  */
 function determineDrsTypeNamed({
     url,
-    bioDataCatalystHost = DG_EXPANSION_BDC,
-    theAnvilHost = DG_EXPANSION_THE_ANVIL
+    bioDataCatalystHost = DG_EXPANSION_BDC
 }) {
     const urlParts = getHttpsUrlParts(url);
     const host = urlParts.httpsUrlHost;
@@ -291,7 +289,7 @@ function determineDrsTypeNamed({
     }
 
     // The AnVIL
-    if (host === theAnvilHost) {
+    if (host.endsWith('.theanvil.io')) {
         return new DrsType(
             urlParts,
             PROTOCOL_PREFIX_DRS,
@@ -349,8 +347,7 @@ function determineDrsTypeNamed({
 function determineDrsType(url) {
     return determineDrsTypeNamed({
         url,
-        bioDataCatalystHost: DG_EXPANSION_BDC,
-        theAnvilHost: DG_EXPANSION_THE_ANVIL
+        bioDataCatalystHost: DG_EXPANSION_BDC
     });
 }
 
@@ -455,4 +452,3 @@ exports.determineDrsTypeNamed = determineDrsTypeNamed;
 exports.httpsUrlGenerator = httpsUrlGenerator;
 exports.allMarthaFields = ALL_FIELDS;
 exports.DG_EXPANSION_BDC = DG_EXPANSION_BDC;
-exports.DG_EXPANSION_THE_ANVIL = DG_EXPANSION_THE_ANVIL;

@@ -57,13 +57,11 @@ function constructPath(pathParts) {
     return formattedParts.join('/');
 }
 
+/* 2021-03-24 Do not call this method as written in new code! Gives wrong answers for data objects in
+   CRDC, the AnVIL, and Kids First. Will probably give even more wrong answers in the future! */
 function determineHostname(someUrl) {
     if (!isDataGuidsUrl(someUrl)) {
         return someUrl.hostname;
-    }
-
-    if (someUrl.hostname.toLowerCase() === 'dg.anv0') {
-        return config.theAnvilHost;
     }
 
     return config.bioDataCatalystHost;
