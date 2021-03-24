@@ -1,5 +1,7 @@
 const test = require('ava');
 const config = require('../../common/config');
+const fs = require('fs');
+const tmp = require('tmp');
 
 test('dsdeEnvFrom should say prod for prod and dev for all other Martha environments', (t) => {
     function expectation(env) {
@@ -76,4 +78,28 @@ test('config validateMarthaEnvironment should return an error for the wrong envi
 test('config validateDsdeEnvironment should return an error for the wrong environment', (t) => {
     const error = t.throws(() => config.validateDsdeEnvironment('unknown'));
     t.is(error.message, "Unrecognized DSDE environment 'unknown', should be one of dev, prod.");
+});
+
+test('config parseConfigJson should parse a temp file in ENV_DEV', (t) => {
+    const configPathTmp = tmp.fileSync();
+    fs.writeSync(configPathTmp.fd, '{"hello": "world"}');
+    const configJson = config.parseConfigJson({marthaEnv: config.ENV_DEV, configPath: configPathTmp.name});
+    configPathTmp.removeCallback();
+    t.deepEqual(configJson, {hello: 'world'});
+});
+
+test('config parseConfigJson should return an empty json in ENV_MOCK', (t) => {
+    const configPathTmp = tmp.fileSync();
+    fs.writeSync(configPathTmp.fd, '{"hello": "world"}');
+    const configJson = config.parseConfigJson({marthaEnv: config.ENV_MOCK, configPath: configPathTmp.name});
+    configPathTmp.removeCallback();
+    t.deepEqual(configJson, {});
+});
+
+test('config parseConfigJson should return an empty json for a missing temp file in ENV_DEV', (t) => {
+    const configPathTmp = tmp.fileSync();
+    fs.writeSync(configPathTmp.fd, '{"hello": "world"}');
+    configPathTmp.removeCallback(); // Delete the file before calling parseConfigJson
+    const configJson = config.parseConfigJson({marthaEnv: config.ENV_DEV, configPath: configPathTmp.name});
+    t.deepEqual(configJson, {});
 });

@@ -137,6 +137,11 @@ function configDefaultsForEnv({marthaEnv, dsdeEnv = dsdeEnvFrom(marthaEnv)}) {
     };
 }
 
+function parseConfigJson({marthaEnv, configPath}) {
+    const configText = marthaEnv !== ENV_MOCK && fs.existsSync(configPath) ? fs.readFileSync(configPath) : '{}';
+    return JSON.parse(configText);
+}
+
 const marthaEnv = (process.env.ENV || ENV_DEV).toLowerCase();
 
 const dsdeEnv = dsdeEnvFrom(marthaEnv);
@@ -144,9 +149,10 @@ const dsdeEnv = dsdeEnvFrom(marthaEnv);
 // Start with the defaults...
 const configDefaults = configDefaultsForEnv({ marthaEnv, dsdeEnv });
 // ...override defaults with config.json...
-const configPath = process.env.MARTHA_CONFIG_FILE || path.join(__dirname, '../config.json');
-const configText = marthaEnv !== ENV_MOCK && fs.existsSync(configPath) ? fs.readFileSync(configPath) : '{}';
-const configJson = JSON.parse(configText);
+const configJson = parseConfigJson({
+    marthaEnv,
+    configPath: process.env.MARTHA_CONFIG_FILE || path.join(__dirname, '../config.json'),
+});
 
 // ...finally enable setting integration test variables using environment variables.
 // noinspection JSCheckFunctionSignatures
@@ -210,6 +216,7 @@ const configExport = Object.freeze({
     validateDsdeEnvironment,
     dsdeEnvFrom,
     configDefaultsForEnv,
+    parseConfigJson,
     dsdeEnv,
     marthaEnv,
     ...removeUndefined(configDefaults),
