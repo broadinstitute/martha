@@ -684,23 +684,12 @@ test.serial('martha_v3 should return 500 if Data Object parsing fails', async (t
 /**
  * Determine DRS type using the specified named parameters.
  * @param testUrl {string}
- * @param bioDataCatalystHost {string}
- * @param theAnvilHost {string}
  * @return {string}
  */
-function determineDrsTypeWrapperNamed({
-    testUrl,
-    bioDataCatalystHost = DG_EXPANSION_BDC
-}) {
-    const drsType = determineDrsTypeNamed({url: testUrl, bioDataCatalystHost});
+function determineDrsTypeTestWrapper(testUrl) {
+    const drsType = determineDrsTypeNamed({url: testUrl});
     return httpsUrlGenerator(drsType);
 }
-
-// Test utility for generating server URL from a DRS URL
-function determineDrsTypeTestWrapper(testUrl) {
-    return determineDrsTypeWrapperNamed({testUrl});
-}
-
 
 /**
  * determineDrsType(uri) -> drsUrl Scenario 1: data objects uri with non-dg host and path
@@ -751,23 +740,6 @@ test('determineDrsType should parse "drs://dg." Data Object uri with query part'
     t.is(
         determineDrsTypeTestWrapper('drs://dg.2345/bar?version=1&bananas=yummy'),
         `https://${config.bioDataCatalystHost}/ga4gh/dos/v1/dataobjects/dg.2345/bar?version=1&bananas=yummy`
-    );
-});
-
-test('determineDrsType should parse "drs://" Data Object uri with an expanded host and path for prod', (t) => {
-    t.is(
-        determineDrsTypeWrapperNamed({
-            testUrl: `dos://${config.HOST_BIODATA_CATALYST_PROD}/dg.2345/bar`,
-            bioDataCatalystHost: config.HOST_BIODATA_CATALYST_PROD
-        }),
-        `https://${config.HOST_BIODATA_CATALYST_PROD}/ga4gh/drs/v1/objects/dg.2345/bar`
-    );
-});
-
-test('determineDrsType should parse "drs://" Data Object uri with an expanded host and path for staging', (t) => {
-    t.is(
-        determineDrsTypeTestWrapper(`dos://${config.HOST_BIODATA_CATALYST_STAGING}/dg.2345/bar`),
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.2345/bar`
     );
 });
 
@@ -831,11 +803,8 @@ test('should parse Data Object uri with the AnVIL prefix dg.ANV0', (t) => {
 
 test('should parse Data Object uri with the AnVIL prod host', (t) => {
     t.is(
-        determineDrsTypeWrapperNamed({
-            testUrl: `drs://${config.HOST_THE_ANVIL_PROD}/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`,
-            theAnvilHost: config.HOST_THE_ANVIL_PROD
-        }),
-        `https://${config.HOST_THE_ANVIL_PROD}/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`,
+        determineDrsTypeTestWrapper(`drs://${config.HOST_THE_ANVIL_PROD}/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`),
+        `https://${config.HOST_THE_ANVIL_PROD}/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`
     );
 });
 
