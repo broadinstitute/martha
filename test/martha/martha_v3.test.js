@@ -33,10 +33,9 @@ const test = require('ava');
 const sinon = require('sinon');
 const {
     marthaV3Handler: marthaV3,
-    determineDrsTypeNamed,
+    determineDrsType,
     httpsUrlGenerator,
     allMarthaFields,
-    DG_EXPANSION_BDC
 } = require('../../martha/martha_v3');
 const apiAdapter = require('../../common/api_adapter');
 const config = require('../../common/config');
@@ -687,7 +686,7 @@ test.serial('martha_v3 should return 500 if Data Object parsing fails', async (t
  * @return {string}
  */
 function determineDrsTypeTestWrapper(testUrl) {
-    const drsType = determineDrsTypeNamed({url: testUrl});
+    const drsType = determineDrsType(testUrl);
     return httpsUrlGenerator(drsType);
 }
 
