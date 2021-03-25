@@ -17,6 +17,8 @@
  *      - drs://dataguids.org/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc
  * */
 
+const config = require('../common/config');
+
 const _publicDataObjectUrlsWithGS = [
     'dos://dataguids.org/a41b0c4f-ebfb-4277-a941-507340dea85d',
     'drs://dataguids.org/a41b0c4f-ebfb-4277-a941-507340dea85d',
@@ -25,27 +27,27 @@ const _publicDataObjectUrlsWithGS = [
 ];
 
 const _publicDataObjectUrlsWithoutGS = [
-    'dos://nci-crdc-staging.datacommons.io/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
+    `dos://${config.HOST_CRDC_STAGING}/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc`,
     'dos://dataguids.org/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
-    'drs://nci-crdc-staging.datacommons.io/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc',
+    `drs://${config.HOST_CRDC_STAGING}/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc`,
 ];
 
 const _publicDataObjectUrls = _publicDataObjectUrlsWithoutGS.concat(_publicDataObjectUrlsWithGS);
 
 const _mockedDataObjectUrlsWithGS = [
-    'dos://wb-mock-drs-dev.storage.googleapis.com/0c8e7bc6-fd76-459d-947b-808b0605beb3',
-    'dos://wb-mock-drs-dev.storage.googleapis.com/65e4cd14-f549-4a7f-ad0c-d29212ff6e46',
-    'dos://wb-mock-drs-dev.storage.googleapis.com/drs.json',
-    'dos://wb-mock-drs-dev.storage.googleapis.com/preview_dos.json',
-    'drs://wb-mock-drs-dev.storage.googleapis.com/0c8e7bc6-fd76-459d-947b-808b0605beb3',
-    'drs://wb-mock-drs-dev.storage.googleapis.com/65e4cd14-f549-4a7f-ad0c-d29212ff6e46',
-    'drs://wb-mock-drs-dev.storage.googleapis.com/drs.json',
-    'drs://wb-mock-drs-dev.storage.googleapis.com/preview_dos.json'
+    `dos://${config.HOST_MOCK_DRS}/0c8e7bc6-fd76-459d-947b-808b0605beb3`,
+    `dos://${config.HOST_MOCK_DRS}/65e4cd14-f549-4a7f-ad0c-d29212ff6e46`,
+    `dos://${config.HOST_MOCK_DRS}/drs.json`,
+    `dos://${config.HOST_MOCK_DRS}/preview_dos.json`,
+    `drs://${config.HOST_MOCK_DRS}/0c8e7bc6-fd76-459d-947b-808b0605beb3`,
+    `drs://${config.HOST_MOCK_DRS}/65e4cd14-f549-4a7f-ad0c-d29212ff6e46`,
+    `drs://${config.HOST_MOCK_DRS}/drs.json`,
+    `drs://${config.HOST_MOCK_DRS}/preview_dos.json`
 ];
 
 const _mockDataObjectUrlsWithoutGS = [
-    'dos://wb-mock-drs-dev.storage.googleapis.com/noGSUrl.json',
-    'drs://wb-mock-drs-dev.storage.googleapis.com/noGSUrl.json'
+    `dos://${config.HOST_MOCK_DRS}/noGSUrl.json`,
+    `drs://${config.HOST_MOCK_DRS}/noGSUrl.json`
 ];
 
 const _mockedDataObjectUrls = _mockedDataObjectUrlsWithGS.concat(_mockDataObjectUrlsWithoutGS);
