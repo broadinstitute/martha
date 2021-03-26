@@ -54,23 +54,23 @@ test('dataObjectUriToHttps should parse drs:// Data Object uri when host include
  * Begin Scenario 2: data objects uri with dg host
  */
 test('dataObjectUriToHttps should parse "dos://dg." Data Object uri to use bioDataCatalystHost', (t) => {
-    t.is(dataObjectUriToHttps('dos://dg.2345/bar'), `https://${config.bioDataCatalystHost}/ga4gh/dos/v1/dataobjects/dg.2345/bar`);
+    t.is(dataObjectUriToHttps('dos://dg.2345/bar'), `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345/bar`);
 });
 
 test('dataObjectUriToHttps should parse "dos://dg." Data Object uri to use bioDataCatalystHost and preserve case', (t) => {
-    t.is(dataObjectUriToHttps('dos://dg.2345AbCdE/bAr'), `https://${config.bioDataCatalystHost}/ga4gh/dos/v1/dataobjects/dg.2345AbCdE/bAr`);
+    t.is(dataObjectUriToHttps('dos://dg.2345AbCdE/bAr'), `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345AbCdE/bAr`);
 });
 
 test('dataObjectUriToHttps should parse "drs://dg." Data Object uri to use bioDataCatalystHost', (t) => {
-    t.is(dataObjectUriToHttps('drs://dg.2345/bar'), `https://${config.bioDataCatalystHost}/ga4gh/dos/v1/dataobjects/dg.2345/bar`);
+    t.is(dataObjectUriToHttps('drs://dg.2345/bar'), `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345/bar`);
 });
 
 test('dataObjectUriToHttps should parse "drs://dg." Data Object uri with "/" path to use bioDataCatalystHost', (t) => {
-    t.is(dataObjectUriToHttps('drs://dg.2345/bar/'), `https://${config.bioDataCatalystHost}/ga4gh/dos/v1/dataobjects/dg.2345/bar`);
+    t.is(dataObjectUriToHttps('drs://dg.2345/bar/'), `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345/bar`);
 });
 
 test('dataObjectUriToHttps should parse "drs://dg." Data Object uri with query part to use bioDataCatalystHost', (t) => {
-    t.is(dataObjectUriToHttps('drs://dg.2345/bar?version=1&bananas=yummy'), `https://${config.bioDataCatalystHost}/ga4gh/dos/v1/dataobjects/dg.2345/bar?version=1&bananas=yummy`);
+    t.is(dataObjectUriToHttps('drs://dg.2345/bar?version=1&bananas=yummy'), `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345/bar?version=1&bananas=yummy`);
 });
 
 test('dataObjectUriToHttps should throw an error when given a "dg.*" host with no path', (t) => {
@@ -92,19 +92,19 @@ test('dataObjectUriToHttps should throw an error when given a "dg.*" host with n
  * Begin Scenario 3: data objects uri with non-dg host and NO path
  */
 test('should parse "dos://dg." Data Object uri with only a host part without a path', (t) => {
-    t.is(dataObjectUriToHttps('dos://foo-bar-baz'), `https://${config.bioDataCatalystHost}/ga4gh/dos/v1/dataobjects/foo-bar-baz`);
+    t.is(dataObjectUriToHttps('dos://foo-bar-baz'), `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/foo-bar-baz`);
 });
 
 test('should parse "drs://dg." Data Object uri with only a host part without a path', (t) => {
-    t.is(dataObjectUriToHttps('drs://foo-bar-baz'), `https://${config.bioDataCatalystHost}/ga4gh/dos/v1/dataobjects/foo-bar-baz`);
+    t.is(dataObjectUriToHttps('drs://foo-bar-baz'), `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/foo-bar-baz`);
 });
 
 test('should parse "drs://dg." Data Object uri with only a host part with a "/" path', (t) => {
-    t.is(dataObjectUriToHttps('drs://foo-bar-baz/'), `https://${config.bioDataCatalystHost}/ga4gh/dos/v1/dataobjects/foo-bar-baz`);
+    t.is(dataObjectUriToHttps('drs://foo-bar-baz/'), `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/foo-bar-baz`);
 });
 
 test('should parse "drs://dg." Data Object uri with only a host part with a query part', (t) => {
-    t.is(dataObjectUriToHttps('drs://foo-bar-baz?version=1&bananas=yummy'), `https://${config.bioDataCatalystHost}/ga4gh/dos/v1/dataobjects/foo-bar-baz?version=1&bananas=yummy`);
+    t.is(dataObjectUriToHttps('drs://foo-bar-baz?version=1&bananas=yummy'), `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/foo-bar-baz?version=1&bananas=yummy`);
 });
 /**
  * End Scenario 3
