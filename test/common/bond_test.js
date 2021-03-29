@@ -77,6 +77,8 @@ test('determineBondProvider should return the AnVIL BondProvider if the URL host
 });
 
 test('determineBondProvider should return the dcf-fence BondProvider if the URL host is Kids First prod', (t) => {
+    /* This assertion test the current behavior of Martha with respect to Kids First and not necessarily what will be
+       required for proper Kids First support. */
     t.is(
         determineBondProvider(`drs://${config.HOST_KIDS_FIRST_PROD}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
         BondProviders.DCF_FENCE,
@@ -84,6 +86,8 @@ test('determineBondProvider should return the dcf-fence BondProvider if the URL 
 });
 
 test('determineBondProvider should return the dcf-fence BondProvider if the URL host is Kids First staging', (t) => {
+    /* This assertion test the current behavior of Martha with respect to Kids First and not necessarily what will be
+       required for proper Kids First support. */
     t.is(
         determineBondProvider(`drs://${config.HOST_KIDS_FIRST_STAGING}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
         BondProviders.DCF_FENCE,
