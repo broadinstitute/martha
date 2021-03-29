@@ -67,12 +67,6 @@ const AUTH_SKIPPED = false;
 const PROTOCOL_PREFIX_DOS='/ga4gh/dos/v1/dataobjects';
 const PROTOCOL_PREFIX_DRS='/ga4gh/drs/v1/objects';
 
-// TODO: Does dataguids.org actually have a resolution API??
-// Until we figure that out, we'll try to re-implement the mappings we know about here.
-const DG_EXPANSION_BDC = config.dataObjectResolutionHost;
-const DG_EXPANSION_THE_ANVIL = 'gen3.theanvil.io';
-const DG_EXPANSION_CRDC = 'nci-crdc.datacommons.io';
-const DG_EXPANSION_KIDS_FIRST = 'data.kidsfirstdrc.org';
 // CIB URIs via https://docs.google.com/document/d/1Wf4enSGOEXD5_AE-uzLoYqjIp5MnePbZ6kYTVFp1WoM/edit#
 const DG_COMPACT_BDC_PROD = 'dg.4503';
 const DG_COMPACT_BDC_STAGING = 'dg.712c';
@@ -99,13 +93,13 @@ class DrsType {
  */
 function expandCibHost(cibHost) {
     switch (cibHost.toLowerCase()) {
-        case DG_COMPACT_BDC_PROD: return DG_EXPANSION_BDC;
-        case DG_COMPACT_BDC_STAGING: return DG_EXPANSION_BDC;
-        case DG_COMPACT_THE_ANVIL: return DG_EXPANSION_THE_ANVIL;
-        case DG_COMPACT_CRDC: return DG_EXPANSION_CRDC;
-        case DG_COMPACT_KIDS_FIRST: return DG_EXPANSION_KIDS_FIRST;
+        case DG_COMPACT_BDC_PROD: return config.bioDataCatalystHost;
+        case DG_COMPACT_BDC_STAGING: return config.bioDataCatalystHost;
+        case DG_COMPACT_THE_ANVIL: return config.theAnvilHost;
+        case DG_COMPACT_CRDC: return config.crdcHost;
+        case DG_COMPACT_KIDS_FIRST: return config.kidsFirstHost;
         // Someday we'll throw an error. For now replicate the behavior of `martha_v2`.
-        default: return DG_EXPANSION_BDC;
+        default: return config.bioDataCatalystHost;
     }
 }
 
@@ -261,8 +255,10 @@ function responseParser (response) {
  * a response parser.
  *
  * If you update this function update the README too!
+ *
+ * @param url {string} The URL to be tested
+ * @return {DrsType}
  */
-
 function determineDrsType(url) {
     const urlParts = getHttpsUrlParts(url);
     const host = urlParts.httpsUrlHost;
@@ -270,7 +266,8 @@ function determineDrsType(url) {
     // First handle servers that we know about...
 
     // BDC, but skip DOS/DRS URIs that might be a fake `martha_v2`-compatible BDC
-    if (host === DG_EXPANSION_BDC && !urlParts.httpsUrlMaybeNotBdc) {
+    if ((host.endsWith(".biodatacatalyst.nhlbi.nih.gov") || (host === config.HOST_MOCK_DRS))
+        && !urlParts.httpsUrlMaybeNotBdc) {
         return new DrsType(
             urlParts,
             PROTOCOL_PREFIX_DRS,
@@ -280,7 +277,7 @@ function determineDrsType(url) {
     }
 
     // The AnVIL
-    if (host === DG_EXPANSION_THE_ANVIL) {
+    if (host.endsWith('.theanvil.io')) {
         return new DrsType(
             urlParts,
             PROTOCOL_PREFIX_DRS,

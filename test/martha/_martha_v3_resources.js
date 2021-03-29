@@ -5,6 +5,8 @@
 
 // Invalid example
 
+const config = require('../../common/config');
+
 const dosObjectWithMissingFields = {
     "data_object": {
         id: 'v1_abc-123',
@@ -237,7 +239,7 @@ const gen3CrdcResponse = {
     id: "0027045b-9ed6-45af-a68e-f55037b5184c",
     mime_type: "application/json",
     name: null,
-    self_uri: "drs://nci-crdc.datacommons.io/0027045b-9ed6-45af-a68e-f55037b5184c",
+    self_uri: `drs://${config.HOST_CRDC_PROD}/0027045b-9ed6-45af-a68e-f55037b5184c`,
     size: 6703858793,
     updated_time: "2018-06-27T10:28:06.398882",
     version: "5eb15d8b"
@@ -292,7 +294,7 @@ const anvilDrsResponse = {
     id: "dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0",
     mime_type: "application/json",
     name: "",
-    self_uri: "drs://gen3.theanvil.io/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0",
+    self_uri: `drs://${config.HOST_THE_ANVIL_PROD}/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`,
     size: 143562155,
     updated_time: "2020-07-08T18:52:53.194826",
     version: "0a4262ff"
@@ -353,7 +355,7 @@ const kidsFirstDrsResponse = {
     "mime_type": "application/json",
     "name": "fa9c2cb04f614f90b75323b05bfdd231.bam",
     "self_uri":
-        "drs://data.kidsfirstdrc.org/ed6be7ab-068e-46c8-824a-f39cfbb885cc",
+        `drs://${config.HOST_KIDS_FIRST_PROD}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
     "size": 55121736836,
     "updated_time": "2018-05-23T12:32:32.594480",
     "version": "f70e5775"
@@ -407,7 +409,7 @@ const bdcDrsResponse = {
     id: "dg.4503/fc046e84-6cf9-43a3-99cc-ffa2964b88cb",
     mime_type: "application/json",
     name: "",
-    self_uri: "drs://gen3.biodatacatalyst.nhlbi.nih.gov/dg.4503/fc046e84-6cf9-43a3-99cc-ffa2964b88cb",
+    self_uri: `drs://${config.HOST_BIODATA_CATALYST_PROD}/dg.4503/fc046e84-6cf9-43a3-99cc-ffa2964b88cb`,
     size: 14772393959,
     updated_time: "2020-01-15T15:35:09.184160",
     version: "f443f632"

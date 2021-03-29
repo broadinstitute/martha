@@ -57,16 +57,14 @@ function constructPath(pathParts) {
     return formattedParts.join('/');
 }
 
+/* 2021-03-24 Do not call this method as written in new code! Gives wrong answers for data objects in
+   CRDC, the AnVIL, and Kids First. Will probably give even more wrong answers in the future! */
 function determineHostname(someUrl) {
     if (!isDataGuidsUrl(someUrl)) {
         return someUrl.hostname;
     }
 
-    if (someUrl.hostname.toLowerCase() === 'dg.anv0') {
-        return 'gen3.theanvil.io';
-    }
-
-    return config.dataObjectResolutionHost;
+    return config.bioDataCatalystHost;
 }
 
 function determinePathname(someUrl) {
@@ -119,7 +117,7 @@ function dataObjectUriToHttps(dataObjectUri) {
     return output;
 }
 
-// This function counts on the request posing data as "application/json" content-type.
+// This function counts on the request posting data as "application/json" content-type.
 // See: https://cloud.google.com/functions/docs/writing/http#parsing_http_requests for more details
 function parseRequest(req) {
     return (req && req.body) || {};
