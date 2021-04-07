@@ -177,7 +177,7 @@ class MarthaV3Response extends CommonFileInfoResponse {
         bondProvider,
         fileName,
         hashesMap,
-        accessUrl
+        accessUrl,
     ) {
         super(
             contentType,
@@ -364,7 +364,7 @@ function getGsUrlFromDrsObject(drsResponse) {
  * @param {?Object} [googleSA] A google service account json
  * @param {?Object} [accessUrl] An access URL
  * @param {string} accessUrl.url A URL used to fetch object bytes
- * @param {?string[]} [accessUrl.headers] An optional list of headers to include in the HTTP request to url
+ * @param {?Object} [accessUrl.headers] The optional headers to include in the HTTP request to url
  * @returns {MarthaV3Response} The drs object converted to a martha_v3 response
  */
 function convertToMarthaV3Response(drsResponse, bondProvider, googleSA, accessUrl) {
@@ -421,7 +421,7 @@ function convertToMarthaV3Response(drsResponse, bondProvider, googleSA, accessUr
         bondProvider,
         fileName,
         hashesMap,
-        accessUrl
+        accessUrl,
     );
 }
 

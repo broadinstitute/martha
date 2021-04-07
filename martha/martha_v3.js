@@ -229,26 +229,28 @@ function getHttpsUrlParts(url) {
 }
 
 // NOTE: reimplementation of dataObjectUriToHttps in helper.js
-function httpsUrlGenerator(drsType) {
+function generateMetadataUrl(drsType) {
     const { urlParts, protocolPrefix } = drsType;
-    return url.format({
-        protocol: 'https',
-        hostname: urlParts.httpsUrlHost,
-        pathname: `${protocolPrefix}/${urlParts.protocolSuffix}`,
-        port: urlParts.httpsUrlPort,
-        search: urlParts.httpsUrlSearch
-    });
+    // Construct a WHATWG URL by first only setting the protocol and the hostname: https://github.com/whatwg/url/issues/354
+    const generatedUrl = new URL(`https://${urlParts.httpsUrlHost}`);
+    generatedUrl.port = urlParts.httpsUrlPort;
+    generatedUrl.pathname = `${protocolPrefix}/${urlParts.protocolSuffix}`;
+    if (urlParts.httpsUrlSearch) {
+        generatedUrl.search = urlParts.httpsUrlSearch;
+    }
+    return url.format(generatedUrl);
 }
 
 function generateAccessUrl(drsType, accessId) {
     const { urlParts, protocolPrefix } = drsType;
-    return url.format({
-        protocol: 'https',
-        hostname: urlParts.httpsUrlHost,
-        pathname: `${protocolPrefix}/${urlParts.protocolSuffix}/access/${accessId}`,
-        port: urlParts.httpsUrlPort,
-        search: urlParts.httpsUrlSearch
-    });
+    // Construct a WHATWG URL by first only setting the protocol and the hostname: https://github.com/whatwg/url/issues/354
+    const generatedUrl = new URL(`https://${urlParts.httpsUrlHost}`);
+    generatedUrl.port = urlParts.httpsUrlPort;
+    generatedUrl.pathname = `${protocolPrefix}/${urlParts.protocolSuffix}/access/${accessId}`;
+    if (urlParts.httpsUrlSearch) {
+        generatedUrl.search = urlParts.httpsUrlSearch;
+    }
+    return url.format(generatedUrl);
 }
 
 /** *************************************************************************************************
@@ -403,7 +405,7 @@ async function marthaV3Handler(req, res) {
         return;
     }
 
-    const httpsMetadataUrl = httpsUrlGenerator(drsType);
+    const httpsMetadataUrl = generateMetadataUrl(drsType);
     const {sendAuth, bondProvider, accessMethodType} = drsType;
     const bondSAKeyUrl = bondProvider && `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
     const bondAccessTokenUrl = bondProvider && `${config.bondBaseUrl}/api/link/v1/${bondProvider}/accesstoken`;
@@ -478,7 +480,10 @@ async function marthaV3Handler(req, res) {
 }
 
 exports.marthaV3Handler = marthaV3Handler;
+exports.DrsType = DrsType;
 exports.determineDrsType = determineDrsType;
-exports.httpsUrlGenerator = httpsUrlGenerator;
+exports.generateMetadataUrl = generateMetadataUrl;
+exports.generateAccessUrl = generateAccessUrl;
 exports.getDrsAccessId = getDrsAccessId;
+exports.getHttpsUrlParts = getHttpsUrlParts;
 exports.allMarthaFields = ALL_FIELDS;

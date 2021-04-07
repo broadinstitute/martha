@@ -33,9 +33,12 @@ const test = require('ava');
 const sinon = require('sinon');
 const {
     marthaV3Handler: marthaV3,
+    DrsType,
     determineDrsType,
-    httpsUrlGenerator,
+    generateMetadataUrl,
+    generateAccessUrl,
     getDrsAccessId,
+    getHttpsUrlParts,
     allMarthaFields,
 } = require('../../martha/martha_v3');
 const apiAdapter = require('../../common/api_adapter');
@@ -802,6 +805,33 @@ test.serial('martha_v3 getDrsAccessId should not return an access_id for a null 
     t.is(typeof result, 'undefined');
 });
 
+test.serial('martha_v3 generateAccessUrl should generate an access url', (t) => {
+    const urlParts = getHttpsUrlParts('drs://some.host.example.com/some_id');
+    const drsType = new DrsType(urlParts, '/some_prefix', false, null, null);
+    const result = generateAccessUrl(drsType, 'some_access_id');
+    t.is(result, 'https://some.host.example.com/some_prefix/some_id/access/some_access_id');
+});
+
+test.serial('martha_v3 generateAccessUrl should generate an access url with a different port', (t) => {
+    const urlParts = getHttpsUrlParts('drs://some.host.example.com:8000/some_id');
+    const drsType = new DrsType(urlParts, '/some_prefix', false, null, null);
+    const result = generateAccessUrl(drsType, 'some_access_id');
+    t.is(result, 'https://some.host.example.com:8000/some_prefix/some_id/access/some_access_id');
+});
+
+/*
+This tests a combination of a DOS/DRS URI with a query string that also returns an access_id.
+This is hypothetical scenario based on a combination of:
+- HCA used to server DOS URIs with query strings
+- access_id values are used to retrieve HTTPS signed URLs
+ */
+test.serial('martha_v3 generateAccessUrl should add the query string to the access url', (t) => {
+    const urlParts = getHttpsUrlParts('drs://some.host.example.com/some_id?query=value');
+    const drsType = new DrsType(urlParts, '/some_prefix', false, null, null);
+    const result = generateAccessUrl(drsType, 'some_access_id');
+    t.is(result, 'https://some.host.example.com/some_prefix/some_id/access/some_access_id?query=value');
+});
+
 /**
  * Determine DRS type using the specified named parameters.
  * @param testUrl {string}
@@ -809,7 +839,7 @@ test.serial('martha_v3 getDrsAccessId should not return an access_id for a null 
  */
 function determineDrsTypeTestWrapper(testUrl) {
     const drsType = determineDrsType(testUrl);
-    return httpsUrlGenerator(drsType);
+    return generateMetadataUrl(drsType);
 }
 
 /**
