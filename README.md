@@ -51,6 +51,7 @@ It will return an object with the properties:
  gsUri:                 string [resolver sometimes returns null],
  googleServiceAccount:  object [null unless the DOS url belongs to a Bond supported host],
  fileName:              string [resolver sometimes returns null],
+ accessUrl:             object [access url sometimes returns null],
  hashes:                object [contains the hashes type and their checksum value; if unknown, it returns null]
 ```
 
@@ -67,6 +68,7 @@ Example response for /martha_v3:
     "gsUri": "gs://my-bucket/dd3c716a-852f-4d74-9073-9920e835ec8a/f3b148ac-1802-4acc-a0b9-610ea266fb61",
     "googleServiceAccount": null,
     "fileName": "hello.txt",
+    "accessUrl": null,
     "hashes": {
         "md5": "336ea55913bc261b72875bd259753046",
         "sha256": "f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44",
@@ -82,6 +84,7 @@ The fields are:
 - `fileName`: The file name for the blob found at `gsUri`
 - `contentType`: The type of data stored in the blob found at `gsUri`
 - `size`: The size of the blob found at `gsUri`
+- `accessUrl`: The url and optional headers to fetch the bytes
 - `hashes`: The various hash types and values for the blob found at `gsUri`
 - `timeCreated`: The time of creation for the data found at `gsUri`
 - `timeUpdated`: The time of last update for the data found at `gsUri`
@@ -92,7 +95,7 @@ The body of the request JSON object may also contain a key named `fields` with a
 response will only contain the fields listed in the array. The array should only contain field names from the above
 list.
 
-Example request to return all fields:
+Example request to return the default fields:
 ```
 curl \
     localhost:8010/martha_v3 \
@@ -255,7 +258,7 @@ ESLint is a tool for identifying and reporting on patterns found in ECMAScript/J
 More information can be found on it's [website](https://eslint.org/).
 
 ### Installation and Usage
-Prerequisites: Node.js (^10.12.0, or >=12.0.0) built with SSL support
+Prerequisites: Node.js (>=12.x) built with SSL support
 * Install ESLint using npm or yarn:
   `npm install eslint --save-dev`
   or

@@ -424,9 +424,6 @@ async function marthaV3Handler(req, res) {
         }
     }
 
-    // TODO: should we know from the DrsType whether an `access_id` is expected
-    // -or- should we use the absence of an `access_id` to know we don't need a second DRS server request
-
     let drsResponse;
     let accessId;
     try {

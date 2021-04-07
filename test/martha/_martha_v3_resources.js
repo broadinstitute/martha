@@ -450,48 +450,48 @@ const bdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl) => 
 // HCA
 // returned via
 //   `curl https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe`
-const fakeToken = "Definitely not a real token";
+const fakeToken = 'Definitely not a real token';
 const hcaDrsResponse = {
-    id: "v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe",
-    name: "E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz",
+    id: 'v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe',
+    name: 'E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz',
     self_uri: null,
     size: 438932948,
-    created_time: "2020-12-17T21:01:25.906Z",
-    updated_time: "2020-12-17T21:01:25.906Z",
-    version: "0",
+    created_time: '2020-12-17T21:01:25.906Z',
+    updated_time: '2020-12-17T21:01:25.906Z',
+    version: '0',
     mime_type: null,
     checksums: [
         {
-            checksum: "5acd55ef",
-            type: "crc32c"
+            checksum: '5acd55ef',
+            type: 'crc32c'
         }
     ],
     access_methods: [
         {
-            type: "gs",
+            type: 'gs',
             access_url: {
-                url: "gs://broad-jade-dev-data-bucket/ecb5601e-9026-428c-b49d-3c5f1807ecb7/e37266ba-790d-4641-aa76-854d94be2fbe/E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz",
+                url: 'gs://broad-jade-dev-data-bucket/ecb5601e-9026-428c-b49d-3c5f1807ecb7/e37266ba-790d-4641-aa76-854d94be2fbe/E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz',
                 headers: null
             },
             access_id: null,
-            region: "us-central1"
+            region: 'us-central1'
         },
         {
-            type: "https",
+            type: 'https',
             access_url: {
-                url: "https://www.googleapis.com/storage/v1/b/broad-jade-dev-data-bucket/o/ecb5601e-9026-428c-b49d-3c5f1807ecb7%2Fe37266ba-790d-4641-aa76-854d94be2fbe%2FE18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz?alt=media",
+                url: 'https://www.googleapis.com/storage/v1/b/broad-jade-dev-data-bucket/o/ecb5601e-9026-428c-b49d-3c5f1807ecb7%2Fe37266ba-790d-4641-aa76-854d94be2fbe%2FE18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz?alt=media',
                 headers: [
                     `Authorization: Bearer ${fakeToken}`
                 ]
             },
             access_id: null,
-            region: "us-central1"
+            region: 'us-central1'
         }
     ],
     contents: null,
     description: null,
     aliases: [
-        "/hca_dev_20201217_test4/5acd55ef/E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz"
+        '/hca_dev_20201217_test4/5acd55ef/E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz'
     ]
 };
 
