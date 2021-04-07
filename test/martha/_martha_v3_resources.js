@@ -8,7 +8,7 @@
 const config = require('../../common/config');
 
 const dosObjectWithMissingFields = {
-    "data_object": {
+    data_object: {
         id: 'v1_abc-123',
         description: '123 BAM file',
         name: '123.mapped.abc.bam',
@@ -20,9 +20,13 @@ const dosObjectWithMissingFields = {
 };
 
 const dosObjectWithInvalidFields = {
-    "data_object": {
+    data_object: {
         urls: 'gs://i/should/have/been/an/array',
     }
+};
+
+const drsObjectWithInvalidFields = {
+    access_methods: { oops: "i should have been an array" },
 };
 
 const expectedObjWithMissingFields = {
@@ -43,7 +47,7 @@ const expectedObjWithMissingFields = {
 // Unaffiliated DOS examples
 
 const sampleDosResponse = {
-    "data_object": {
+    data_object: {
         aliases: [],
         checksums: [
             {
@@ -516,6 +520,7 @@ module.exports = {
     expectedObjWithMissingFields,
     dosObjectWithMissingFields,
     dosObjectWithInvalidFields,
+    drsObjectWithInvalidFields,
     sampleDosResponse,
     sampleDosMarthaResult,
     dataGuidsOrgResponse,

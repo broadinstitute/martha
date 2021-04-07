@@ -26,7 +26,8 @@ const {
     gen3CrdcResponse,
     dosObjectWithMissingFields,
     dosObjectWithInvalidFields,
-    expectedObjWithMissingFields
+    drsObjectWithInvalidFields,
+    expectedObjWithMissingFields,
 } = require('./_martha_v3_resources.js');
 
 const test = require('ava');
@@ -39,13 +40,13 @@ const {
     generateAccessUrl,
     getDrsAccessId,
     getHttpsUrlParts,
-    allMarthaFields,
+    MARTHA_V3_ALL_FIELDS,
 } = require('../../martha/martha_v3');
 const apiAdapter = require('../../common/api_adapter');
 const config = require('../../common/config');
 const mask = require('json-mask');
 
-const mockRequest = (req, requestFields = allMarthaFields) => {
+const mockRequest = (req, requestFields = MARTHA_V3_ALL_FIELDS) => {
     req.method = 'POST';
     req.headers = { authorization: 'bearer abc123' };
     if (req.body && typeof req.body.fields === "undefined") {
@@ -145,7 +146,7 @@ test.serial('martha_v3 resolves a valid DRS-style url', async (t) => {
     t.is(actualProvider, expectedProvider);
 });
 
-test.serial('martha_v3 resolves successfully and ignores extra data submitted besides a \'url\'', async (t) => {
+test.serial("martha_v3 resolves successfully and ignores extra data submitted besides a 'url'", async (t) => {
     getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
     getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
     const response = mockResponse();
@@ -153,8 +154,8 @@ test.serial('martha_v3 resolves successfully and ignores extra data submitted be
         body: {
             url: 'dos://abc/123',
             pattern: 'gs://',
-            foo: 'bar'
-        }
+            foo: 'bar',
+        },
     }), response);
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
@@ -180,7 +181,7 @@ test.serial('martha_v3 does not call Bond when only DRS fields are requested', a
         body: {
             url: 'dos://abc/123',
             fields: ['gsUri', 'size', 'hashes', 'timeUpdated', 'fileName'],
-        }
+        },
     }), response);
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
@@ -197,14 +198,14 @@ test.serial('martha_v3 does not call Bond when only DRS fields are requested', a
     t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
 });
 
-test.serial('martha_v3 does not call DRS when only Bond fields are requested', async (t) => {
+test.serial('martha_v3 calls the correct endpoints the googleServiceAccount is requested', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(googleSAKeyObject);
     const response = mockResponse();
     await marthaV3(mockRequest({
         body: {
             url: 'dos://abc/123',
             fields: ['googleServiceAccount'],
-        }
+        },
     }), response);
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
@@ -219,6 +220,46 @@ test.serial('martha_v3 does not call DRS when only Bond fields are requested', a
     const expectedProvider = 'dcf-fence';
     const actualProvider = matches[2];
     t.is(actualProvider, expectedProvider);
+});
+
+test.serial('martha_v3 calls the correct endpoints when only the accessUrl is requested', async (t) => {
+    const drsAccessUrlResponse = mockGcsAccessUrl(bdcDrsResponse.access_methods[0].access_url.url);
+    getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
+    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
+    const response = mockResponse();
+    await marthaV3(
+        mockRequest(
+            {
+                body: {
+                    url: 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+                    fields: ['accessUrl'],
+                }
+            },
+        ),
+        response,
+    );
+    t.is(response.statusCode, 200);
+    const result = response.send.lastCall.args[0];
+    sinon.assert.callCount(getJsonFromApiStub, 3); // Bond was not called to retrieve the googleServiceAccount
+    t.deepEqual(
+        { ...result },
+        mask(bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse), 'accessUrl'),
+    );
+
+    const requestedBondAccessToken = getJsonFromApiStub.getCall(1).args[0];
+    const accessTokenMatches = requestedBondAccessToken.match(bondAccessTokenRegEx);
+    t.truthy(accessTokenMatches, 'Bond URL called does not match Bond URL regular expression');
+    const expectedAccessTokenProvider = 'fence';
+    const actualAccessTokenProvider = accessTokenMatches[2];
+    t.is(actualAccessTokenProvider, expectedAccessTokenProvider);
+
+    t.is(
+        getJsonFromApiStub.getCall(2).args[0],
+        'https://staging.gen3.biodatacatalyst.nhlbi.nih.gov/ga4gh/drs/v1/objects' +
+        '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0/access/gs',
+    );
+    t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
 });
 
 test.serial('martha_v3 calls no endpoints when no fields are requested', async (t) => {
@@ -370,6 +411,7 @@ test.serial('martha_v3 should return the underlying status if Data Object resolu
 });
 
 test.serial('martha_v3 should return 500 if key retrieval from Bond fails', async (t) => {
+    getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
     getJsonFromApiStub.onCall(1).rejects(new Error('Bond key lookup forced to fail by testing stub'));
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
@@ -723,7 +765,6 @@ test.serial('martha_v3 parses HCA response correctly', async (t) => {
 
 test.serial('martha_v3 returns null for fields missing in drs and bond response', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(dosObjectWithMissingFields);
-    getJsonFromApiStub.onCall(1).resolves(null);
 
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'drs://abc/123' } }), response);
@@ -734,7 +775,6 @@ test.serial('martha_v3 returns null for fields missing in drs and bond response'
 
 test.serial('martha_v3 should return 500 if Data Object parsing fails', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(dosObjectWithInvalidFields);
-    getJsonFromApiStub.onCall(1).resolves(null);
 
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'drs://abc/123' } }), response);
@@ -746,6 +786,28 @@ test.serial('martha_v3 should return 500 if Data Object parsing fails', async (t
             response: {
                 status: 500,
                 text: 'Received error while parsing response from DRS URL. urls.filter is not a function',
+            },
+            status: 500,
+        },
+    );
+});
+
+test.serial('martha_v3 should return 500 if access method parsing fails', async (t) => {
+    getJsonFromApiStub.onCall(0).resolves(drsObjectWithInvalidFields);
+
+    const response = mockResponse();
+    await marthaV3(
+        mockRequest({ body: { 'url': 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0' } }),
+        response,
+    );
+    t.is(response.statusCode, 500);
+    const result = response.send.lastCall.args[0];
+    t.deepEqual(
+        { ...result },
+        {
+            response: {
+                status: 500,
+                text: 'Received error while parsing the access id. drsResponse.access_methods is not iterable',
             },
             status: 500,
         },
@@ -768,7 +830,7 @@ test.serial('martha_v3 should return 500 on exception trying to get access token
         {
             response: {
                 status: 500,
-                text: "Received error contacting Bond. Cannot read property 'token' of null"
+                text: "Received error contacting Bond. Cannot read property 'token' of null",
             },
             status: 500,
         },
@@ -792,7 +854,7 @@ test.serial('martha_v3 should return 500 on exception trying to get signed URL f
         {
             response: {
                 status: 500,
-                text: "Received error contacting DRS provider. Test exception: simulated error from DRS provider"
+                text: 'Received error contacting DRS provider. Test exception: simulated error from DRS provider',
             },
             status: 500,
         },

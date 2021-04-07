@@ -11,7 +11,7 @@ const url = require('url');
 const mask = require('json-mask');
 
 // All fields that can be returned in the martha_v3 response.
-const ALL_FIELDS = [
+const MARTHA_V3_ALL_FIELDS = [
     'gsUri',
     'bucket',
     'name',
@@ -26,7 +26,7 @@ const ALL_FIELDS = [
     'accessUrl',
 ];
 
-const DEFAULT_FIELDS = [
+const MARTHA_V3_DEFAULT_FIELDS = [
     'gsUri',
     'bucket',
     'name',
@@ -40,7 +40,7 @@ const DEFAULT_FIELDS = [
 ];
 
 // Response fields dependent on the DOS or DRS servers
-const DRS_FIELDS = [
+const MARTHA_V3_METADATA_FIELDS = [
     'gsUri',
     'bucket',
     'name',
@@ -50,11 +50,17 @@ const DRS_FIELDS = [
     'hashes',
     'timeCreated',
     'timeUpdated',
+    'accessUrl',
 ];
 
-// Response fields dependent on Bond
-const BOND_FIELDS = [
+// Response fields dependent on the Bond service account
+const MARTHA_V3_BOND_SA_FIELDS = [
     'googleServiceAccount',
+];
+
+// Response fields dependent on the the access_id
+const MARTHA_V3_ACCESS_ID_FIELDS = [
+    'accessUrl',
 ];
 
 const BOND_PROVIDER_NONE = null; // Used for servers that should NOT contact bond
@@ -364,11 +370,11 @@ function validateRequest(url, auth, requestedFields) {
         throw new Error(`'fields' was not an array.`);
     }
 
-    const invalidFields = requestedFields.filter((field) => !ALL_FIELDS.includes(field));
+    const invalidFields = requestedFields.filter((field) => !MARTHA_V3_ALL_FIELDS.includes(field));
     if (invalidFields.length !== 0) {
         throw new Error(
             `Fields '${invalidFields.join("','")}' are not supported. ` +
-            `Supported fields are '${ALL_FIELDS.join("', '")}'.`
+            `Supported fields are '${MARTHA_V3_ALL_FIELDS.join("', '")}'.`
         );
     }
 }
@@ -385,8 +391,16 @@ function overlapFields(requestedFields, serviceFields) {
     return requestedFields.filter((field) => serviceFields.includes(field)).length !== 0;
 }
 
+function sendResponse(res, requestedFields, drsResponse, bondProvider, bondSA, accessUrl) {
+    const fullResponse =
+        requestedFields.length ? convertToMarthaV3Response(drsResponse, bondProvider, bondSA, accessUrl) : {};
+    const partialResponse = mask(fullResponse, requestedFields.join(","));
+
+    res.status(200).send(partialResponse);
+}
+
 async function marthaV3Handler(req, res) {
-    const {url, fields: requestedFields = DEFAULT_FIELDS} = parseRequest(req);
+    const {url, fields: requestedFields = MARTHA_V3_DEFAULT_FIELDS} = parseRequest(req);
     const {authorization: auth, 'user-agent': userAgent} = req.headers;
     console.log(`Received URL '${url}' from agent '${userAgent}' on IP '${req.ip}'`);
 
@@ -415,7 +429,7 @@ async function marthaV3Handler(req, res) {
     );
 
     let response;
-    if (overlapFields(requestedFields, DRS_FIELDS)) {
+    if (overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS)) {
         try {
             response = await apiAdapter.getJsonFrom(httpsMetadataUrl, sendAuth ? auth : null);
         } catch (error) {
@@ -425,13 +439,21 @@ async function marthaV3Handler(req, res) {
     }
 
     let drsResponse;
-    let accessId;
     try {
         drsResponse = responseParser(response);
-        accessId = getDrsAccessId(drsResponse, accessMethodType);
     } catch (error) {
         logAndSendServerError(res, error, 'Received error while parsing response from DRS URL.');
         return;
+    }
+
+    let accessId;
+    if (overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS)) {
+        try {
+            accessId = getDrsAccessId(drsResponse, accessMethodType);
+        } catch (error) {
+            logAndSendServerError(res, error, 'Received error while parsing the access id.');
+            return;
+        }
     }
 
     // do more stuff here, i.e. get signed URL
@@ -461,7 +483,7 @@ async function marthaV3Handler(req, res) {
     }
 
     let bondSA;
-    if (bondSAKeyUrl && overlapFields(requestedFields, BOND_FIELDS)) {
+    if (bondSAKeyUrl && overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS)) {
         try {
             bondSA = await apiAdapter.getJsonFrom(bondSAKeyUrl, auth);
         } catch (error) {
@@ -470,10 +492,7 @@ async function marthaV3Handler(req, res) {
         }
     }
 
-    const fullResponse = requestedFields.length ? convertToMarthaV3Response(drsResponse, bondProvider, bondSA, accessUrl) : {};
-    const partialResponse = mask(fullResponse, requestedFields.join(","));
-
-    res.status(200).send(partialResponse);
+    sendResponse(res, requestedFields, drsResponse, bondProvider, bondSA, accessUrl);
 }
 
 exports.marthaV3Handler = marthaV3Handler;
@@ -483,4 +502,4 @@ exports.generateMetadataUrl = generateMetadataUrl;
 exports.generateAccessUrl = generateAccessUrl;
 exports.getDrsAccessId = getDrsAccessId;
 exports.getHttpsUrlParts = getHttpsUrlParts;
-exports.allMarthaFields = ALL_FIELDS;
+exports.MARTHA_V3_ALL_FIELDS = MARTHA_V3_ALL_FIELDS;
