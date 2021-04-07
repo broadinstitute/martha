@@ -88,7 +88,6 @@ const sandbox = sinon.createSandbox();
 test.serial.beforeEach(() => {
     sandbox.restore(); // If one test fails, the .afterEach() block will not execute, so always clean the slate here
     getJsonFromApiStub = sandbox.stub(apiAdapter, getJsonFromApiMethodName);
-    getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
 });
 
 test.serial.afterEach(() => {
@@ -98,6 +97,7 @@ test.serial.afterEach(() => {
 // Test the "default" case because we don't know who you are.
 test.serial('martha_v3 resolves a valid DOS-style url', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
+    getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
     t.is(response.statusCode, 200);
@@ -125,6 +125,7 @@ test.serial('martha_v3 resolves a valid DOS-style url', async (t) => {
 // [1] https://broadinstitute.slack.com/archives/G011ZUKHCUX/p1597694952108600
 test.serial('martha_v3 resolves a valid DRS-style url', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
+    getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'drs://abc/123' } }), response);
     t.is(response.statusCode, 200);
@@ -146,6 +147,7 @@ test.serial('martha_v3 resolves a valid DRS-style url', async (t) => {
 
 test.serial('martha_v3 resolves successfully and ignores extra data submitted besides a \'url\'', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
+    getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
     const response = mockResponse();
     await marthaV3(mockRequest({
         body: {
@@ -405,6 +407,7 @@ test.serial(
     'martha_v3 does call Bond and return SA key when the host url is for dataguids.org',
     async (t) => {
         getJsonFromApiStub.onCall(0).resolves(dataGuidsOrgResponse);
+        getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
         const response = mockResponse();
         await marthaV3(
             mockRequest({ body: { 'url': 'dos://dataguids.org/a41b0c4f-ebfb-4277-a941-507340dea85d' } }),
