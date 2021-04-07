@@ -43,15 +43,6 @@ test('determineBondProvider should be "dcf-fence" if the URL host is "dg.foo"', 
     t.is(determineBondProvider('drs://dg.foo/anything'), BondProviders.DCF_FENCE);
 });
 
-test('determineBondProvider should not return a provider if the URL host ends with ".humancellatlas.org"', (t) => {
-    t.falsy(determineBondProvider('drs://someservice.humancellatlas.org'));
-});
-
-test('determineBondProvider should return the default BondProvider if the URL host does not end with ' +
-  'exactly ".humancellatlas.org"', (t) => {
-    t.is(determineBondProvider('drs://someservice.spoofhumancellatlas.org'), BondProviders.default);
-});
-
 test('determineBondProvider should return the default BondProvider if the URL host is NOT "dg.4503" or HCA', (t) => {
     t.is(determineBondProvider('drs://some-host/anything'), BondProviders.default);
 });

@@ -44,10 +44,6 @@ function determineBondProvider(urlString) {
         return BondProviders.ANVIL;
     }
 
-    if (url.hostname.endsWith('.humancellatlas.org')) {
-        return;
-    }
-
     if (url.hostname.endsWith('.datacommons.io')) {
         return BondProviders.DCF_FENCE;
     }

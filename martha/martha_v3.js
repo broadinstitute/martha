@@ -10,21 +10,6 @@ const apiAdapter = require('../common/api_adapter');
 const url = require('url');
 const mask = require('json-mask');
 
-// Fields Martha returns for legacy DOS servers.
-const ALL_FIELDS_DOS = [
-    'gsUri',
-    'bucket',
-    'name',
-    'fileName',
-    'contentType',
-    'size',
-    'hashes',
-    'timeCreated',
-    'timeUpdated',
-    'googleServiceAccount',
-    'bondProvider'
-];
-
 // All fields that can be returned in the martha_v3 response.
 const ALL_FIELDS = [
     'gsUri',
@@ -38,7 +23,7 @@ const ALL_FIELDS = [
     'timeUpdated',
     'googleServiceAccount',
     'bondProvider',
-    'accessUrl'
+    'accessUrl',
 ];
 
 const DEFAULT_FIELDS = [
@@ -76,6 +61,8 @@ const BOND_PROVIDER_NONE = null; // Used for servers that should NOT contact bon
 const BOND_PROVIDER_DCF_FENCE = 'dcf-fence'; // The default when we don't recognize the server
 const BOND_PROVIDER_FENCE = 'fence';
 const BOND_PROVIDER_ANVIL = 'anvil';
+
+const ACCESS_METHOD_TYPE_NONE = null;
 const ACCESS_METHOD_TYPE_GCS = 'gs';
 
 const AUTH_REQUIRED = true;
@@ -93,21 +80,22 @@ const DG_COMPACT_KIDS_FIRST = 'dg.f82a1a';
 
 // noinspection JSUnusedGlobalSymbols
 class DrsType {
-    constructor(urlParts, protocolPrefix, sendAuth, bondProvider) {
+    constructor(urlParts, protocolPrefix, sendAuth, bondProvider, accessMethodType) {
         this.urlParts = urlParts;
         this.protocolPrefix = protocolPrefix;
         this.sendAuth = sendAuth;
         this.bondProvider = bondProvider;
+        this.accessMethodType = accessMethodType;
     }
 }
 
 /* Returns undefined if the matching access method does not have an access_id. */
-function getDrsAccessId(drsResponse) {
-    if (!drsResponse || !drsResponse.access_methods) {
+function getDrsAccessId(drsResponse, accessMethodType) {
+    if (!accessMethodType || !drsResponse || !drsResponse.access_methods) {
         return;
     }
     for (const accessMethod of drsResponse.access_methods) {
-        if (accessMethod.type === ACCESS_METHOD_TYPE_GCS) {
+        if (accessMethod.type === accessMethodType) {
             return accessMethod.access_id;
         }
     }
@@ -313,6 +301,7 @@ function determineDrsType(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_FENCE,
+            ACCESS_METHOD_TYPE_GCS,
         );
     }
 
@@ -323,6 +312,7 @@ function determineDrsType(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_ANVIL,
+            ACCESS_METHOD_TYPE_GCS,
         );
     }
 
@@ -333,16 +323,7 @@ function determineDrsType(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_REQUIRED,
             BOND_PROVIDER_NONE,
-        );
-    }
-
-    // HCA
-    if (host.endsWith('.humancellatlas.org')) {
-        return new DrsType(
-            urlParts,
-            PROTOCOL_PREFIX_DOS,
-            AUTH_SKIPPED,
-            BOND_PROVIDER_NONE,
+            ACCESS_METHOD_TYPE_NONE,
         );
     }
 
@@ -353,6 +334,7 @@ function determineDrsType(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_DCF_FENCE,
+            ACCESS_METHOD_TYPE_GCS,
         );
     }
 
@@ -363,6 +345,7 @@ function determineDrsType(url) {
         PROTOCOL_PREFIX_DOS,
         AUTH_SKIPPED,
         BOND_PROVIDER_DCF_FENCE,
+        ACCESS_METHOD_TYPE_NONE,
     );
 }
 
@@ -421,7 +404,7 @@ async function marthaV3Handler(req, res) {
     }
 
     const httpsMetadataUrl = httpsUrlGenerator(drsType);
-    const {sendAuth, bondProvider} = drsType;
+    const {sendAuth, bondProvider, accessMethodType} = drsType;
     const bondSAKeyUrl = bondProvider && `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
     const bondAccessTokenUrl = bondProvider && `${config.bondBaseUrl}/api/link/v1/${bondProvider}/accesstoken`;
     console.log(
@@ -446,7 +429,7 @@ async function marthaV3Handler(req, res) {
     let accessId;
     try {
         drsResponse = responseParser(response);
-        accessId = getDrsAccessId(drsResponse);
+        accessId = getDrsAccessId(drsResponse, accessMethodType);
     } catch (error) {
         logAndSendServerError(res, error, 'Received error while parsing response from DRS URL.');
         return;
@@ -497,5 +480,5 @@ async function marthaV3Handler(req, res) {
 exports.marthaV3Handler = marthaV3Handler;
 exports.determineDrsType = determineDrsType;
 exports.httpsUrlGenerator = httpsUrlGenerator;
+exports.getDrsAccessId = getDrsAccessId;
 exports.allMarthaFields = ALL_FIELDS;
-exports.allMarthaFieldsDos = ALL_FIELDS_DOS;

@@ -14,8 +14,8 @@ const {
     dataGuidsOrgMarthaResult,
     jadeDrsResponse,
     jadeDrsMarthaResult,
-    hcaDosMarthaResult,
-    hcaDosResponse,
+    hcaDrsMarthaResult,
+    hcaDrsResponse,
     bdcDrsMarthaResult,
     bdcDrsResponse,
     kidsFirstDrsResponse,
@@ -35,6 +35,7 @@ const {
     marthaV3Handler: marthaV3,
     determineDrsType,
     httpsUrlGenerator,
+    getDrsAccessId,
     allMarthaFields,
 } = require('../../martha/martha_v3');
 const apiAdapter = require('../../common/api_adapter');
@@ -680,7 +681,7 @@ test.serial('martha_v3 parses a Kids First CIB URI response correctly', async (t
 });
 
 test.serial('martha_v3 parses HCA response correctly', async (t) => {
-    getJsonFromApiStub.onCall(0).resolves(hcaDosResponse);
+    getJsonFromApiStub.onCall(0).resolves(hcaDrsResponse);
     const response = mockResponse();
     await marthaV3(
         mockRequest(
@@ -696,7 +697,7 @@ test.serial('martha_v3 parses HCA response correctly', async (t) => {
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
     sinon.assert.callCount(getJsonFromApiStub, 1); // Bond was not called to get SA key
-    t.deepEqual({ ...result }, hcaDosMarthaResult);
+    t.deepEqual({ ...result }, hcaDrsMarthaResult);
     t.falsy(result.googleServiceAccount);
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
@@ -783,6 +784,24 @@ test.serial('martha_v3 should return 500 on exception trying to get signed URL f
     );
 });
 
+test.serial('martha_v3 getDrsAccessId should return an access_id for a matching accessMethodType', (t) => {
+    const drsResponse = { access_methods: [{ type: 'some_access_method_type', access_id: 'some_access_id' }] };
+    const result = getDrsAccessId(drsResponse, 'some_access_method_type');
+    t.is(result, 'some_access_id');
+});
+
+test.serial('martha_v3 getDrsAccessId should not return an access_id for a mismatching accessMethodType', (t) => {
+    const drsResponse = { access_methods: [{ type: 'some_access_method_type', access_id: 'some_access_id' }] };
+    const result = getDrsAccessId(drsResponse, 'mismatching_access_method_type');
+    t.is(typeof result, 'undefined');
+});
+
+test.serial('martha_v3 getDrsAccessId should not return an access_id for a null accessMethodType', (t) => {
+    const drsResponse = { access_methods: [{ type: 'some_access_method_type', access_id: 'some_access_id' }] };
+    const result = getDrsAccessId(drsResponse, null);
+    t.is(typeof result, 'undefined');
+});
+
 /**
  * Determine DRS type using the specified named parameters.
  * @param testUrl {string}
@@ -796,22 +815,22 @@ function determineDrsTypeTestWrapper(testUrl) {
 /**
  * determineDrsType(uri) -> drsUrl Scenario 1: data objects uri with non-dg host and path
  */
-test('determineDrsType should parse dos:// Data Object uri', (t) => {
+test.serial('martha_v3 determineDrsType should parse dos:// Data Object uri', (t) => {
     t.is(determineDrsTypeTestWrapper('dos://fo.o/bar'), 'https://fo.o/ga4gh/dos/v1/dataobjects/bar');
 });
 
-test('determineDrsType should parse drs:// Data Object uri', (t) => {
+test.serial('martha_v3 determineDrsType should parse drs:// Data Object uri', (t) => {
     t.is(determineDrsTypeTestWrapper('drs://fo.o/bar'), 'https://fo.o/ga4gh/dos/v1/dataobjects/bar');
 });
 
-test('determineDrsType should parse drs:// Data Object uri with query part', (t) => {
+test.serial('martha_v3 determineDrsType should parse drs:// Data Object uri with query part', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://fo.o/bar?version=1&bananas=yummy'),
         'https://fo.o/ga4gh/dos/v1/dataobjects/bar?version=1&bananas=yummy'
     );
 });
 
-test('determineDrsType should parse drs:// Data Object uri when host includes a port number', (t) => {
+test.serial('martha_v3 determineDrsType should parse drs:// Data Object uri when host includes a port number', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://foo.com:1234/bar'),
         'https://foo.com:1234/ga4gh/dos/v1/dataobjects/bar'
@@ -824,28 +843,28 @@ test('determineDrsType should parse drs:// Data Object uri when host includes a 
 /**
  * determineDrsType(uri) -> drsUrl Scenario 2: data objects uri with dg host
  */
-test('determineDrsType should parse "dos://" Data Object uri with a host and path', (t) => {
+test.serial('martha_v3 determineDrsType should parse "dos://" Data Object uri with a host and path', (t) => {
     t.is(
         determineDrsTypeTestWrapper('dos://dg.2345/bar'),
         `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345/bar`
     );
 });
 
-test('determineDrsType should parse "drs://" Data Object uri with a host and path', (t) => {
+test.serial('martha_v3 determineDrsType should parse "drs://" Data Object uri with a host and path', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://dg.2345/bar'),
         `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345/bar`
     );
 });
 
-test('determineDrsType should parse "drs://dg." Data Object uri with query part', (t) => {
+test.serial('martha_v3 determineDrsType should parse "drs://dg." Data Object uri with query part', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://dg.2345/bar?version=1&bananas=yummy'),
         `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345/bar?version=1&bananas=yummy`
     );
 });
 
-test('determineDrsType should parse "drs://" Data Object uri with an expanded host and path', (t) => {
+test.serial('martha_v3 determineDrsType should parse "drs://" Data Object uri with an expanded host and path', (t) => {
     t.is(
         determineDrsTypeTestWrapper(`dos://${config.HOST_BIODATA_CATALYST_STAGING}/dg.2345/bar`),
         `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.2345/bar`
@@ -868,28 +887,28 @@ test('determineDrsType should parse "drs://" Data Object uri with an expanded ho
 /**
  * determineDrsType(uri) -> drsUrl Scenario 4: data objects uri with jade data repo host
  */
-test('should parse Data Object uri with jade data repo DEV as host', (t) => {
+test.serial('martha_v3 should parse Data Object uri with jade data repo DEV as host', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://jade.datarepo-dev.broadinstitute.org/973b5e79-6433-40ce-bf38-686ab7f17820'),
         'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/973b5e79-6433-40ce-bf38-686ab7f17820'
     );
 });
 
-test('should parse Data Object uri with jade data repo DEV as host and path with snapshot id', (t) => {
+test.serial('martha_v3 should parse Data Object uri with jade data repo DEV as host and path with snapshot id', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://jade.datarepo-dev.broadinstitute.org/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820'),
         'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820'
     );
 });
 
-test('should parse Data Object uri with jade data repo PROD as host', (t) => {
+test.serial('martha_v3 should parse Data Object uri with jade data repo PROD as host', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://data.terra.bio/anything'),
         'https://data.terra.bio/ga4gh/drs/v1/objects/anything'
     );
 });
 
-test('should parse Data Object uri with host that looks like jade data repo host', (t) => {
+test.serial('martha_v3 should parse Data Object uri with host that looks like jade data repo host', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://jade-data-repo.datarepo-dev.broadinstitute.org/v1_anything'),
         'https://jade-data-repo.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_anything'
@@ -904,21 +923,21 @@ test('should parse Data Object uri with host that looks like jade data repo host
  *
  * TODO: Test prod expansion of compact identifiers
  */
-test('should parse Data Object uri with the AnVIL prefix dg.ANV0', (t) => {
+test.serial('martha_v3 should parse Data Object uri with the AnVIL prefix dg.ANV0', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0'),
         `https://${config.HOST_THE_ANVIL_STAGING}/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`,
     );
 });
 
-test('should parse Data Object uri with the AnVIL prod host', (t) => {
+test.serial('martha_v3 should parse Data Object uri with the AnVIL prod host', (t) => {
     t.is(
         determineDrsTypeTestWrapper(`drs://${config.HOST_THE_ANVIL_PROD}/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`),
         `https://${config.HOST_THE_ANVIL_PROD}/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`
     );
 });
 
-test('should parse Data Object uri with the AnVIL staging host', (t) => {
+test.serial('martha_v3 should parse Data Object uri with the AnVIL staging host', (t) => {
     t.is(
         determineDrsTypeTestWrapper(`drs://${config.HOST_THE_ANVIL_STAGING}/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`),
         `https://${config.HOST_THE_ANVIL_STAGING}/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`,
@@ -934,21 +953,21 @@ test('should parse Data Object uri with the AnVIL staging host', (t) => {
  *
  * TODO: Test prod expansion of compact identifiers
  */
-test('should parse Data Object uri with the Kids First prefix dg.F82A1A', (t) => {
+test.serial('martha_v3 should parse Data Object uri with the Kids First prefix dg.F82A1A', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://dg.F82A1A/ed6be7ab-068e-46c8-824a-f39cfbb885cc'),
         `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
     );
 });
 
-test('should parse Data Object uri with the Kids First prod repo as host', (t) => {
+test.serial('martha_v3 should parse Data Object uri with the Kids First prod repo as host', (t) => {
     t.is(
         determineDrsTypeTestWrapper(`drs://${config.HOST_KIDS_FIRST_PROD}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
         `https://${config.HOST_KIDS_FIRST_PROD}/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
     );
 });
 
-test('should parse Data Object uri with the Kids First staging repo as host', (t) => {
+test.serial('martha_v3 should parse Data Object uri with the Kids First staging repo as host', (t) => {
     t.is(
         determineDrsTypeTestWrapper(`drs://${config.HOST_KIDS_FIRST_STAGING}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
         `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
@@ -964,21 +983,21 @@ test('should parse Data Object uri with the Kids First staging repo as host', (t
  *
  * TODO: Test prod expansion of compact identifiers
  */
-test('should parse Data Object uri with CRDC prefix dg.4DFC', (t) => {
+test.serial('martha_v3 should parse Data Object uri with CRDC prefix dg.4DFC', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://dg.4DFC/ed6be7ab-068e-46c8-824a-f39cfbb885cc'),
         `https://${config.HOST_CRDC_STAGING}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
     );
 });
 
-test('should parse Data Object uri with CRDC prod repo as host', (t) => {
+test.serial('martha_v3 should parse Data Object uri with CRDC prod repo as host', (t) => {
     t.is(
         determineDrsTypeTestWrapper(`drs://${config.HOST_CRDC_PROD}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
         `https://${config.HOST_CRDC_PROD}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
     );
 });
 
-test('should parse Data Object uri with CRDC staging repo as host', (t) => {
+test.serial('martha_v3 should parse Data Object uri with CRDC staging repo as host', (t) => {
     t.is(
         determineDrsTypeTestWrapper(`drs://${config.HOST_CRDC_STAGING}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
         `https://${config.HOST_CRDC_STAGING}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
@@ -994,21 +1013,21 @@ test('should parse Data Object uri with CRDC staging repo as host', (t) => {
  *
  * TODO: Test prod expansion of compact identifiers
  */
-test('should parse Data Object uri with BDC prefix dg.712C', (t) => {
+test.serial('martha_v3 should parse Data Object uri with BDC prefix dg.712C', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://dg.712C/fc046e84-6cf9-43a3-99cc-ffa2964b88cb'),
         `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.712C/fc046e84-6cf9-43a3-99cc-ffa2964b88cb`,
     );
 });
 
-test('should parse Data Object uri with BDC prod repo as host', (t) => {
+test.serial('martha_v3 should parse Data Object uri with BDC prod repo as host', (t) => {
     t.is(
         determineDrsTypeTestWrapper(`drs://${config.HOST_BIODATA_CATALYST_PROD}/fc046e84-6cf9-43a3-99cc-ffa2964b88cb`),
         `https://${config.HOST_BIODATA_CATALYST_PROD}/ga4gh/drs/v1/objects/fc046e84-6cf9-43a3-99cc-ffa2964b88cb`,
     );
 });
 
-test('should parse Data Object uri with BDC staging repo as host', (t) => {
+test.serial('martha_v3 should parse Data Object uri with BDC staging repo as host', (t) => {
     t.is(
         determineDrsTypeTestWrapper(`drs://${config.HOST_BIODATA_CATALYST_STAGING}/fc046e84-6cf9-43a3-99cc-ffa2964b88cb`),
         `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/fc046e84-6cf9-43a3-99cc-ffa2964b88cb`,

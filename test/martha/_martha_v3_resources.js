@@ -331,40 +331,40 @@ const anvilDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl) =
 // Kids First
 
 const kidsFirstDrsResponse = {
-    "access_methods": [
+    access_methods: [
         {
-            "access_id": "s3",
-            "access_url": {
-                "uUrl":
+            access_id: "s3",
+            access_url: {
+                uUrl:
                     "s3://kf-seq-data-washu/OrofacialCleft/fa9c2cb04f614f90b75323b05bfdd231.bam"
             },
-            "region": "",
-            "type": "s3"
+            region: "",
+            type: "s3"
         }
     ],
-    "aliases": [
+    aliases: [
 
     ],
-    "checksums": [
+    checksums: [
         {
-            "Checksum":
+            Checksum:
                 "24e5d5d0ddd094be0ffb672875b10576-6572",
-            "type": "etag"
+            type: "etag"
         }
     ],
-    "contents": [
+    contents: [
 
     ],
-    "created_time": "2018-05-23T12:32:32.594470",
-    "description": "",
-    "id": "ed6be7ab-068e-46c8-824a-f39cfbb885cc",
-    "mime_type": "application/json",
-    "name": "fa9c2cb04f614f90b75323b05bfdd231.bam",
-    "self_uri":
+    created_time: "2018-05-23T12:32:32.594470",
+    description: "",
+    id: "ed6be7ab-068e-46c8-824a-f39cfbb885cc",
+    mime_type: "application/json",
+    name: "fa9c2cb04f614f90b75323b05bfdd231.bam",
+    self_uri:
         `drs://${config.HOST_KIDS_FIRST_PROD}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
-    "size": 55121736836,
-    "updated_time": "2018-05-23T12:32:32.594480",
-    "version": "f70e5775"
+    size: 55121736836,
+    updated_time: "2018-05-23T12:32:32.594480",
+    version: "f70e5775"
 };
 
 const kidsFirstDrsMarthaResult = (expectedGoogleServiceAccount) => {
@@ -449,54 +449,53 @@ const bdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl) => 
 
 // HCA
 // returned via
-//   `curl https://drs.data.humancellatlas.org/ga4gh/dos/v1/dataobjects/4cf48dbf-cf09-452e-bb5b-fd016af0c747?version=2019-09-14T024754.281908Z`
-// TODO: clean up formatting before merging this branch
+//   `curl https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe`
 const fakeToken = "Definitely not a real token";
-const hcaDosResponse = {
-    "id": "v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe",
-    "name": "E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz",
-    "self_uri": null,
-    "size": 438932948,
-    "created_time": "2020-12-17T21:01:25.906Z",
-    "updated_time": "2020-12-17T21:01:25.906Z",
-    "version": "0",
-    "mime_type": null,
-    "checksums": [
+const hcaDrsResponse = {
+    id: "v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe",
+    name: "E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz",
+    self_uri: null,
+    size: 438932948,
+    created_time: "2020-12-17T21:01:25.906Z",
+    updated_time: "2020-12-17T21:01:25.906Z",
+    version: "0",
+    mime_type: null,
+    checksums: [
         {
-            "checksum": "5acd55ef",
-            "type": "crc32c"
+            checksum: "5acd55ef",
+            type: "crc32c"
         }
     ],
-    "access_methods": [
+    access_methods: [
         {
-            "type": "gs",
-            "access_url": {
-                "url": "gs://broad-jade-dev-data-bucket/ecb5601e-9026-428c-b49d-3c5f1807ecb7/e37266ba-790d-4641-aa76-854d94be2fbe/E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz",
-                "headers": null
+            type: "gs",
+            access_url: {
+                url: "gs://broad-jade-dev-data-bucket/ecb5601e-9026-428c-b49d-3c5f1807ecb7/e37266ba-790d-4641-aa76-854d94be2fbe/E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz",
+                headers: null
             },
-            "access_id": null,
-            "region": "us-central1"
+            access_id: null,
+            region: "us-central1"
         },
         {
-            "type": "https",
-            "access_url": {
-                "url": "https://www.googleapis.com/storage/v1/b/broad-jade-dev-data-bucket/o/ecb5601e-9026-428c-b49d-3c5f1807ecb7%2Fe37266ba-790d-4641-aa76-854d94be2fbe%2FE18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz?alt=media",
-                "headers": [
+            type: "https",
+            access_url: {
+                url: "https://www.googleapis.com/storage/v1/b/broad-jade-dev-data-bucket/o/ecb5601e-9026-428c-b49d-3c5f1807ecb7%2Fe37266ba-790d-4641-aa76-854d94be2fbe%2FE18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz?alt=media",
+                headers: [
                     `Authorization: Bearer ${fakeToken}`
                 ]
             },
-            "access_id": null,
-            "region": "us-central1"
+            access_id: null,
+            region: "us-central1"
         }
     ],
-    "contents": null,
-    "description": null,
-    "aliases": [
+    contents: null,
+    description: null,
+    aliases: [
         "/hca_dev_20201217_test4/5acd55ef/E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz"
     ]
 };
 
-const hcaDosMarthaResult = {
+const hcaDrsMarthaResult = {
     bondProvider: null,
     gsUri: 'gs://broad-jade-dev-data-bucket/ecb5601e-9026-428c-b49d-3c5f1807ecb7/e37266ba-790d-4641-aa76-854d94be2fbe/E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz',
     bucket: 'broad-jade-dev-data-bucket',
@@ -523,8 +522,8 @@ module.exports = {
     dataGuidsOrgMarthaResult,
     jadeDrsResponse,
     jadeDrsMarthaResult,
-    hcaDosResponse,
-    hcaDosMarthaResult,
+    hcaDrsResponse,
+    hcaDrsMarthaResult,
     bdcDrsResponse,
     bdcDrsMarthaResult,
     anvilDrsResponse,
