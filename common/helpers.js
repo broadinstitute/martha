@@ -268,12 +268,25 @@ const promiseHandler = (fn) => (req, res) => {
 /**
  * Extracts the bucket and path from a Google Cloud Storage URL
  *
- * @param uri The GCS url
+ * @param {?string} uri The GCS url
  * @returns {string[]} An array with the bucket and the path.
  */
 function parseGsUri(uri) {
     const match = (/gs:[/][/]([^/]+)[/](.+)/).exec(uri);
     return isNullish(match) ? [] : match.slice(1);
+}
+
+/**
+ * Extracts the file name from an accessUrl or a gsUrl
+ *
+ * @param {?Object} [accessUrl] An access URL
+ * @param {string} accessUrl.url A URL used to fetch object bytes
+ * @param {?string} gsUrl The GCS url
+ * @returns {?string} An array with the bucket and the path.
+ */
+function getFileName(accessUrl, gsUrl) {
+    const pathname = accessUrl && accessUrl.url ? new URL(accessUrl.url).pathname : parseGsUri(gsUrl)[1];
+    return pathname && pathname.replace(/^.*[\\/]/, '');
 }
 
 /**
@@ -406,8 +419,8 @@ function convertToMarthaV3Response(drsResponse, bondProvider, googleSA, accessUr
      */
     const size = Number(maybeNumberSize);
 
-    // Use the filename of the server, or get the name from the GCS object name we generated above
-    const fileName = maybeFileName || (name && name.replace(/^.*[\\/]/, ''));
+    // Use the filename returned as part of the metadata, or get the name accessUrl or the gsUrl
+    const fileName = maybeFileName || getFileName(accessUrl, gsUrl);
 
     return new MarthaV3Response(
         mimeType,

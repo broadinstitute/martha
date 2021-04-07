@@ -72,7 +72,10 @@ const bondAccessTokenResponse = {
     expires_at: 'NEVER'
 };
 
-const drsAccessUrlResponse = { url: 'an-example-url' };
+function mockGcsAccessUrl(gsUrlString) {
+    const gsUrl = new URL(gsUrlString);
+    return { url: `https://storage.googleapis.com/${gsUrl.hostname}${gsUrl.pathname}?sig=ABC` };
+}
 
 const bondRegEx = /^https:\/\/([^/]+)\/api\/link\/v1\/([a-z-]+)\/serviceaccount\/key$/;
 
@@ -442,6 +445,7 @@ test.serial('martha_v3 does not call Bond or return SA key when the host url is 
 });
 
 test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
+    const drsAccessUrlResponse = mockGcsAccessUrl(gen3CrdcResponse.access_methods[0].access_url.url);
     getJsonFromApiStub.onCall(0).resolves(gen3CrdcResponse);
     getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
     getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
@@ -469,6 +473,7 @@ test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
 });
 
 test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t) => {
+    const drsAccessUrlResponse = mockGcsAccessUrl(gen3CrdcResponse.access_methods[0].access_url.url);
     getJsonFromApiStub.onCall(0).resolves(gen3CrdcResponse);
     getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
     getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
@@ -496,6 +501,7 @@ test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t)
 });
 
 test.serial('martha_v3 parses BDC response correctly', async (t) => {
+    const drsAccessUrlResponse = mockGcsAccessUrl(bdcDrsResponse.access_methods[0].access_url.url);
     // Rotated once from Michael Baumann's sequence diagram so that call 0 is the second call down from the top,
     // call 3 is the top call.
     // https://lucid.app/lucidchart/428a0bdd-a884-4fc7-9a49-7bf300ef6777/edit?shared=true&page=0_0#
@@ -548,6 +554,7 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
 });
 
 test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
+    const drsAccessUrlResponse = mockGcsAccessUrl(bdcDrsResponse.access_methods[0].access_url.url);
     getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
     getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
@@ -576,6 +583,7 @@ test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
 });
 
 test.serial('martha_v3 parses Anvil response correctly', async (t) => {
+    const drsAccessUrlResponse = mockGcsAccessUrl(anvilDrsResponse.access_methods[0].access_url.url);
     getJsonFromApiStub.onCall(0).resolves(anvilDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
     getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
@@ -604,6 +612,7 @@ test.serial('martha_v3 parses Anvil response correctly', async (t) => {
 });
 
 test.serial('martha_v3 parses a The AnVIL CIB URI response correctly', async (t) => {
+    const drsAccessUrlResponse = mockGcsAccessUrl(anvilDrsResponse.access_methods[0].access_url.url);
     getJsonFromApiStub.onCall(0).resolves(anvilDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
     getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
