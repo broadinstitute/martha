@@ -63,6 +63,12 @@ const MARTHA_V3_ACCESS_ID_FIELDS = [
     'accessUrl',
 ];
 
+// Response fields dependent on the the access_id with a file name
+const MARTHA_V3_ACCESS_ID_FN_FIELDS = [
+    'fileName',
+    'accessUrl',
+];
+
 const BOND_PROVIDER_NONE = null; // Used for servers that should NOT contact bond
 const BOND_PROVIDER_DCF_FENCE = 'dcf-fence'; // The default when we don't recognize the server
 const BOND_PROVIDER_FENCE = 'fence';
@@ -104,6 +110,35 @@ function getDrsAccessId(drsResponse, accessMethodType) {
         if (accessMethod.type === accessMethodType) {
             return accessMethod.access_id;
         }
+    }
+}
+
+function getPathFileName(path) {
+    return path && path.replace(/^.*[\\/]/, '');
+}
+
+function getUrlFileName(url) {
+    return url && getPathFileName(new URL(url).pathname);
+}
+
+/**
+ * Attempts to return the file name using only the drsResponse.
+ *
+ * It is possible the name may need to be retrieved from the signed url.
+ */
+function getDrsFileName(drsResponse) {
+    if (!drsResponse) {
+        return;
+    }
+
+    const { name, access_methods } = drsResponse;
+
+    if (name) {
+        return name;
+    }
+
+    if (access_methods && access_methods[0] && access_methods[0].access_url) {
+        return getUrlFileName(access_methods[0].access_url.url);
     }
 }
 
@@ -391,9 +426,11 @@ function overlapFields(requestedFields, serviceFields) {
     return requestedFields.filter((field) => serviceFields.includes(field)).length !== 0;
 }
 
-function sendResponse(res, requestedFields, drsResponse, bondProvider, bondSA, accessUrl) {
+function sendResponse(res, requestedFields, drsResponse, fileName, bondProvider, bondSA, accessUrl) {
     const fullResponse =
-        requestedFields.length ? convertToMarthaV3Response(drsResponse, bondProvider, bondSA, accessUrl) : {};
+        requestedFields.length
+            ? convertToMarthaV3Response(drsResponse, fileName, bondProvider, bondSA, accessUrl)
+            : {};
     const partialResponse = mask(fullResponse, requestedFields.join(","));
 
     res.status(200).send(partialResponse);
@@ -446,8 +483,18 @@ async function marthaV3Handler(req, res) {
         return;
     }
 
+    // Try to retrieve the file name from the initial DRS response
+    let fileName = getDrsFileName(drsResponse);
+
+    // If we do NOT have the fileName yet, we will try to get that field from the accessUrl
+    // TODO: Making this a function slides under the eslint limit of 'complexity'.
+    //  Is there somewhere else we can make this outer method less complex?
+    //  For example: is there a way we can have utility functions that send errors and exit this outer function?
+    //  Or maybe we turn off the complexity check for this function?
+    const accessIdFields = () => { return fileName ? MARTHA_V3_ACCESS_ID_FIELDS : MARTHA_V3_ACCESS_ID_FN_FIELDS; };
+
     let accessId;
-    if (overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS)) {
+    if (overlapFields(requestedFields, accessIdFields())) {
         try {
             accessId = getDrsAccessId(drsResponse, accessMethodType);
         } catch (error) {
@@ -476,6 +523,7 @@ async function marthaV3Handler(req, res) {
             const httpsAccessUrl = generateAccessUrl(drsType, accessId);
             const accessTokenAuth = `Bearer ${accessToken}`;
             accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, accessTokenAuth);
+            fileName = getUrlFileName(accessUrl.url);
         } catch (error) {
             logAndSendServerError(res, error, 'Received error contacting DRS provider.');
             return;
@@ -492,7 +540,7 @@ async function marthaV3Handler(req, res) {
         }
     }
 
-    sendResponse(res, requestedFields, drsResponse, bondProvider, bondSA, accessUrl);
+    sendResponse(res, requestedFields, drsResponse, fileName, bondProvider, bondSA, accessUrl);
 }
 
 exports.marthaV3Handler = marthaV3Handler;

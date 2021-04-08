@@ -259,7 +259,7 @@ test('convertToMarthaV3Response should return null for all fields in an unlikely
         null,
         null
     );
-    t.deepEqual(convertToMarthaV3Response({}, null, {}), expectedResponse);
+    t.deepEqual(convertToMarthaV3Response({}, null, null, {}), expectedResponse);
 });
 
 test('convertToMarthaV3Response should return null for fields that are missing in drs response', (t) => {
@@ -286,7 +286,7 @@ test('convertToMarthaV3Response should return null for fields that are missing i
         null
     );
 
-    t.deepEqual(convertToMarthaV3Response(mockDrsResponse, null, {}), expectedResponse);
+    t.deepEqual(convertToMarthaV3Response(mockDrsResponse, '123.mapped.abc.bam', null, {}), expectedResponse);
 });
 
 test('convertToMarthaV3Response should return null for fields that are empty in drs with empty bond responses', (t) => {
@@ -316,7 +316,7 @@ test('convertToMarthaV3Response should return null for fields that are empty in 
         null
     );
 
-    t.deepEqual(convertToMarthaV3Response(mockDrsResponse, null, {}), expectedResponse);
+    t.deepEqual(convertToMarthaV3Response(mockDrsResponse, '123.mapped.abc.bam', null, {}), expectedResponse);
 });
 
 test('convertToMarthaV3Response should return null for googleServiceAccount if bond returned nothing', (t) => {
@@ -359,7 +359,7 @@ test('convertToMarthaV3Response should return null for googleServiceAccount if b
         { md5: '123abc' },
     );
 
-    t.deepEqual(convertToMarthaV3Response(mockDrsResponse), expectedResponse);
+    t.deepEqual(convertToMarthaV3Response(mockDrsResponse, '123.mapped.abc.bam'), expectedResponse);
 });
 
 function testFailureResponse(t, res, expectedStatus, expectedText) {

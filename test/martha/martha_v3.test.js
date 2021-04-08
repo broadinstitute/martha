@@ -18,6 +18,7 @@ const {
     hcaDrsResponse,
     bdcDrsMarthaResult,
     bdcDrsResponse,
+    bdcDrsResponseCustom,
     kidsFirstDrsResponse,
     kidsFirstDrsMarthaResult,
     anvilDrsMarthaResult,
@@ -245,6 +246,109 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
     t.deepEqual(
         { ...result },
         mask(bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse), 'accessUrl'),
+    );
+
+    const requestedBondAccessToken = getJsonFromApiStub.getCall(1).args[0];
+    const accessTokenMatches = requestedBondAccessToken.match(bondAccessTokenRegEx);
+    t.truthy(accessTokenMatches, 'Bond URL called does not match Bond URL regular expression');
+    const expectedAccessTokenProvider = 'fence';
+    const actualAccessTokenProvider = accessTokenMatches[2];
+    t.is(actualAccessTokenProvider, expectedAccessTokenProvider);
+
+    t.is(
+        getJsonFromApiStub.getCall(2).args[0],
+        'https://staging.gen3.biodatacatalyst.nhlbi.nih.gov/ga4gh/drs/v1/objects' +
+        '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0/access/gs',
+    );
+    t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
+});
+
+test.serial('martha_v3 calls the correct endpoints when only the fileName is requested and the metadata contains a name', async (t) => {
+    const drsResponse = bdcDrsResponseCustom({
+        name: 'HG01131.final.cram.crai',
+        access_url: { url: bdcDrsResponse.access_methods[0].access_url.url },
+        access_id: bdcDrsResponse.access_methods[0].access_id,
+    });
+    const drsAccessUrlResponse = mockGcsAccessUrl(bdcDrsResponse.access_methods[0].access_url.url);
+    getJsonFromApiStub.onCall(0).resolves(drsResponse);
+    const response = mockResponse();
+    await marthaV3(
+        mockRequest(
+            {
+                body: {
+                    url: 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+                    fields: ['fileName'],
+                }
+            },
+        ),
+        response,
+    );
+    t.is(response.statusCode, 200);
+    const result = response.send.lastCall.args[0];
+    sinon.assert.callCount(getJsonFromApiStub, 1); // File name available from the metadata
+    t.deepEqual(
+        { ...result },
+        mask(bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse), 'fileName'),
+    );
+});
+
+test.serial('martha_v3 calls the correct endpoints when only the fileName is requested and the metadata contains a gs url', async (t) => {
+    const drsResponse = bdcDrsResponseCustom({
+        name: null,
+        access_url: { url: bdcDrsResponse.access_methods[0].access_url.url },
+        access_id: bdcDrsResponse.access_methods[0].access_id,
+    });
+    const drsAccessUrlResponse = mockGcsAccessUrl(bdcDrsResponse.access_methods[0].access_url.url);
+    getJsonFromApiStub.onCall(0).resolves(drsResponse);
+    const response = mockResponse();
+    await marthaV3(
+        mockRequest(
+            {
+                body: {
+                    url: 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+                    fields: ['fileName'],
+                }
+            },
+        ),
+        response,
+    );
+    t.is(response.statusCode, 200);
+    const result = response.send.lastCall.args[0];
+    sinon.assert.callCount(getJsonFromApiStub, 1);
+    t.deepEqual(
+        { ...result },
+        mask(bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse), 'fileName'),
+    );
+});
+
+test.serial('martha_v3 calls the correct endpoints when only the fileName is requested and the metadata contains an access id', async (t) => {
+    const drsResponse = bdcDrsResponseCustom({
+        name: null,
+        access_url: { url: null },
+        access_id: bdcDrsResponse.access_methods[0].access_id,
+    });
+    const drsAccessUrlResponse = mockGcsAccessUrl(bdcDrsResponse.access_methods[0].access_url.url);
+    getJsonFromApiStub.onCall(0).resolves(drsResponse);
+    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
+    const response = mockResponse();
+    await marthaV3(
+        mockRequest(
+            {
+                body: {
+                    url: 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+                    fields: ['fileName'],
+                }
+            },
+        ),
+        response,
+    );
+    t.is(response.statusCode, 200);
+    const result = response.send.lastCall.args[0];
+    sinon.assert.callCount(getJsonFromApiStub, 3); // Bond was not called to retrieve the googleServiceAccount
+    t.deepEqual(
+        { ...result },
+        mask(bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse), 'fileName'),
     );
 
     const requestedBondAccessToken = getJsonFromApiStub.getCall(1).args[0];

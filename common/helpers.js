@@ -277,19 +277,6 @@ function parseGsUri(uri) {
 }
 
 /**
- * Extracts the file name from an accessUrl or a gsUrl
- *
- * @param {?Object} [accessUrl] An access URL
- * @param {string} accessUrl.url A URL used to fetch object bytes
- * @param {?string} gsUrl The GCS url
- * @returns {?string} An array with the bucket and the path.
- */
-function getFileName(accessUrl, gsUrl) {
-    const pathname = accessUrl && accessUrl.url ? new URL(accessUrl.url).pathname : parseGsUri(gsUrl)[1];
-    return pathname && pathname.replace(/^.*[\\/]/, '');
-}
-
-/**
  * Retrieves the first md5 checksum from a DOS or DRS checksum array
  *
  * @param {Object[]} checksums The checksum of the drs object
@@ -373,6 +360,7 @@ function getGsUrlFromDrsObject(drsResponse) {
  * @param {number} [drsResponse.size] The blob size in bytes
  * @param {string} [drsResponse.updated_time] Timestamp of content update in RFC3339, identical to created_time in
  *     systems that do not support updates
+ * @param {?string} [fileName] The file name
  * @param {?string} [bondProvider] The Bond provider
  * @param {?Object} [googleSA] A google service account json
  * @param {?Object} [accessUrl] An access URL
@@ -380,14 +368,13 @@ function getGsUrlFromDrsObject(drsResponse) {
  * @param {?Object} [accessUrl.headers] The optional headers to include in the HTTP request to url
  * @returns {MarthaV3Response} The drs object converted to a martha_v3 response
  */
-function convertToMarthaV3Response(drsResponse, bondProvider, googleSA, accessUrl) {
+function convertToMarthaV3Response(drsResponse, fileName, bondProvider, googleSA, accessUrl) {
     const {
         checksums,
         mime_type: mimeType = 'application/octet-stream',
         size: maybeNumberSize,
         created_time: createdTime,
         updated_time: updatedTime,
-        name: maybeFileName,
     } = drsResponse || {};
 
     // Some (but not all!) DRS servers return time without a timezone (see example responses in `_martha_v3_resources.js`)
@@ -418,9 +405,6 @@ function convertToMarthaV3Response(drsResponse, bondProvider, googleSA, accessUr
       returns `39830`
      */
     const size = Number(maybeNumberSize);
-
-    // Use the filename returned as part of the metadata, or get the name accessUrl or the gsUrl
-    const fileName = maybeFileName || getFileName(accessUrl, gsUrl);
 
     return new MarthaV3Response(
         mimeType,
