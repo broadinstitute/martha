@@ -436,6 +436,9 @@ function sendResponse(res, requestedFields, drsResponse, fileName, bondProvider,
     res.status(200).send(partialResponse);
 }
 
+// TODO: Is there some consistent way we can make this function less complex?
+//  For example: is there a way we can have utility functions that send errors and exit this outer function?
+// eslint-disable-next-line complexity
 async function marthaV3Handler(req, res) {
     const {url, fields: requestedFields = MARTHA_V3_DEFAULT_FIELDS} = parseRequest(req);
     const {authorization: auth, 'user-agent': userAgent} = req.headers;
@@ -487,14 +490,10 @@ async function marthaV3Handler(req, res) {
     let fileName = getDrsFileName(drsResponse);
 
     // If we do NOT have the fileName yet, we will try to get that field from the accessUrl
-    // TODO: Making this a function slides under the eslint limit of 'complexity'.
-    //  Is there somewhere else we can make this outer method less complex?
-    //  For example: is there a way we can have utility functions that send errors and exit this outer function?
-    //  Or maybe we turn off the complexity check for this function?
-    const accessIdFields = () => { return fileName ? MARTHA_V3_ACCESS_ID_FIELDS : MARTHA_V3_ACCESS_ID_FN_FIELDS; };
+    const accessIdFields = fileName ? MARTHA_V3_ACCESS_ID_FIELDS : MARTHA_V3_ACCESS_ID_FN_FIELDS;
 
     let accessId;
-    if (overlapFields(requestedFields, accessIdFields())) {
+    if (overlapFields(requestedFields, accessIdFields)) {
         try {
             accessId = getDrsAccessId(drsResponse, accessMethodType);
         } catch (error) {
@@ -523,7 +522,7 @@ async function marthaV3Handler(req, res) {
             const httpsAccessUrl = generateAccessUrl(drsType, accessId);
             const accessTokenAuth = `Bearer ${accessToken}`;
             accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, accessTokenAuth);
-            fileName = getUrlFileName(accessUrl.url);
+            fileName = fileName || getUrlFileName(accessUrl.url);
         } catch (error) {
             logAndSendServerError(res, error, 'Received error contacting DRS provider.');
             return;

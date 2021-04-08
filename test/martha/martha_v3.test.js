@@ -366,6 +366,54 @@ test.serial('martha_v3 calls the correct endpoints when only the fileName is req
     t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
 });
 
+test.serial('martha_v3 calls returns the DRS name field for a file name even when it differs from the access url', async (t) => {
+    const drsResponse = bdcDrsResponseCustom({
+        name: 'from_name_field.txt',
+        access_url: { url: null },
+        access_id: bdcDrsResponse.access_methods[0].access_id,
+    });
+    const drsAccessUrlResponse = mockGcsAccessUrl('gs://mybucket/from_access_url.txt');
+    getJsonFromApiStub.onCall(0).resolves(drsResponse);
+    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
+    const response = mockResponse();
+    await marthaV3(
+        mockRequest(
+            {
+                body: {
+                    url: 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+                    fields: ['fileName', 'accessUrl'],
+                }
+            },
+        ),
+        response,
+    );
+    t.is(response.statusCode, 200);
+    const result = response.send.lastCall.args[0];
+    sinon.assert.callCount(getJsonFromApiStub, 3); // Bond was not called to retrieve the googleServiceAccount
+    t.deepEqual(
+        { ...result },
+        {
+            accessUrl: { url: 'https://storage.googleapis.com/mybucket/from_access_url.txt?sig=ABC' },
+            fileName: 'from_name_field.txt',
+        },
+    );
+
+    const requestedBondAccessToken = getJsonFromApiStub.getCall(1).args[0];
+    const accessTokenMatches = requestedBondAccessToken.match(bondAccessTokenRegEx);
+    t.truthy(accessTokenMatches, 'Bond URL called does not match Bond URL regular expression');
+    const expectedAccessTokenProvider = 'fence';
+    const actualAccessTokenProvider = accessTokenMatches[2];
+    t.is(actualAccessTokenProvider, expectedAccessTokenProvider);
+
+    t.is(
+        getJsonFromApiStub.getCall(2).args[0],
+        'https://staging.gen3.biodatacatalyst.nhlbi.nih.gov/ga4gh/drs/v1/objects' +
+        '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0/access/gs',
+    );
+    t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
+});
+
 test.serial('martha_v3 calls no endpoints when no fields are requested', async (t) => {
     const response = mockResponse();
     await marthaV3(mockRequest({
