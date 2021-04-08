@@ -232,7 +232,7 @@ function getHttpsUrlParts(url) {
     // The many different ways a DOS/DRS may be "compact", in the order that the should be tried
     const cibRegExps = [
         // Non-W3C CIB DOS/DRS URIs, where the `dg.abcd` appears more than once
-        /(?:dos|drs):\/\/(?<host>dg\.[0-9a-z-]+)(?<separator>:)(?:\k<host>)\/(?<suffix>[^?]*)(?<query>\?(.*))?/i,
+        /(?:dos|drs):\/\/(?<host>dg\.[0-9a-z-]+)(?<separator>:)\k<host>\/(?<suffix>[^?]*)(?<query>\?(.*))?/i,
         // Non-W3C CIB DOS/DRS URIs, where the `dg.abcd` is only mentioned once
         /(?:dos|drs):\/\/(?<host>dg\.[0-9a-z-]+)(?<separator>:)(?<suffix>[^?]*)(?<query>\?(.*))?/i,
         // W3C compatible using a slash separator
