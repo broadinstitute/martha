@@ -427,14 +427,14 @@ function overlapFields(requestedFields, serviceFields) {
     return requestedFields.filter((field) => serviceFields.includes(field)).length !== 0;
 }
 
-function parseOptions(opt) {
+function buildRequestInfo(params) {
     const {
         url,
         requestedFields,
         auth,
         userAgent,
         ip,
-    } = opt;
+    } = params;
 
     console.log(`Received URL '${url}' from agent '${userAgent}' on IP '${ip}'`);
 
@@ -460,10 +460,8 @@ function parseOptions(opt) {
         `with auth required '${sendAuth}' and bond provider '${bondProvider}'`
     );
 
-    Object.assign(opt, {
-        requestedFields,
+    Object.assign(params, {
         httpsMetadataUrl,
-        auth,
         drsType,
         sendAuth,
         bondProvider,
@@ -473,7 +471,15 @@ function parseOptions(opt) {
     });
 }
 
-async function retrieveData(opt) {
+/**
+ * Retrieves information from the various underlying servers.
+ *
+ * See also:
+ * - https://bvdp-saturn-dev.appspot.com/#workspaces/general-dev-billing-account/DRS%20and%20Signed%20URL%20Development%20-%20Dev
+ * - https://lucid.app/lucidchart/invitations/accept/0f899643-76a9-4b9c-84f5-f11ddac86bba
+ * - https://lucid.app/lucidchart/invitations/accept/8b6f942b-f7dc-4acc-ac36-318a1685e6ac
+ */
+async function retrieveFromServers(params) {
     const {
         requestedFields,
         httpsMetadataUrl,
@@ -483,7 +489,7 @@ async function retrieveData(opt) {
         accessMethodType,
         bondSAKeyUrl,
         bondAccessTokenUrl,
-    } = opt;
+    } = params;
 
     let response;
     if (overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS)) {
@@ -550,7 +556,7 @@ async function retrieveData(opt) {
         }
     }
 
-    Object.assign(opt, {
+    Object.assign(params, {
         drsResponse,
         fileName,
         accessUrl,
@@ -558,7 +564,7 @@ async function retrieveData(opt) {
     });
 }
 
-function makeResponse(opt) {
+function buildResponseInfo(params) {
     const {
         requestedFields,
         bondProvider,
@@ -566,7 +572,7 @@ function makeResponse(opt) {
         fileName,
         accessUrl,
         bondSA,
-    } = opt;
+    } = params;
 
     const fullResponse =
         requestedFields.length
@@ -574,7 +580,7 @@ function makeResponse(opt) {
             : {};
     const partialResponse = mask(fullResponse, requestedFields.join(","));
 
-    Object.assign(opt, {
+    Object.assign(params, {
         partialResponse,
     });
 }
@@ -587,7 +593,7 @@ async function marthaV3Handler(req, res) {
         const {authorization: auth, 'user-agent': userAgent} = req.headers;
         const ip = req.ip;
 
-        const opt = {
+        const params = {
             url,
             requestedFields,
             auth,
@@ -595,11 +601,11 @@ async function marthaV3Handler(req, res) {
             ip,
         };
 
-        parseOptions(opt);
-        await retrieveData(opt);
-        makeResponse(opt);
+        buildRequestInfo(params);
+        await retrieveFromServers(params);
+        buildResponseInfo(params);
 
-        res.status(200).send(opt.partialResponse);
+        res.status(200).send(params.partialResponse);
     } catch (error) {
         if (error instanceof BadRequestError) {
             logAndSendBadRequest(res, error.cause);
