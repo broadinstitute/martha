@@ -96,6 +96,15 @@ test.serial.afterEach(() => {
     sandbox.restore();
 });
 
+test.serial('martha_v3 uses the default error handler for unexpected errors', async (t) => {
+    const expectedError = new Error('Expected test error');
+    const badReq = { get headers() { throw expectedError; } };
+    const response = mockResponse();
+    const actualError = await t.throwsAsync(marthaV3(badReq, response));
+    t.is(actualError, expectedError);
+    sinon.assert.callCount(response.send, 0);
+});
+
 // Test the "default" case because we don't know who you are.
 test.serial('martha_v3 resolves a valid DOS-style url', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
