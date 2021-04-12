@@ -268,7 +268,7 @@ const promiseHandler = (fn) => (req, res) => {
 /**
  * Extracts the bucket and path from a Google Cloud Storage URL
  *
- * @param {?string} uri The GCS url
+ * @param {?string} uri The GCS URI
  * @returns {string[]} An array with the bucket and the path.
  */
 function parseGsUri(uri) {
