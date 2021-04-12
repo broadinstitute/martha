@@ -459,18 +459,19 @@ async function marthaV3Handler(req, res) {
         return;
     }
 
-    const httpsMetadataUrl = generateMetadataUrl(drsType);
     const {sendAuth, bondProvider, accessMethodType} = drsType;
-    const bondSAKeyUrl = bondProvider && `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
-    const bondAccessTokenUrl = bondProvider && `${config.bondBaseUrl}/api/link/v1/${bondProvider}/accesstoken`;
     console.log(
-        `Converted DRS URI to HTTPS: ${url} -> ${httpsMetadataUrl} ` +
-        `with auth required '${sendAuth}' and bond provider '${bondProvider}'`
+        `DRS URI ${url} will use auth required '${sendAuth}', bond provider '${bondProvider}', ` +
+        `and access method type '${accessMethodType}'`
     );
 
     let response;
     if (overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS)) {
         try {
+            const httpsMetadataUrl = generateMetadataUrl(drsType);
+            console.log(
+                `Requesting DRS metadata for '${url}' from '${httpsMetadataUrl}' with auth required '${sendAuth}'`
+            );
             response = await apiAdapter.getJsonFrom(httpsMetadataUrl, sendAuth ? auth : null);
         } catch (error) {
             logAndSendServerError(res, error, 'Received error while resolving DRS URL.');
@@ -504,8 +505,10 @@ async function marthaV3Handler(req, res) {
 
     // Retrieve an accessToken from Bond that will be used to later retrieve the accessUrl from the DRS server.
     let accessToken;
-    if (bondAccessTokenUrl && accessId) {
+    if (bondProvider && accessId) {
         try {
+            const bondAccessTokenUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/accesstoken`;
+            console.log(`Requesting Bond access token for '${url}' from '${bondAccessTokenUrl}'`);
             const accessTokenResponse = await apiAdapter.getJsonFrom(bondAccessTokenUrl, auth);
             accessToken = accessTokenResponse.token;
         } catch (error) {
@@ -514,11 +517,13 @@ async function marthaV3Handler(req, res) {
         }
     }
 
+    // Retrieve the accessUrl using the returned accessToken, even if the token was empty.
     let accessUrl;
-    if (bondAccessTokenUrl && accessId) {
+    if (bondProvider && accessId) {
         try {
             const httpsAccessUrl = generateAccessUrl(drsType, accessId);
             const accessTokenAuth = `Bearer ${accessToken}`;
+            console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}'`);
             accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, accessTokenAuth);
             fileName = fileName || getUrlFileName(accessUrl.url);
         } catch (error) {
@@ -528,8 +533,10 @@ async function marthaV3Handler(req, res) {
     }
 
     let bondSA;
-    if (bondSAKeyUrl && overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS)) {
+    if (bondProvider && overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS)) {
         try {
+            const bondSAKeyUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
+            console.log(`Requesting Bond SA key for '${url}' from '${bondSAKeyUrl}'`);
             bondSA = await apiAdapter.getJsonFrom(bondSAKeyUrl, auth);
         } catch (error) {
             logAndSendServerError(res, error, 'Received error contacting Bond.');
