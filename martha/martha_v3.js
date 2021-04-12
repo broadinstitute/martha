@@ -261,9 +261,14 @@ function getHttpsUrlParts(url) {
         };
     }
 
-    const parsedUrl = new URL(url);
+    let parsedUrl;
+    try {
+        parsedUrl = new URL(url);
+    } catch (error) {
+        throw new BadRequestError(error.message);
+    }
     if (!parsedUrl.hostname || !parsedUrl.pathname) {
-        throw new Error(`"${url}" is missing a host and/or a path.`);
+        throw new BadRequestError(`"${url}" is missing a host and/or a path.`);
     }
     return {
         httpsUrlHost: parsedUrl.hostname,
@@ -398,20 +403,20 @@ function determineDrsType(url) {
 
 function validateRequest(url, auth, requestedFields) {
     if (!url) {
-        throw new Error(`'url' is missing.`);
+        throw new BadRequestError(`'url' is missing.`);
     }
 
     if (!auth) {
-        throw new Error('Authorization header is missing.');
+        throw new BadRequestError('Authorization header is missing.');
     }
 
     if (!Array.isArray(requestedFields)) {
-        throw new Error(`'fields' was not an array.`);
+        throw new BadRequestError(`'fields' was not an array.`);
     }
 
     const invalidFields = requestedFields.filter((field) => !MARTHA_V3_ALL_FIELDS.includes(field));
     if (invalidFields.length !== 0) {
-        throw new Error(
+        throw new BadRequestError(
             `Fields '${invalidFields.join("','")}' are not supported. ` +
             `Supported fields are '${MARTHA_V3_ALL_FIELDS.join("', '")}'.`
         );
@@ -441,33 +446,11 @@ function buildRequestInfo(params) {
 
     console.log(`Received URL '${url}' from agent '${userAgent}' on IP '${ip}'`);
 
-    try {
-        validateRequest(url, auth, requestedFields);
-    } catch (error) {
-        throw new BadRequestError(error);
-    }
-
-    let drsType;
-    try {
-        drsType = determineDrsType(url);
-    } catch (error) {
-        throw new BadRequestError(error);
-    }
-
-    const {sendAuth, bondProvider, accessMethodType} = drsType;
-    console.log(
-        `DRS URI ${url} will use auth required '${sendAuth}', bond provider '${bondProvider}', ` +
-        `and access method type '${accessMethodType}'`
-    );
+    validateRequest(url, auth, requestedFields);
+    const drsType = determineDrsType(url);
 
     Object.assign(params, {
-        httpsMetadataUrl,
         drsType,
-        sendAuth,
-        bondProvider,
-        accessMethodType,
-        bondSAKeyUrl,
-        bondAccessTokenUrl,
     });
 }
 
@@ -482,14 +465,15 @@ function buildRequestInfo(params) {
 async function retrieveFromServers(params) {
     const {
         requestedFields,
-        httpsMetadataUrl,
         auth,
         drsType,
-        sendAuth,
-        accessMethodType,
-        bondSAKeyUrl,
-        bondAccessTokenUrl,
     } = params;
+
+    const {sendAuth, bondProvider, accessMethodType} = drsType;
+    console.log(
+        `DRS URI '${url}' will use auth required '${sendAuth}', bond provider '${bondProvider}', ` +
+        `and access method type '${accessMethodType}'`
+    );
 
     let response;
     if (overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS)) {
@@ -565,6 +549,7 @@ async function retrieveFromServers(params) {
     }
 
     Object.assign(params, {
+        bondProvider,
         drsResponse,
         fileName,
         accessUrl,
@@ -616,7 +601,7 @@ async function marthaV3Handler(req, res) {
         res.status(200).send(params.partialResponse);
     } catch (error) {
         if (error instanceof BadRequestError) {
-            logAndSendBadRequest(res, error.cause);
+            logAndSendBadRequest(res, error);
         } else if (error instanceof RemoteServerError) {
             logAndSendServerError(res, error.cause, error.description);
         } else {

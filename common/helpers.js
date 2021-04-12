@@ -423,10 +423,6 @@ function convertToMarthaV3Response(drsResponse, fileName, bondProvider, googleSA
 }
 
 class BadRequestError extends Error {
-    constructor(cause) {
-        super(cause.message);
-        this.cause = cause;
-    }
 }
 
 class RemoteServerError extends Error {
