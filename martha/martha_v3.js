@@ -101,7 +101,10 @@ class DrsType {
     }
 }
 
-/* Returns undefined if the matching access method does not have an access_id. */
+/**
+ * Returns undefined if the matching access method does not have an access_id
+ * or if the accessMethodType is falsy or if the drsResponse is falsy.
+ */
 function getDrsAccessId(drsResponse, accessMethodType) {
     if (!accessMethodType || !drsResponse || !drsResponse.access_methods) {
         return;
