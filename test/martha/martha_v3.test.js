@@ -79,7 +79,7 @@ function mockGcsAccessUrl(gsUrlString) {
     return { url: `https://storage.googleapis.com/${gsUrl.hostname}${gsUrl.pathname}?sig=ABC` };
 }
 
-const bondSAUrlKeyRegEx = /^https:\/\/([^/]+)\/api\/link\/v1\/([a-z-]+)\/serviceaccount\/key$/;
+const bondSAKeyUrlRegEx = /^https:\/\/([^/]+)\/api\/link\/v1\/([a-z-]+)\/serviceaccount\/key$/;
 
 const bondAccessTokenUrlRegEx = /^https:\/\/([^/]+)\/api\/link\/v1\/([a-z-]+)\/accesstoken$/;
 
@@ -121,7 +121,7 @@ test.serial('martha_v3 resolves a valid DOS-style url', async (t) => {
     );
     t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
     const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAUrlKeyRegEx);
+    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
     t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
     const expectedSAKeyProvider = 'dcf-fence';
     const actualSAKeyProvider = saKeyUrlMatches[2];
@@ -149,7 +149,7 @@ test.serial('martha_v3 resolves a valid DRS-style url', async (t) => {
     );
     t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
     const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAUrlKeyRegEx);
+    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
     t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
     const expectedSAKeyProvider = 'dcf-fence';
     const actualSAKeyProvider = saKeyUrlMatches[2];
@@ -177,7 +177,7 @@ test.serial("martha_v3 resolves successfully and ignores extra data submitted be
     );
     t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
     const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAUrlKeyRegEx);
+    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
     t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
     const expectedSAKeyProvider = 'dcf-fence';
     const actualSAKeyProvider = saKeyUrlMatches[2];
@@ -225,7 +225,7 @@ test.serial('martha_v3 calls the correct endpoints the googleServiceAccount is r
         mask(sampleDosMarthaResult(googleSAKeyObject), 'googleServiceAccount'),
     );
     const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(0).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAUrlKeyRegEx);
+    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
     t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
     const expectedSAKeyProvider = 'dcf-fence';
     const actualSAKeyProvider = saKeyUrlMatches[2];
@@ -567,7 +567,7 @@ test.serial('martha_v3 calls bond Bond with the "dcf-fence" provider when the Da
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
     const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAUrlKeyRegEx);
+    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
     t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
     const expectedSAKeyProvider = 'dcf-fence';
     const actualSAKeyProvider = saKeyUrlMatches[2];
@@ -579,7 +579,7 @@ test.serial('martha_v3 calls bond Bond with the "fence" provider when the Data O
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'drs://dg.4503/this_part_can_be_anything' } }), response);
     const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAUrlKeyRegEx);
+    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
     t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
     const expectedSAKeyProvider = 'fence';
     const actualSAKeyProvider = saKeyUrlMatches[2];
@@ -606,7 +606,7 @@ test.serial(
         );
         t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
         const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-        const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAUrlKeyRegEx);
+        const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
         t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
         const expectedSAKeyProvider = 'dcf-fence';
         const actualSAKeyProvider = saKeyUrlMatches[2];
@@ -666,7 +666,7 @@ test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
     t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
 
     const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(3).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAUrlKeyRegEx);
+    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
     t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
     const expectedSAKeyProvider = 'dcf-fence';
     const actualSAKeyProvider = saKeyUrlMatches[2];
@@ -709,7 +709,7 @@ test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t)
     t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
 
     const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(3).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAUrlKeyRegEx);
+    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
     t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
     const expectedSAKeyProvider = 'dcf-fence';
     const actualSAKeyProvider = saKeyUrlMatches[2];
@@ -762,7 +762,7 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
     t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
 
     const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(3).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAUrlKeyRegEx);
+    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
     t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
     const expectedSAKeyProvider = 'fence';
     const actualSAKeyProvider = saKeyUrlMatches[2];
@@ -806,7 +806,7 @@ test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
     t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
 
     const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(3).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAUrlKeyRegEx);
+    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
     t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
     const expectedSAKeyProvider = 'fence';
     const actualSAKeyProvider = saKeyUrlMatches[2];
@@ -850,7 +850,7 @@ test.serial('martha_v3 parses Anvil response correctly', async (t) => {
     t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
 
     const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(3).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAUrlKeyRegEx);
+    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
     t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
     const expectedSAKeyProvider = 'anvil';
     const actualSAKeyProvider = saKeyUrlMatches[2];
@@ -894,7 +894,7 @@ test.serial('martha_v3 parses a The AnVIL CIB URI response correctly', async (t)
     t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
 
     const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(3).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAUrlKeyRegEx);
+    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
     t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
     const expectedSAKeyProvider = 'anvil';
     const actualSAKeyProvider = saKeyUrlMatches[2];
@@ -920,7 +920,7 @@ test.serial('martha_v3 parses Kids First response correctly', async (t) => {
     );
     t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
     const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAUrlKeyRegEx);
+    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
     t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
     const expectedSAKeyProvider = 'dcf-fence';
     const actualSAKeyProvider = saKeyUrlMatches[2];
@@ -946,7 +946,7 @@ test.serial('martha_v3 parses a Kids First CIB URI response correctly', async (t
     );
     t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
     const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAUrlKeyRegEx);
+    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
     t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
     const expectedSAKeyProvider = 'dcf-fence';
     const actualSAKeyProvider = saKeyUrlMatches[2];
