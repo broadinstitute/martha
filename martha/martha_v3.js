@@ -502,9 +502,7 @@ async function marthaV3Handler(req, res) {
         }
     }
 
-    // do more stuff here, i.e. get signed URL
-    // first, fetch access token from bond
-    // TODO: allow this to be not done based on requested data
+    // Retrieve an accessToken from Bond that will be used to later retrieve the accessUrl from the DRS server.
     let accessToken;
     if (bondAccessTokenUrl && accessId) {
         try {
