@@ -330,16 +330,13 @@ test.serial('martha_v3 calls the correct endpoints when only the fileName is req
     );
 });
 
-test.serial('martha_v3 calls the correct endpoints when only the fileName is requested and the metadata contains an access id', async (t) => {
+test.serial('martha_v3 calls the correct endpoints when only the fileName is requested and the metadata contains only an access id', async (t) => {
     const drsResponse = bdcDrsResponseCustom({
         name: null,
         access_url: { url: null },
         access_id: bdcDrsResponse.access_methods[0].access_id,
     });
-    const drsAccessUrlResponse = mockGcsAccessUrl(bdcDrsResponse.access_methods[0].access_url.url);
     getJsonFromApiStub.onCall(0).resolves(drsResponse);
-    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
-    getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
     const response = mockResponse();
     await marthaV3(
         mockRequest(
@@ -354,25 +351,8 @@ test.serial('martha_v3 calls the correct endpoints when only the fileName is req
     );
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 3); // Bond was not called to retrieve the googleServiceAccount
-    t.deepEqual(
-        { ...result },
-        mask(bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse), 'fileName'),
-    );
-
-    const requestedBondAccessTokenUrl = getJsonFromApiStub.getCall(1).args[0];
-    const accessTokenUrlMatches = requestedBondAccessTokenUrl.match(bondAccessTokenUrlRegEx);
-    t.truthy(accessTokenUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
-    const expectedAccessTokenProvider = 'fence';
-    const actualAccessTokenProvider = accessTokenUrlMatches[2];
-    t.is(actualAccessTokenProvider, expectedAccessTokenProvider);
-
-    t.is(
-        getJsonFromApiStub.getCall(2).args[0],
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
-        '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0/access/gs',
-    );
-    t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
+    sinon.assert.callCount(getJsonFromApiStub, 1); // Bond was not called to retrieve the googleServiceAccount
+    t.deepEqual({ ...result }, { fileName: null });
 });
 
 test.serial('martha_v3 calls returns the DRS name field for a file name even when it differs from the access url', async (t) => {

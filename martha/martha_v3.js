@@ -64,12 +64,6 @@ const MARTHA_V3_ACCESS_ID_FIELDS = [
     'accessUrl',
 ];
 
-// Response fields dependent on the the access_id with a file name
-const MARTHA_V3_ACCESS_ID_FN_FIELDS = [
-    'fileName',
-    'accessUrl',
-];
-
 const BOND_PROVIDER_NONE = null; // Used for servers that should NOT contact bond
 const BOND_PROVIDER_DCF_FENCE = 'dcf-fence'; // The default when we don't recognize the server
 const BOND_PROVIDER_FENCE = 'fence';
@@ -495,14 +489,21 @@ async function retrieveFromServers(params) {
         throw new RemoteServerError(error, 'Received error while parsing response from DRS URL.');
     }
 
-    // Try to retrieve the file name from the initial DRS response
-    let fileName = getDrsFileName(drsResponse);
+    /*
+    Try to retrieve the file name from the initial DRS response.
 
-    // If we do NOT have the fileName yet, we will try to get that field from the accessUrl
-    const accessIdFields = fileName ? MARTHA_V3_ACCESS_ID_FIELDS : MARTHA_V3_ACCESS_ID_FN_FIELDS;
+    NOTE: There is the possibility that whomever uploaded the DRS metadata did not populate the DRS name nor the DRS
+    access URL stored in the DRS provider.
+
+    In that case, the fileName will be returned as null.
+
+    As a change request, for folks ingesting data without populating the name field, martha_v3 could ask the DRS
+    provider for the expensive signed HTTPS URL, then retrieve the name of the file from the path in that URL.
+     */
+    const fileName = getDrsFileName(drsResponse);
 
     let accessId;
-    if (overlapFields(requestedFields, accessIdFields)) {
+    if (overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS)) {
         try {
             accessId = getDrsAccessId(drsResponse, accessMethodType);
         } catch (error) {
@@ -531,7 +532,6 @@ async function retrieveFromServers(params) {
             const accessTokenAuth = `Bearer ${accessToken}`;
             console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}'`);
             accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, accessTokenAuth);
-            fileName = fileName || getUrlFileName(accessUrl.url);
         } catch (error) {
             throw new RemoteServerError(error, 'Received error contacting DRS provider.');
         }
