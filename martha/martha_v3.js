@@ -434,11 +434,7 @@ function buildRequestInfo(params) {
         url,
         requestedFields,
         auth,
-        userAgent,
-        ip,
     } = params;
-
-    console.log(`Received URL '${url}' from agent '${userAgent}' on IP '${ip}'`);
 
     validateRequest(url, auth, requestedFields);
     const drsType = determineDrsType(url);
@@ -585,13 +581,12 @@ async function marthaV3Handler(req, res) {
         const {url, fields: requestedFields = MARTHA_V3_DEFAULT_FIELDS} = (req && req.body) || {};
         const {authorization: auth, 'user-agent': userAgent} = req.headers;
         const ip = req.ip;
+        console.log(`Received URL '${url}' from agent '${userAgent}' on IP '${ip}'`);
 
         const params = {
             url,
             requestedFields,
             auth,
-            userAgent,
-            ip,
         };
 
         buildRequestInfo(params);
