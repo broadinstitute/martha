@@ -1,7 +1,8 @@
 const {
     jadeDataRepoHostRegex,
-    parseRequest,
     convertToMarthaV3Response,
+    BadRequestError,
+    RemoteServerError,
     logAndSendBadRequest,
     logAndSendServerError,
 } = require('../common/helpers');
@@ -260,9 +261,14 @@ function getHttpsUrlParts(url) {
         };
     }
 
-    const parsedUrl = new URL(url);
+    let parsedUrl;
+    try {
+        parsedUrl = new URL(url);
+    } catch (error) {
+        throw new BadRequestError(error.message);
+    }
     if (!parsedUrl.hostname || !parsedUrl.pathname) {
-        throw new Error(`"${url}" is missing a host and/or a path.`);
+        throw new BadRequestError(`"${url}" is missing a host and/or a path.`);
     }
     return {
         httpsUrlHost: parsedUrl.hostname,
@@ -397,20 +403,20 @@ function determineDrsType(url) {
 
 function validateRequest(url, auth, requestedFields) {
     if (!url) {
-        throw new Error(`'url' is missing.`);
+        throw new BadRequestError(`'url' is missing.`);
     }
 
     if (!auth) {
-        throw new Error('Authorization header is missing.');
+        throw new BadRequestError('Authorization header is missing.');
     }
 
     if (!Array.isArray(requestedFields)) {
-        throw new Error(`'fields' was not an array.`);
+        throw new BadRequestError(`'fields' was not an array.`);
     }
 
     const invalidFields = requestedFields.filter((field) => !MARTHA_V3_ALL_FIELDS.includes(field));
     if (invalidFields.length !== 0) {
-        throw new Error(
+        throw new BadRequestError(
             `Fields '${invalidFields.join("','")}' are not supported. ` +
             `Supported fields are '${MARTHA_V3_ALL_FIELDS.join("', '")}'.`
         );
@@ -429,42 +435,43 @@ function overlapFields(requestedFields, serviceFields) {
     return requestedFields.filter((field) => serviceFields.includes(field)).length !== 0;
 }
 
-function sendResponse(res, requestedFields, drsResponse, fileName, bondProvider, bondSA, accessUrl) {
-    const fullResponse =
-        requestedFields.length
-            ? convertToMarthaV3Response(drsResponse, fileName, bondProvider, bondSA, accessUrl)
-            : {};
-    const partialResponse = mask(fullResponse, requestedFields.join(","));
+function buildRequestInfo(params) {
+    const {
+        url,
+        requestedFields,
+        auth,
+        userAgent,
+        ip,
+    } = params;
 
-    res.status(200).send(partialResponse);
+    console.log(`Received URL '${url}' from agent '${userAgent}' on IP '${ip}'`);
+
+    validateRequest(url, auth, requestedFields);
+    const drsType = determineDrsType(url);
+
+    Object.assign(params, {
+        drsType,
+    });
 }
 
-// TODO: Is there some consistent way we can make this function less complex?
-//  For example: is there a way we can have utility functions that send errors and exit this outer function?
-// eslint-disable-next-line complexity
-async function marthaV3Handler(req, res) {
-    const {url, fields: requestedFields = MARTHA_V3_DEFAULT_FIELDS} = parseRequest(req);
-    const {authorization: auth, 'user-agent': userAgent} = req.headers;
-    console.log(`Received URL '${url}' from agent '${userAgent}' on IP '${req.ip}'`);
-
-    try {
-        validateRequest(url, auth, requestedFields);
-    } catch (error) {
-        logAndSendBadRequest(res, error);
-        return;
-    }
-
-    let drsType;
-    try {
-        drsType = determineDrsType(url);
-    } catch (error) {
-        logAndSendBadRequest(res, error);
-        return;
-    }
+/**
+ * Retrieves information from the various underlying servers.
+ *
+ * See also:
+ * - https://bvdp-saturn-dev.appspot.com/#workspaces/general-dev-billing-account/DRS%20and%20Signed%20URL%20Development%20-%20Dev
+ * - https://lucid.app/lucidchart/invitations/accept/0f899643-76a9-4b9c-84f5-f11ddac86bba
+ * - https://lucid.app/lucidchart/invitations/accept/8b6f942b-f7dc-4acc-ac36-318a1685e6ac
+ */
+async function retrieveFromServers(params) {
+    const {
+        requestedFields,
+        auth,
+        drsType,
+    } = params;
 
     const {sendAuth, bondProvider, accessMethodType} = drsType;
     console.log(
-        `DRS URI ${url} will use auth required '${sendAuth}', bond provider '${bondProvider}', ` +
+        `DRS URI '${url}' will use auth required '${sendAuth}', bond provider '${bondProvider}', ` +
         `and access method type '${accessMethodType}'`
     );
 
@@ -477,8 +484,7 @@ async function marthaV3Handler(req, res) {
             );
             response = await apiAdapter.getJsonFrom(httpsMetadataUrl, sendAuth ? auth : null);
         } catch (error) {
-            logAndSendServerError(res, error, 'Received error while resolving DRS URL.');
-            return;
+            throw new RemoteServerError(error, 'Received error while resolving DRS URL.');
         }
     }
 
@@ -486,8 +492,7 @@ async function marthaV3Handler(req, res) {
     try {
         drsResponse = responseParser(response);
     } catch (error) {
-        logAndSendServerError(res, error, 'Received error while parsing response from DRS URL.');
-        return;
+        throw new RemoteServerError(error, 'Received error while parsing response from DRS URL.');
     }
 
     // Try to retrieve the file name from the initial DRS response
@@ -501,8 +506,7 @@ async function marthaV3Handler(req, res) {
         try {
             accessId = getDrsAccessId(drsResponse, accessMethodType);
         } catch (error) {
-            logAndSendServerError(res, error, 'Received error while parsing the access id.');
-            return;
+            throw new RemoteServerError(error, 'Received error while parsing the access id.');
         }
     }
 
@@ -515,8 +519,7 @@ async function marthaV3Handler(req, res) {
             const accessTokenResponse = await apiAdapter.getJsonFrom(bondAccessTokenUrl, auth);
             accessToken = accessTokenResponse.token;
         } catch (error) {
-            logAndSendServerError(res, error, 'Received error contacting Bond.');
-            return;
+            throw new RemoteServerError(error, 'Received error contacting Bond.');
         }
     }
 
@@ -530,8 +533,7 @@ async function marthaV3Handler(req, res) {
             accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, accessTokenAuth);
             fileName = fileName || getUrlFileName(accessUrl.url);
         } catch (error) {
-            logAndSendServerError(res, error, 'Received error contacting DRS provider.');
-            return;
+            throw new RemoteServerError(error, 'Received error contacting DRS provider.');
         }
     }
 
@@ -542,12 +544,71 @@ async function marthaV3Handler(req, res) {
             console.log(`Requesting Bond SA key for '${url}' from '${bondSAKeyUrl}'`);
             bondSA = await apiAdapter.getJsonFrom(bondSAKeyUrl, auth);
         } catch (error) {
-            logAndSendServerError(res, error, 'Received error contacting Bond.');
-            return;
+            throw new RemoteServerError(error, 'Received error contacting Bond.');
         }
     }
 
-    sendResponse(res, requestedFields, drsResponse, fileName, bondProvider, bondSA, accessUrl);
+    Object.assign(params, {
+        bondProvider,
+        drsResponse,
+        fileName,
+        accessUrl,
+        bondSA,
+    });
+}
+
+function buildResponseInfo(params) {
+    const {
+        requestedFields,
+        bondProvider,
+        drsResponse,
+        fileName,
+        accessUrl,
+        bondSA,
+    } = params;
+
+    const fullResponse =
+        requestedFields.length
+            ? convertToMarthaV3Response(drsResponse, fileName, bondProvider, bondSA, accessUrl)
+            : {};
+    const partialResponse = mask(fullResponse, requestedFields.join(","));
+
+    Object.assign(params, {
+        partialResponse,
+    });
+}
+
+async function marthaV3Handler(req, res) {
+    try {
+        // This function counts on the request posting data as "application/json" content-type.
+        // See: https://cloud.google.com/functions/docs/writing/http#parsing_http_requests for more details
+        const {url, fields: requestedFields = MARTHA_V3_DEFAULT_FIELDS} = (req && req.body) || {};
+        const {authorization: auth, 'user-agent': userAgent} = req.headers;
+        const ip = req.ip;
+
+        const params = {
+            url,
+            requestedFields,
+            auth,
+            userAgent,
+            ip,
+        };
+
+        buildRequestInfo(params);
+        await retrieveFromServers(params);
+        buildResponseInfo(params);
+
+        res.status(200).send(params.partialResponse);
+    } catch (error) {
+        if (error instanceof BadRequestError) {
+            logAndSendBadRequest(res, error);
+        } else if (error instanceof RemoteServerError) {
+            logAndSendServerError(res, error.cause, error.description);
+        } else {
+            console.error(`Uncaught error: ${error}`);
+            throw error;
+        }
+    }
 }
 
 exports.marthaV3Handler = marthaV3Handler;

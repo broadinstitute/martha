@@ -422,6 +422,17 @@ function convertToMarthaV3Response(drsResponse, fileName, bondProvider, googleSA
     );
 }
 
+class BadRequestError extends Error {
+}
+
+class RemoteServerError extends Error {
+    constructor(cause, description) {
+        super(cause.message);
+        this.cause = cause;
+        this.description = description;
+    }
+}
+
 function logAndSendBadRequest(res, error) {
     console.error(error);
     const failureResponse = new FailureResponse(BAD_REQUEST_ERROR_CODE, `Request is invalid. ${error.message}`);
@@ -474,6 +485,8 @@ module.exports = {
     FileSummaryV1Response,
     MarthaV3Response,
     FailureResponse,
+    BadRequestError,
+    RemoteServerError,
     logAndSendBadRequest,
     logAndSendServerError,
 };
