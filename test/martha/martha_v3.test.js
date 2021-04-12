@@ -266,7 +266,7 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
 
     t.is(
         getJsonFromApiStub.getCall(2).args[0],
-        'https://staging.gen3.biodatacatalyst.nhlbi.nih.gov/ga4gh/drs/v1/objects' +
+        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
         '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0/access/gs',
     );
     t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
@@ -369,7 +369,7 @@ test.serial('martha_v3 calls the correct endpoints when only the fileName is req
 
     t.is(
         getJsonFromApiStub.getCall(2).args[0],
-        'https://staging.gen3.biodatacatalyst.nhlbi.nih.gov/ga4gh/drs/v1/objects' +
+        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
         '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0/access/gs',
     );
     t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
@@ -417,7 +417,7 @@ test.serial('martha_v3 calls returns the DRS name field for a file name even whe
 
     t.is(
         getJsonFromApiStub.getCall(2).args[0],
-        'https://staging.gen3.biodatacatalyst.nhlbi.nih.gov/ga4gh/drs/v1/objects' +
+        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
         '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0/access/gs',
     );
     t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
@@ -746,7 +746,7 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
 
     t.is(
         getJsonFromApiStub.getCall(2).args[0],
-        'https://staging.gen3.biodatacatalyst.nhlbi.nih.gov/ga4gh/drs/v1/objects' +
+        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
         '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0/access/gs',
     );
     t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
