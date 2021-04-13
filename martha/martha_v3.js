@@ -546,8 +546,10 @@ async function retrieveFromServers(params) {
     }
 
     let bondSA;
+    // Only retrieve the SA for projects that implicitly or explicitly use GCS for accessing the data.
+    const accessMethodTypesRequiringSA = [ACCESS_METHOD_TYPE_NONE, ACCESS_METHOD_TYPE_GCS];
     if (bondProvider &&
-        accessMethodType !== ACCESS_METHOD_TYPE_S3 && // do not get Google SA if this is S3
+        accessMethodTypesRequiringSA.includes(accessMethodType) &&
         overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS)) {
         try {
             const bondSAKeyUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;

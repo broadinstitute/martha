@@ -829,6 +829,7 @@ test.serial('martha_v3 parses Kids First response correctly', async (t) => {
         `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
     );
     t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
+
     const requestedBondAccessToken = getJsonFromApiStub.getCall(1).args[0];
     const accessTokenMatches = requestedBondAccessToken.match(bondAccessTokenUrlRegEx);
     t.truthy(accessTokenMatches, 'Bond URL called does not match Bond URL regular expression');
@@ -870,6 +871,7 @@ test.serial('martha_v3 parses a Kids First CIB URI response correctly', async (t
     const expectedAccessTokenProvider = 'kids-first';
     const actualAccessTokenProvider = accessTokenMatches[2];
     t.is(actualAccessTokenProvider, expectedAccessTokenProvider);
+
     t.is(
         getJsonFromApiStub.getCall(2).args[0],
         `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects` +
