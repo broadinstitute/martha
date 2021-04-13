@@ -301,35 +301,6 @@ test.serial('martha_v3 calls the correct endpoints when only the fileName is req
     );
 });
 
-test.serial('martha_v3 calls the correct endpoints when only the fileName is requested and the metadata contains a gs url', async (t) => {
-    const drsResponse = bdcDrsResponseCustom({
-        name: null,
-        access_url: { url: bdcDrsResponse.access_methods[0].access_url.url },
-        access_id: bdcDrsResponse.access_methods[0].access_id,
-    });
-    const drsAccessUrlResponse = mockGcsAccessUrl(bdcDrsResponse.access_methods[0].access_url.url);
-    getJsonFromApiStub.onCall(0).resolves(drsResponse);
-    const response = mockResponse();
-    await marthaV3(
-        mockRequest(
-            {
-                body: {
-                    url: 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
-                    fields: ['fileName'],
-                }
-            },
-        ),
-        response,
-    );
-    t.is(response.statusCode, 200);
-    const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 1);
-    t.deepEqual(
-        { ...result },
-        mask(bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse), 'fileName'),
-    );
-});
-
 test.serial('martha_v3 calls the correct endpoints when only the fileName is requested and the metadata contains only an access id', async (t) => {
     const drsResponse = bdcDrsResponseCustom({
         name: null,
