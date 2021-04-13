@@ -602,11 +602,8 @@ test.serial('martha_v3 does not call Bond or return SA key when the host url is 
 });
 
 test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
-    const drsAccessUrlResponse = mockGcsAccessUrl(gen3CrdcResponse.access_methods[0].access_url.url);
     getJsonFromApiStub.onCall(0).resolves(gen3CrdcResponse);
-    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
-    getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
-    getJsonFromApiStub.onCall(3).resolves(googleSAKeyObject);
+    getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
     const response = mockResponse();
     await marthaV3(
         mockRequest({ body: { 'url': `dos://${config.HOST_CRDC_STAGING}/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc` } }),
@@ -614,29 +611,15 @@ test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
     );
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 4);
-    t.deepEqual({ ...result }, gen3CrdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse));
+    sinon.assert.callCount(getJsonFromApiStub, 2);
+    t.deepEqual({ ...result }, gen3CrdcDrsMarthaResult(googleSAKeyObject, null));
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
         `https://${config.HOST_CRDC_STAGING}/ga4gh/drs/v1/objects/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc`,
     );
     t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
 
-    const requestedBondAccessTokenUrl = getJsonFromApiStub.getCall(1).args[0];
-    const accessTokenUrlMatches = requestedBondAccessTokenUrl.match(bondAccessTokenUrlRegEx);
-    t.truthy(accessTokenUrlMatches, 'Bond access token URL called does not match Bond access token URL regular expression');
-    const expectedAccessTokenProvider = 'dcf-fence';
-    const actualAccessTokenProvider = accessTokenUrlMatches[2];
-    t.is(actualAccessTokenProvider, expectedAccessTokenProvider);
-
-    t.is(
-        getJsonFromApiStub.getCall(2).args[0],
-        `https://${config.HOST_CRDC_STAGING}/ga4gh/drs/v1/objects` +
-        '/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc/access/gs',
-    );
-    t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
-
-    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(3).args[0];
+    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
     const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
     t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
     const expectedSAKeyProvider = 'dcf-fence';
@@ -645,11 +628,8 @@ test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
 });
 
 test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t) => {
-    const drsAccessUrlResponse = mockGcsAccessUrl(gen3CrdcResponse.access_methods[0].access_url.url);
     getJsonFromApiStub.onCall(0).resolves(gen3CrdcResponse);
-    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
-    getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
-    getJsonFromApiStub.onCall(3).resolves(googleSAKeyObject);
+    getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
     const response = mockResponse();
     await marthaV3(
         mockRequest({ body: { 'url': 'dos://dg.4DFC:206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc' } }),
@@ -657,29 +637,15 @@ test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t)
     );
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 4);
-    t.deepEqual({ ...result }, gen3CrdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse));
+    sinon.assert.callCount(getJsonFromApiStub, 2);
+    t.deepEqual({ ...result }, gen3CrdcDrsMarthaResult(googleSAKeyObject, null));
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
         `https://${config.HOST_CRDC_STAGING}/ga4gh/drs/v1/objects/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc`,
     );
     t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
 
-    const requestedBondAccessTokenUrl = getJsonFromApiStub.getCall(1).args[0];
-    const accessTokenUrlMatches = requestedBondAccessTokenUrl.match(bondAccessTokenUrlRegEx);
-    t.truthy(accessTokenUrlMatches, 'Bond access token URL called does not match Bond access token URL regular expression');
-    const expectedAccessTokenProvider = 'dcf-fence';
-    const actualAccessTokenProvider = accessTokenUrlMatches[2];
-    t.is(actualAccessTokenProvider, expectedAccessTokenProvider);
-
-    t.is(
-        getJsonFromApiStub.getCall(2).args[0],
-        `https://${config.HOST_CRDC_STAGING}/ga4gh/drs/v1/objects` +
-        '/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc/access/gs',
-    );
-    t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
-
-    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(3).args[0];
+    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
     const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
     t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
     const expectedSAKeyProvider = 'dcf-fence';
@@ -785,11 +751,8 @@ test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
 });
 
 test.serial('martha_v3 parses Anvil response correctly', async (t) => {
-    const drsAccessUrlResponse = mockGcsAccessUrl(anvilDrsResponse.access_methods[0].access_url.url);
     getJsonFromApiStub.onCall(0).resolves(anvilDrsResponse);
-    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
-    getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
-    getJsonFromApiStub.onCall(3).resolves(googleSAKeyObject);
+    getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
     const response = mockResponse();
     await marthaV3(
         mockRequest({ body: { 'url': 'drs://dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0' } }),
@@ -798,29 +761,15 @@ test.serial('martha_v3 parses Anvil response correctly', async (t) => {
     t.is(response.statusCode, 200);
 
     const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 4); // Bond was called to get SA key
-    t.deepEqual({ ...result }, anvilDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse));
+    sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
+    t.deepEqual({ ...result }, anvilDrsMarthaResult(googleSAKeyObject, null));
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
         `https://${config.HOST_THE_ANVIL_STAGING}/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`,
     );
     t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
 
-    const requestedBondAccessTokenUrl = getJsonFromApiStub.getCall(1).args[0];
-    const accessTokenUrlMatches = requestedBondAccessTokenUrl.match(bondAccessTokenUrlRegEx);
-    t.truthy(accessTokenUrlMatches, 'Bond access token URL called does not match Bond access token URL regular expression');
-    const expectedAccessTokenProvider = 'anvil';
-    const actualAccessTokenProvider = accessTokenUrlMatches[2];
-    t.is(actualAccessTokenProvider, expectedAccessTokenProvider);
-
-    t.is(
-        getJsonFromApiStub.getCall(2).args[0],
-        `https://${config.HOST_THE_ANVIL_STAGING}/ga4gh/drs/v1/objects` +
-        '/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0/access/gs',
-    );
-    t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
-
-    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(3).args[0];
+    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
     const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
     t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
     const expectedSAKeyProvider = 'anvil';
@@ -829,11 +778,8 @@ test.serial('martha_v3 parses Anvil response correctly', async (t) => {
 });
 
 test.serial('martha_v3 parses a The AnVIL CIB URI response correctly', async (t) => {
-    const drsAccessUrlResponse = mockGcsAccessUrl(anvilDrsResponse.access_methods[0].access_url.url);
     getJsonFromApiStub.onCall(0).resolves(anvilDrsResponse);
-    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
-    getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
-    getJsonFromApiStub.onCall(3).resolves(googleSAKeyObject);
+    getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
     const response = mockResponse();
     await marthaV3(
         mockRequest({ body: { 'url': 'drs://dg.ANV0:dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0' } }),
@@ -842,29 +788,15 @@ test.serial('martha_v3 parses a The AnVIL CIB URI response correctly', async (t)
     t.is(response.statusCode, 200);
 
     const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 4); // Bond was called to get SA key
-    t.deepEqual({ ...result }, anvilDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse));
+    sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
+    t.deepEqual({ ...result }, anvilDrsMarthaResult(googleSAKeyObject, null));
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
         `https://${config.HOST_THE_ANVIL_STAGING}/ga4gh/drs/v1/objects/dg.ANV0%2F00008531-03d7-418c-b3d3-b7b22b5381a0`,
     );
     t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
 
-    const requestedBondAccessTokenUrl = getJsonFromApiStub.getCall(1).args[0];
-    const accessTokenUrlMatches = requestedBondAccessTokenUrl.match(bondAccessTokenUrlRegEx);
-    t.truthy(accessTokenUrlMatches, 'Bond access token URL called does not match Bond access token URL regular expression');
-    const expectedAccessTokenProvider = 'anvil';
-    const actualAccessTokenProvider = accessTokenUrlMatches[2];
-    t.is(actualAccessTokenProvider, expectedAccessTokenProvider);
-
-    t.is(
-        getJsonFromApiStub.getCall(2).args[0],
-        `https://${config.HOST_THE_ANVIL_STAGING}/ga4gh/drs/v1/objects` +
-        '/dg.ANV0%2F00008531-03d7-418c-b3d3-b7b22b5381a0/access/gs',
-    );
-    t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
-
-    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(3).args[0];
+    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
     const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
     t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
     const expectedSAKeyProvider = 'anvil';

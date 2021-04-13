@@ -358,7 +358,7 @@ function determineDrsType(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_ANVIL,
-            ACCESS_METHOD_TYPE_GCS,
+            ACCESS_METHOD_TYPE_NONE,
         );
     }
 
@@ -380,7 +380,7 @@ function determineDrsType(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_DCF_FENCE,
-            ACCESS_METHOD_TYPE_GCS,
+            ACCESS_METHOD_TYPE_NONE,
         );
     }
 
