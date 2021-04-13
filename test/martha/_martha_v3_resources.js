@@ -8,7 +8,7 @@
 const config = require('../../common/config');
 
 const dosObjectWithMissingFields = {
-    "data_object": {
+    data_object: {
         id: 'v1_abc-123',
         description: '123 BAM file',
         name: '123.mapped.abc.bam',
@@ -20,9 +20,13 @@ const dosObjectWithMissingFields = {
 };
 
 const dosObjectWithInvalidFields = {
-    "data_object": {
+    data_object: {
         urls: 'gs://i/should/have/been/an/array',
     }
+};
+
+const drsObjectWithInvalidFields = {
+    access_methods: { oops: 'i should have been an array' },
 };
 
 const expectedObjWithMissingFields = {
@@ -32,6 +36,7 @@ const expectedObjWithMissingFields = {
     timeUpdated: null,
     bucket: null,
     name: null,
+    accessUrl: null,
     gsUri: null,
     googleServiceAccount: null,
     bondProvider: 'dcf-fence',
@@ -42,33 +47,33 @@ const expectedObjWithMissingFields = {
 // Unaffiliated DOS examples
 
 const sampleDosResponse = {
-    "data_object": {
+    data_object: {
         aliases: [],
         checksums: [
             {
-                checksum: "8a366443",
-                type: "crc32c"
+                checksum: '8a366443',
+                type: 'crc32c'
             }, {
-                checksum: "336ea55913bc261b72875bd259753046",
-                type: "md5"
+                checksum: '336ea55913bc261b72875bd259753046',
+                type: 'md5'
             }, {
-                checksum: "f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44",
-                type: "sha256"
+                checksum: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44',
+                type: 'sha256'
             }
 
         ],
-        created: "2020-04-27T15:56:09.696Z",
-        description: "",
-        id: "dg.4503/00e6cfa9-a183-42f6-bb44-b70347106bbe",
-        mime_type: "",
+        created: '2020-04-27T15:56:09.696Z',
+        description: '',
+        id: 'dg.4503/00e6cfa9-a183-42f6-bb44-b70347106bbe',
+        mime_type: '',
         size: 15601108255,
-        updated: "2020-04-27T15:56:09.696Z",
+        updated: '2020-04-27T15:56:09.696Z',
         urls: [
             {
                 url: 'gs://bogus/my_data'
             }
         ],
-        version: "6d60cacf"
+        version: '6d60cacf'
     }
 };
 
@@ -84,6 +89,7 @@ const sampleDosMarthaResult = (expectedGoogleServiceAccount) => {
         googleServiceAccount: expectedGoogleServiceAccount,
         bondProvider: 'dcf-fence',
         fileName: 'my_data',
+        accessUrl: null,
         hashes: {
             md5: '336ea55913bc261b72875bd259753046',
             sha256: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44',
@@ -133,6 +139,7 @@ const dataGuidsOrgMarthaResult = (expectedGoogleServiceAccount) => {
         timeUpdated: '2018-06-26T18:53:21.416Z',
         bucket: 'gdc-tcga-phs000178-open',
         name: 'a41b0c4f-ebfb-4277-a941-507340dea85d/nationwidechildrens.org_clinical.TCGA-56-A4BY.xml',
+        accessUrl: null,
         gsUri:
             'gs://gdc-tcga-phs000178-open/a41b0c4f-ebfb-4277-a941-507340dea85d' +
             '/nationwidechildrens.org_clinical.TCGA-56-A4BY.xml',
@@ -189,6 +196,7 @@ const jadeDrsMarthaResult = {
     timeUpdated: '2020-04-27T15:56:09.696Z',
     bucket: 'broad-jade-dev-data-bucket',
     name: 'fd8d8492-ad02-447d-b54e-35a7ffd0e7a5/8b07563a-542f-4b5c-9e00-e8fe6b1861de',
+    accessUrl: null,
     gsUri:
         'gs://broad-jade-dev-data-bucket/fd8d8492-ad02-447d-b54e-35a7ffd0e7a5/8b07563a-542f-4b5c-9e00-e8fe6b1861de',
     googleServiceAccount: null,
@@ -207,45 +215,45 @@ const gen3CrdcResponse = {
     access_methods:
         [
             {
-                access_id: "gs",
+                access_id: 'gs',
                 access_url:
                     {
-                        url: "gs://gdc-tcga-phs000178-controlled/BRCA/RNA/RNA-Seq/UNC-LCCC/ILLUMINA/UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz"
+                        url: 'gs://gdc-tcga-phs000178-controlled/BRCA/RNA/RNA-Seq/UNC-LCCC/ILLUMINA/UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz'
                     },
-                region: "",
-                type: "gs"
+                region: '',
+                type: 'gs'
             },
             {
-                access_id: "s3",
+                access_id: 's3',
                 access_url:
                     {
-                        url: "s3://tcga-2-controlled/0027045b-9ed6-45af-a68e-f55037b5184c/UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz"
+                        url: 's3://tcga-2-controlled/0027045b-9ed6-45af-a68e-f55037b5184c/UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz'
                     },
-                region: "",
-                type: "s3"
+                region: '',
+                type: 's3'
             }
         ],
     aliases: [],
     checksums:
         [
             {
-                checksum: "2edd5fdb4f1deac4ef2bdf969de9f8ad",
-                type: "md5"
+                checksum: '2edd5fdb4f1deac4ef2bdf969de9f8ad',
+                type: 'md5'
             }
         ],
     contents: [],
-    created_time: "2018-06-27T10:28:06.398871",
-    description: "",
-    id: "0027045b-9ed6-45af-a68e-f55037b5184c",
-    mime_type: "application/json",
+    created_time: '2018-06-27T10:28:06.398871',
+    description: '',
+    id: '0027045b-9ed6-45af-a68e-f55037b5184c',
+    mime_type: 'application/json',
     name: null,
     self_uri: `drs://${config.HOST_CRDC_PROD}/0027045b-9ed6-45af-a68e-f55037b5184c`,
     size: 6703858793,
-    updated_time: "2018-06-27T10:28:06.398882",
-    version: "5eb15d8b"
+    updated_time: '2018-06-27T10:28:06.398882',
+    version: '5eb15d8b'
 };
 
-const gen3CrdcDrsMarthaResult = (expectedGoogleServiceAccount) => { return {
+const gen3CrdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl) => { return {
     contentType: 'application/json',
     size: 6703858793,
     timeCreated: '2018-06-27T10:28:06.398Z',
@@ -254,6 +262,7 @@ const gen3CrdcDrsMarthaResult = (expectedGoogleServiceAccount) => { return {
     name:
         'BRCA/RNA/RNA-Seq/UNC-LCCC/ILLUMINA' +
         '/UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz',
+    accessUrl: expectedAccessUrl,
     gsUri:
         'gs://gdc-tcga-phs000178-controlled/BRCA/RNA/RNA-Seq/UNC-LCCC/ILLUMINA' +
         '/UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz',
@@ -271,36 +280,36 @@ const anvilDrsResponse = {
     access_methods:
         [
             {
-                access_id: "gs",
+                access_id: 'gs',
                 access_url:
                     {
-                        url: "gs://fc-secure-ff8156a3-ddf3-42e4-9211-0fd89da62108/GTEx_Analysis_2017-06-05_v8_RNAseq_bigWig_files/GTEX-1GZHY-0011-R6a-SM-9OSWL.Aligned.sortedByCoord.out.patched.md.bigWig"
+                        url: 'gs://fc-secure-ff8156a3-ddf3-42e4-9211-0fd89da62108/GTEx_Analysis_2017-06-05_v8_RNAseq_bigWig_files/GTEX-1GZHY-0011-R6a-SM-9OSWL.Aligned.sortedByCoord.out.patched.md.bigWig'
                     },
-                region: "",
-                type: "gs"
+                region: '',
+                type: 'gs'
             }
         ],
     aliases: [],
     checksums:
         [
             {
-                checksum: "18156430a5eea715b9b58fb53d0cef99",
-                type: "md5"
+                checksum: '18156430a5eea715b9b58fb53d0cef99',
+                type: 'md5'
             }
         ],
     contents: [],
-    created_time: "2020-07-08T18:52:53.194819",
-    description: "",
-    id: "dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0",
-    mime_type: "application/json",
-    name: "",
+    created_time: '2020-07-08T18:52:53.194819',
+    description: '',
+    id: 'dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0',
+    mime_type: 'application/json',
+    name: '',
     self_uri: `drs://${config.HOST_THE_ANVIL_PROD}/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`,
     size: 143562155,
-    updated_time: "2020-07-08T18:52:53.194826",
-    version: "0a4262ff"
+    updated_time: '2020-07-08T18:52:53.194826',
+    version: '0a4262ff'
 };
 
-const anvilDrsMarthaResult = (expectedGoogleServiceAccount) => {
+const anvilDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl) => {
     return {
         contentType: 'application/json',
         size: 143562155,
@@ -310,6 +319,7 @@ const anvilDrsMarthaResult = (expectedGoogleServiceAccount) => {
         name:
             'GTEx_Analysis_2017-06-05_v8_RNAseq_bigWig_files' +
             '/GTEX-1GZHY-0011-R6a-SM-9OSWL.Aligned.sortedByCoord.out.patched.md.bigWig',
+        accessUrl: expectedAccessUrl,
         gsUri:
             'gs://fc-secure-ff8156a3-ddf3-42e4-9211-0fd89da62108/GTEx_Analysis_2017-06-05_v8_RNAseq_bigWig_files' +
             '/GTEX-1GZHY-0011-R6a-SM-9OSWL.Aligned.sortedByCoord.out.patched.md.bigWig',
@@ -325,40 +335,40 @@ const anvilDrsMarthaResult = (expectedGoogleServiceAccount) => {
 // Kids First
 
 const kidsFirstDrsResponse = {
-    "access_methods": [
+    access_methods: [
         {
-            "access_id": "s3",
-            "access_url": {
-                "uUrl":
-                    "s3://kf-seq-data-washu/OrofacialCleft/fa9c2cb04f614f90b75323b05bfdd231.bam"
+            access_id: 's3',
+            access_url: {
+                url:
+                    's3://kf-seq-data-washu/OrofacialCleft/fa9c2cb04f614f90b75323b05bfdd231.bam'
             },
-            "region": "",
-            "type": "s3"
+            region: '',
+            type: 's3'
         }
     ],
-    "aliases": [
+    aliases: [
 
     ],
-    "checksums": [
+    checksums: [
         {
-            "Checksum":
-                "24e5d5d0ddd094be0ffb672875b10576-6572",
-            "type": "etag"
+            Checksum:
+                '24e5d5d0ddd094be0ffb672875b10576-6572',
+            type: 'etag'
         }
     ],
-    "contents": [
+    contents: [
 
     ],
-    "created_time": "2018-05-23T12:32:32.594470",
-    "description": "",
-    "id": "ed6be7ab-068e-46c8-824a-f39cfbb885cc",
-    "mime_type": "application/json",
-    "name": "fa9c2cb04f614f90b75323b05bfdd231.bam",
-    "self_uri":
+    created_time: '2018-05-23T12:32:32.594470',
+    description: '',
+    id: 'ed6be7ab-068e-46c8-824a-f39cfbb885cc',
+    mime_type: 'application/json',
+    name: 'fa9c2cb04f614f90b75323b05bfdd231.bam',
+    self_uri:
         `drs://${config.HOST_KIDS_FIRST_PROD}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
-    "size": 55121736836,
-    "updated_time": "2018-05-23T12:32:32.594480",
-    "version": "f70e5775"
+    size: 55121736836,
+    updated_time: '2018-05-23T12:32:32.594480',
+    version: 'f70e5775'
 };
 
 const kidsFirstDrsMarthaResult = (expectedGoogleServiceAccount) => {
@@ -369,6 +379,7 @@ const kidsFirstDrsMarthaResult = (expectedGoogleServiceAccount) => {
         timeUpdated: '2018-05-23T12:32:32.594Z',
         bucket: null, // expected, uses S3
         name: null, // there is definitely a name in the server response, why isn't Martha using it?
+        accessUrl: null,
         gsUri: null, // expected, uses S3
         googleServiceAccount: expectedGoogleServiceAccount,
         bondProvider: 'dcf-fence',
@@ -386,137 +397,163 @@ const bdcDrsResponse = {
     access_methods:
         [
             {
-                access_id: "gs",
+                access_id: 'gs',
                 access_url:
                     {
-                        url: "gs://fc-56ac46ea-efc4-4683-b6d5-6d95bed41c5e/CCDG_13607/Project_CCDG_13607_B01_GRM_WGS.cram.2019-02-06/Sample_HG02014/analysis/HG02014.final.cram"
+                        url: 'gs://fc-56ac46ea-efc4-4683-b6d5-6d95bed41c5e/CCDG_13607/Project_CCDG_13607_B01_GRM_WGS.cram.2019-02-06/Sample_HG01131/analysis/HG01131.final.cram.crai'
                     },
-                region: "",
-                type: "gs"
+                region: '',
+                type: 'gs'
             }
         ],
     aliases: [],
     checksums:
         [
             {
-                checksum: "bb193a5b603ae6ac5eb39890b6ca1bb5",
-                type: "md5"
+                checksum: '8bec761c8a626356eb34dbdfe20649b4',
+                type: 'md5'
             }
         ],
     contents: [],
-    created_time: "2020-01-15T15:35:09.184152",
-    description: "",
-    id: "dg.4503/fc046e84-6cf9-43a3-99cc-ffa2964b88cb",
-    mime_type: "application/json",
-    name: "",
-    self_uri: `drs://${config.HOST_BIODATA_CATALYST_PROD}/dg.4503/fc046e84-6cf9-43a3-99cc-ffa2964b88cb`,
-    size: 14772393959,
-    updated_time: "2020-01-15T15:35:09.184160",
-    version: "f443f632"
+    created_time: '2020-01-15T17:46:25.694142',
+    description: '',
+    id: 'dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+    mime_type: 'application/json',
+    name: null,
+    self_uri: `drs://${config.HOST_BIODATA_CATALYST_STAGING}/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0`,
+    size: 1386553,
+    updated_time: '2020-01-15T17:46:25.694148',
+    version: 'd87455aa'
 };
 
-const bdcDrsMarthaResult = (expectedGoogleServiceAccount) => {
+// Allow customizing parts of the bdc file response
+const bdcDrsResponseCustom = (
+    {
+        name = bdcDrsResponse.name,
+        access_url = { url: bdcDrsResponse.access_methods[0].access_url.url },
+        access_id = bdcDrsResponse.access_methods[0].access_id,
+    }
+) => {
+    return {
+        ...bdcDrsResponse,
+        name,
+        access_methods:
+            [
+                {
+                    access_id,
+                    access_url,
+                    type: bdcDrsResponse.access_methods[0].type,
+                    region: bdcDrsResponse.access_methods[0].region,
+                },
+            ],
+    };
+};
+
+const bdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl) => {
     return {
         contentType: 'application/json',
-        size: 14772393959,
-        timeCreated: '2020-01-15T15:35:09.184Z',
-        timeUpdated: '2020-01-15T15:35:09.184Z',
+        size: 1386553,
+        timeCreated: '2020-01-15T17:46:25.694Z',
+        timeUpdated: '2020-01-15T17:46:25.694Z',
         bucket: 'fc-56ac46ea-efc4-4683-b6d5-6d95bed41c5e',
-        name: 'CCDG_13607/Project_CCDG_13607_B01_GRM_WGS.cram.2019-02-06/Sample_HG02014/analysis/HG02014.final.cram',
+        name: 'CCDG_13607/Project_CCDG_13607_B01_GRM_WGS.cram.2019-02-06/Sample_HG01131/analysis/HG01131.final.cram.crai',
         gsUri:
             'gs://fc-56ac46ea-efc4-4683-b6d5-6d95bed41c5e' +
             '/CCDG_13607' +
             '/Project_CCDG_13607_B01_GRM_WGS.cram.2019-02-06' +
-            '/Sample_HG02014' +
+            '/Sample_HG01131' +
             '/analysis' +
-            '/HG02014.final.cram',
+            '/HG01131.final.cram.crai',
         googleServiceAccount: expectedGoogleServiceAccount,
         bondProvider: 'fence',
-        fileName: 'HG02014.final.cram',
+        fileName: 'HG01131.final.cram.crai',
         hashes: {
-            md5: 'bb193a5b603ae6ac5eb39890b6ca1bb5'
-        }
+            md5: '8bec761c8a626356eb34dbdfe20649b4'
+        },
+        accessUrl: expectedAccessUrl
     };
 };
 
 // HCA
 // returned via
-//   `curl https://drs.data.humancellatlas.org/ga4gh/dos/v1/dataobjects/4cf48dbf-cf09-452e-bb5b-fd016af0c747?version=2019-09-14T024754.281908Z`
-const hcaDosResponse = {
-    data_object: {
-        id: '4cf48dbf-cf09-452e-bb5b-fd016af0c747',
-        urls: [
-            {
-                url:
-                    'https://drs.data.humancellatlas.org/dss/files/4cf48dbf-cf09-452e-bb5b-fd016af0c747' +
-                    '?version=2019-09-14T024754.281908Z' +
-                    '&replica=aws' +
-                    '&wait=1' +
-                    '&fileName=eb32bfc6-e7be-4093-8959-b8bf27f2404f.zarr%21.zattrs'
+//   `curl https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe`
+const fakeToken = 'Definitely not a real token';
+const hcaDrsResponse = {
+    id: 'v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe',
+    name: 'E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz',
+    self_uri: null,
+    size: 438932948,
+    created_time: '2020-12-17T21:01:25.906Z',
+    updated_time: '2020-12-17T21:01:25.906Z',
+    version: '0',
+    mime_type: null,
+    checksums: [
+        {
+            checksum: '5acd55ef',
+            type: 'crc32c'
+        }
+    ],
+    access_methods: [
+        {
+            type: 'gs',
+            access_url: {
+                url: 'gs://broad-jade-dev-data-bucket/ecb5601e-9026-428c-b49d-3c5f1807ecb7/e37266ba-790d-4641-aa76-854d94be2fbe/E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz',
+                headers: null
             },
-            {
-                url:
-                    'gs://org-hca-dss-checkout-prod/blobs' +
-                    '/160fde1559f7154b03a6f645b4c7ff0eb2af37241e2cab3961e7780ead93860a' +
-                    '.b0fcf2baaadb4aa6545804998867eff29330762a' +
-                    '.d18ef9b8fd14ac922588baeec4853c0d' +
-                    '.0ba92b16'
-            }
-        ],
-        size: '148', // Yes, this is a string returned by the `curl` above
-        checksums: [
-            {
-                checksum: '160fde1559f7154b03a6f645b4c7ff0eb2af37241e2cab3961e7780ead93860a',
-                type: 'sha256'
-            }
-        ],
-        aliases: [
-            'eb32bfc6-e7be-4093-8959-b8bf27f2404f.zarr!.zattrs'
-        ],
-        version: '2019-09-14T024754.281908Z',
-        name: 'eb32bfc6-e7be-4093-8959-b8bf27f2404f.zarr!.zattrs'
-    }
+            access_id: null,
+            region: 'us-central1'
+        },
+        {
+            type: 'https',
+            access_url: {
+                url: 'https://www.googleapis.com/storage/v1/b/broad-jade-dev-data-bucket/o/ecb5601e-9026-428c-b49d-3c5f1807ecb7%2Fe37266ba-790d-4641-aa76-854d94be2fbe%2FE18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz?alt=media',
+                headers: [
+                    `Authorization: Bearer ${fakeToken}`
+                ]
+            },
+            access_id: null,
+            region: 'us-central1'
+        }
+    ],
+    contents: null,
+    description: null,
+    aliases: [
+        '/hca_dev_20201217_test4/5acd55ef/E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz'
+    ]
 };
 
-const hcaDosMarthaResult = {
-    contentType: 'application/octet-stream',
-    size: 148,
-    timeCreated: null,
-    timeUpdated: null,
-    bucket: 'org-hca-dss-checkout-prod',
-    name:
-        'blobs' +
-        '/160fde1559f7154b03a6f645b4c7ff0eb2af37241e2cab3961e7780ead93860a' +
-        '.b0fcf2baaadb4aa6545804998867eff29330762a' +
-        '.d18ef9b8fd14ac922588baeec4853c0d' +
-        '.0ba92b16',
-    gsUri:
-        'gs://org-hca-dss-checkout-prod/blobs' +
-        '/160fde1559f7154b03a6f645b4c7ff0eb2af37241e2cab3961e7780ead93860a' +
-        '.b0fcf2baaadb4aa6545804998867eff29330762a' +
-        '.d18ef9b8fd14ac922588baeec4853c0d' +
-        '.0ba92b16',
-    googleServiceAccount: null,
+const hcaDrsMarthaResult = {
     bondProvider: null,
-    fileName: 'eb32bfc6-e7be-4093-8959-b8bf27f2404f.zarr!.zattrs',
+    gsUri: 'gs://broad-jade-dev-data-bucket/ecb5601e-9026-428c-b49d-3c5f1807ecb7/e37266ba-790d-4641-aa76-854d94be2fbe/E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz',
+    bucket: 'broad-jade-dev-data-bucket',
+    name: 'ecb5601e-9026-428c-b49d-3c5f1807ecb7/e37266ba-790d-4641-aa76-854d94be2fbe/E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz',
+    accessUrl: null,
+    fileName: 'E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz',
+    contentType: null,
+    size: 438932948,
     hashes: {
-        sha256: '160fde1559f7154b03a6f645b4c7ff0eb2af37241e2cab3961e7780ead93860a'
-    }
+        crc32c: '5acd55ef'
+    },
+    timeCreated: '2020-12-17T21:01:25.906Z',
+    timeUpdated: '2020-12-17T21:01:25.906Z',
+    googleServiceAccount: null
 };
 
 module.exports = {
     expectedObjWithMissingFields,
     dosObjectWithMissingFields,
     dosObjectWithInvalidFields,
+    drsObjectWithInvalidFields,
     sampleDosResponse,
     sampleDosMarthaResult,
     dataGuidsOrgResponse,
     dataGuidsOrgMarthaResult,
     jadeDrsResponse,
     jadeDrsMarthaResult,
-    hcaDosResponse,
-    hcaDosMarthaResult,
+    hcaDrsResponse,
+    hcaDrsMarthaResult,
     bdcDrsResponse,
+    bdcDrsResponseCustom,
     bdcDrsMarthaResult,
     anvilDrsResponse,
     anvilDrsMarthaResult,

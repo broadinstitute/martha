@@ -1,7 +1,8 @@
 const {
     jadeDataRepoHostRegex,
-    parseRequest,
     convertToMarthaV3Response,
+    BadRequestError,
+    RemoteServerError,
     logAndSendBadRequest,
     logAndSendServerError,
 } = require('../common/helpers');
@@ -10,8 +11,8 @@ const apiAdapter = require('../common/api_adapter');
 const url = require('url');
 const mask = require('json-mask');
 
-// All fields that can be returned in the martha_v3 response
-const ALL_FIELDS = [
+// All fields that can be returned in the martha_v3 response.
+const MARTHA_V3_ALL_FIELDS = [
     'gsUri',
     'bucket',
     'name',
@@ -23,9 +24,10 @@ const ALL_FIELDS = [
     'timeUpdated',
     'googleServiceAccount',
     'bondProvider',
+    'accessUrl',
 ];
 
-const DEFAULT_FIELDS = [
+const MARTHA_V3_DEFAULT_FIELDS = [
     'gsUri',
     'bucket',
     'name',
@@ -39,7 +41,7 @@ const DEFAULT_FIELDS = [
 ];
 
 // Response fields dependent on the DOS or DRS servers
-const DRS_FIELDS = [
+const MARTHA_V3_METADATA_FIELDS = [
     'gsUri',
     'bucket',
     'name',
@@ -49,17 +51,26 @@ const DRS_FIELDS = [
     'hashes',
     'timeCreated',
     'timeUpdated',
+    'accessUrl',
 ];
 
-// Response fields dependent on Bond
-const BOND_FIELDS = [
+// Response fields dependent on the Bond service account
+const MARTHA_V3_BOND_SA_FIELDS = [
     'googleServiceAccount',
+];
+
+// Response fields dependent on the the access_id
+const MARTHA_V3_ACCESS_ID_FIELDS = [
+    'accessUrl',
 ];
 
 const BOND_PROVIDER_NONE = null; // Used for servers that should NOT contact bond
 const BOND_PROVIDER_DCF_FENCE = 'dcf-fence'; // The default when we don't recognize the server
 const BOND_PROVIDER_FENCE = 'fence';
 const BOND_PROVIDER_ANVIL = 'anvil';
+
+const ACCESS_METHOD_TYPE_NONE = null;
+const ACCESS_METHOD_TYPE_GCS = 'gs';
 
 const AUTH_REQUIRED = true;
 const AUTH_SKIPPED = false;
@@ -76,11 +87,56 @@ const DG_COMPACT_KIDS_FIRST = 'dg.f82a1a';
 
 // noinspection JSUnusedGlobalSymbols
 class DrsType {
-    constructor(urlParts, protocolPrefix, sendAuth, bondProvider) {
+    constructor(urlParts, protocolPrefix, sendAuth, bondProvider, accessMethodType) {
         this.urlParts = urlParts;
         this.protocolPrefix = protocolPrefix;
         this.sendAuth = sendAuth;
         this.bondProvider = bondProvider;
+        this.accessMethodType = accessMethodType;
+    }
+}
+
+/**
+ * Returns undefined if the matching access method does not have an access_id
+ * or if the accessMethodType is falsy or if the drsResponse is falsy.
+ */
+function getDrsAccessId(drsResponse, accessMethodType) {
+    if (!accessMethodType || !drsResponse || !drsResponse.access_methods) {
+        return;
+    }
+    for (const accessMethod of drsResponse.access_methods) {
+        if (accessMethod.type === accessMethodType) {
+            return accessMethod.access_id;
+        }
+    }
+}
+
+function getPathFileName(path) {
+    return path && path.replace(/^.*[\\/]/, '');
+}
+
+function getUrlFileName(url) {
+    return url && getPathFileName(new URL(url).pathname);
+}
+
+/**
+ * Attempts to return the file name using only the drsResponse.
+ *
+ * It is possible the name may need to be retrieved from the signed url.
+ */
+function getDrsFileName(drsResponse) {
+    if (!drsResponse) {
+        return;
+    }
+
+    const { name, access_methods } = drsResponse;
+
+    if (name) {
+        return name;
+    }
+
+    if (access_methods && access_methods[0] && access_methods[0].access_url) {
+        return getUrlFileName(access_methods[0].access_url.url);
     }
 }
 
@@ -174,7 +230,7 @@ function getHttpsUrlParts(url) {
     // The many different ways a DOS/DRS may be "compact", in the order that the should be tried
     const cibRegExps = [
         // Non-W3C CIB DOS/DRS URIs, where the `dg.abcd` appears more than once
-        /(?:dos|drs):\/\/(?<host>dg\.[0-9a-z-]+)(?<separator>:)(?:\k<host>)\/(?<suffix>[^?]*)(?<query>\?(.*))?/i,
+        /(?:dos|drs):\/\/(?<host>dg\.[0-9a-z-]+)(?<separator>:)\k<host>\/(?<suffix>[^?]*)(?<query>\?(.*))?/i,
         // Non-W3C CIB DOS/DRS URIs, where the `dg.abcd` is only mentioned once
         /(?:dos|drs):\/\/(?<host>dg\.[0-9a-z-]+)(?<separator>:)(?<suffix>[^?]*)(?<query>\?(.*))?/i,
         // W3C compatible using a slash separator
@@ -199,9 +255,14 @@ function getHttpsUrlParts(url) {
         };
     }
 
-    const parsedUrl = new URL(url);
+    let parsedUrl;
+    try {
+        parsedUrl = new URL(url);
+    } catch (error) {
+        throw new BadRequestError(error.message);
+    }
     if (!parsedUrl.hostname || !parsedUrl.pathname) {
-        throw new Error(`"${url}" is missing a host and/or a path.`);
+        throw new BadRequestError(`"${url}" is missing a host and/or a path.`);
     }
     return {
         httpsUrlHost: parsedUrl.hostname,
@@ -212,15 +273,28 @@ function getHttpsUrlParts(url) {
 }
 
 // NOTE: reimplementation of dataObjectUriToHttps in helper.js
-function httpsUrlGenerator(drsType) {
+function generateMetadataUrl(drsType) {
     const { urlParts, protocolPrefix } = drsType;
-    return url.format({
-        protocol: 'https',
-        hostname: urlParts.httpsUrlHost,
-        pathname: `${protocolPrefix}/${urlParts.protocolSuffix}`,
-        port: urlParts.httpsUrlPort,
-        search: urlParts.httpsUrlSearch
-    });
+    // Construct a WHATWG URL by first only setting the protocol and the hostname: https://github.com/whatwg/url/issues/354
+    const generatedUrl = new URL(`https://${urlParts.httpsUrlHost}`);
+    generatedUrl.port = urlParts.httpsUrlPort;
+    generatedUrl.pathname = `${protocolPrefix}/${urlParts.protocolSuffix}`;
+    if (urlParts.httpsUrlSearch) {
+        generatedUrl.search = urlParts.httpsUrlSearch;
+    }
+    return url.format(generatedUrl);
+}
+
+function generateAccessUrl(drsType, accessId) {
+    const { urlParts, protocolPrefix } = drsType;
+    // Construct a WHATWG URL by first only setting the protocol and the hostname: https://github.com/whatwg/url/issues/354
+    const generatedUrl = new URL(`https://${urlParts.httpsUrlHost}`);
+    generatedUrl.port = urlParts.httpsUrlPort;
+    generatedUrl.pathname = `${protocolPrefix}/${urlParts.protocolSuffix}/access/${accessId}`;
+    if (urlParts.httpsUrlSearch) {
+        generatedUrl.search = urlParts.httpsUrlSearch;
+    }
+    return url.format(generatedUrl);
 }
 
 /** *************************************************************************************************
@@ -273,6 +347,7 @@ function determineDrsType(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_FENCE,
+            ACCESS_METHOD_TYPE_GCS,
         );
     }
 
@@ -283,6 +358,7 @@ function determineDrsType(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_ANVIL,
+            ACCESS_METHOD_TYPE_NONE,
         );
     }
 
@@ -293,16 +369,7 @@ function determineDrsType(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_REQUIRED,
             BOND_PROVIDER_NONE,
-        );
-    }
-
-    // HCA
-    if (host.endsWith('.humancellatlas.org')) {
-        return new DrsType(
-            urlParts,
-            PROTOCOL_PREFIX_DOS,
-            AUTH_SKIPPED,
-            BOND_PROVIDER_NONE,
+            ACCESS_METHOD_TYPE_NONE,
         );
     }
 
@@ -313,6 +380,7 @@ function determineDrsType(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_DCF_FENCE,
+            ACCESS_METHOD_TYPE_NONE,
         );
     }
 
@@ -323,27 +391,28 @@ function determineDrsType(url) {
         PROTOCOL_PREFIX_DOS,
         AUTH_SKIPPED,
         BOND_PROVIDER_DCF_FENCE,
+        ACCESS_METHOD_TYPE_NONE,
     );
 }
 
 function validateRequest(url, auth, requestedFields) {
     if (!url) {
-        throw new Error(`'url' is missing.`);
+        throw new BadRequestError(`'url' is missing.`);
     }
 
     if (!auth) {
-        throw new Error('Authorization header is missing.');
+        throw new BadRequestError('Authorization header is missing.');
     }
 
     if (!Array.isArray(requestedFields)) {
-        throw new Error(`'fields' was not an array.`);
+        throw new BadRequestError(`'fields' was not an array.`);
     }
 
-    const invalidFields = requestedFields.filter((field) => !ALL_FIELDS.includes(field));
+    const invalidFields = requestedFields.filter((field) => !MARTHA_V3_ALL_FIELDS.includes(field));
     if (invalidFields.length !== 0) {
-        throw new Error(
+        throw new BadRequestError(
             `Fields '${invalidFields.join("','")}' are not supported. ` +
-            `Supported fields are '${ALL_FIELDS.join("', '")}'.`
+            `Supported fields are '${MARTHA_V3_ALL_FIELDS.join("', '")}'.`
         );
     }
 }
@@ -360,41 +429,52 @@ function overlapFields(requestedFields, serviceFields) {
     return requestedFields.filter((field) => serviceFields.includes(field)).length !== 0;
 }
 
-async function marthaV3Handler(req, res) {
-    const {url, fields: requestedFields = DEFAULT_FIELDS} = parseRequest(req);
-    const {authorization: auth, 'user-agent': userAgent} = req.headers;
-    console.log(`Received URL '${url}' from agent '${userAgent}' on IP '${req.ip}'`);
+function buildRequestInfo(params) {
+    const {
+        url,
+        requestedFields,
+        auth,
+    } = params;
 
-    try {
-        validateRequest(url, auth, requestedFields);
-    } catch (error) {
-        logAndSendBadRequest(res, error);
-        return;
-    }
+    validateRequest(url, auth, requestedFields);
+    const drsType = determineDrsType(url);
 
-    let drsType;
-    try {
-        drsType = determineDrsType(url);
-    } catch (error) {
-        logAndSendBadRequest(res, error);
-        return;
-    }
+    Object.assign(params, {
+        drsType,
+    });
+}
 
-    const httpsMetadataUrl = httpsUrlGenerator(drsType);
-    const {sendAuth, bondProvider} = drsType;
-    const bondUrl = bondProvider && `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
+/**
+ * Retrieves information from the various underlying servers.
+ *
+ * See also:
+ * - https://bvdp-saturn-dev.appspot.com/#workspaces/general-dev-billing-account/DRS%20and%20Signed%20URL%20Development%20-%20Dev
+ * - https://lucid.app/lucidchart/invitations/accept/0f899643-76a9-4b9c-84f5-f11ddac86bba
+ * - https://lucid.app/lucidchart/invitations/accept/8b6f942b-f7dc-4acc-ac36-318a1685e6ac
+ */
+async function retrieveFromServers(params) {
+    const {
+        requestedFields,
+        auth,
+        drsType,
+    } = params;
+
+    const {sendAuth, bondProvider, accessMethodType} = drsType;
     console.log(
-        `Converted DRS URI to HTTPS: ${url} -> ${httpsMetadataUrl} ` +
-        `with auth required '${sendAuth}' and bond provider '${bondProvider}'`
+        `DRS URI '${url}' will use auth required '${sendAuth}', bond provider '${bondProvider}', ` +
+        `and access method type '${accessMethodType}'`
     );
 
     let response;
-    if (overlapFields(requestedFields, DRS_FIELDS)) {
+    if (overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS)) {
         try {
+            const httpsMetadataUrl = generateMetadataUrl(drsType);
+            console.log(
+                `Requesting DRS metadata for '${url}' from '${httpsMetadataUrl}' with auth required '${sendAuth}'`
+            );
             response = await apiAdapter.getJsonFrom(httpsMetadataUrl, sendAuth ? auth : null);
         } catch (error) {
-            logAndSendServerError(res, error, 'Received error while resolving DRS URL.');
-            return;
+            throw new RemoteServerError(error, 'Received error while resolving DRS URL.');
         }
     }
 
@@ -402,27 +482,135 @@ async function marthaV3Handler(req, res) {
     try {
         drsResponse = responseParser(response);
     } catch (error) {
-        logAndSendServerError(res, error, 'Received error while parsing response from DRS URL.');
-        return;
+        throw new RemoteServerError(error, 'Received error while parsing response from DRS URL.');
     }
 
-    let bondSA;
-    if (bondUrl && overlapFields(requestedFields, BOND_FIELDS)) {
+    /*
+    Try to retrieve the file name from the initial DRS response.
+
+    NOTE: There is the possibility that whomever uploaded the DRS metadata did not populate the DRS name nor the DRS
+    access URL stored in the DRS provider.
+
+    In that case, the fileName will be returned as null.
+
+    As a change request, for folks ingesting data without populating the name field, martha_v3 could ask the DRS
+    provider for the expensive signed HTTPS URL, then retrieve the name of the file from the path in that URL.
+     */
+    const fileName = getDrsFileName(drsResponse);
+
+    let accessId;
+    if (overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS)) {
         try {
-            bondSA = await apiAdapter.getJsonFrom(bondUrl, auth);
+            accessId = getDrsAccessId(drsResponse, accessMethodType);
         } catch (error) {
-            logAndSendServerError(res, error, 'Received error contacting Bond.');
-            return;
+            throw new RemoteServerError(error, 'Received error while parsing the access id.');
         }
     }
 
-    const fullResponse = requestedFields.length ? convertToMarthaV3Response(drsResponse, bondProvider, bondSA) : {};
+    // Retrieve an accessToken from Bond that will be used to later retrieve the accessUrl from the DRS server.
+    let accessToken;
+    if (bondProvider && accessId) {
+        try {
+            const bondAccessTokenUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/accesstoken`;
+            console.log(`Requesting Bond access token for '${url}' from '${bondAccessTokenUrl}'`);
+            const accessTokenResponse = await apiAdapter.getJsonFrom(bondAccessTokenUrl, auth);
+            accessToken = accessTokenResponse.token;
+        } catch (error) {
+            throw new RemoteServerError(error, 'Received error contacting Bond.');
+        }
+    }
+
+    // Retrieve the accessUrl using the returned accessToken, even if the token was empty.
+    let accessUrl;
+    if (bondProvider && accessId) {
+        try {
+            const httpsAccessUrl = generateAccessUrl(drsType, accessId);
+            const accessTokenAuth = `Bearer ${accessToken}`;
+            console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}'`);
+            accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, accessTokenAuth);
+        } catch (error) {
+            throw new RemoteServerError(error, 'Received error contacting DRS provider.');
+        }
+    }
+
+    let bondSA;
+    if (bondProvider && overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS)) {
+        try {
+            const bondSAKeyUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
+            console.log(`Requesting Bond SA key for '${url}' from '${bondSAKeyUrl}'`);
+            bondSA = await apiAdapter.getJsonFrom(bondSAKeyUrl, auth);
+        } catch (error) {
+            throw new RemoteServerError(error, 'Received error contacting Bond.');
+        }
+    }
+
+    Object.assign(params, {
+        bondProvider,
+        drsResponse,
+        fileName,
+        accessUrl,
+        bondSA,
+    });
+}
+
+function buildResponseInfo(params) {
+    const {
+        requestedFields,
+        bondProvider,
+        drsResponse,
+        fileName,
+        accessUrl,
+        bondSA,
+    } = params;
+
+    const fullResponse =
+        requestedFields.length
+            ? convertToMarthaV3Response(drsResponse, fileName, bondProvider, bondSA, accessUrl)
+            : {};
     const partialResponse = mask(fullResponse, requestedFields.join(","));
 
-    res.status(200).send(partialResponse);
+    Object.assign(params, {
+        partialResponse,
+    });
+}
+
+async function marthaV3Handler(req, res) {
+    try {
+        // This function counts on the request posting data as "application/json" content-type.
+        // See: https://cloud.google.com/functions/docs/writing/http#parsing_http_requests for more details
+        const {url, fields: requestedFields = MARTHA_V3_DEFAULT_FIELDS} = (req && req.body) || {};
+        const {authorization: auth, 'user-agent': userAgent} = req.headers;
+        const ip = req.ip;
+        console.log(`Received URL '${url}' from agent '${userAgent}' on IP '${ip}'`);
+
+        const params = {
+            url,
+            requestedFields,
+            auth,
+        };
+
+        buildRequestInfo(params);
+        await retrieveFromServers(params);
+        buildResponseInfo(params);
+
+        res.status(200).send(params.partialResponse);
+    } catch (error) {
+        if (error instanceof BadRequestError) {
+            logAndSendBadRequest(res, error);
+        } else if (error instanceof RemoteServerError) {
+            logAndSendServerError(res, error.cause, error.description);
+        } else {
+            console.error(`Uncaught error: ${error}`);
+            throw error;
+        }
+    }
 }
 
 exports.marthaV3Handler = marthaV3Handler;
+exports.DrsType = DrsType;
 exports.determineDrsType = determineDrsType;
-exports.httpsUrlGenerator = httpsUrlGenerator;
-exports.allMarthaFields = ALL_FIELDS;
+exports.generateMetadataUrl = generateMetadataUrl;
+exports.generateAccessUrl = generateAccessUrl;
+exports.getDrsAccessId = getDrsAccessId;
+exports.getHttpsUrlParts = getHttpsUrlParts;
+exports.MARTHA_V3_ALL_FIELDS = MARTHA_V3_ALL_FIELDS;

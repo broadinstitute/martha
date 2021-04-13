@@ -82,23 +82,6 @@ test.serial('Valid bucket, object, and Data GUID dataObjectUri returns signed UR
     t.is(fakeSignedUrl, result.url);
 });
 
-test.serial('Valid bucket, object, and HCA dataObjectUri returns signed URL using SA key from SAM', async (t) => {
-    getJsonFromApiStub.resolves(fakeSAKey);
-    getSignedUrlStub.resolves([fakeSignedUrl]);
-    const response = mockResponse();
-    await getSignedUrlV1(mockRequest({
-        body: {
-            bucket: 'testBucket',
-            object: 'testObjectKey',
-            dataObjectUri: 'drs://someservice.humancellatlas.org/this_part_can_be_anything'
-        }
-    }), response);
-    t.regex(getJsonFromApiStub.firstCall.args[0], samPetSAKeyUrlRegEx); // User SA key obtained from SAM
-    t.is(response.statusCode, 200);
-    const result = response.send.lastCall.args[0];
-    t.is(fakeSignedUrl, result.url);
-});
-
 test.serial('Valid bucket, object, and JDR dataObjectUri returns signed URL using SA key from SAM', async (t) => {
     getJsonFromApiStub.resolves(fakeSAKey);
     getSignedUrlStub.resolves([fakeSignedUrl]);

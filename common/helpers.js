@@ -176,7 +176,8 @@ class MarthaV3Response extends CommonFileInfoResponse {
         googleServiceAccount,
         bondProvider,
         fileName,
-        hashesMap
+        hashesMap,
+        accessUrl,
     ) {
         super(
             contentType,
@@ -192,6 +193,7 @@ class MarthaV3Response extends CommonFileInfoResponse {
         this.timeUpdated = updated || null;
         this.fileName = fileName || null;
         this.bondProvider = bondProvider || null;
+        this.accessUrl = accessUrl || null;
         delete this.updated;
     }
 }
@@ -266,7 +268,7 @@ const promiseHandler = (fn) => (req, res) => {
 /**
  * Extracts the bucket and path from a Google Cloud Storage URL
  *
- * @param uri The GCS url
+ * @param {?string} uri The GCS URI
  * @returns {string[]} An array with the bucket and the path.
  */
 function parseGsUri(uri) {
@@ -358,18 +360,21 @@ function getGsUrlFromDrsObject(drsResponse) {
  * @param {number} [drsResponse.size] The blob size in bytes
  * @param {string} [drsResponse.updated_time] Timestamp of content update in RFC3339, identical to created_time in
  *     systems that do not support updates
+ * @param {?string} [fileName] The file name
  * @param {?string} [bondProvider] The Bond provider
  * @param {?Object} [googleSA] A google service account json
+ * @param {?Object} [accessUrl] An access URL
+ * @param {string} accessUrl.url A URL used to fetch object bytes
+ * @param {?Object} [accessUrl.headers] The optional headers to include in the HTTP request to url
  * @returns {MarthaV3Response} The drs object converted to a martha_v3 response
  */
-function convertToMarthaV3Response(drsResponse, bondProvider, googleSA) {
+function convertToMarthaV3Response(drsResponse, fileName, bondProvider, googleSA, accessUrl) {
     const {
         checksums,
         mime_type: mimeType = 'application/octet-stream',
         size: maybeNumberSize,
         created_time: createdTime,
         updated_time: updatedTime,
-        name: maybeFileName,
     } = drsResponse || {};
 
     // Some (but not all!) DRS servers return time without a timezone (see example responses in `_martha_v3_resources.js`)
@@ -401,9 +406,6 @@ function convertToMarthaV3Response(drsResponse, bondProvider, googleSA) {
      */
     const size = Number(maybeNumberSize);
 
-    // Use the filename of the server, or get the name from the GCS object name we generated above
-    const fileName = maybeFileName || (name && name.replace(/^.*[\\/]/, ''));
-
     return new MarthaV3Response(
         mimeType,
         size,
@@ -415,8 +417,20 @@ function convertToMarthaV3Response(drsResponse, bondProvider, googleSA) {
         googleServiceAccount,
         bondProvider,
         fileName,
-        hashesMap
+        hashesMap,
+        accessUrl,
     );
+}
+
+class BadRequestError extends Error {
+}
+
+class RemoteServerError extends Error {
+    constructor(cause, description) {
+        super(cause.message);
+        this.cause = cause;
+        this.description = description;
+    }
 }
 
 function logAndSendBadRequest(res, error) {
@@ -471,6 +485,8 @@ module.exports = {
     FileSummaryV1Response,
     MarthaV3Response,
     FailureResponse,
+    BadRequestError,
+    RemoteServerError,
     logAndSendBadRequest,
     logAndSendServerError,
 };

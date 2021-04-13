@@ -13,7 +13,6 @@ const fileSummaryV1 = require('../../fileSummaryV1/fileSummaryV1').fileSummaryV1
 const saKeys = require('../../fileSummaryV1/service_account_keys');
 const metadataApi = require('../../fileSummaryV1/metadata_api');
 const createSignedGsUrl = require('../../common/createSignedGsUrl');
-const apiAdapter = require('../../common/api_adapter');
 const { FileSummaryV1Response } = require('../../common/helpers');
 
 const mockRequest = (req) => {
@@ -72,8 +71,6 @@ const getMetadataMethodName = 'getMetadata';
 let getMetadataStub;
 const createSignedUrlMethodName = 'createSignedGsUrl';
 let createSignedUrlStub;
-const getJsonFromApiMethodName = 'getJsonFrom';
-let getJsonFromApiStub;
 const sandbox = sinon.createSandbox();
 
 test.serial.beforeEach(() => {
@@ -84,7 +81,6 @@ test.serial.beforeEach(() => {
     getMetadataStub.returns(gsObjectMetadata());
     createSignedUrlStub = sandbox.stub(createSignedGsUrl, createSignedUrlMethodName);
     createSignedUrlStub.returns(fakeSignedUrl);
-    getJsonFromApiStub = sandbox.stub(apiAdapter, getJsonFromApiMethodName);
 });
 
 test.serial.afterEach(() => {
@@ -117,19 +113,6 @@ test.serial('fileSummaryV1Handler resolves a valid drs:// Data Object url into m
     const mockReq = mockRequest({ body: { uri: 'drs://example.com/validGS' } });
     await fileSummaryV1(mockReq, response);
     const result = response.send.lastCall.args[0];
-    t.deepEqual(result, gsObjectMetadata());
-    t.falsy(result.signedUrl);
-    t.is(response.statusCode, 200);
-});
-
-test.serial('fileSummaryV1Handler resolves a valid HCA drs:// Data Object url into metadata with no signed url and no SA key', async (t) => {
-    getServiceAccountKeyStub.restore();
-    sandbox.stub(saKeys, getServiceAccountKeyMethodName).callThrough();
-    const response = mockResponse();
-    const mockReq = mockRequest({ body: { uri: 'drs://someservice.humancellatlas.org/someObjectId' } });
-    await fileSummaryV1(mockReq, response);
-    const result = response.send.lastCall.args[0];
-    t.true(getJsonFromApiStub.notCalled); // Bond was not called to get SA key
     t.deepEqual(result, gsObjectMetadata());
     t.falsy(result.signedUrl);
     t.is(response.statusCode, 200);

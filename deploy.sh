@@ -108,13 +108,13 @@ docker run \
     "gcloud config set project ${DEPLOY_PROJECT_NAME} &&
       gcloud auth activate-service-account --key-file ${MARTHA_PATH}/${SERVICE_ACCT_KEY_FILE} &&
       cd ${MARTHA_PATH} &&
-      gcloud beta functions deploy martha_v2 --trigger-http --source=. --runtime nodejs10 \\
+      gcloud beta functions deploy martha_v2 --trigger-http --source=. --runtime nodejs12 \\
         --allow-unauthenticated --project ${DEPLOY_PROJECT_NAME} &&
-      gcloud beta functions deploy martha_v3 --trigger-http --source=. --runtime nodejs10 \\
+      gcloud beta functions deploy martha_v3 --trigger-http --source=. --runtime nodejs12 \\
         --allow-unauthenticated --project ${DEPLOY_PROJECT_NAME} &&
-      gcloud beta functions deploy fileSummaryV1 --trigger-http --source=. --runtime nodejs10 \\
+      gcloud beta functions deploy fileSummaryV1 --trigger-http --source=. --runtime nodejs12 \\
         --allow-unauthenticated --project ${DEPLOY_PROJECT_NAME} &&
-      gcloud beta functions deploy getSignedUrlV1 --trigger-http --source=. --runtime nodejs10 \\
+      gcloud beta functions deploy getSignedUrlV1 --trigger-http --source=. --runtime nodejs12 \\
         --allow-unauthenticated --project ${DEPLOY_PROJECT_NAME} &&
       npm ci &&
       npm run-script smoketest"
