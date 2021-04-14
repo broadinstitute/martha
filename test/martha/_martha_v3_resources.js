@@ -351,8 +351,7 @@ const kidsFirstDrsResponse = {
     ],
     checksums: [
         {
-            Checksum:
-                '24e5d5d0ddd094be0ffb672875b10576-6572',
+            checksum: '24e5d5d0ddd094be0ffb672875b10576-6572',
             type: 'etag'
         }
     ],
@@ -385,8 +384,7 @@ const kidsFirstDrsMarthaResult = (expectedAccessUrl) => {
         bondProvider: 'kids-first',
         fileName: 'fa9c2cb04f614f90b75323b05bfdd231.bam',
         hashes: {
-            // This case captures current Martha behavior, selectively allow `undefined`
-            etag: undefined // eslint-disable-line no-undefined
+            etag: '24e5d5d0ddd094be0ffb672875b10576-6572'
         }
     };
 };
