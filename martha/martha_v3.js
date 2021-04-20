@@ -24,6 +24,7 @@ const MARTHA_V3_ALL_FIELDS = [
     'timeUpdated',
     'googleServiceAccount',
     'bondProvider',
+    'accessMethodType',
     'accessUrl',
 ];
 
@@ -51,6 +52,7 @@ const MARTHA_V3_METADATA_FIELDS = [
     'hashes',
     'timeCreated',
     'timeUpdated',
+    'accessMethodType',
     'accessUrl',
 ];
 
@@ -497,19 +499,12 @@ async function retrieveFromServers(params) {
     provider for the expensive signed HTTPS URL, then retrieve the name of the file from the path in that URL.
      */
     const fileName = getDrsFileName(drsResponse);
+    const accessId = getDrsAccessId(drsResponse, accessMethodType);
 
-    let accessId;
-    if (overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS)) {
-        try {
-            accessId = getDrsAccessId(drsResponse, accessMethodType);
-        } catch (error) {
-            throw new RemoteServerError(error, 'Received error while parsing the access id.');
-        }
-    }
-
-    // Retrieve an accessToken from Bond that will be used to later retrieve the accessUrl from the DRS server.
     let accessToken;
-    if (bondProvider && accessId) {
+    let accessUrl;
+    if (bondProvider && accessId && overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS)) {
+        // Retrieve an accessToken from Bond that will be used to later retrieve the accessUrl from the DRS server.
         try {
             const bondAccessTokenUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/accesstoken`;
             console.log(`Requesting Bond access token for '${url}' from '${bondAccessTokenUrl}'`);
@@ -518,11 +513,8 @@ async function retrieveFromServers(params) {
         } catch (error) {
             throw new RemoteServerError(error, 'Received error contacting Bond.');
         }
-    }
 
-    // Retrieve the accessUrl using the returned accessToken, even if the token was empty.
-    let accessUrl;
-    if (bondProvider && accessId) {
+        // Retrieve the accessUrl using the returned accessToken, even if the token was empty.
         try {
             const httpsAccessUrl = generateAccessUrl(drsType, accessId);
             const accessTokenAuth = `Bearer ${accessToken}`;
@@ -546,6 +538,7 @@ async function retrieveFromServers(params) {
 
     Object.assign(params, {
         bondProvider,
+        accessMethodType,
         drsResponse,
         fileName,
         accessUrl,
@@ -559,13 +552,14 @@ function buildResponseInfo(params) {
         bondProvider,
         drsResponse,
         fileName,
+        accessMethodType,
         accessUrl,
         bondSA,
     } = params;
 
     const fullResponse =
         requestedFields.length
-            ? convertToMarthaV3Response(drsResponse, fileName, bondProvider, bondSA, accessUrl)
+            ? convertToMarthaV3Response(drsResponse, fileName, bondProvider, bondSA, accessMethodType, accessUrl)
             : {};
     const partialResponse = mask(fullResponse, requestedFields.join(","));
 
@@ -606,11 +600,15 @@ async function marthaV3Handler(req, res) {
     }
 }
 
-exports.marthaV3Handler = marthaV3Handler;
-exports.DrsType = DrsType;
-exports.determineDrsType = determineDrsType;
-exports.generateMetadataUrl = generateMetadataUrl;
-exports.generateAccessUrl = generateAccessUrl;
-exports.getDrsAccessId = getDrsAccessId;
-exports.getHttpsUrlParts = getHttpsUrlParts;
-exports.MARTHA_V3_ALL_FIELDS = MARTHA_V3_ALL_FIELDS;
+module.exports = {
+    MARTHA_V3_ALL_FIELDS,
+    ACCESS_METHOD_TYPE_NONE,
+    ACCESS_METHOD_TYPE_GCS,
+    DrsType,
+    getDrsAccessId,
+    getHttpsUrlParts,
+    generateMetadataUrl,
+    generateAccessUrl,
+    determineDrsType,
+    marthaV3Handler,
+};
