@@ -81,6 +81,7 @@ function mockGcsAccessUrl(gsUrlString) {
 
 const bondSAKeyUrlRegEx = /^https:\/\/([^/]+)\/api\/link\/v1\/([a-z-]+)\/serviceaccount\/key$/;
 
+// eslint-disable-next-line no-unused-vars
 const bondAccessTokenUrlRegEx = /^https:\/\/([^/]+)\/api\/link\/v1\/([a-z-]+)\/accesstoken$/;
 
 let getJsonFromApiStub;
