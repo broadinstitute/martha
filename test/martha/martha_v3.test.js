@@ -623,9 +623,6 @@ test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t)
 
 // BT-236 temporarily cut access token and access endpoint out of the flow
 test.serial('martha_v3 parses BDC response correctly', async (t) => {
-    const drsAccessUrlResponse = mockGcsAccessUrl(bdcDrsResponse.access_methods[0].access_url.url);
-    // Rotated once from Michael Baumann's sequence diagram so that call 0 is the second call down from the top,
-    // call 3 is the top call.
     // https://lucid.app/lucidchart/428a0bdd-a884-4fc7-9a49-7bf300ef6777/edit?shared=true&page=0_0#
     getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
@@ -637,12 +634,9 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
     );
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
-    // Bond was called once to get SA key.
-    // DRS server was called once to get DRS response.
-    // 1 + 1 = 2.
     sinon.assert.callCount(getJsonFromApiStub, 2);
 
-    t.deepEqual({ ...result }, {...bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse), accessUrl: null});
+    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, null));
 
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
@@ -661,7 +655,6 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
 
 // BT-236 temporarily cut access token and access endpoint out of the flow
 test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
-    const drsAccessUrlResponse = mockGcsAccessUrl(bdcDrsResponse.access_methods[0].access_url.url);
     getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
     const response = mockResponse();
@@ -672,7 +665,7 @@ test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
     sinon.assert.callCount(getJsonFromApiStub, 2);
-    t.deepEqual({ ...result }, {...bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse), accessUrl: null});
+    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, null));
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
         `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
