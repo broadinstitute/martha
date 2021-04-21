@@ -34,22 +34,25 @@ const {
 const test = require('ava');
 const sinon = require('sinon');
 const {
-    marthaV3Handler: marthaV3,
+    MARTHA_V3_ALL_FIELDS,
+    REQUEST_TIMEOUT_RESULT,
     DrsType,
-    determineDrsType,
-    generateMetadataUrl,
-    generateAccessUrl,
     getDrsAccessId,
     getHttpsUrlParts,
-    MARTHA_V3_ALL_FIELDS,
+    generateMetadataUrl,
+    generateAccessUrl,
+    determineDrsType,
+    marthaV3Handler: marthaV3,
 } = require('../../martha/martha_v3');
 const apiAdapter = require('../../common/api_adapter');
 const config = require('../../common/config');
 const mask = require('json-mask');
 
+const bearerAuth = 'bearer abc123';
+
 const mockRequest = (req, requestFields = MARTHA_V3_ALL_FIELDS) => {
     req.method = 'POST';
-    req.headers = { authorization: 'bearer abc123' };
+    req.headers = { authorization: bearerAuth };
     if (req.body && typeof req.body.fields === "undefined") {
         req.body.fields = requestFields;
     }
@@ -270,6 +273,60 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
         '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0/access/gs',
     );
     t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
+});
+
+test.serial('martha_v3 calls the correct endpoints when the accessUrl times out', async (t) => {
+    getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
+    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.onCall(2).resolves(REQUEST_TIMEOUT_RESULT);
+    getJsonFromApiStub.onCall(3).resolves(googleSAKeyObject);
+
+    const response = mockResponse();
+    await marthaV3(
+        mockRequest(
+            {
+                body: {
+                    url: 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+                    fields: ['accessUrl', 'googleServiceAccount'],
+                },
+            },
+        ),
+        response,
+    );
+    t.is(response.statusCode, 200);
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
+    t.deepEqual(
+        { ...result },
+        mask(bdcDrsMarthaResult(googleSAKeyObject, null), 'accessUrl,googleServiceAccount'),
+    );
+
+    sinon.assert.callCount(getJsonFromApiStub, 4);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
+            '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+            null,
+        ],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/fence/accesstoken', bearerAuth],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(2).args,
+        [
+            `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
+            '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0/access/gs',
+            `Bearer ${bondAccessTokenResponse.token}`,
+        ],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(3).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/fence/serviceaccount/key', bearerAuth],
+    );
 });
 
 test.serial('martha_v3 calls the correct endpoints when only the fileName is requested and the metadata contains a name', async (t) => {

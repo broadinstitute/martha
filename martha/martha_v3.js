@@ -1,4 +1,5 @@
 const {
+    sleep,
     jadeDataRepoHostRegex,
     convertToMarthaV3Response,
     BadRequestError,
@@ -84,6 +85,9 @@ const DG_COMPACT_BDC_STAGING = 'dg.712c';
 const DG_COMPACT_THE_ANVIL = 'dg.anv0';
 const DG_COMPACT_CRDC = 'dg.4dfc';
 const DG_COMPACT_KIDS_FIRST = 'dg.f82a1a';
+
+const REQUEST_TIMEOUT_MILLIS = 30000;
+const REQUEST_TIMEOUT_RESULT = 'timeout';
 
 // noinspection JSUnusedGlobalSymbols
 class DrsType {
@@ -454,6 +458,7 @@ function buildRequestInfo(params) {
  */
 async function retrieveFromServers(params) {
     const {
+        url,
         requestedFields,
         auth,
         drsType,
@@ -527,7 +532,26 @@ async function retrieveFromServers(params) {
             const httpsAccessUrl = generateAccessUrl(drsType, accessId);
             const accessTokenAuth = `Bearer ${accessToken}`;
             console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}'`);
-            accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, accessTokenAuth);
+            /*
+            TODO: Remove this special error obfuscation after confirming that access URL generation is able to handle
+                the load.
+
+            For now, timeout if URL signing takes too long (including WA-90 retries) then try to return the rest of the
+            result in the remaining short GCF lifecycle.
+
+            NOTE: The call to getJsonFrom will not be canceled, and will keep pointlessly WA-90 retrying. But the
+            upstream client to martha_v3 might get a response if there's time left.
+             */
+            // noinspection JSCheckFunctionSignatures
+            const accessUrlAttempt = await Promise.race([
+                apiAdapter.getJsonFrom(httpsAccessUrl, accessTokenAuth),
+                sleep(REQUEST_TIMEOUT_MILLIS, REQUEST_TIMEOUT_RESULT),
+            ]);
+            if (accessUrlAttempt === REQUEST_TIMEOUT_RESULT) {
+                console.log(`Requesting DRS access URL for '${url}' timed out. Continuing.'`);
+            } else {
+                accessUrl = accessUrlAttempt;
+            }
         } catch (error) {
             throw new RemoteServerError(error, 'Received error contacting DRS provider.');
         }
@@ -606,11 +630,14 @@ async function marthaV3Handler(req, res) {
     }
 }
 
-exports.marthaV3Handler = marthaV3Handler;
-exports.DrsType = DrsType;
-exports.determineDrsType = determineDrsType;
-exports.generateMetadataUrl = generateMetadataUrl;
-exports.generateAccessUrl = generateAccessUrl;
-exports.getDrsAccessId = getDrsAccessId;
-exports.getHttpsUrlParts = getHttpsUrlParts;
-exports.MARTHA_V3_ALL_FIELDS = MARTHA_V3_ALL_FIELDS;
+module.exports = {
+    MARTHA_V3_ALL_FIELDS,
+    REQUEST_TIMEOUT_RESULT,
+    DrsType,
+    getDrsAccessId,
+    getHttpsUrlParts,
+    generateMetadataUrl,
+    generateAccessUrl,
+    determineDrsType,
+    marthaV3Handler,
+};

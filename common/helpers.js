@@ -1,6 +1,6 @@
 const url = require('url');
 const config = require('../common/config');
-
+const sleep = require('util').promisify(setTimeout);
 const moment = require('moment');
 
 const dataGuidsHostPrefix = 'dg.';
@@ -471,6 +471,7 @@ function logAndSendServerError(res, error, description) {
 }
 
 module.exports = {
+    sleep,
     dataObjectUriToHttps,
     samBaseUrl,
     Response,
