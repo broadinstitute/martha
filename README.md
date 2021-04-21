@@ -51,6 +51,7 @@ It will return an object with the properties:
  gsUri:                 string [resolver sometimes returns null],
  googleServiceAccount:  object [null unless the DOS url belongs to a Bond supported host],
  fileName:              string [resolver sometimes returns null],
+ accessMethodType:      string [resolver sometimes returns null],
  accessUrl:             object [resolver sometimes returns null],
  hashes:                object [contains the hashes type and their checksum value; if unknown, it returns null]
 ```
@@ -68,6 +69,7 @@ Example response for /martha_v3:
     "gsUri": "gs://my-bucket/dd3c716a-852f-4d74-9073-9920e835ec8a/f3b148ac-1802-4acc-a0b9-610ea266fb61",
     "googleServiceAccount": null,
     "fileName": "hello.txt",
+    "accessMethodType": "gs",
     "accessUrl": {
       "url": "https://storage.example.com/f3b148ac-1802-4acc-a0b9-610ea266fb61?sig=ABC",
       "headers": {
@@ -89,6 +91,7 @@ The fields are:
 - `fileName`: The file name for the bytes
 - `contentType`: The type of data stored in the bytes
 - `size`: The size of the bytes
+- `accessMethodType`: An optional access method type that may be used to look up an access ID to then fetch an accessUrl
 - `accessUrl`: The url and optional headers to fetch the bytes
 - `hashes`: The various hash types and values for the bytes
 - `timeCreated`: The time of creation for the bytes

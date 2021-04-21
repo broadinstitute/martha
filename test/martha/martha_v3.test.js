@@ -23,8 +23,8 @@ const {
     kidsFirstDrsMarthaResult,
     anvilDrsMarthaResult,
     anvilDrsResponse,
-    gen3CrdcDrsMarthaResult,
-    gen3CrdcResponse,
+    crdcDrsMarthaResult,
+    crdcDrsResponse,
     dosObjectWithMissingFields,
     dosObjectWithInvalidFields,
     drsObjectWithInvalidFields,
@@ -34,14 +34,17 @@ const {
 const test = require('ava');
 const sinon = require('sinon');
 const {
-    marthaV3Handler: marthaV3,
+    MARTHA_V3_ALL_FIELDS,
+    ACCESS_METHOD_TYPE_NONE,
+    ACCESS_METHOD_TYPE_GCS,
+    ACCESS_METHOD_TYPE_S3,
     DrsType,
-    determineDrsType,
-    generateMetadataUrl,
-    generateAccessUrl,
     getDrsAccessId,
     getHttpsUrlParts,
-    MARTHA_V3_ALL_FIELDS,
+    generateMetadataUrl,
+    generateAccessUrl,
+    determineDrsType,
+    marthaV3Handler: marthaV3,
 } = require('../../martha/martha_v3');
 const apiAdapter = require('../../common/api_adapter');
 const config = require('../../common/config');
@@ -259,7 +262,7 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
     sinon.assert.callCount(getJsonFromApiStub, 3); // Bond was not called to retrieve the googleServiceAccount
     t.deepEqual(
         { ...result },
-        mask(bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse), 'accessUrl'),
+        mask(bdcDrsMarthaResult(googleSAKeyObject, ACCESS_METHOD_TYPE_GCS, drsAccessUrlResponse), 'accessUrl'),
     );
 
     const requestedBondAccessTokenUrl = getJsonFromApiStub.getCall(1).args[0];
@@ -302,7 +305,7 @@ test.serial('martha_v3 calls the correct endpoints when only the fileName is req
     sinon.assert.callCount(getJsonFromApiStub, 1); // File name available from the metadata
     t.deepEqual(
         { ...result },
-        mask(bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse), 'fileName'),
+        mask(bdcDrsMarthaResult(googleSAKeyObject, ACCESS_METHOD_TYPE_GCS, drsAccessUrlResponse), 'fileName'),
     );
 });
 
@@ -435,7 +438,8 @@ test.serial('martha_v3 returns an error when an invalid field is requested', asy
                 text:
                     "Request is invalid. Fields 'meaningOfLife' are not supported. Supported fields are " +
                     "'gsUri', 'bucket', 'name', 'fileName', 'contentType', 'size', 'hashes', " +
-                    "'timeCreated', 'timeUpdated', 'googleServiceAccount', 'bondProvider', 'accessUrl'.",
+                    "'timeCreated', 'timeUpdated', 'googleServiceAccount', 'bondProvider', 'accessMethodType', " +
+                    "'accessUrl'.",
             },
             status: 400,
         },
@@ -606,8 +610,8 @@ test.serial('martha_v3 does not call Bond or return SA key when the host url is 
     t.is(getJsonFromApiStub.getCall(0).args[1], 'bearer abc123');
 });
 
-test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
-    getJsonFromApiStub.onCall(0).resolves(gen3CrdcResponse);
+test.serial('martha_v3 parses CRDC response correctly', async (t) => {
+    getJsonFromApiStub.onCall(0).resolves(crdcDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
     const response = mockResponse();
     await marthaV3(
@@ -617,7 +621,7 @@ test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
     sinon.assert.callCount(getJsonFromApiStub, 2);
-    t.deepEqual({ ...result }, gen3CrdcDrsMarthaResult(googleSAKeyObject, null));
+    t.deepEqual({ ...result }, crdcDrsMarthaResult(googleSAKeyObject, ACCESS_METHOD_TYPE_NONE, null));
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
         `https://${config.HOST_CRDC_STAGING}/ga4gh/drs/v1/objects/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc`,
@@ -632,8 +636,8 @@ test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
     t.is(actualSAKeyProvider, expectedSAKeyProvider);
 });
 
-test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t) => {
-    getJsonFromApiStub.onCall(0).resolves(gen3CrdcResponse);
+test.serial('martha_v3 parses a CRDC CIB URI response correctly', async (t) => {
+    getJsonFromApiStub.onCall(0).resolves(crdcDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
     const response = mockResponse();
     await marthaV3(
@@ -643,7 +647,7 @@ test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t)
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
     sinon.assert.callCount(getJsonFromApiStub, 2);
-    t.deepEqual({ ...result }, gen3CrdcDrsMarthaResult(googleSAKeyObject, null));
+    t.deepEqual({ ...result }, crdcDrsMarthaResult(googleSAKeyObject, ACCESS_METHOD_TYPE_NONE, null));
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
         `https://${config.HOST_CRDC_STAGING}/ga4gh/drs/v1/objects/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc`,
@@ -680,7 +684,7 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
     // 2 + 2 = 4.
     sinon.assert.callCount(getJsonFromApiStub, 4);
 
-    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse));
+    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, ACCESS_METHOD_TYPE_GCS, drsAccessUrlResponse));
 
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
@@ -725,7 +729,7 @@ test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
     sinon.assert.callCount(getJsonFromApiStub, 4);
-    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse));
+    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, ACCESS_METHOD_TYPE_GCS, drsAccessUrlResponse));
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
         `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
@@ -767,7 +771,7 @@ test.serial('martha_v3 parses Anvil response correctly', async (t) => {
 
     const result = response.send.lastCall.args[0];
     sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
-    t.deepEqual({ ...result }, anvilDrsMarthaResult(googleSAKeyObject, null));
+    t.deepEqual({ ...result }, anvilDrsMarthaResult(googleSAKeyObject, ACCESS_METHOD_TYPE_NONE, null));
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
         `https://${config.HOST_THE_ANVIL_STAGING}/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`,
@@ -794,7 +798,7 @@ test.serial('martha_v3 parses a The AnVIL CIB URI response correctly', async (t)
 
     const result = response.send.lastCall.args[0];
     sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
-    t.deepEqual({ ...result }, anvilDrsMarthaResult(googleSAKeyObject, null));
+    t.deepEqual({ ...result }, anvilDrsMarthaResult(googleSAKeyObject, ACCESS_METHOD_TYPE_NONE, null));
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
         `https://${config.HOST_THE_ANVIL_STAGING}/ga4gh/drs/v1/objects/dg.ANV0%2F00008531-03d7-418c-b3d3-b7b22b5381a0`,
@@ -823,7 +827,7 @@ test.serial('martha_v3 parses Kids First response correctly', async (t) => {
 
     const result = response.send.lastCall.args[0];
     sinon.assert.callCount(getJsonFromApiStub, 3); // DRS metadata, Bond access token, DRS access URL
-    t.deepEqual({ ...result }, kidsFirstDrsMarthaResult(drsAccessUrlResponse));
+    t.deepEqual({ ...result }, kidsFirstDrsMarthaResult(ACCESS_METHOD_TYPE_S3, drsAccessUrlResponse));
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
         `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
@@ -859,7 +863,7 @@ test.serial('martha_v3 parses a Kids First CIB URI response correctly', async (t
 
     const result = response.send.lastCall.args[0];
     sinon.assert.callCount(getJsonFromApiStub, 3); // DRS metadata, Bond access token, DRS access URL
-    t.deepEqual({ ...result }, kidsFirstDrsMarthaResult(drsAccessUrlResponse));
+    t.deepEqual({ ...result }, kidsFirstDrsMarthaResult(ACCESS_METHOD_TYPE_S3, drsAccessUrlResponse));
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
         `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
@@ -935,26 +939,30 @@ test.serial('martha_v3 should return 500 if Data Object parsing fails', async (t
     );
 });
 
-test.serial('martha_v3 should return 500 if access method parsing fails', async (t) => {
+test.serial('martha_v3 uses the default error handler for access method parsing failures', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(drsObjectWithInvalidFields);
 
     const response = mockResponse();
-    await marthaV3(
-        mockRequest({ body: { 'url': 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0' } }),
-        response,
+    const error = await t.throwsAsync(
+        marthaV3(
+            mockRequest({ body: { 'url': 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0' } }),
+            response,
+        )
     );
-    t.is(response.statusCode, 500);
-    const result = response.send.lastCall.args[0];
+    t.deepEqual(error, new TypeError('drsResponse.access_methods is not iterable'));
+
+    sinon.assert.callCount(getJsonFromApiStub, 1);
     t.deepEqual(
-        { ...result },
-        {
-            response: {
-                status: 500,
-                text: 'Received error while parsing the access id. drsResponse.access_methods is not iterable',
-            },
-            status: 500,
-        },
+        getJsonFromApiStub.getCall(0).args,
+        [
+            `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
+            '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+            null,
+        ],
     );
+
+    sinon.assert.callCount(response.send, 0);
+    t.falsy(response.statusCode);
 });
 
 test.serial('martha_v3 should return 500 on exception trying to get access token from Bond', async (t) => {
