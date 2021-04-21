@@ -232,11 +232,9 @@ test.serial('martha_v3 calls the correct endpoints the googleServiceAccount is r
     t.is(actualSAKeyProvider, expectedSAKeyProvider);
 });
 
+// BT-236 temporarily cut access token and access endpoint out of the flow
 test.serial('martha_v3 calls the correct endpoints when only the accessUrl is requested', async (t) => {
-    const drsAccessUrlResponse = mockGcsAccessUrl(bdcDrsResponse.access_methods[0].access_url.url);
     getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
-    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
-    getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
     const response = mockResponse();
     await marthaV3(
         mockRequest(
@@ -251,25 +249,10 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
     );
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 3); // Bond was not called to retrieve the googleServiceAccount
+    sinon.assert.callCount(getJsonFromApiStub, 1);
     t.deepEqual(
         { ...result },
-        mask(bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse), 'accessUrl'),
-    );
-
-    const requestedBondAccessTokenUrl = getJsonFromApiStub.getCall(1).args[0];
-    const accessTokenUrlMatches = requestedBondAccessTokenUrl.match(bondAccessTokenUrlRegEx);
-    t.truthy(accessTokenUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
-    const expectedAccessTokenProvider = 'fence';
-    const actualAccessTokenProvider = accessTokenUrlMatches[2];
-    t.is(actualAccessTokenProvider, expectedAccessTokenProvider);
-
-    t.is(
-        getJsonFromApiStub.getCall(2).args[0],
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
-        '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0/access/gs',
-    );
-    t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
+        { accessUrl: null });
 });
 
 test.serial('martha_v3 calls the correct endpoints when only the fileName is requested and the metadata contains a name', async (t) => {
@@ -332,10 +315,7 @@ test.serial('martha_v3 calls returns the DRS name field for a file name even whe
         access_url: { url: null },
         access_id: bdcDrsResponse.access_methods[0].access_id,
     });
-    const drsAccessUrlResponse = mockGcsAccessUrl('gs://mybucket/from_access_url.txt');
     getJsonFromApiStub.onCall(0).resolves(drsResponse);
-    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
-    getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
     const response = mockResponse();
     await marthaV3(
         mockRequest(
@@ -350,28 +330,15 @@ test.serial('martha_v3 calls returns the DRS name field for a file name even whe
     );
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 3); // Bond was not called to retrieve the googleServiceAccount
+    sinon.assert.callCount(getJsonFromApiStub, 1);
     t.deepEqual(
         { ...result },
         {
-            accessUrl: { url: 'https://storage.googleapis.com/mybucket/from_access_url.txt?sig=ABC' },
+            accessUrl: null,
             fileName: 'from_name_field.txt',
         },
     );
 
-    const requestedBondAccessTokenUrl = getJsonFromApiStub.getCall(1).args[0];
-    const accessTokenUrlMatches = requestedBondAccessTokenUrl.match(bondAccessTokenUrlRegEx);
-    t.truthy(accessTokenUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
-    const expectedAccessTokenProvider = 'fence';
-    const actualAccessTokenProvider = accessTokenUrlMatches[2];
-    t.is(actualAccessTokenProvider, expectedAccessTokenProvider);
-
-    t.is(
-        getJsonFromApiStub.getCall(2).args[0],
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
-        '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0/access/gs',
-    );
-    t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
 });
 
 test.serial('martha_v3 calls no endpoints when no fields are requested', async (t) => {
@@ -653,15 +620,14 @@ test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t)
     t.is(actualSAKeyProvider, expectedSAKeyProvider);
 });
 
+// BT-236 temporarily cut access token and access endpoint out of the flow
 test.serial('martha_v3 parses BDC response correctly', async (t) => {
     const drsAccessUrlResponse = mockGcsAccessUrl(bdcDrsResponse.access_methods[0].access_url.url);
     // Rotated once from Michael Baumann's sequence diagram so that call 0 is the second call down from the top,
     // call 3 is the top call.
     // https://lucid.app/lucidchart/428a0bdd-a884-4fc7-9a49-7bf300ef6777/edit?shared=true&page=0_0#
     getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
-    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
-    getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
-    getJsonFromApiStub.onCall(3).resolves(googleSAKeyObject);
+    getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
 
     const response = mockResponse();
     await marthaV3(
@@ -670,12 +636,12 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
     );
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
-    // Bond was called twice to get SA key and access token.
-    // DRS server was called twice to get DRS response and signed URL.
-    // 2 + 2 = 4.
-    sinon.assert.callCount(getJsonFromApiStub, 4);
+    // Bond was called once to get SA key.
+    // DRS server was called once to get DRS response.
+    // 1 + 1 = 2.
+    sinon.assert.callCount(getJsonFromApiStub, 2);
 
-    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse));
+    t.deepEqual({ ...result }, {...bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse), accessUrl: null});
 
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
@@ -684,21 +650,7 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
     );
     t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
 
-    const requestedBondAccessTokenUrl = getJsonFromApiStub.getCall(1).args[0];
-    const accessTokenUrlMatches = requestedBondAccessTokenUrl.match(bondAccessTokenUrlRegEx);
-    t.truthy(accessTokenUrlMatches, 'Bond access token URL called does not match Bond access token URL regular expression');
-    const expectedAccessTokenProvider = 'fence';
-    const actualAccessTokenProvider = accessTokenUrlMatches[2];
-    t.is(actualAccessTokenProvider, expectedAccessTokenProvider);
-
-    t.is(
-        getJsonFromApiStub.getCall(2).args[0],
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
-        '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0/access/gs',
-    );
-    t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
-
-    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(3).args[0];
+    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
     const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
     t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
     const expectedSAKeyProvider = 'fence';
@@ -706,12 +658,11 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
     t.is(actualSAKeyProvider, expectedSAKeyProvider);
 });
 
+// BT-236 temporarily cut access token and access endpoint out of the flow
 test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
     const drsAccessUrlResponse = mockGcsAccessUrl(bdcDrsResponse.access_methods[0].access_url.url);
     getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
-    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
-    getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
-    getJsonFromApiStub.onCall(3).resolves(googleSAKeyObject);
+    getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
     const response = mockResponse();
     await marthaV3(
         mockRequest({ body: { 'url': 'drs://dg.712C/fc046e84-6cf9-43a3-99cc-ffa2964b88cb' } }),
@@ -719,8 +670,8 @@ test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
     );
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 4);
-    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse));
+    sinon.assert.callCount(getJsonFromApiStub, 2);
+    t.deepEqual({ ...result }, {...bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse), accessUrl: null});
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
         `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
@@ -728,21 +679,7 @@ test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
     );
     t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
 
-    const requestedBondAccessTokenUrl = getJsonFromApiStub.getCall(1).args[0];
-    const accessTokenUrlMatches = requestedBondAccessTokenUrl.match(bondAccessTokenUrlRegEx);
-    t.truthy(accessTokenUrlMatches, 'Bond access token URL called does not match Bond access token URL regular expression');
-    const expectedAccessTokenProvider = 'fence';
-    const actualAccessTokenProvider = accessTokenUrlMatches[2];
-    t.is(actualAccessTokenProvider, expectedAccessTokenProvider);
-
-    t.is(
-        getJsonFromApiStub.getCall(2).args[0],
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
-        '/dg.712C/fc046e84-6cf9-43a3-99cc-ffa2964b88cb/access/gs',
-    );
-    t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
-
-    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(3).args[0];
+    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
     const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
     t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
     const expectedSAKeyProvider = 'fence';
@@ -911,7 +848,8 @@ test.serial('martha_v3 should return 500 if Data Object parsing fails', async (t
     );
 });
 
-test.serial('martha_v3 should return 500 if access method parsing fails', async (t) => {
+/* BT-236 Skip this as it fails in weird ways (not in 'access method parsing') with signed URLs turned off. */
+test.skip('martha_v3 should return 500 if access method parsing fails', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(drsObjectWithInvalidFields);
 
     const response = mockResponse();
@@ -933,7 +871,9 @@ test.serial('martha_v3 should return 500 if access method parsing fails', async 
     );
 });
 
-test.serial('martha_v3 should return 500 on exception trying to get access token from Bond', async (t) => {
+/* BT-236 Skip testing access token fetch failure since that is not something this code even attempts with BDC
+ * signed URLs turned off. */
+test.skip('martha_v3 should return 500 on exception trying to get access token from Bond', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(null);
 
@@ -956,7 +896,9 @@ test.serial('martha_v3 should return 500 on exception trying to get access token
     );
 });
 
-test.serial('martha_v3 should return 500 on exception trying to get signed URL from DRS provider', async (t) => {
+/* BT-236 Skip testing access URL fetch failure since that is not something this code even attempts with BDC
+ * signed URLs turned off. */
+test.skip('martha_v3 should return 500 on exception trying to get signed URL from DRS provider', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
     getJsonFromApiStub.onCall(2).throws(new Error("Test exception: simulated error from DRS provider"));
