@@ -351,8 +351,7 @@ const kidsFirstDrsResponse = {
     ],
     checksums: [
         {
-            Checksum:
-                '24e5d5d0ddd094be0ffb672875b10576-6572',
+            checksum: '24e5d5d0ddd094be0ffb672875b10576-6572',
             type: 'etag'
         }
     ],
@@ -371,7 +370,7 @@ const kidsFirstDrsResponse = {
     version: 'f70e5775'
 };
 
-const kidsFirstDrsMarthaResult = (expectedGoogleServiceAccount) => {
+const kidsFirstDrsMarthaResult = (expectedAccessUrl) => {
     return {
         contentType: 'application/json',
         size: 55121736836,
@@ -379,14 +378,13 @@ const kidsFirstDrsMarthaResult = (expectedGoogleServiceAccount) => {
         timeUpdated: '2018-05-23T12:32:32.594Z',
         bucket: null, // expected, uses S3
         name: null, // there is definitely a name in the server response, why isn't Martha using it?
-        accessUrl: null,
+        accessUrl: expectedAccessUrl,
         gsUri: null, // expected, uses S3
-        googleServiceAccount: expectedGoogleServiceAccount,
-        bondProvider: 'dcf-fence',
+        googleServiceAccount: null,
+        bondProvider: 'kids-first',
         fileName: 'fa9c2cb04f614f90b75323b05bfdd231.bam',
         hashes: {
-            // This case captures current Martha behavior, selectively allow `undefined`
-            etag: undefined // eslint-disable-line no-undefined
+            etag: '24e5d5d0ddd094be0ffb672875b10576-6572'
         }
     };
 };
@@ -444,6 +442,28 @@ const bdcDrsResponseCustom = (
                     access_url,
                     type: bdcDrsResponse.access_methods[0].type,
                     region: bdcDrsResponse.access_methods[0].region,
+                },
+            ],
+    };
+};
+
+const kidsFirstDrsResponseCustom = (
+    {
+        name = kidsFirstDrsResponse.name,
+        access_url = { url: kidsFirstDrsResponse.access_methods[0].access_url.url },
+        access_id = kidsFirstDrsResponse.access_methods[0].access_id,
+    }
+) => {
+    return {
+        ...kidsFirstDrsResponse,
+        name,
+        access_methods:
+            [
+                {
+                    access_id,
+                    access_url,
+                    type: kidsFirstDrsResponse.access_methods[0].type,
+                    region: kidsFirstDrsResponse.access_methods[0].region,
                 },
             ],
     };
@@ -560,5 +580,6 @@ module.exports = {
     gen3CrdcResponse,
     gen3CrdcDrsMarthaResult,
     kidsFirstDrsResponse,
+    kidsFirstDrsResponseCustom,
     kidsFirstDrsMarthaResult
 };

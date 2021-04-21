@@ -20,6 +20,7 @@ const {
     bdcDrsResponse,
     bdcDrsResponseCustom,
     kidsFirstDrsResponse,
+    kidsFirstDrsResponseCustom,
     kidsFirstDrsMarthaResult,
     anvilDrsMarthaResult,
     anvilDrsResponse,
@@ -79,9 +80,14 @@ function mockGcsAccessUrl(gsUrlString) {
     return { url: `https://storage.googleapis.com/${gsUrl.hostname}${gsUrl.pathname}?sig=ABC` };
 }
 
+function mockS3AccessUrl(s3UrlString) {
+    const s3Url = new URL(s3UrlString);
+    return { url: `https://${s3Url.hostname}.s3-website.us-west-2.amazonaws.com${s3Url.pathname}?sig=ABC` };
+}
+
 const bondSAKeyUrlRegEx = /^https:\/\/([^/]+)\/api\/link\/v1\/([a-z-]+)\/serviceaccount\/key$/;
 
-// const bondAccessTokenUrlRegEx = /^https:\/\/([^/]+)\/api\/link\/v1\/([a-z-]+)\/accesstoken$/;
+const bondAccessTokenUrlRegEx = /^https:\/\/([^/]+)\/api\/link\/v1\/([a-z-]+)\/accesstoken$/;
 
 let getJsonFromApiStub;
 const getJsonFromApiMethodName = 'getJsonFrom';
@@ -309,19 +315,22 @@ test.serial('martha_v3 calls the correct endpoints when only the fileName is req
     t.deepEqual({ ...result }, { fileName: null });
 });
 
-test.serial('martha_v3 calls returns the DRS name field for a file name even when it differs from the access url', async (t) => {
-    const drsResponse = bdcDrsResponseCustom({
+test.serial('martha_v3 calls return the DRS name field for a file name even when it differs from the access url', async (t) => {
+    const drsResponse = kidsFirstDrsResponseCustom({
         name: 'from_name_field.txt',
         access_url: { url: null },
-        access_id: bdcDrsResponse.access_methods[0].access_id,
+        access_id: kidsFirstDrsResponse.access_methods[0].access_id,
     });
+    const drsAccessUrlResponse = mockS3AccessUrl(kidsFirstDrsResponse.access_methods[0].access_url.url);
     getJsonFromApiStub.onCall(0).resolves(drsResponse);
+    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
     const response = mockResponse();
     await marthaV3(
         mockRequest(
             {
                 body: {
-                    url: 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+                    url: 'drs://dg.f82a1a/fa640b0e-9779-452f-99a6-16d833d15bd0',
                     fields: ['fileName', 'accessUrl'],
                 }
             },
@@ -330,15 +339,28 @@ test.serial('martha_v3 calls returns the DRS name field for a file name even whe
     );
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 1);
+    sinon.assert.callCount(getJsonFromApiStub, 3); // Bond was not called to retrieve the googleServiceAccount
     t.deepEqual(
         { ...result },
         {
-            accessUrl: null,
+            accessUrl: { url: 'https://kf-seq-data-washu.s3-website.us-west-2.amazonaws.com/OrofacialCleft/fa9c2cb04f614f90b75323b05bfdd231.bam?sig=ABC' },
             fileName: 'from_name_field.txt',
         },
     );
 
+    const requestedBondAccessTokenUrl = getJsonFromApiStub.getCall(1).args[0];
+    const accessTokenUrlMatches = requestedBondAccessTokenUrl.match(bondAccessTokenUrlRegEx);
+    t.truthy(accessTokenUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
+    const expectedAccessTokenProvider = 'kids-first';
+    const actualAccessTokenProvider = accessTokenUrlMatches[2];
+    t.is(actualAccessTokenProvider, expectedAccessTokenProvider);
+
+    t.is(
+        getJsonFromApiStub.getCall(2).args[0],
+        `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects` +
+        '/fa640b0e-9779-452f-99a6-16d833d15bd0/access/s3',
+    );
+    t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
 });
 
 test.serial('martha_v3 calls no endpoints when no fields are requested', async (t) => {
@@ -735,8 +757,10 @@ test.serial('martha_v3 parses a The AnVIL CIB URI response correctly', async (t)
 });
 
 test.serial('martha_v3 parses Kids First response correctly', async (t) => {
+    const drsAccessUrlResponse = mockS3AccessUrl(kidsFirstDrsResponse.access_methods[0].access_url.url);
     getJsonFromApiStub.onCall(0).resolves(kidsFirstDrsResponse);
-    getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
+    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
     const response = mockResponse();
     await marthaV3(
         mockRequest({ body: { 'url': `drs://${config.HOST_KIDS_FIRST_STAGING}/ed6be7ab-068e-46c8-824a-f39cfbb885cc` } }),
@@ -745,24 +769,34 @@ test.serial('martha_v3 parses Kids First response correctly', async (t) => {
     t.is(response.statusCode, 200);
 
     const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
-    t.deepEqual({ ...result }, kidsFirstDrsMarthaResult(googleSAKeyObject));
+    sinon.assert.callCount(getJsonFromApiStub, 3); // DRS metadata, Bond access token, DRS access URL
+    t.deepEqual({ ...result }, kidsFirstDrsMarthaResult(drsAccessUrlResponse));
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
-        `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
+        `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
     );
     t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
-    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
-    t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
-    const expectedSAKeyProvider = 'dcf-fence';
-    const actualSAKeyProvider = saKeyUrlMatches[2];
-    t.is(actualSAKeyProvider, expectedSAKeyProvider);
+
+    const requestedBondAccessToken = getJsonFromApiStub.getCall(1).args[0];
+    const accessTokenMatches = requestedBondAccessToken.match(bondAccessTokenUrlRegEx);
+    t.truthy(accessTokenMatches, 'Bond URL called does not match Bond URL regular expression');
+    const expectedAccessTokenProvider = 'kids-first';
+    const actualAccessTokenProvider = accessTokenMatches[2];
+    t.is(actualAccessTokenProvider, expectedAccessTokenProvider);
+
+    t.is(
+        getJsonFromApiStub.getCall(2).args[0],
+        `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects` +
+        '/ed6be7ab-068e-46c8-824a-f39cfbb885cc/access/s3',
+    );
+    t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
 });
 
 test.serial('martha_v3 parses a Kids First CIB URI response correctly', async (t) => {
+    const drsAccessUrlResponse = mockS3AccessUrl(kidsFirstDrsResponse.access_methods[0].access_url.url);
     getJsonFromApiStub.onCall(0).resolves(kidsFirstDrsResponse);
-    getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
+    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
     const response = mockResponse();
     await marthaV3(
         mockRequest({ body: { 'url': 'drs://dg.F82A1A:ed6be7ab-068e-46c8-824a-f39cfbb885cc' } }),
@@ -771,19 +805,26 @@ test.serial('martha_v3 parses a Kids First CIB URI response correctly', async (t
     t.is(response.statusCode, 200);
 
     const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
-    t.deepEqual({ ...result }, kidsFirstDrsMarthaResult(googleSAKeyObject));
+    sinon.assert.callCount(getJsonFromApiStub, 3); // DRS metadata, Bond access token, DRS access URL
+    t.deepEqual({ ...result }, kidsFirstDrsMarthaResult(drsAccessUrlResponse));
     t.is(
         getJsonFromApiStub.getCall(0).args[0],
-        `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
+        `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
     );
     t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
-    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
-    t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
-    const expectedSAKeyProvider = 'dcf-fence';
-    const actualSAKeyProvider = saKeyUrlMatches[2];
-    t.is(actualSAKeyProvider, expectedSAKeyProvider);
+    const requestedBondAccessToken = getJsonFromApiStub.getCall(1).args[0];
+    const accessTokenMatches = requestedBondAccessToken.match(bondAccessTokenUrlRegEx);
+    t.truthy(accessTokenMatches, 'Bond URL called does not match Bond URL regular expression');
+    const expectedAccessTokenProvider = 'kids-first';
+    const actualAccessTokenProvider = accessTokenMatches[2];
+    t.is(actualAccessTokenProvider, expectedAccessTokenProvider);
+
+    t.is(
+        getJsonFromApiStub.getCall(2).args[0],
+        `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects` +
+        '/ed6be7ab-068e-46c8-824a-f39cfbb885cc/access/s3',
+    );
+    t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
 });
 
 test.serial('martha_v3 parses HCA response correctly', async (t) => {
@@ -1114,21 +1155,21 @@ test.serial('martha_v3 should parse Data Object uri with the AnVIL staging host'
 test.serial('martha_v3 should parse Data Object uri with the Kids First prefix dg.F82A1A', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://dg.F82A1A/ed6be7ab-068e-46c8-824a-f39cfbb885cc'),
-        `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
+        `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
     );
 });
 
 test.serial('martha_v3 should parse Data Object uri with the Kids First prod repo as host', (t) => {
     t.is(
         determineDrsTypeTestWrapper(`drs://${config.HOST_KIDS_FIRST_PROD}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
-        `https://${config.HOST_KIDS_FIRST_PROD}/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
+        `https://${config.HOST_KIDS_FIRST_PROD}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
     );
 });
 
 test.serial('martha_v3 should parse Data Object uri with the Kids First staging repo as host', (t) => {
     t.is(
         determineDrsTypeTestWrapper(`drs://${config.HOST_KIDS_FIRST_STAGING}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
-        `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/dos/v1/dataobjects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
+        `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
     );
 });
 
