@@ -70,8 +70,7 @@ const BOND_PROVIDER_FENCE = 'fence';
 const BOND_PROVIDER_ANVIL = 'anvil';
 
 const ACCESS_METHOD_TYPE_NONE = null;
-// eslint-disable-next-line no-unused-vars
-const ACCESS_METHOD_TYPE_GCS = 'gs';
+// const ACCESS_METHOD_TYPE_GCS = 'gs';
 
 const AUTH_REQUIRED = true;
 const AUTH_SKIPPED = false;
