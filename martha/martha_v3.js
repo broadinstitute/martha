@@ -70,7 +70,7 @@ const BOND_PROVIDER_FENCE = 'fence';
 const BOND_PROVIDER_ANVIL = 'anvil';
 
 const ACCESS_METHOD_TYPE_NONE = null;
-const ACCESS_METHOD_TYPE_GCS = 'gs';
+// const ACCESS_METHOD_TYPE_GCS = 'gs';
 
 const AUTH_REQUIRED = true;
 const AUTH_SKIPPED = false;
@@ -347,7 +347,7 @@ function determineDrsType(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_FENCE,
-            ACCESS_METHOD_TYPE_GCS,
+            ACCESS_METHOD_TYPE_NONE, /* BT-236 BDC signed URLs temporarily turned off */
         );
     }
 
@@ -457,6 +457,7 @@ async function retrieveFromServers(params) {
         requestedFields,
         auth,
         drsType,
+        url,
     } = params;
 
     const {sendAuth, bondProvider, accessMethodType} = drsType;
