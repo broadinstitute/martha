@@ -69,9 +69,11 @@ const BOND_PROVIDER_NONE = null; // Used for servers that should NOT contact bon
 const BOND_PROVIDER_DCF_FENCE = 'dcf-fence'; // The default when we don't recognize the server
 const BOND_PROVIDER_FENCE = 'fence';
 const BOND_PROVIDER_ANVIL = 'anvil';
+const BOND_PROVIDER_KIDS_FIRST = 'kids-first';
 
 const ACCESS_METHOD_TYPE_NONE = null;
 const ACCESS_METHOD_TYPE_GCS = 'gs';
+const ACCESS_METHOD_TYPE_S3 = 's3';
 
 const AUTH_REQUIRED = true;
 const AUTH_SKIPPED = false;
@@ -351,7 +353,7 @@ function determineDrsType(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_FENCE,
-            ACCESS_METHOD_TYPE_GCS,
+            ACCESS_METHOD_TYPE_NONE, /* BT-236 BDC signed URLs temporarily turned off */
         );
     }
 
@@ -385,6 +387,16 @@ function determineDrsType(url) {
             AUTH_SKIPPED,
             BOND_PROVIDER_DCF_FENCE,
             ACCESS_METHOD_TYPE_NONE,
+        );
+    }
+
+    if (host.endsWith('.kidsfirstdrc.org')) {
+        return new DrsType(
+            urlParts,
+            PROTOCOL_PREFIX_DRS,
+            AUTH_SKIPPED,
+            BOND_PROVIDER_KIDS_FIRST,
+            ACCESS_METHOD_TYPE_S3,
         );
     }
 
@@ -462,6 +474,7 @@ async function retrieveFromServers(params) {
         requestedFields,
         auth,
         drsType,
+        url,
     } = params;
 
     const {sendAuth, bondProvider, accessMethodType} = drsType;
@@ -558,7 +571,11 @@ async function retrieveFromServers(params) {
     }
 
     let bondSA;
-    if (bondProvider && overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS)) {
+    // Only retrieve the SA for projects that implicitly or explicitly use GCS for accessing the data.
+    const accessMethodTypesRequiringSA = [ACCESS_METHOD_TYPE_NONE, ACCESS_METHOD_TYPE_GCS];
+    if (bondProvider &&
+        accessMethodTypesRequiringSA.includes(accessMethodType) &&
+        overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS)) {
         try {
             const bondSAKeyUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
             console.log(`Requesting Bond SA key for '${url}' from '${bondSAKeyUrl}'`);

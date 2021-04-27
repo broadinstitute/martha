@@ -182,7 +182,7 @@ Martha's `martha_v3` implementation translates requests-to and responses-from th
     - Prod host: `data.kidsfirstdrc.org`
     - Dev host: `gen3staging.kidsfirstdrc.org`
     - Martha testing: 🚫 Mock only
-    - Returns Bond SA: Yes, Bond provider `dcf-fence`
+    - Returns Bond SA: Yes, Bond provider `kids-first`
     - Requires OAuth for metadata: 🔓 No
     - Example: `drs://data.kidsfirstdrc.org/ed6be7ab-068e-46c8-824a-f39cfbb885cc`
 - ❌ [Cancer Research Data Commons](https://datacommons.cancer.gov/) (CRDC, drs://dg.4DFC)
