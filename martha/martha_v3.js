@@ -474,7 +474,6 @@ async function retrieveFromServers(params) {
         requestedFields,
         auth,
         drsType,
-        url,
     } = params;
 
     const {sendAuth, bondProvider, accessMethodType} = drsType;
@@ -561,12 +560,12 @@ async function retrieveFromServers(params) {
                 sleep(REQUEST_TIMEOUT_MILLIS, REQUEST_TIMEOUT_RESULT),
             ]);
             if (accessUrlAttempt === REQUEST_TIMEOUT_RESULT) {
-                console.log(`Requesting DRS access URL for '${url}' timed out. Continuing.'`);
+                console.log(`Continuing after request for DRS access URL for '${url}' timed out.`);
             } else {
                 accessUrl = accessUrlAttempt;
             }
         } catch (error) {
-            throw new RemoteServerError(error, 'Received error contacting DRS provider.');
+            console.log(`Continuing after error requesting DRS access URL for '${url}': ${error.message}`);
         }
     }
 

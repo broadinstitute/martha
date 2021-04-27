@@ -265,18 +265,17 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
 });
 
 test.serial('martha_v3 calls the correct endpoints when the accessUrl times out', async (t) => {
-    getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
+    getJsonFromApiStub.onCall(0).resolves(kidsFirstDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
     getJsonFromApiStub.onCall(2).resolves(REQUEST_TIMEOUT_RESULT);
-    getJsonFromApiStub.onCall(3).resolves(googleSAKeyObject);
 
     const response = mockResponse();
     await marthaV3(
         mockRequest(
             {
                 body: {
-                    url: 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
-                    fields: ['accessUrl', 'googleServiceAccount'],
+                    url: 'drs://dg.f82a1a/fa640b0e-9779-452f-99a6-16d833d15bd0',
+                    fields: ['fileName', 'accessUrl'],
                 },
             },
         ),
@@ -288,33 +287,78 @@ test.serial('martha_v3 calls the correct endpoints when the accessUrl times out'
     const result = response.send.getCall(0).args[0];
     t.deepEqual(
         { ...result },
-        mask(bdcDrsMarthaResult(googleSAKeyObject, null), 'accessUrl,googleServiceAccount'),
+        mask(kidsFirstDrsMarthaResult(null), 'fileName,accessUrl'),
     );
 
-    sinon.assert.callCount(getJsonFromApiStub, 4);
+    sinon.assert.callCount(getJsonFromApiStub, 3);
     t.deepEqual(
         getJsonFromApiStub.getCall(0).args,
         [
-            `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
-            '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+            `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects` +
+            '/fa640b0e-9779-452f-99a6-16d833d15bd0',
             null,
         ],
     );
     t.deepEqual(
         getJsonFromApiStub.getCall(1).args,
-        ['https://broad-bond-dev.appspot.com/api/link/v1/fence/accesstoken', bearerAuth],
+        ['https://broad-bond-dev.appspot.com/api/link/v1/kids-first/accesstoken', bearerAuth],
     );
     t.deepEqual(
         getJsonFromApiStub.getCall(2).args,
         [
-            `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
-            '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0/access/gs',
+            `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects` +
+            '/fa640b0e-9779-452f-99a6-16d833d15bd0/access/s3',
             `Bearer ${bondAccessTokenResponse.token}`,
         ],
     );
+});
+
+test.serial('martha_v3 calls the correct endpoints when the accessUrl returns an error', async (t) => {
+    getJsonFromApiStub.onCall(0).resolves(kidsFirstDrsResponse);
+    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.onCall(2).rejects(new Error('Access URL resolution forced to fail by testing stub'));
+
+    const response = mockResponse();
+    await marthaV3(
+        mockRequest(
+            {
+                body: {
+                    url: 'drs://dg.f82a1a/fa640b0e-9779-452f-99a6-16d833d15bd0',
+                    fields: ['fileName', 'accessUrl'],
+                },
+            },
+        ),
+        response,
+    );
+    t.is(response.statusCode, 200);
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual(
-        getJsonFromApiStub.getCall(3).args,
-        ['https://broad-bond-dev.appspot.com/api/link/v1/fence/serviceaccount/key', bearerAuth],
+        { ...result },
+        mask(kidsFirstDrsMarthaResult(null), 'fileName,accessUrl'),
+    );
+
+    sinon.assert.callCount(getJsonFromApiStub, 3);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects` +
+            '/fa640b0e-9779-452f-99a6-16d833d15bd0',
+            null,
+        ],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/kids-first/accesstoken', bearerAuth],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(2).args,
+        [
+            `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects` +
+            '/fa640b0e-9779-452f-99a6-16d833d15bd0/access/s3',
+            `Bearer ${bondAccessTokenResponse.token}`,
+        ],
     );
 });
 
