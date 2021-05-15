@@ -935,7 +935,7 @@ test.skip('martha_v3 should return 500 on exception trying to get access token f
 test.skip('martha_v3 should return 500 on exception trying to get signed URL from DRS provider', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
-    getJsonFromApiStub.onCall(2).throws(new Error("Test exception: simulated error from DRS provider"));
+    getJsonFromApiStub.onCall(2).rejects(new Error("Test exception: simulated error from DRS provider"));
 
     const response = mockResponse();
     await marthaV3(

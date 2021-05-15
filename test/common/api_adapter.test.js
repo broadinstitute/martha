@@ -90,7 +90,7 @@ test.serial('api_adapter getHeaders should return the headers', async (t) => {
 
 test.serial('api_adapter getHeaders should throw errors', async (t) => {
     const error = new MockError('testing errors', 500);
-    headRequest.throws(error);
+    headRequest.rejects(error);
     const result = await t.throwsAsync(getHeaders('Irrelevant URL'));
     sinon.assert.callCount(headRequest, 1);
     t.deepEqual(headRequest.getCall(0).args, ['Irrelevant URL']);
@@ -129,7 +129,7 @@ test.serial('api_adapter getJsonFrom should error on an empty body', async (t) =
 
 test.serial('api_adapter getJsonFrom should not retry HTTP 400 errors', async (t) => {
     const error = new MockError('testing errors', 400);
-    getRequest.throws(error);
+    getRequest.rejects(error);
     const result = await t.throwsAsync(getJsonFrom('Irrelevant URL'));
     t.is(result, error);
     sinon.assert.callCount(getRequest, 1);
@@ -138,7 +138,7 @@ test.serial('api_adapter getJsonFrom should not retry HTTP 400 errors', async (t
 
 test.serial('api_adapter getJsonFrom should retry HTTP 429 errors', async (t) => {
     const error = new MockError('testing errors', 429);
-    getRequest.throws(error);
+    getRequest.rejects(error);
     const result = await t.throwsAsync(getJsonFrom('Irrelevant URL', null, 1, 0));
     t.is(result, error);
     sinon.assert.callCount(getRequest, 5);
@@ -149,7 +149,7 @@ test.serial('api_adapter getJsonFrom should retry HTTP 429 errors', async (t) =>
 
 test.serial('api_adapter getJsonFrom should retry HTTP 500 errors', async (t) => {
     const error = new MockError('testing errors', 500);
-    getRequest.throws(error);
+    getRequest.rejects(error);
     const result = await t.throwsAsync(getJsonFrom('Irrelevant URL', null, 1, 0));
     t.is(result, error);
     sinon.assert.callCount(getRequest, 5);
@@ -160,7 +160,7 @@ test.serial('api_adapter getJsonFrom should retry HTTP 500 errors', async (t) =>
 
 test.serial('api_adapter getJsonFrom should wait between retries', async (t) => {
     const error = new MockError('testing errors', 429);
-    getRequest.throws(error);
+    getRequest.rejects(error);
     const delayMilliseconds = 10;
     const startTime = new Date();
     const result = await t.throwsAsync(getJsonFrom('Irrelevant URL', null, 1, delayMilliseconds));
