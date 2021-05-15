@@ -77,7 +77,7 @@ const sampleDosResponse = {
     }
 };
 
-const sampleDosMarthaResult = (expectedGoogleServiceAccount) => {
+const sampleDosMarthaResult = (googleServiceAccount) => {
     return {
         contentType: 'application/octet-stream',
         size: 15601108255,
@@ -86,7 +86,7 @@ const sampleDosMarthaResult = (expectedGoogleServiceAccount) => {
         bucket: 'bogus',
         name: 'my_data',
         gsUri: 'gs://bogus/my_data',
-        googleServiceAccount: expectedGoogleServiceAccount,
+        googleServiceAccount,
         bondProvider: 'dcf-fence',
         fileName: 'my_data',
         accessUrl: null,
@@ -131,7 +131,7 @@ const dataGuidsOrgResponse = {
     }
 };
 
-const dataGuidsOrgMarthaResult = (expectedGoogleServiceAccount) => {
+const dataGuidsOrgMarthaResult = (googleServiceAccount) => {
     return {
         contentType: 'application/octet-stream',
         size: 39830,
@@ -143,7 +143,7 @@ const dataGuidsOrgMarthaResult = (expectedGoogleServiceAccount) => {
         gsUri:
             'gs://gdc-tcga-phs000178-open/a41b0c4f-ebfb-4277-a941-507340dea85d' +
             '/nationwidechildrens.org_clinical.TCGA-56-A4BY.xml',
-        googleServiceAccount: expectedGoogleServiceAccount,
+        googleServiceAccount,
         bondProvider: 'dcf-fence',
         fileName: 'nationwidechildrens.org_clinical.TCGA-56-A4BY.xml',
         hashes: {
@@ -253,7 +253,7 @@ const gen3CrdcResponse = {
     version: '5eb15d8b'
 };
 
-const gen3CrdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl) => { return {
+const gen3CrdcDrsMarthaResult = (googleServiceAccount, accessUrl) => { return {
     contentType: 'application/json',
     size: 6703858793,
     timeCreated: '2018-06-27T10:28:06.398Z',
@@ -262,11 +262,11 @@ const gen3CrdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl
     name:
         'BRCA/RNA/RNA-Seq/UNC-LCCC/ILLUMINA' +
         '/UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz',
-    accessUrl: expectedAccessUrl,
+    accessUrl,
     gsUri:
         'gs://gdc-tcga-phs000178-controlled/BRCA/RNA/RNA-Seq/UNC-LCCC/ILLUMINA' +
         '/UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz',
-    googleServiceAccount: expectedGoogleServiceAccount,
+    googleServiceAccount,
     bondProvider: 'dcf-fence',
     fileName: 'UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz',
     hashes: {
@@ -309,7 +309,7 @@ const anvilDrsResponse = {
     version: '0a4262ff'
 };
 
-const anvilDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl) => {
+const anvilDrsMarthaResult = (googleServiceAccount, accessUrl) => {
     return {
         contentType: 'application/json',
         size: 143562155,
@@ -319,11 +319,11 @@ const anvilDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl) =
         name:
             'GTEx_Analysis_2017-06-05_v8_RNAseq_bigWig_files' +
             '/GTEX-1GZHY-0011-R6a-SM-9OSWL.Aligned.sortedByCoord.out.patched.md.bigWig',
-        accessUrl: expectedAccessUrl,
+        accessUrl,
         gsUri:
             'gs://fc-secure-ff8156a3-ddf3-42e4-9211-0fd89da62108/GTEx_Analysis_2017-06-05_v8_RNAseq_bigWig_files' +
             '/GTEX-1GZHY-0011-R6a-SM-9OSWL.Aligned.sortedByCoord.out.patched.md.bigWig',
-        googleServiceAccount: expectedGoogleServiceAccount,
+        googleServiceAccount,
         bondProvider: 'anvil',
         fileName: 'GTEX-1GZHY-0011-R6a-SM-9OSWL.Aligned.sortedByCoord.out.patched.md.bigWig',
         hashes: {
@@ -370,7 +370,7 @@ const kidsFirstDrsResponse = {
     version: 'f70e5775'
 };
 
-const kidsFirstDrsMarthaResult = (expectedAccessUrl) => {
+const kidsFirstDrsMarthaResult = (accessUrl) => {
     return {
         contentType: 'application/json',
         size: 55121736836,
@@ -378,7 +378,7 @@ const kidsFirstDrsMarthaResult = (expectedAccessUrl) => {
         timeUpdated: '2018-05-23T12:32:32.594Z',
         bucket: null, // expected, uses S3
         name: null, // there is definitely a name in the server response, why isn't Martha using it?
-        accessUrl: expectedAccessUrl,
+        accessUrl: accessUrl,
         gsUri: null, // expected, uses S3
         googleServiceAccount: null,
         bondProvider: 'kids-first',
@@ -469,7 +469,7 @@ const kidsFirstDrsResponseCustom = (
     };
 };
 
-const bdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl) => {
+const bdcDrsMarthaResult = (googleServiceAccount, accessUrl) => {
     return {
         contentType: 'application/json',
         size: 1386553,
@@ -484,13 +484,13 @@ const bdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl) => 
             '/Sample_HG01131' +
             '/analysis' +
             '/HG01131.final.cram.crai',
-        googleServiceAccount: expectedGoogleServiceAccount,
+        googleServiceAccount,
         bondProvider: 'fence',
         fileName: 'HG01131.final.cram.crai',
         hashes: {
             md5: '8bec761c8a626356eb34dbdfe20649b4'
         },
-        accessUrl: expectedAccessUrl
+        accessUrl
     };
 };
 
