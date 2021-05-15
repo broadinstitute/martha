@@ -32,7 +32,11 @@ const mockResponse = () => {
     };
 };
 
-const gsObjectMetadata = () => {
+const fakeSignedUrl = 'http://i.am.a.signed.url.com/totallyMadeUp';
+const fakeSAKey = {key: 'I am not real'};
+const fakeHash = 'abcdefg';
+
+const gsObjectMetadata = (hash = fakeHash) => {
     return new FileSummaryV1Response(
         'application/json',
         1234,
@@ -43,14 +47,11 @@ const gsObjectMetadata = () => {
         'gs://some.fake-location/file.txt',
         null,
         null,
-        'abcdefg'
+        hash,
     );
 };
 
-const fakeSignedUrl = 'http://i.am.a.signed.url.com/totallyMadeUp';
-const fakeSAKey = {key: 'I am not real'};
-
-const fullExpectedResult = () => {
+const fullExpectedResult = (hash = fakeHash) => {
     return new FileSummaryV1Response(
         'application/json',
         1234,
@@ -61,7 +62,7 @@ const fullExpectedResult = () => {
         'gs://some.fake-location/file.txt',
         null,
         fakeSignedUrl,
-        'abcdefg'
+        hash,
     );
 };
 
@@ -92,6 +93,16 @@ test.serial('fileSummaryV1 resolves a valid gs url into a metadata and signed ur
     await fileSummaryV1(mockRequest({ body: { uri: 'gs://example.com/validGS' } }), response);
     const result = response.send.lastCall.args[0];
     t.deepEqual(result, fullExpectedResult());
+    t.truthy(result.signedUrl);
+    t.is(response.statusCode, 200);
+});
+
+test.serial('fileSummaryV1 resolves a null hash', async (t) => {
+    getMetadataStub.returns(gsObjectMetadata(null));
+    const response = mockResponse();
+    await fileSummaryV1(mockRequest({ body: { uri: 'gs://example.com/validGS' } }), response);
+    const result = response.send.lastCall.args[0];
+    t.deepEqual(result, fullExpectedResult(null));
     t.truthy(result.signedUrl);
     t.is(response.statusCode, 200);
 });

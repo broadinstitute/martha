@@ -4,6 +4,7 @@ const {
     dataObjectUriToHttps,
     jadeDataRepoHostRegex,
     samBaseUrl,
+    getMd5Checksum,
     getHashesMap,
     convertToMarthaV3Response,
     MarthaV3Response,
@@ -45,6 +46,12 @@ test('helpers dataObjectUriToHttps should parse drs:// Data Object uri with quer
 
 test('helpers dataObjectUriToHttps should parse drs:// Data Object uri when host includes a port number', (t) => {
     t.is(dataObjectUriToHttps('drs://foo.com:1234/bar'), 'https://foo.com:1234/ga4gh/dos/v1/dataobjects/bar');
+});
+
+test('helpers dataObjectUriToHttps should ignore suspect path parts of a DRS URI', (t) => {
+    // Multiple slashes are very suspect, probably incorrect, and have contributed to many vulnerabilities.
+    // One of many examples: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=516829
+    t.is(dataObjectUriToHttps('drs://foo.com//foo/bar'), 'https://foo.com/ga4gh/dos/v1/dataobjects');
 });
 /**
  * End Scenario 1
@@ -458,4 +465,54 @@ test('helpers logAndSendServerError should send a Bond failure', (t) => {
         'Bond Invalid authorization token. ' +
         'b\'{\\n  "error": "invalid_token",\\n  "error_description": "Invalid Value"\\n}\\n\'',
     );
+});
+
+test('helpers logAndSendServerError should send a Bond failure even if empty', (t) => {
+    const res = mockResponse();
+    const bondErrorJson = "Some other error";
+    const error = new Error(JSON.stringify(bondErrorJson));
+    error.stack = null;
+    logAndSendServerError(res, error, 'Bond');
+    testFailureResponse(
+        t,
+        res,
+        500,
+        'Bond "Some other error"',
+    );
+});
+
+/**
+ * Test the getMd5Checksum() function
+ */
+
+test('helpers getMd5Checksum should find md5 hashes when present', (t) => {
+    const checksums = [
+        {
+            checksum: '8a366443',
+            type: 'crc32c',
+        }, {
+            checksum: '336ea55913bc261b72875bd259753046',
+            type: 'md5',
+        }, {
+            checksum: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44',
+            type: 'sha256',
+        },
+    ];
+    t.is(getMd5Checksum(checksums), '336ea55913bc261b72875bd259753046');
+});
+
+test('helpers getMd5Checksum should not find md5 hashes when not present', (t) => {
+    const checksums = [
+        {
+            checksum: '8a366443',
+            type: 'crc32c',
+        }, {
+            checksum: '336ea55913bc261b72875bd259753046+junk',
+            type: 'md5+junk',
+        }, {
+            checksum: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44',
+            type: 'sha256',
+        },
+    ];
+    t.falsy(getMd5Checksum(checksums));
 });
