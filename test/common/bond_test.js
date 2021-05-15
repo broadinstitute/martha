@@ -19,7 +19,7 @@ test('BondProviders should contain "dcf-fence" and "fence" and "anvil"', (t) => 
 test('determineBondProvider should be "dcf-fence" if the URL host is "dataguids.org"', (t) => {
     t.is(
         determineBondProvider('dos://dataguids.org/a41b0c4f-ebfb-4277-a941-507340dea85d'),
-        BondProviders.DCF_FENCE
+        BondProviders.DCF_FENCE,
     );
 });
 
@@ -105,9 +105,9 @@ test(
         t.is(
             determineBondProvider(
                 'drs://drs.dev.singlecell.gi.ucsc.edu' +
-                '/bee7a822-ea28-4374-8e18-8b9941392723?version=2019-05-15T205839.080730Z'
+                '/bee7a822-ea28-4374-8e18-8b9941392723?version=2019-05-15T205839.080730Z',
             ),
             BondProviders.DCF_FENCE,
         );
-    }
+    },
 );

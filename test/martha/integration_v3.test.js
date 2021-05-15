@@ -42,13 +42,13 @@ test.before(async () => {
         keyFile,
         email: serviceAccountEmail,
         sub: unauthorizedEmail,
-        scope: scopes
+        scope: scopes,
     }).getToken()).access_token;
     authorizedToken = (await new GoogleToken({
         keyFile,
         email: serviceAccountEmail,
         sub: authorizedEmail,
-        scope: scopes
+        scope: scopes,
     }).getToken()).access_token;
 
     await postJsonTo(fenceAuthLink, `Bearer ${authorizedToken}`);
@@ -237,9 +237,9 @@ test.cb('integration_v3 responds with Data Object for authorized user for jade d
                     fileName: 'HG00096.mapped.ILLUMINA.bwa.GBR.low_coverage.20120522.bam',
                     hashes: {
                         md5: '336ea55913bc261b72875bd259753046',
-                        crc32c: 'ecb19226'
-                    }
-                }
+                        crc32c: 'ecb19226',
+                    },
+                },
             );
         })
         .end((error, response) => {
