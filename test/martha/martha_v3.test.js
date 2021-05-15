@@ -64,7 +64,7 @@ const mockResponse = () => {
             return this;
         },
         send: sinon.stub(),
-        setHeader: sinon.stub()
+        setHeader: sinon.stub(),
     };
 };
 
@@ -72,7 +72,7 @@ const googleSAKeyObject = { key: 'A Google Service Account private key json obje
 
 const bondAccessTokenResponse = {
     token: 'my-fake-token',
-    expires_at: 'NEVER'
+    expires_at: 'NEVER',
 };
 
 function mockGcsAccessUrl(gsUrlString) {
@@ -248,7 +248,7 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
                 body: {
                     url: 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
                     fields: ['accessUrl'],
-                }
+                },
             },
         ),
         response,
@@ -276,7 +276,7 @@ test.serial('martha_v3 calls the correct endpoints when only the fileName is req
                 body: {
                     url: 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
                     fields: ['fileName'],
-                }
+                },
             },
         ),
         response,
@@ -304,7 +304,7 @@ test.serial('martha_v3 calls the correct endpoints when only the fileName is req
                 body: {
                     url: 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
                     fields: ['fileName'],
-                }
+                },
             },
         ),
         response,
@@ -332,7 +332,7 @@ test.serial('martha_v3 calls return the DRS name field for a file name even when
                 body: {
                     url: 'drs://dg.f82a1a/fa640b0e-9779-452f-99a6-16d833d15bd0',
                     fields: ['fileName', 'accessUrl'],
-                }
+                },
             },
         ),
         response,
@@ -369,7 +369,7 @@ test.serial('martha_v3 calls no endpoints when no fields are requested', async (
         body: {
             url: 'dos://abc/123',
             fields: [],
-        }
+        },
     }), response);
     t.is(response.statusCode, 200);
     sinon.assert.callCount(getJsonFromApiStub, 0); // Neither Bond nor DRS was called
@@ -383,7 +383,7 @@ test.serial('martha_v3 returns an error when fields is not an array', async (t) 
         body: {
             url: 'dos://abc/123',
             fields: 'gsUri',
-        }
+        },
     }), response);
     t.is(response.statusCode, 400);
     sinon.assert.callCount(getJsonFromApiStub, 0); // Neither Bond nor DRS was called
@@ -406,7 +406,7 @@ test.serial('martha_v3 returns an error when an invalid field is requested', asy
         body: {
             url: 'dos://abc/123',
             fields: ['gsUri', 'size', 'hashes', 'timeUpdated', 'fileName', 'googleServiceAccount', 'meaningOfLife'],
-        }
+        },
     }), response);
     t.is(response.statusCode, 400);
     sinon.assert.callCount(getJsonFromApiStub, 0); // Neither Bond nor DRS was called
@@ -554,7 +554,7 @@ test.serial(
         const response = mockResponse();
         await marthaV3(
             mockRequest({ body: { 'url': 'dos://dataguids.org/a41b0c4f-ebfb-4277-a941-507340dea85d' } }),
-            response
+            response,
         );
         t.is(response.statusCode, 200);
         const result = response.send.lastCall.args[0];
@@ -571,7 +571,7 @@ test.serial(
         const expectedSAKeyProvider = 'dcf-fence';
         const actualSAKeyProvider = saKeyUrlMatches[2];
         t.is(actualSAKeyProvider, expectedSAKeyProvider);
-    }
+    },
 );
 
 test.serial('martha_v3 does not call Bond or return SA key when the host url is for jade data repo', async (t) => {
@@ -764,7 +764,7 @@ test.serial('martha_v3 parses Kids First response correctly', async (t) => {
     const response = mockResponse();
     await marthaV3(
         mockRequest({ body: { 'url': `drs://${config.HOST_KIDS_FIRST_STAGING}/ed6be7ab-068e-46c8-824a-f39cfbb885cc` } }),
-        response
+        response,
     );
     t.is(response.statusCode, 200);
 
@@ -800,7 +800,7 @@ test.serial('martha_v3 parses a Kids First CIB URI response correctly', async (t
     const response = mockResponse();
     await marthaV3(
         mockRequest({ body: { 'url': 'drs://dg.F82A1A:ed6be7ab-068e-46c8-824a-f39cfbb885cc' } }),
-        response
+        response,
     );
     t.is(response.statusCode, 200);
 
@@ -835,11 +835,11 @@ test.serial('martha_v3 parses HCA response correctly', async (t) => {
             {
                 body: {
                     'url':
-                        'drs://jade.datarepo-dev.broadinstitute.org/v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe'
-                }
-            }
+                        'drs://jade.datarepo-dev.broadinstitute.org/v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe',
+                },
+            },
         ),
-        response
+        response,
     );
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
@@ -1025,14 +1025,14 @@ test.serial('martha_v3 determineDrsType should parse drs:// Data Object uri', (t
 test.serial('martha_v3 determineDrsType should parse drs:// Data Object uri with query part', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://fo.o/bar?version=1&bananas=yummy'),
-        'https://fo.o/ga4gh/dos/v1/dataobjects/bar?version=1&bananas=yummy'
+        'https://fo.o/ga4gh/dos/v1/dataobjects/bar?version=1&bananas=yummy',
     );
 });
 
 test.serial('martha_v3 determineDrsType should parse drs:// Data Object uri when host includes a port number', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://foo.com:1234/bar'),
-        'https://foo.com:1234/ga4gh/dos/v1/dataobjects/bar'
+        'https://foo.com:1234/ga4gh/dos/v1/dataobjects/bar',
     );
 });
 /**
@@ -1045,28 +1045,28 @@ test.serial('martha_v3 determineDrsType should parse drs:// Data Object uri when
 test.serial('martha_v3 determineDrsType should parse "dos://" Data Object uri with a host and path', (t) => {
     t.is(
         determineDrsTypeTestWrapper('dos://dg.2345/bar'),
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345/bar`
+        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345/bar`,
     );
 });
 
 test.serial('martha_v3 determineDrsType should parse "drs://" Data Object uri with a host and path', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://dg.2345/bar'),
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345/bar`
+        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345/bar`,
     );
 });
 
 test.serial('martha_v3 determineDrsType should parse "drs://dg." Data Object uri with query part', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://dg.2345/bar?version=1&bananas=yummy'),
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345/bar?version=1&bananas=yummy`
+        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345/bar?version=1&bananas=yummy`,
     );
 });
 
 test.serial('martha_v3 determineDrsType should parse "drs://" Data Object uri with an expanded host and path', (t) => {
     t.is(
         determineDrsTypeTestWrapper(`dos://${config.HOST_BIODATA_CATALYST_STAGING}/dg.2345/bar`),
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.2345/bar`
+        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.2345/bar`,
     );
 });
 /**
@@ -1089,28 +1089,28 @@ test.serial('martha_v3 determineDrsType should parse "drs://" Data Object uri wi
 test.serial('martha_v3 should parse Data Object uri with jade data repo DEV as host', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://jade.datarepo-dev.broadinstitute.org/973b5e79-6433-40ce-bf38-686ab7f17820'),
-        'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/973b5e79-6433-40ce-bf38-686ab7f17820'
+        'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/973b5e79-6433-40ce-bf38-686ab7f17820',
     );
 });
 
 test.serial('martha_v3 should parse Data Object uri with jade data repo DEV as host and path with snapshot id', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://jade.datarepo-dev.broadinstitute.org/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820'),
-        'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820'
+        'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820',
     );
 });
 
 test.serial('martha_v3 should parse Data Object uri with jade data repo PROD as host', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://data.terra.bio/anything'),
-        'https://data.terra.bio/ga4gh/drs/v1/objects/anything'
+        'https://data.terra.bio/ga4gh/drs/v1/objects/anything',
     );
 });
 
 test.serial('martha_v3 should parse Data Object uri with host that looks like jade data repo host', (t) => {
     t.is(
         determineDrsTypeTestWrapper('drs://jade-data-repo.datarepo-dev.broadinstitute.org/v1_anything'),
-        'https://jade-data-repo.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_anything'
+        'https://jade-data-repo.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_anything',
     );
 });
 /**
@@ -1132,7 +1132,7 @@ test.serial('martha_v3 should parse Data Object uri with the AnVIL prefix dg.ANV
 test.serial('martha_v3 should parse Data Object uri with the AnVIL prod host', (t) => {
     t.is(
         determineDrsTypeTestWrapper(`drs://${config.HOST_THE_ANVIL_PROD}/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`),
-        `https://${config.HOST_THE_ANVIL_PROD}/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`
+        `https://${config.HOST_THE_ANVIL_PROD}/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`,
     );
 });
 

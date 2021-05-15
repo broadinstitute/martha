@@ -12,7 +12,7 @@ test('configDefaultsFrom should get the right answer for the mock environment', 
         crdcHost: config.HOST_MOCK_DRS,
         kidsFirstHost: config.HOST_MOCK_DRS,
         itMarthaBaseUrl: 'http://localhost:8010',
-        itBondBaseUrl: 'http://127.0.0.1:8080'
+        itBondBaseUrl: 'http://127.0.0.1:8080',
     };
     t.deepEqual(config.configDefaultsForEnv({ marthaEnv: config.ENV_MOCK }), expectedForMock);
 });
@@ -26,7 +26,7 @@ test('configDefaultsFrom should get the right answer for the dev environment', (
         crdcHost: config.HOST_CRDC_STAGING,
         kidsFirstHost: config.HOST_KIDS_FIRST_STAGING,
         itMarthaBaseUrl: 'https://martha-fiab.dsde-dev.broadinstitute.org:32443',
-        itBondBaseUrl: 'https://bond-fiab.dsde-dev.broadinstitute.org:31443'
+        itBondBaseUrl: 'https://bond-fiab.dsde-dev.broadinstitute.org:31443',
     };
     t.deepEqual(config.configDefaultsForEnv({ marthaEnv: config.ENV_DEV }), expectedForDev);
 });
@@ -40,7 +40,7 @@ test('configDefaultsFrom should get the right answer for the Cromwell dev enviro
         crdcHost: config.HOST_CRDC_STAGING,
         kidsFirstHost: config.HOST_KIDS_FIRST_STAGING,
         itMarthaBaseUrl: 'https://martha-fiab.dsde-dev.broadinstitute.org:32443',
-        itBondBaseUrl: 'https://bond-fiab.dsde-dev.broadinstitute.org:31443'
+        itBondBaseUrl: 'https://bond-fiab.dsde-dev.broadinstitute.org:31443',
     };
     t.deepEqual(config.configDefaultsForEnv({ marthaEnv: config.ENV_CROMWELL_DEV }), expectedForCromwellDev);
 });
@@ -54,7 +54,7 @@ test('configDefaultsFrom should get the right answer for the production environm
         crdcHost: config.HOST_CRDC_PROD,
         kidsFirstHost: config.HOST_KIDS_FIRST_PROD,
         itMarthaBaseUrl: 'https://martha-fiab.dsde-prod.broadinstitute.org:32443',
-        itBondBaseUrl: 'https://bond-fiab.dsde-prod.broadinstitute.org:31443'
+        itBondBaseUrl: 'https://bond-fiab.dsde-prod.broadinstitute.org:31443',
     };
     t.deepEqual(config.configDefaultsForEnv({ marthaEnv: config.ENV_PROD }), expectedForProduction);
 });

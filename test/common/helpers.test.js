@@ -85,9 +85,9 @@ test('helpers dataObjectUriToHttps should throw an error when given a "dg.*" hos
         () => dataObjectUriToHttps('dos://dg.4503'),
         {
             instanceOf: Error,
-            message: `Data Object URIs with either 'dg.*' or '${jadeDataRepoHostRegex}' as host are required to have a path: "dos://dg.4503"`
+            message: `Data Object URIs with either 'dg.*' or '${jadeDataRepoHostRegex}' as host are required to have a path: "dos://dg.4503"`,
         },
-        'Should have thrown error but didnt!'
+        'Should have thrown error but didnt!',
     );
 });
 
@@ -123,21 +123,21 @@ test('helpers should parse "drs://dg." Data Object uri with only a host part wit
 test('helpers should parse Data Object uri with jade data repo DEV as host', (t) => {
     t.is(
         dataObjectUriToHttps('drs://jade.datarepo-dev.broadinstitute.org/973b5e79-6433-40ce-bf38-686ab7f17820'),
-        'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/973b5e79-6433-40ce-bf38-686ab7f17820'
+        'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/973b5e79-6433-40ce-bf38-686ab7f17820',
     );
 });
 
 test('helpers should parse Data Object uri with jade data repo DEV as host and path with snapshot id', (t) => {
     t.is(
         dataObjectUriToHttps('drs://jade.datarepo-dev.broadinstitute.org/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820'),
-        'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820'
+        'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820',
     );
 });
 
 test('helpers should parse Data Object uri with jade data repo PROD as host', (t) => {
     t.is(
         dataObjectUriToHttps('drs://data.terra.bio/anything'),
-        'https://data.terra.bio/ga4gh/drs/v1/objects/anything'
+        'https://data.terra.bio/ga4gh/drs/v1/objects/anything',
     );
 });
 
@@ -146,16 +146,16 @@ test('helpers should throw error when given jade data repo host and no path', (t
         () => dataObjectUriToHttps('drs://jade.datarepo-dev.broadinstitute.org/'),
         {
             instanceOf: Error,
-            message: `Data Object URIs with either 'dg.*' or '${jadeDataRepoHostRegex}' as host are required to have a path: "drs://jade.datarepo-dev.broadinstitute.org"`
+            message: `Data Object URIs with either 'dg.*' or '${jadeDataRepoHostRegex}' as host are required to have a path: "drs://jade.datarepo-dev.broadinstitute.org"`,
         },
-        'Should have thrown error but didnt!'
+        'Should have thrown error but didnt!',
     );
 });
 
 test('helpers should parse Data Object uri with host that looks like jade data repo host', (t) => {
     t.is(
         dataObjectUriToHttps('drs://jade-data-repo.datarepo-dev.broadinstitute.org/v1_anything'),
-        'https://jade-data-repo.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_anything'
+        'https://jade-data-repo.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_anything',
     );
 });
 /**
@@ -167,9 +167,9 @@ test('helpers dataObjectUriToHttps should throw a Error when passed an invalid u
         () => dataObjectUriToHttps('A string that is not a valid URI'),
         {
             instanceOf: Error,
-            message: 'Cannot read property \'0\' of null'
+            message: 'Cannot read property \'0\' of null',
         },
-        'Should have thrown error but didnt!'
+        'Should have thrown error but didnt!',
     );
 });
 
@@ -189,11 +189,11 @@ test('helpers getHashesMap should return map with 1 entry for checksums array wi
     const checksumArray = [
         {
             type: 'md5',
-            checksum: '336ea55913bc261b72875bd259753046'
-        }
+            checksum: '336ea55913bc261b72875bd259753046',
+        },
     ];
     const expectedChecksumMap = {
-        md5: '336ea55913bc261b72875bd259753046'
+        md5: '336ea55913bc261b72875bd259753046',
     };
 
     t.deepEqual(getHashesMap(checksumArray), expectedChecksumMap);
@@ -203,21 +203,21 @@ test('helpers getHashesMap should return map with multiple hashes for checksums 
     const checksumArray = [
         {
             type: 'md5',
-            checksum: '336ea55913bc261b72875bd259753046'
+            checksum: '336ea55913bc261b72875bd259753046',
         },
         {
             type: 'sha256',
-            checksum: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44'
+            checksum: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44',
         },
         {
             type: 'crc32c',
-            checksum: '8a366443'
+            checksum: '8a366443',
         },
     ];
     const expectedChecksumMap = {
         md5: '336ea55913bc261b72875bd259753046',
         sha256: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44',
-        crc32c: '8a366443'
+        crc32c: '8a366443',
     };
 
     t.deepEqual(getHashesMap(checksumArray), expectedChecksumMap);
@@ -227,15 +227,15 @@ test('helpers getHashesMap should throw error if the checksums array contains du
     const checksumArray = [
         {
             type: 'md5',
-            checksum: '336ea55913bc261b72875bd259753046'
+            checksum: '336ea55913bc261b72875bd259753046',
         },
         {
             type: 'sha256',
-            checksum: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44'
+            checksum: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44',
         },
         {
             type: 'md5',
-            checksum: 'a06d435b61a55eb5c0f712c1d88ac782'
+            checksum: 'a06d435b61a55eb5c0f712c1d88ac782',
         },
     ];
 
@@ -243,9 +243,9 @@ test('helpers getHashesMap should throw error if the checksums array contains du
         () => getHashesMap(checksumArray),
         {
             instanceOf: Error,
-            message: 'Response from DRS Resolution server contained duplicate checksum values for hash type \'md5\' in checksums array!'
+            message: 'Response from DRS Resolution server contained duplicate checksum values for hash type \'md5\' in checksums array!',
         },
-        'Should have throw error but didnt!'
+        'Should have throw error but didnt!',
     );
 });
 
@@ -264,7 +264,7 @@ test('helpers convertToMarthaV3Response should return null for all fields in an 
         null,
         null,
         null,
-        null
+        null,
     );
     t.deepEqual(convertToMarthaV3Response({}, null, null, {}), expectedResponse);
 });
@@ -277,7 +277,7 @@ test('helpers convertToMarthaV3Response should return null for fields that are m
         created_time: '2020-04-27T15:56:09.696Z',
         version: '0',
         mime_type: 'application/octet-stream',
-        size: 123456
+        size: 123456,
     };
     const expectedResponse = new MarthaV3Response(
         'application/octet-stream',
@@ -290,7 +290,7 @@ test('helpers convertToMarthaV3Response should return null for fields that are m
         null,
         null,
         '123.mapped.abc.bam',
-        null
+        null,
     );
 
     t.deepEqual(convertToMarthaV3Response(mockDrsResponse, '123.mapped.abc.bam', null, {}), expectedResponse);
@@ -307,7 +307,7 @@ test('helpers convertToMarthaV3Response should return null for fields that are e
         created_time: '2020-04-27T15:56:09.696Z',
         updated_time: '2020-04-27T15:56:09.696Z',
         checksums: [],
-        access_methods: []
+        access_methods: [],
     };
     const expectedResponse = new MarthaV3Response(
         'application/octet-stream',
@@ -320,7 +320,7 @@ test('helpers convertToMarthaV3Response should return null for fields that are e
         null,
         null,
         '123.mapped.abc.bam',
-        null
+        null,
     );
 
     t.deepEqual(convertToMarthaV3Response(mockDrsResponse, '123.mapped.abc.bam', null, {}), expectedResponse);
@@ -339,8 +339,8 @@ test('helpers convertToMarthaV3Response should return null for googleServiceAcco
         checksums: [
             {
                 type: 'md5',
-                checksum: '123abc'
-            }
+                checksum: '123abc',
+            },
         ],
         access_methods: [
             {
@@ -348,9 +348,9 @@ test('helpers convertToMarthaV3Response should return null for googleServiceAcco
                 access_url: {
                     url:
                         'gs://abc/123',
-                }
-            }
-        ]
+                },
+            },
+        ],
     };
     const expectedResponse = new MarthaV3Response(
         'application/octet-stream',
@@ -402,15 +402,15 @@ test('helpers logAndSendServerError should send a superagent failure', (t) => {
                 method: "GET",
                 url: "http://127.0.0.1:8080/api/link/v1/fence/serviceaccount/key",
                 headers: {
-                    authorization: "foo"
-                }
+                    authorization: "foo",
+                },
             },
             header: {
                 'content-type': 'application/json',
                 'content-length': '248',
                 'access-control-allow-origin': '*',
                 'server': 'Werkzeug/0.16.0 Python/3.8.6',
-                'date': 'Thu, 05 Nov 2020 02:00:36 GMT'
+                'date': 'Thu, 05 Nov 2020 02:00:36 GMT',
             },
             status: 401,
             text:
@@ -421,8 +421,8 @@ test('helpers logAndSendServerError should send a superagent failure', (t) => {
                 '"message":"Malformed Authorization header, must be in the form of \\"bearer [token]\\".",' +
                 '"reason":"required"' +
                 '}],' +
-                '"message":"Malformed Authorization header, must be in the form of \\"bearer [token]\\"."}}\n'
-        }
+                '"message":"Malformed Authorization header, must be in the form of \\"bearer [token]\\"."}}\n',
+        },
     };
     const error = new Error("this is a test");
     error.stack = null;
@@ -447,13 +447,13 @@ test('helpers logAndSendServerError should send a Bond failure', (t) => {
                     message:
                         'Invalid authorization token. ' +
                         'b\'{\\n  "error": "invalid_token",\\n  "error_description": "Invalid Value"\\n}\\n\'',
-                    reason: 'required'
-                }
+                    reason: 'required',
+                },
             ],
             message:
                 'Invalid authorization token. ' +
-                'b\'{\\n  "error": "invalid_token",\\n  "error_description": "Invalid Value"\\n}\\n\''
-        }
+                'b\'{\\n  "error": "invalid_token",\\n  "error_description": "Invalid Value"\\n}\\n\'',
+        },
     };
     const error = new Error(JSON.stringify(bondErrorJson));
     error.stack = null;
