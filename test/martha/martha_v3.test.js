@@ -546,33 +546,30 @@ test.serial('martha_v3 calls bond Bond with the "fence" provider when the Data O
     t.is(actualSAKeyProvider, expectedSAKeyProvider);
 });
 
-test.serial(
-    'martha_v3 does call Bond and return SA key when the host url is for dataguids.org',
-    async (t) => {
-        getJsonFromApiStub.onCall(0).resolves(dataGuidsOrgResponse);
-        getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
-        const response = mockResponse();
-        await marthaV3(
-            mockRequest({ body: { 'url': 'dos://dataguids.org/a41b0c4f-ebfb-4277-a941-507340dea85d' } }),
-            response,
-        );
-        t.is(response.statusCode, 200);
-        const result = response.send.lastCall.args[0];
-        sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
-        t.deepEqual({ ...result }, dataGuidsOrgMarthaResult(googleSAKeyObject));
-        t.is(
-            getJsonFromApiStub.getCall(0).args[0],
-            'https://dataguids.org/ga4gh/dos/v1/dataobjects/a41b0c4f-ebfb-4277-a941-507340dea85d',
-        );
-        t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
-        const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-        const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
-        t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
-        const expectedSAKeyProvider = 'dcf-fence';
-        const actualSAKeyProvider = saKeyUrlMatches[2];
-        t.is(actualSAKeyProvider, expectedSAKeyProvider);
-    },
-);
+test.serial('martha_v3 does call Bond and return SA key when the host url is for dataguids.org', async (t) => {
+    getJsonFromApiStub.onCall(0).resolves(dataGuidsOrgResponse);
+    getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
+    const response = mockResponse();
+    await marthaV3(
+        mockRequest({ body: { 'url': 'dos://dataguids.org/a41b0c4f-ebfb-4277-a941-507340dea85d' } }),
+        response,
+    );
+    t.is(response.statusCode, 200);
+    const result = response.send.lastCall.args[0];
+    sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
+    t.deepEqual({ ...result }, dataGuidsOrgMarthaResult(googleSAKeyObject));
+    t.is(
+        getJsonFromApiStub.getCall(0).args[0],
+        'https://dataguids.org/ga4gh/dos/v1/dataobjects/a41b0c4f-ebfb-4277-a941-507340dea85d',
+    );
+    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
+    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
+    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
+    t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
+    const expectedSAKeyProvider = 'dcf-fence';
+    const actualSAKeyProvider = saKeyUrlMatches[2];
+    t.is(actualSAKeyProvider, expectedSAKeyProvider);
+});
 
 test.serial('martha_v3 does not call Bond or return SA key when the host url is for jade data repo', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(jadeDrsResponse);
