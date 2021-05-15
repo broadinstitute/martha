@@ -48,9 +48,11 @@ const apiAdapter = require('../../common/api_adapter');
 const config = require('../../common/config');
 const mask = require('json-mask');
 
+const bearerAuthorization = 'bearer abc123';
+
 const mockRequest = (req, requestFields = MARTHA_V3_ALL_FIELDS) => {
     req.method = 'POST';
-    req.headers = { authorization: 'bearer abc123' };
+    req.headers = { authorization: bearerAuthorization };
     if (req.body && typeof req.body.fields === "undefined") {
         req.body.fields = requestFields;
     }
@@ -85,29 +87,26 @@ function mockS3AccessUrl(s3UrlString) {
     return { url: `https://${s3Url.hostname}.s3-website.us-west-2.amazonaws.com${s3Url.pathname}?sig=ABC` };
 }
 
-const bondSAKeyUrlRegEx = /^https:\/\/([^/]+)\/api\/link\/v1\/([a-z-]+)\/serviceaccount\/key$/;
-
-const bondAccessTokenUrlRegEx = /^https:\/\/([^/]+)\/api\/link\/v1\/([a-z-]+)\/accesstoken$/;
-
 let getJsonFromApiStub;
 const getJsonFromApiMethodName = 'getJsonFrom';
-const sandbox = sinon.createSandbox();
 
 test.serial.beforeEach(() => {
-    sandbox.restore(); // If one test fails, the .afterEach() block will not execute, so always clean the slate here
-    getJsonFromApiStub = sandbox.stub(apiAdapter, getJsonFromApiMethodName);
+    sinon.restore(); // If one test fails, the .afterEach() block will not execute, so always clean the slate here
+    getJsonFromApiStub = sinon.stub(apiAdapter, getJsonFromApiMethodName);
 });
 
 test.serial.afterEach(() => {
-    sandbox.restore();
+    sinon.restore();
 });
 
 test.serial('martha_v3 uses the default error handler for unexpected errors', async (t) => {
     const expectedError = new Error('Expected test error');
     const badReq = { get headers() { throw expectedError; } };
+
     const response = mockResponse();
     const actualError = await t.throwsAsync(marthaV3(badReq, response));
     t.is(actualError, expectedError);
+
     sinon.assert.callCount(response.send, 0);
 });
 
@@ -115,23 +114,21 @@ test.serial('martha_v3 uses the default error handler for unexpected errors', as
 test.serial('martha_v3 resolves a valid DOS-style url', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
     getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
+
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
     t.is(response.statusCode, 200);
-    const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual({ ...result }, sampleDosMarthaResult(googleSAKeyObject));
-    t.is(
-        getJsonFromApiStub.getCall(0).args[0],
-        'https://abc/ga4gh/dos/v1/dataobjects/123',
+
+    sinon.assert.callCount(getJsonFromApiStub, 2);
+    t.deepEqual(getJsonFromApiStub.getCall(0).args, ['https://abc/ga4gh/dos/v1/dataobjects/123', null]);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/dcf-fence/serviceaccount/key', bearerAuthorization],
     );
-    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
-    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
-    t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
-    const expectedSAKeyProvider = 'dcf-fence';
-    const actualSAKeyProvider = saKeyUrlMatches[2];
-    t.is(actualSAKeyProvider, expectedSAKeyProvider);
 });
 
 // According to the DRS specification authors [0] it's OK for a client to call Martha with a `drs://` URI and get
@@ -143,28 +140,27 @@ test.serial('martha_v3 resolves a valid DOS-style url', async (t) => {
 test.serial('martha_v3 resolves a valid DRS-style url', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
     getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
+
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'drs://abc/123' } }), response);
     t.is(response.statusCode, 200);
-    const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual({ ...result }, sampleDosMarthaResult(googleSAKeyObject));
-    t.is(
-        getJsonFromApiStub.getCall(0).args[0],
-        'https://abc/ga4gh/dos/v1/dataobjects/123',
+
+    sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
+    t.deepEqual(getJsonFromApiStub.getCall(0).args, ['https://abc/ga4gh/dos/v1/dataobjects/123', null]);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/dcf-fence/serviceaccount/key', bearerAuthorization],
     );
-    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
-    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
-    t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
-    const expectedSAKeyProvider = 'dcf-fence';
-    const actualSAKeyProvider = saKeyUrlMatches[2];
-    t.is(actualSAKeyProvider, expectedSAKeyProvider);
 });
 
 test.serial("martha_v3 resolves successfully and ignores extra data submitted besides a 'url'", async (t) => {
     getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
     getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
+
     const response = mockResponse();
     await marthaV3(mockRequest({
         body: {
@@ -174,24 +170,28 @@ test.serial("martha_v3 resolves successfully and ignores extra data submitted be
         },
     }), response);
     t.is(response.statusCode, 200);
-    const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual({ ...result }, sampleDosMarthaResult(googleSAKeyObject));
-    t.is(
-        getJsonFromApiStub.getCall(0).args[0],
-        'https://abc/ga4gh/dos/v1/dataobjects/123',
+
+    sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            'https://abc/ga4gh/dos/v1/dataobjects/123',
+            null,
+        ],
     );
-    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
-    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
-    t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
-    const expectedSAKeyProvider = 'dcf-fence';
-    const actualSAKeyProvider = saKeyUrlMatches[2];
-    t.is(actualSAKeyProvider, expectedSAKeyProvider);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/dcf-fence/serviceaccount/key', bearerAuthorization],
+    );
 });
 
 test.serial('martha_v3 does not call Bond when only DRS fields are requested', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
+
     const response = mockResponse();
     await marthaV3(mockRequest({
         body: {
@@ -200,22 +200,21 @@ test.serial('martha_v3 does not call Bond when only DRS fields are requested', a
         },
     }), response);
     t.is(response.statusCode, 200);
-    const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 1); // Bond was not called to get SA key
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual(
         { ...result },
         mask(sampleDosMarthaResult(googleSAKeyObject), 'gsUri,size,hashes,timeUpdated,fileName'),
     );
-    t.falsy(result.googleServiceAccount);
-    t.is(
-        getJsonFromApiStub.getCall(0).args[0],
-        'https://abc/ga4gh/dos/v1/dataobjects/123',
-    );
-    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
+
+    sinon.assert.callCount(getJsonFromApiStub, 1); // Bond was not called to get SA key
+    t.deepEqual(getJsonFromApiStub.getCall(0).args, ['https://abc/ga4gh/dos/v1/dataobjects/123', null]);
 });
 
 test.serial('martha_v3 calls the correct endpoints the googleServiceAccount is requested', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(googleSAKeyObject);
+
     const response = mockResponse();
     await marthaV3(mockRequest({
         body: {
@@ -224,29 +223,33 @@ test.serial('martha_v3 calls the correct endpoints the googleServiceAccount is r
         },
     }), response);
     t.is(response.statusCode, 200);
-    const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 1); // DRS was not called
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual(
         { ...result },
         mask(sampleDosMarthaResult(googleSAKeyObject), 'googleServiceAccount'),
     );
-    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(0).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
-    t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
-    const expectedSAKeyProvider = 'dcf-fence';
-    const actualSAKeyProvider = saKeyUrlMatches[2];
-    t.is(actualSAKeyProvider, expectedSAKeyProvider);
+
+    sinon.assert.callCount(getJsonFromApiStub, 1); // DRS was not called
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/dcf-fence/serviceaccount/key', bearerAuthorization],
+    );
 });
 
-// BT-236 temporarily cut access token and access endpoint out of the flow
 test.serial('martha_v3 calls the correct endpoints when only the accessUrl is requested', async (t) => {
-    getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
+    const drsAccessUrlResponse = mockS3AccessUrl(kidsFirstDrsResponse.access_methods[0].access_url.url);
+    getJsonFromApiStub.onCall(0).resolves(kidsFirstDrsResponse);
+    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
+
     const response = mockResponse();
     await marthaV3(
         mockRequest(
             {
                 body: {
-                    url: 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+                    url: 'drs://dg.F82A1A:ed6be7ab-068e-46c8-824a-f39cfbb885cc',
                     fields: ['accessUrl'],
                 },
             },
@@ -254,11 +257,34 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
         response,
     );
     t.is(response.statusCode, 200);
-    const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 1);
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual(
         { ...result },
-        { accessUrl: null });
+        mask(kidsFirstDrsMarthaResult(drsAccessUrlResponse), 'accessUrl'),
+    );
+
+    sinon.assert.callCount(getJsonFromApiStub, 3); // Bond was not called to retrieve the googleServiceAccount
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
+            null,
+        ],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/kids-first/accesstoken', bearerAuthorization],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(2).args,
+        [
+            `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects` +
+            '/ed6be7ab-068e-46c8-824a-f39cfbb885cc/access/s3',
+            `Bearer ${bondAccessTokenResponse.token}`,
+        ],
+    );
 });
 
 test.serial('martha_v3 calls the correct endpoints when only the fileName is requested and the metadata contains a name', async (t) => {
@@ -269,6 +295,7 @@ test.serial('martha_v3 calls the correct endpoints when only the fileName is req
     });
     const drsAccessUrlResponse = mockGcsAccessUrl(bdcDrsResponse.access_methods[0].access_url.url);
     getJsonFromApiStub.onCall(0).resolves(drsResponse);
+
     const response = mockResponse();
     await marthaV3(
         mockRequest(
@@ -282,11 +309,22 @@ test.serial('martha_v3 calls the correct endpoints when only the fileName is req
         response,
     );
     t.is(response.statusCode, 200);
-    const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 1); // File name available from the metadata
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual(
         { ...result },
         mask(bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse), 'fileName'),
+    );
+
+    sinon.assert.callCount(getJsonFromApiStub, 1); // File name available from the metadata
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
+            '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+            null,
+        ],
     );
 });
 
@@ -297,6 +335,7 @@ test.serial('martha_v3 calls the correct endpoints when only the fileName is req
         access_id: bdcDrsResponse.access_methods[0].access_id,
     });
     getJsonFromApiStub.onCall(0).resolves(drsResponse);
+
     const response = mockResponse();
     await marthaV3(
         mockRequest(
@@ -310,9 +349,20 @@ test.serial('martha_v3 calls the correct endpoints when only the fileName is req
         response,
     );
     t.is(response.statusCode, 200);
-    const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 1); // Bond was not called to retrieve the googleServiceAccount
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual({ ...result }, { fileName: null });
+
+    sinon.assert.callCount(getJsonFromApiStub, 1); // File name available from the metadata
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
+            '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+            null,
+        ],
+    );
 });
 
 test.serial('martha_v3 calls return the DRS name field for a file name even when it differs from the access url', async (t) => {
@@ -325,6 +375,7 @@ test.serial('martha_v3 calls return the DRS name field for a file name even when
     getJsonFromApiStub.onCall(0).resolves(drsResponse);
     getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
     getJsonFromApiStub.onCall(2).resolves(drsAccessUrlResponse);
+
     const response = mockResponse();
     await marthaV3(
         mockRequest(
@@ -338,29 +389,37 @@ test.serial('martha_v3 calls return the DRS name field for a file name even when
         response,
     );
     t.is(response.statusCode, 200);
-    const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 3); // Bond was not called to retrieve the googleServiceAccount
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual(
         { ...result },
         {
-            accessUrl: { url: 'https://kf-seq-data-washu.s3-website.us-west-2.amazonaws.com/OrofacialCleft/fa9c2cb04f614f90b75323b05bfdd231.bam?sig=ABC' },
             fileName: 'from_name_field.txt',
+            accessUrl: drsAccessUrlResponse,
         },
     );
 
-    const requestedBondAccessTokenUrl = getJsonFromApiStub.getCall(1).args[0];
-    const accessTokenUrlMatches = requestedBondAccessTokenUrl.match(bondAccessTokenUrlRegEx);
-    t.truthy(accessTokenUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
-    const expectedAccessTokenProvider = 'kids-first';
-    const actualAccessTokenProvider = accessTokenUrlMatches[2];
-    t.is(actualAccessTokenProvider, expectedAccessTokenProvider);
-
-    t.is(
-        getJsonFromApiStub.getCall(2).args[0],
-        `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects` +
-        '/fa640b0e-9779-452f-99a6-16d833d15bd0/access/s3',
+    sinon.assert.callCount(getJsonFromApiStub, 3); // Bond was not called to retrieve the googleServiceAccount
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects/fa640b0e-9779-452f-99a6-16d833d15bd0`,
+            null,
+        ],
     );
-    t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/kids-first/accesstoken', bearerAuthorization],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(2).args,
+        [
+            `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects` +
+            '/fa640b0e-9779-452f-99a6-16d833d15bd0/access/s3',
+            `Bearer ${bondAccessTokenResponse.token}`,
+        ],
+    );
 });
 
 test.serial('martha_v3 calls no endpoints when no fields are requested', async (t) => {
@@ -372,9 +431,12 @@ test.serial('martha_v3 calls no endpoints when no fields are requested', async (
         },
     }), response);
     t.is(response.statusCode, 200);
-    sinon.assert.callCount(getJsonFromApiStub, 0); // Neither Bond nor DRS was called
-    const result = response.send.lastCall.args[0];
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual({ ...result }, {});
+
+    sinon.assert.callCount(getJsonFromApiStub, 0); // Neither Bond nor DRS was called
 });
 
 test.serial('martha_v3 returns an error when fields is not an array', async (t) => {
@@ -386,8 +448,9 @@ test.serial('martha_v3 returns an error when fields is not an array', async (t) 
         },
     }), response);
     t.is(response.statusCode, 400);
-    sinon.assert.callCount(getJsonFromApiStub, 0); // Neither Bond nor DRS was called
-    const result = response.send.lastCall.args[0];
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual(
         { ...result },
         {
@@ -398,6 +461,8 @@ test.serial('martha_v3 returns an error when fields is not an array', async (t) 
             status: 400,
         },
     );
+
+    sinon.assert.callCount(getJsonFromApiStub, 0); // Neither Bond nor DRS was called
 });
 
 test.serial('martha_v3 returns an error when an invalid field is requested', async (t) => {
@@ -409,8 +474,9 @@ test.serial('martha_v3 returns an error when an invalid field is requested', asy
         },
     }), response);
     t.is(response.statusCode, 400);
-    sinon.assert.callCount(getJsonFromApiStub, 0); // Neither Bond nor DRS was called
-    const result = response.send.lastCall.args[0];
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual(
         { ...result },
         {
@@ -424,224 +490,373 @@ test.serial('martha_v3 returns an error when an invalid field is requested', asy
             status: 400,
         },
     );
+
+    sinon.assert.callCount(getJsonFromApiStub, 0); // Neither Bond nor DRS was called
 });
 
 test.serial('martha_v3 should return 400 if a Data Object without authorization header is provided', async (t) => {
-    getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
     const response = mockResponse();
     const mockReq = mockRequest({ body: { 'url': 'dos://abc/123' } });
     delete mockReq.headers.authorization;
     await marthaV3(mockReq, response);
     t.is(response.statusCode, 400);
-    const result = response.send.lastCall.args[0];
-    t.is(result.status, 400);
-    t.is(result.response.text, 'Request is invalid. Authorization header is missing.');
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
+    t.deepEqual(
+        { ...result },
+        {
+            response: {
+                status: 400,
+                text: 'Request is invalid. Authorization header is missing.',
+            },
+            status: 400,
+        },
+    );
+
+    sinon.assert.callCount(getJsonFromApiStub, 0);
 });
 
 test.serial('martha_v3 should return 400 if not given a url', async (t) => {
-    getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'uri': 'dos://abc/123' } }), response);
     t.is(response.statusCode, 400);
-    const result = response.send.lastCall.args[0];
-    t.is(result.status, 400);
-    t.is(result.response.text, "Request is invalid. 'url' is missing.");
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
+    t.deepEqual(
+        { ...result },
+        {
+            response: {
+                status: 400,
+                text: "Request is invalid. 'url' is missing.",
+            },
+            status: 400,
+        },
+    );
+
+    sinon.assert.callCount(getJsonFromApiStub, 0);
 });
 
 test.serial('martha_v3 should return 400 if given a dg URL without a path', async (t) => {
-    getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://dg.abc' } }), response);
     t.is(response.statusCode, 400);
-    const result = response.send.lastCall.args[0];
-    t.is(result.status, 400);
-    t.is(result.response.text, 'Request is invalid. "dos://dg.abc" is missing a host and/or a path.');
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
+    t.deepEqual(
+        { ...result },
+        {
+            response: {
+                status: 400,
+                text: 'Request is invalid. "dos://dg.abc" is missing a host and/or a path.',
+            },
+            status: 400,
+        },
+    );
+
+    sinon.assert.callCount(getJsonFromApiStub, 0);
 });
 
 test.serial('martha_v3 should return 400 if given a dg URL with only a path', async (t) => {
-    getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos:///dg.abc' } }), response);
     t.is(response.statusCode, 400);
-    const result = response.send.lastCall.args[0];
-    t.is(result.status, 400);
-    t.is(result.response.text, 'Request is invalid. "dos:///dg.abc" is missing a host and/or a path.');
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
+    t.deepEqual(
+        { ...result },
+        {
+            response: {
+                status: 400,
+                text: 'Request is invalid. "dos:///dg.abc" is missing a host and/or a path.',
+            },
+            status: 400,
+        },
+    );
+
+    sinon.assert.callCount(getJsonFromApiStub, 0);
 });
 
 test.serial('martha_v3 should return 400 if no data is posted with the request', async (t) => {
     const response = mockResponse();
     await marthaV3(mockRequest({}), response);
     t.is(response.statusCode, 400);
-    const result = response.send.lastCall.args[0];
-    t.is(result.status, 400);
-    t.is(result.response.text, "Request is invalid. 'url' is missing.");
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
+    t.deepEqual(
+        { ...result },
+        {
+            response: {
+                status: 400,
+                text: "Request is invalid. 'url' is missing.",
+            },
+            status: 400,
+        },
+    );
+
+    sinon.assert.callCount(getJsonFromApiStub, 0);
 });
 
 test.serial('martha_v3 should return 400 if given a \'url\' with an invalid value', async (t) => {
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { url: 'Not a valid URI' } }), response);
     t.is(response.statusCode, 400);
-    const result = response.send.lastCall.args[0];
-    t.is(result.status, 400);
-    t.is(result.response.text, 'Request is invalid. Invalid URL: Not a valid URI');
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
+    t.deepEqual(
+        { ...result },
+        {
+            response: {
+                status: 400,
+                text: 'Request is invalid. Invalid URL: Not a valid URI',
+            },
+            status: 400,
+        },
+    );
+
+    sinon.assert.callCount(getJsonFromApiStub, 0);
 });
 
 test.serial('martha_v3 should return 500 if Data Object resolution fails', async (t) => {
     getJsonFromApiStub.onCall(0).rejects(new Error('Data Object Resolution forced to fail by testing stub'));
+
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
     t.is(response.statusCode, 500);
-    const result = response.send.lastCall.args[0];
-    t.is(result.status, 500);
-    t.is(result.response.text, 'Received error while resolving DRS URL. Data Object Resolution forced to fail by testing stub');
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
+    t.deepEqual(
+        { ...result },
+        {
+            response: {
+                status: 500,
+                text: 'Received error while resolving DRS URL. Data Object Resolution forced to fail by testing stub',
+            },
+            status: 500,
+        },
+    );
+
+    sinon.assert.callCount(getJsonFromApiStub, 1);
+    t.deepEqual(getJsonFromApiStub.getCall(0).args, ['https://abc/ga4gh/dos/v1/dataobjects/123', null]);
 });
 
 test.serial('martha_v3 should return the underlying status if Data Object resolution fails', async (t) => {
     const error = new Error('Data Object Resolution forced to fail by testing stub');
     error.status = 418;
     getJsonFromApiStub.onCall(0).rejects(error);
+
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
     t.is(response.statusCode, 418);
-    const result = response.send.lastCall.args[0];
-    t.is(result.status, 418);
-    t.is(
-        result.response.text,
-        'Received error while resolving DRS URL. Data Object Resolution forced to fail by testing stub',
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
+    t.deepEqual(
+        { ...result },
+        {
+            response: {
+                status: 418,
+                text: 'Received error while resolving DRS URL. Data Object Resolution forced to fail by testing stub',
+            },
+            status: 418,
+        },
     );
+
+    sinon.assert.callCount(getJsonFromApiStub, 1);
+    t.deepEqual(getJsonFromApiStub.getCall(0).args, ['https://abc/ga4gh/dos/v1/dataobjects/123', null]);
 });
 
 test.serial('martha_v3 should return 500 if key retrieval from Bond fails', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
     getJsonFromApiStub.onCall(1).rejects(new Error('Bond key lookup forced to fail by testing stub'));
+
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
     t.is(response.statusCode, 500);
-    const result = response.send.lastCall.args[0];
-    t.is(result.status, 500);
-    t.is(result.response.text, 'Received error contacting Bond. Bond key lookup forced to fail by testing stub');
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
+    t.deepEqual(
+        { ...result },
+        {
+            response: {
+                status: 500,
+                text: 'Received error contacting Bond. Bond key lookup forced to fail by testing stub',
+            },
+            status: 500,
+        },
+    );
+
+    sinon.assert.callCount(getJsonFromApiStub, 2);
+    t.deepEqual(getJsonFromApiStub.getCall(0).args, ['https://abc/ga4gh/dos/v1/dataobjects/123', null]);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/dcf-fence/serviceaccount/key', bearerAuthorization],
+    );
 });
 
 test.serial('martha_v3 calls bond Bond with the "dcf-fence" provider when the Data Object URL host is not "dg.4503"', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
+    getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
+
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
-    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
-    t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
-    const expectedSAKeyProvider = 'dcf-fence';
-    const actualSAKeyProvider = saKeyUrlMatches[2];
-    t.is(actualSAKeyProvider, expectedSAKeyProvider);
+    t.is(response.statusCode, 200);
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
+    t.deepEqual({ ...result }, sampleDosMarthaResult(googleSAKeyObject));
+
+    sinon.assert.callCount(getJsonFromApiStub, 2);
+    t.deepEqual(getJsonFromApiStub.getCall(0).args, ['https://abc/ga4gh/dos/v1/dataobjects/123', null]);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/dcf-fence/serviceaccount/key', bearerAuthorization],
+    );
 });
 
 test.serial('martha_v3 calls bond Bond with the "fence" provider when the Data Object URL host is "dg.4503"', async (t) => {
-    getJsonFromApiStub.onCall(0).resolves(sampleDosResponse);
+    getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
+    getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
+
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'drs://dg.4503/this_part_can_be_anything' } }), response);
-    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
-    t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
-    const expectedSAKeyProvider = 'fence';
-    const actualSAKeyProvider = saKeyUrlMatches[2];
-    t.is(actualSAKeyProvider, expectedSAKeyProvider);
+    t.is(response.statusCode, 200);
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
+    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, null));
+
+    sinon.assert.callCount(getJsonFromApiStub, 2);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
+            '/dg.4503/this_part_can_be_anything',
+            null,
+        ],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/fence/serviceaccount/key', bearerAuthorization],
+    );
 });
 
 test.serial('martha_v3 does call Bond and return SA key when the host url is for dataguids.org', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(dataGuidsOrgResponse);
     getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
+
     const response = mockResponse();
     await marthaV3(
         mockRequest({ body: { 'url': 'dos://dataguids.org/a41b0c4f-ebfb-4277-a941-507340dea85d' } }),
         response,
     );
     t.is(response.statusCode, 200);
-    const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual({ ...result }, dataGuidsOrgMarthaResult(googleSAKeyObject));
-    t.is(
-        getJsonFromApiStub.getCall(0).args[0],
-        'https://dataguids.org/ga4gh/dos/v1/dataobjects/a41b0c4f-ebfb-4277-a941-507340dea85d',
+
+    sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            'https://dataguids.org/ga4gh/dos/v1/dataobjects/a41b0c4f-ebfb-4277-a941-507340dea85d',
+            null,
+        ],
     );
-    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
-    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
-    t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
-    const expectedSAKeyProvider = 'dcf-fence';
-    const actualSAKeyProvider = saKeyUrlMatches[2];
-    t.is(actualSAKeyProvider, expectedSAKeyProvider);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/dcf-fence/serviceaccount/key', bearerAuthorization],
+    );
 });
 
 test.serial('martha_v3 does not call Bond or return SA key when the host url is for jade data repo', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(jadeDrsResponse);
+
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'drs://jade.datarepo-dev.broadinstitute.org/abc' } }), response);
     t.is(response.statusCode, 200);
-    const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 1); // Bond was not called to get SA key
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual({ ...result }, jadeDrsMarthaResult);
-    t.falsy(result.googleServiceAccount);
-    t.is(
-        getJsonFromApiStub.getCall(0).args[0],
-        'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/abc',
+
+    sinon.assert.callCount(getJsonFromApiStub, 1); // Bond was not called to get SA key
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/abc',
+            bearerAuthorization,
+        ],
     );
-    t.is(getJsonFromApiStub.getCall(0).args[1], 'bearer abc123');
 });
 
 test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(gen3CrdcResponse);
     getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
+
     const response = mockResponse();
     await marthaV3(
         mockRequest({ body: { 'url': `dos://${config.HOST_CRDC_STAGING}/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc` } }),
         response,
     );
     t.is(response.statusCode, 200);
-    const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 2);
-    t.deepEqual({ ...result }, gen3CrdcDrsMarthaResult(googleSAKeyObject, null));
-    t.is(
-        getJsonFromApiStub.getCall(0).args[0],
-        `https://${config.HOST_CRDC_STAGING}/ga4gh/drs/v1/objects/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc`,
-    );
-    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
 
-    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
-    t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
-    const expectedSAKeyProvider = 'dcf-fence';
-    const actualSAKeyProvider = saKeyUrlMatches[2];
-    t.is(actualSAKeyProvider, expectedSAKeyProvider);
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
+    t.deepEqual({ ...result }, gen3CrdcDrsMarthaResult(googleSAKeyObject, null));
+
+    sinon.assert.callCount(getJsonFromApiStub, 2);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            `https://${config.HOST_CRDC_STAGING}/ga4gh/drs/v1/objects/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc`,
+            null,
+        ],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/dcf-fence/serviceaccount/key', bearerAuthorization],
+    );
 });
 
 test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(gen3CrdcResponse);
     getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
+
     const response = mockResponse();
     await marthaV3(
         mockRequest({ body: { 'url': 'dos://dg.4DFC:206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc' } }),
         response,
     );
     t.is(response.statusCode, 200);
-    const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 2);
-    t.deepEqual({ ...result }, gen3CrdcDrsMarthaResult(googleSAKeyObject, null));
-    t.is(
-        getJsonFromApiStub.getCall(0).args[0],
-        `https://${config.HOST_CRDC_STAGING}/ga4gh/drs/v1/objects/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc`,
-    );
-    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
 
-    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
-    t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
-    const expectedSAKeyProvider = 'dcf-fence';
-    const actualSAKeyProvider = saKeyUrlMatches[2];
-    t.is(actualSAKeyProvider, expectedSAKeyProvider);
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
+    t.deepEqual({ ...result }, gen3CrdcDrsMarthaResult(googleSAKeyObject, null));
+
+    sinon.assert.callCount(getJsonFromApiStub, 2);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            `https://${config.HOST_CRDC_STAGING}/ga4gh/drs/v1/objects/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc`,
+            null,
+        ],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/dcf-fence/serviceaccount/key', bearerAuthorization],
+    );
 });
 
-// BT-236 temporarily cut access token and access endpoint out of the flow
 test.serial('martha_v3 parses BDC response correctly', async (t) => {
-    // https://lucid.app/lucidchart/428a0bdd-a884-4fc7-9a49-7bf300ef6777/edit?shared=true&page=0_0#
     getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
 
@@ -651,57 +866,60 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
         response,
     );
     t.is(response.statusCode, 200);
-    const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 2);
 
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, null));
 
-    t.is(
-        getJsonFromApiStub.getCall(0).args[0],
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
-        '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+    sinon.assert.callCount(getJsonFromApiStub, 2);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
+            '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+            null,
+        ],
     );
-    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
-
-    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
-    t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
-    const expectedSAKeyProvider = 'fence';
-    const actualSAKeyProvider = saKeyUrlMatches[2];
-    t.is(actualSAKeyProvider, expectedSAKeyProvider);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/fence/serviceaccount/key', bearerAuthorization],
+    );
 });
 
-// BT-236 temporarily cut access token and access endpoint out of the flow
 test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
+
     const response = mockResponse();
     await marthaV3(
         mockRequest({ body: { 'url': 'drs://dg.712C/fc046e84-6cf9-43a3-99cc-ffa2964b88cb' } }),
         response,
     );
     t.is(response.statusCode, 200);
-    const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 2);
-    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, null));
-    t.is(
-        getJsonFromApiStub.getCall(0).args[0],
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
-        '/dg.712C/fc046e84-6cf9-43a3-99cc-ffa2964b88cb',
-    );
-    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
 
-    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
-    t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
-    const expectedSAKeyProvider = 'fence';
-    const actualSAKeyProvider = saKeyUrlMatches[2];
-    t.is(actualSAKeyProvider, expectedSAKeyProvider);
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
+    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, null));
+
+    sinon.assert.callCount(getJsonFromApiStub, 2);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
+            '/dg.712C/fc046e84-6cf9-43a3-99cc-ffa2964b88cb',
+            null,
+        ],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/fence/serviceaccount/key', bearerAuthorization],
+    );
 });
 
 test.serial('martha_v3 parses Anvil response correctly', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(anvilDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
+
     const response = mockResponse();
     await marthaV3(
         mockRequest({ body: { 'url': 'drs://dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0' } }),
@@ -709,26 +927,29 @@ test.serial('martha_v3 parses Anvil response correctly', async (t) => {
     );
     t.is(response.statusCode, 200);
 
-    const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual({ ...result }, anvilDrsMarthaResult(googleSAKeyObject, null));
-    t.is(
-        getJsonFromApiStub.getCall(0).args[0],
-        `https://${config.HOST_THE_ANVIL_STAGING}/ga4gh/drs/v1/objects/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`,
-    );
-    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
 
-    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
-    t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
-    const expectedSAKeyProvider = 'anvil';
-    const actualSAKeyProvider = saKeyUrlMatches[2];
-    t.is(actualSAKeyProvider, expectedSAKeyProvider);
+    sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            `https://${config.HOST_THE_ANVIL_STAGING}/ga4gh/drs/v1/objects` +
+            '/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0',
+            null,
+        ],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/anvil/serviceaccount/key', bearerAuthorization],
+    );
 });
 
 test.serial('martha_v3 parses a The AnVIL CIB URI response correctly', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(anvilDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
+
     const response = mockResponse();
     await marthaV3(
         mockRequest({ body: { 'url': 'drs://dg.ANV0:dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0' } }),
@@ -736,21 +957,23 @@ test.serial('martha_v3 parses a The AnVIL CIB URI response correctly', async (t)
     );
     t.is(response.statusCode, 200);
 
-    const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual({ ...result }, anvilDrsMarthaResult(googleSAKeyObject, null));
-    t.is(
-        getJsonFromApiStub.getCall(0).args[0],
-        `https://${config.HOST_THE_ANVIL_STAGING}/ga4gh/drs/v1/objects/dg.ANV0%2F00008531-03d7-418c-b3d3-b7b22b5381a0`,
-    );
-    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
 
-    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
-    t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
-    const expectedSAKeyProvider = 'anvil';
-    const actualSAKeyProvider = saKeyUrlMatches[2];
-    t.is(actualSAKeyProvider, expectedSAKeyProvider);
+    sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            `https://${config.HOST_THE_ANVIL_STAGING}/ga4gh/drs/v1/objects` +
+            '/dg.ANV0%2F00008531-03d7-418c-b3d3-b7b22b5381a0',
+            null,
+        ],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/anvil/serviceaccount/key', bearerAuthorization],
+    );
 });
 
 test.serial('martha_v3 parses Kids First response correctly', async (t) => {
@@ -765,28 +988,30 @@ test.serial('martha_v3 parses Kids First response correctly', async (t) => {
     );
     t.is(response.statusCode, 200);
 
-    const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 3); // DRS metadata, Bond access token, DRS access URL
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual({ ...result }, kidsFirstDrsMarthaResult(drsAccessUrlResponse));
-    t.is(
-        getJsonFromApiStub.getCall(0).args[0],
-        `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
-    );
-    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
 
-    const requestedBondAccessToken = getJsonFromApiStub.getCall(1).args[0];
-    const accessTokenMatches = requestedBondAccessToken.match(bondAccessTokenUrlRegEx);
-    t.truthy(accessTokenMatches, 'Bond URL called does not match Bond URL regular expression');
-    const expectedAccessTokenProvider = 'kids-first';
-    const actualAccessTokenProvider = accessTokenMatches[2];
-    t.is(actualAccessTokenProvider, expectedAccessTokenProvider);
-
-    t.is(
-        getJsonFromApiStub.getCall(2).args[0],
-        `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects` +
-        '/ed6be7ab-068e-46c8-824a-f39cfbb885cc/access/s3',
+    sinon.assert.callCount(getJsonFromApiStub, 3); // DRS metadata, Bond access token, DRS access URL
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
+            null,
+        ],
     );
-    t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/kids-first/accesstoken', bearerAuthorization],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(2).args,
+        [
+            `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects` +
+            '/ed6be7ab-068e-46c8-824a-f39cfbb885cc/access/s3',
+            `Bearer ${bondAccessTokenResponse.token}`,
+        ],
+    );
 });
 
 test.serial('martha_v3 parses a Kids First CIB URI response correctly', async (t) => {
@@ -801,31 +1026,35 @@ test.serial('martha_v3 parses a Kids First CIB URI response correctly', async (t
     );
     t.is(response.statusCode, 200);
 
-    const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 3); // DRS metadata, Bond access token, DRS access URL
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual({ ...result }, kidsFirstDrsMarthaResult(drsAccessUrlResponse));
-    t.is(
-        getJsonFromApiStub.getCall(0).args[0],
-        `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
-    );
-    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
-    const requestedBondAccessToken = getJsonFromApiStub.getCall(1).args[0];
-    const accessTokenMatches = requestedBondAccessToken.match(bondAccessTokenUrlRegEx);
-    t.truthy(accessTokenMatches, 'Bond URL called does not match Bond URL regular expression');
-    const expectedAccessTokenProvider = 'kids-first';
-    const actualAccessTokenProvider = accessTokenMatches[2];
-    t.is(actualAccessTokenProvider, expectedAccessTokenProvider);
 
-    t.is(
-        getJsonFromApiStub.getCall(2).args[0],
-        `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects` +
-        '/ed6be7ab-068e-46c8-824a-f39cfbb885cc/access/s3',
+    sinon.assert.callCount(getJsonFromApiStub, 3); // DRS metadata, Bond access token, DRS access URL
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
+            null,
+        ],
     );
-    t.is(getJsonFromApiStub.getCall(2).args[1], `Bearer ${bondAccessTokenResponse.token}`);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/kids-first/accesstoken', bearerAuthorization],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(2).args,
+        [
+            `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects` +
+            '/ed6be7ab-068e-46c8-824a-f39cfbb885cc/access/s3',
+            `Bearer ${bondAccessTokenResponse.token}`,
+        ],
+    );
 });
 
 test.serial('martha_v3 parses HCA response correctly', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(hcaDrsResponse);
+
     const response = mockResponse();
     await marthaV3(
         mockRequest(
@@ -839,25 +1068,46 @@ test.serial('martha_v3 parses HCA response correctly', async (t) => {
         response,
     );
     t.is(response.statusCode, 200);
-    const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 1); // Bond was not called to get SA key
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual({ ...result }, hcaDrsMarthaResult);
-    t.falsy(result.googleServiceAccount);
-    t.is(
-        getJsonFromApiStub.getCall(0).args[0],
-        'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe',
+
+    sinon.assert.callCount(getJsonFromApiStub, 1); // Bond was not called to get SA key
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects' +
+            '/v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe',
+            bearerAuthorization,
+        ],
     );
-    t.is(getJsonFromApiStub.getCall(0).args[1], 'bearer abc123');
 });
 
 test.serial('martha_v3 returns null for fields missing in drs and bond response', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(dosObjectWithMissingFields);
+    getJsonFromApiStub.onCall(1).resolves(null);
 
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'drs://abc/123' } }), response);
     t.is(response.statusCode, 200);
-    const result = response.send.lastCall.args[0];
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual({ ...result }, expectedObjWithMissingFields);
+
+    sinon.assert.callCount(getJsonFromApiStub, 2);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            'https://abc/ga4gh/dos/v1/dataobjects/123',
+            null,
+        ],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/dcf-fence/serviceaccount/key', bearerAuthorization],
+    );
 });
 
 test.serial('martha_v3 should return 500 if Data Object parsing fails', async (t) => {
@@ -866,7 +1116,9 @@ test.serial('martha_v3 should return 500 if Data Object parsing fails', async (t
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { 'url': 'drs://abc/123' } }), response);
     t.is(response.statusCode, 500);
-    const result = response.send.lastCall.args[0];
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual(
         { ...result },
         {
@@ -877,19 +1129,29 @@ test.serial('martha_v3 should return 500 if Data Object parsing fails', async (t
             status: 500,
         },
     );
+
+    sinon.assert.callCount(getJsonFromApiStub, 1);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            'https://abc/ga4gh/dos/v1/dataobjects/123',
+            null,
+        ],
+    );
 });
 
-/* BT-236 Skip this as it fails in weird ways (not in 'access method parsing') with signed URLs turned off. */
-test.skip('martha_v3 should return 500 if access method parsing fails', async (t) => {
+test.serial('martha_v3 should return 500 if access method parsing fails', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(drsObjectWithInvalidFields);
 
     const response = mockResponse();
     await marthaV3(
-        mockRequest({ body: { 'url': 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0' } }),
+        mockRequest({ body: { 'url': 'drs://dg.F82A1A:ed6be7ab-068e-46c8-824a-f39cfbb885cc' } }),
         response,
     );
     t.is(response.statusCode, 500);
-    const result = response.send.lastCall.args[0];
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual(
         { ...result },
         {
@@ -900,21 +1162,30 @@ test.skip('martha_v3 should return 500 if access method parsing fails', async (t
             status: 500,
         },
     );
+
+    sinon.assert.callCount(getJsonFromApiStub, 1);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
+            null,
+        ],
+    );
 });
 
-/* BT-236 Skip testing access token fetch failure since that is not something this code even attempts with BDC
- * signed URLs turned off. */
-test.skip('martha_v3 should return 500 on exception trying to get access token from Bond', async (t) => {
-    getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
+test.serial('martha_v3 should return 500 on exception trying to get access token from Bond', async (t) => {
+    getJsonFromApiStub.onCall(0).resolves(kidsFirstDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(null);
 
     const response = mockResponse();
     await marthaV3(
-        mockRequest({ body: { 'url': 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0' } }),
+        mockRequest({ body: { 'url': 'drs://dg.F82A1A:ed6be7ab-068e-46c8-824a-f39cfbb885cc' } }),
         response,
     );
     t.is(response.statusCode, 500);
-    const result = response.send.lastCall.args[0];
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual(
         { ...result },
         {
@@ -925,22 +1196,35 @@ test.skip('martha_v3 should return 500 on exception trying to get access token f
             status: 500,
         },
     );
+
+    sinon.assert.callCount(getJsonFromApiStub, 2);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
+            null,
+        ],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/kids-first/accesstoken', bearerAuthorization],
+    );
 });
 
-/* BT-236 Skip testing access URL fetch failure since that is not something this code even attempts with BDC
- * signed URLs turned off. */
-test.skip('martha_v3 should return 500 on exception trying to get signed URL from DRS provider', async (t) => {
-    getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
+test.serial('martha_v3 should return 500 on exception trying to get signed URL from DRS provider', async (t) => {
+    getJsonFromApiStub.onCall(0).resolves(kidsFirstDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
     getJsonFromApiStub.onCall(2).rejects(new Error("Test exception: simulated error from DRS provider"));
 
     const response = mockResponse();
     await marthaV3(
-        mockRequest({ body: { 'url': 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0' } }),
+        mockRequest({ body: { 'url': 'drs://dg.F82A1A:ed6be7ab-068e-46c8-824a-f39cfbb885cc' } }),
         response,
     );
     t.is(response.statusCode, 500);
-    const result = response.send.lastCall.args[0];
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
     t.deepEqual(
         { ...result },
         {
@@ -950,6 +1234,27 @@ test.skip('martha_v3 should return 500 on exception trying to get signed URL fro
             },
             status: 500,
         },
+    );
+
+    sinon.assert.callCount(getJsonFromApiStub, 3);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
+            null,
+        ],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/kids-first/accesstoken', bearerAuthorization],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(2).args,
+        [
+            `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects` +
+            '/ed6be7ab-068e-46c8-824a-f39cfbb885cc/access/s3',
+            `Bearer ${bondAccessTokenResponse.token}`,
+        ],
     );
 });
 
