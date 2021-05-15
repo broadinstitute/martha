@@ -23,27 +23,27 @@ const mockResponse = () => {
 /**
  *Begin Scenario 1: data objects uri with non-dg host and path
  */
-test('dataObjectUriToHttps should parse dos:// Data Object uri', (t) => {
+test('helpers dataObjectUriToHttps should parse dos:// Data Object uri', (t) => {
     t.is(dataObjectUriToHttps('dos://foo/bar'), 'https://foo/ga4gh/dos/v1/dataobjects/bar');
 });
 
-test('dataObjectUriToHttps should parse dos:// Data Object uri and preserve case', (t) => {
+test('helpers dataObjectUriToHttps should parse dos:// Data Object uri and preserve case', (t) => {
     t.is(dataObjectUriToHttps('dos://FoO/BAR'), 'https://FoO/ga4gh/dos/v1/dataobjects/BAR');
 });
 
-test('dataObjectUriToHttps should parse drs:// Data Object uri', (t) => {
+test('helpers dataObjectUriToHttps should parse drs:// Data Object uri', (t) => {
     t.is(dataObjectUriToHttps('drs://foo/bar'), 'https://foo/ga4gh/dos/v1/dataobjects/bar');
 });
 
-test('dataObjectUriToHttps should parse drs:// Data Object uri with "/" path', (t) => {
+test('helpers dataObjectUriToHttps should parse drs:// Data Object uri with "/" path', (t) => {
     t.is(dataObjectUriToHttps('drs://foo/bar/'), 'https://foo/ga4gh/dos/v1/dataobjects/bar');
 });
 
-test('dataObjectUriToHttps should parse drs:// Data Object uri with query part', (t) => {
+test('helpers dataObjectUriToHttps should parse drs:// Data Object uri with query part', (t) => {
     t.is(dataObjectUriToHttps('drs://foo/bar?version=1&bananas=yummy'), 'https://foo/ga4gh/dos/v1/dataobjects/bar?version=1&bananas=yummy');
 });
 
-test('dataObjectUriToHttps should parse drs:// Data Object uri when host includes a port number', (t) => {
+test('helpers dataObjectUriToHttps should parse drs:// Data Object uri when host includes a port number', (t) => {
     t.is(dataObjectUriToHttps('drs://foo.com:1234/bar'), 'https://foo.com:1234/ga4gh/dos/v1/dataobjects/bar');
 });
 /**
@@ -53,27 +53,27 @@ test('dataObjectUriToHttps should parse drs:// Data Object uri when host include
 /**
  * Begin Scenario 2: data objects uri with dg host
  */
-test('dataObjectUriToHttps should parse "dos://dg." Data Object uri to use bioDataCatalystHost', (t) => {
+test('helpers dataObjectUriToHttps should parse "dos://dg." Data Object uri to use bioDataCatalystHost', (t) => {
     t.is(dataObjectUriToHttps('dos://dg.2345/bar'), `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345/bar`);
 });
 
-test('dataObjectUriToHttps should parse "dos://dg." Data Object uri to use bioDataCatalystHost and preserve case', (t) => {
+test('helpers dataObjectUriToHttps should parse "dos://dg." Data Object uri to use bioDataCatalystHost and preserve case', (t) => {
     t.is(dataObjectUriToHttps('dos://dg.2345AbCdE/bAr'), `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345AbCdE/bAr`);
 });
 
-test('dataObjectUriToHttps should parse "drs://dg." Data Object uri to use bioDataCatalystHost', (t) => {
+test('helpers dataObjectUriToHttps should parse "drs://dg." Data Object uri to use bioDataCatalystHost', (t) => {
     t.is(dataObjectUriToHttps('drs://dg.2345/bar'), `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345/bar`);
 });
 
-test('dataObjectUriToHttps should parse "drs://dg." Data Object uri with "/" path to use bioDataCatalystHost', (t) => {
+test('helpers dataObjectUriToHttps should parse "drs://dg." Data Object uri with "/" path to use bioDataCatalystHost', (t) => {
     t.is(dataObjectUriToHttps('drs://dg.2345/bar/'), `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345/bar`);
 });
 
-test('dataObjectUriToHttps should parse "drs://dg." Data Object uri with query part to use bioDataCatalystHost', (t) => {
+test('helpers dataObjectUriToHttps should parse "drs://dg." Data Object uri with query part to use bioDataCatalystHost', (t) => {
     t.is(dataObjectUriToHttps('drs://dg.2345/bar?version=1&bananas=yummy'), `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345/bar?version=1&bananas=yummy`);
 });
 
-test('dataObjectUriToHttps should throw an error when given a "dg.*" host with no path', (t) => {
+test('helpers dataObjectUriToHttps should throw an error when given a "dg.*" host with no path', (t) => {
     t.throws(
         () => dataObjectUriToHttps('dos://dg.4503'),
         {
@@ -91,19 +91,19 @@ test('dataObjectUriToHttps should throw an error when given a "dg.*" host with n
 /**
  * Begin Scenario 3: data objects uri with non-dg host and NO path
  */
-test('should parse "dos://dg." Data Object uri with only a host part without a path', (t) => {
+test('helpers should parse "dos://dg." Data Object uri with only a host part without a path', (t) => {
     t.is(dataObjectUriToHttps('dos://foo-bar-baz'), `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/foo-bar-baz`);
 });
 
-test('should parse "drs://dg." Data Object uri with only a host part without a path', (t) => {
+test('helpers should parse "drs://dg." Data Object uri with only a host part without a path', (t) => {
     t.is(dataObjectUriToHttps('drs://foo-bar-baz'), `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/foo-bar-baz`);
 });
 
-test('should parse "drs://dg." Data Object uri with only a host part with a "/" path', (t) => {
+test('helpers should parse "drs://dg." Data Object uri with only a host part with a "/" path', (t) => {
     t.is(dataObjectUriToHttps('drs://foo-bar-baz/'), `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/foo-bar-baz`);
 });
 
-test('should parse "drs://dg." Data Object uri with only a host part with a query part', (t) => {
+test('helpers should parse "drs://dg." Data Object uri with only a host part with a query part', (t) => {
     t.is(dataObjectUriToHttps('drs://foo-bar-baz?version=1&bananas=yummy'), `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/foo-bar-baz?version=1&bananas=yummy`);
 });
 /**
@@ -113,28 +113,28 @@ test('should parse "drs://dg." Data Object uri with only a host part with a quer
 /**
  * Begin Scenario 4: data objects uri with jade data repo host
  */
-test('should parse Data Object uri with jade data repo DEV as host', (t) => {
+test('helpers should parse Data Object uri with jade data repo DEV as host', (t) => {
     t.is(
         dataObjectUriToHttps('drs://jade.datarepo-dev.broadinstitute.org/973b5e79-6433-40ce-bf38-686ab7f17820'),
         'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/973b5e79-6433-40ce-bf38-686ab7f17820'
     );
 });
 
-test('should parse Data Object uri with jade data repo DEV as host and path with snapshot id', (t) => {
+test('helpers should parse Data Object uri with jade data repo DEV as host and path with snapshot id', (t) => {
     t.is(
         dataObjectUriToHttps('drs://jade.datarepo-dev.broadinstitute.org/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820'),
         'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820'
     );
 });
 
-test('should parse Data Object uri with jade data repo PROD as host', (t) => {
+test('helpers should parse Data Object uri with jade data repo PROD as host', (t) => {
     t.is(
         dataObjectUriToHttps('drs://data.terra.bio/anything'),
         'https://data.terra.bio/ga4gh/drs/v1/objects/anything'
     );
 });
 
-test('should throw error when given jade data repo host and no path', (t) => {
+test('helpers should throw error when given jade data repo host and no path', (t) => {
     t.throws(
         () => dataObjectUriToHttps('drs://jade.datarepo-dev.broadinstitute.org/'),
         {
@@ -145,7 +145,7 @@ test('should throw error when given jade data repo host and no path', (t) => {
     );
 });
 
-test('should parse Data Object uri with host that looks like jade data repo host', (t) => {
+test('helpers should parse Data Object uri with host that looks like jade data repo host', (t) => {
     t.is(
         dataObjectUriToHttps('drs://jade-data-repo.datarepo-dev.broadinstitute.org/v1_anything'),
         'https://jade-data-repo.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_anything'
@@ -155,7 +155,7 @@ test('should parse Data Object uri with host that looks like jade data repo host
  * End Scenario 4
  */
 
-test('dataObjectUriToHttps should throw a Error when passed an invalid uri', (t) => {
+test('helpers dataObjectUriToHttps should throw a Error when passed an invalid uri', (t) => {
     t.throws(
         () => dataObjectUriToHttps('A string that is not a valid URI'),
         {
@@ -166,7 +166,7 @@ test('dataObjectUriToHttps should throw a Error when passed an invalid uri', (t)
     );
 });
 
-test('samBaseUrl should come from the config json', (t) => {
+test('helpers samBaseUrl should come from the config json', (t) => {
     t.is(samBaseUrl(), config.samBaseUrl);
 });
 
@@ -174,11 +174,11 @@ test('samBaseUrl should come from the config json', (t) => {
  * Test the getHashesMap() function
  */
 
-test('getHashesMap should return null for empty checksums array', (t) => {
+test('helpers getHashesMap should return null for empty checksums array', (t) => {
     t.deepEqual(getHashesMap([]), null);
 });
 
-test('getHashesMap should return map with 1 entry for checksums array with 1 element', (t) => {
+test('helpers getHashesMap should return map with 1 entry for checksums array with 1 element', (t) => {
     const checksumArray = [
         {
             type: 'md5',
@@ -192,7 +192,7 @@ test('getHashesMap should return map with 1 entry for checksums array with 1 ele
     t.deepEqual(getHashesMap(checksumArray), expectedChecksumMap);
 });
 
-test('getHashesMap should return map with multiple hashes for checksums array', (t) => {
+test('helpers getHashesMap should return map with multiple hashes for checksums array', (t) => {
     const checksumArray = [
         {
             type: 'md5',
@@ -216,7 +216,7 @@ test('getHashesMap should return map with multiple hashes for checksums array', 
     t.deepEqual(getHashesMap(checksumArray), expectedChecksumMap);
 });
 
-test('getHashesMap should throw error if the checksums array contains duplicate `checksum` values for same `type`', (t) => {
+test('helpers getHashesMap should throw error if the checksums array contains duplicate `checksum` values for same `type`', (t) => {
     const checksumArray = [
         {
             type: 'md5',
@@ -245,7 +245,7 @@ test('getHashesMap should throw error if the checksums array contains duplicate 
 /**
  * Test the convertToMarthaV3Response() function
  */
-test('convertToMarthaV3Response should return null for all fields in an unlikely event of empty drs and bond responses', (t) => {
+test('helpers convertToMarthaV3Response should return null for all fields in an unlikely event of empty drs and bond responses', (t) => {
     const expectedResponse = new MarthaV3Response(
         'application/octet-stream',
         null,
@@ -262,7 +262,7 @@ test('convertToMarthaV3Response should return null for all fields in an unlikely
     t.deepEqual(convertToMarthaV3Response({}, null, null, {}), expectedResponse);
 });
 
-test('convertToMarthaV3Response should return null for fields that are missing in drs response', (t) => {
+test('helpers convertToMarthaV3Response should return null for fields that are missing in drs response', (t) => {
     const mockDrsResponse = {
         id: 'v1_abc-123',
         description: '123 BAM file',
@@ -289,7 +289,7 @@ test('convertToMarthaV3Response should return null for fields that are missing i
     t.deepEqual(convertToMarthaV3Response(mockDrsResponse, '123.mapped.abc.bam', null, {}), expectedResponse);
 });
 
-test('convertToMarthaV3Response should return null for fields that are empty in drs with empty bond responses', (t) => {
+test('helpers convertToMarthaV3Response should return null for fields that are empty in drs with empty bond responses', (t) => {
     const mockDrsResponse = {
         id: 'v1_abc-123',
         description: '123 BAM file',
@@ -319,7 +319,7 @@ test('convertToMarthaV3Response should return null for fields that are empty in 
     t.deepEqual(convertToMarthaV3Response(mockDrsResponse, '123.mapped.abc.bam', null, {}), expectedResponse);
 });
 
-test('convertToMarthaV3Response should return null for googleServiceAccount if bond returned nothing', (t) => {
+test('helpers convertToMarthaV3Response should return null for googleServiceAccount if bond returned nothing', (t) => {
     const mockDrsResponse = {
         id: 'v1_abc-123',
         description: '123 BAM file',
