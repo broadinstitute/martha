@@ -118,6 +118,25 @@ curl \
     --data '{"url": "dos://foo/bar", "fields": ["hashes", "size", "bondProvider"]}'
 ```
 
+The body of the request JSON object may also contain a key named `googleBillingProject` with a string value. When
+the `googleBillingProject` is provided the `accessUrl` will be checked to see if it is a Google Cloud Storage signed
+HTTPS URL that requires requester pays. If that check determines that requester pays is required `martha_v3` will
+append `&userProject=${googleBillingProject}` to the URL in `accessUrl`.
+
+Example request requesting the `accessUrl` be checked for requester pays:
+```
+curl \
+    localhost:8010/martha_v3 \
+    --header 'Authorization: Bearer <token>' \
+    --header 'Content-Type: application/json' \
+    --data '
+    {
+      "url": "dos://foo/bar",
+      "googleBillingProject": "some-billing-project",
+      "fields": ["accessUrl"]
+    }'
+```
+
 **NOTE:**
 
 There was an [early substitution recommendation to

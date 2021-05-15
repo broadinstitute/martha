@@ -87,7 +87,6 @@ const DG_COMPACT_THE_ANVIL = 'dg.anv0';
 const DG_COMPACT_CRDC = 'dg.4dfc';
 const DG_COMPACT_KIDS_FIRST = 'dg.f82a1a';
 
-// noinspection JSUnusedGlobalSymbols
 class DrsType {
     constructor(urlParts, protocolPrefix, sendAuth, bondProvider, accessMethodType) {
         this.urlParts = urlParts;
@@ -275,8 +274,7 @@ function getHttpsUrlParts(url) {
 }
 
 // NOTE: reimplementation of dataObjectUriToHttps in helper.js
-function generateMetadataUrl(drsType) {
-    const { urlParts, protocolPrefix } = drsType;
+function generateMetadataUrl(urlParts, protocolPrefix) {
     // Construct a WHATWG URL by first only setting the protocol and the hostname: https://github.com/whatwg/url/issues/354
     const generatedUrl = new URL(`https://${urlParts.httpsUrlHost}`);
     generatedUrl.port = urlParts.httpsUrlPort;
@@ -287,8 +285,7 @@ function generateMetadataUrl(drsType) {
     return url.format(generatedUrl);
 }
 
-function generateAccessUrl(drsType, accessId) {
-    const { urlParts, protocolPrefix } = drsType;
+function generateAccessUrl(urlParts, protocolPrefix, accessId) {
     // Construct a WHATWG URL by first only setting the protocol and the hostname: https://github.com/whatwg/url/issues/354
     const generatedUrl = new URL(`https://${urlParts.httpsUrlHost}`);
     generatedUrl.port = urlParts.httpsUrlPort;
@@ -420,6 +417,10 @@ function validateRequest(url, auth, requestedFields) {
         throw new BadRequestError(`'fields' was not an array.`);
     }
 
+    if (!requestedFields.length) {
+        throw new BadRequestError(`The 'fields' array was empty.`);
+    }
+
     const invalidFields = requestedFields.filter((field) => !MARTHA_V3_ALL_FIELDS.includes(field));
     if (invalidFields.length !== 0) {
         throw new BadRequestError(
@@ -441,51 +442,53 @@ function overlapFields(requestedFields, serviceFields) {
     return requestedFields.filter((field) => serviceFields.includes(field)).length !== 0;
 }
 
-function buildRequestInfo(params) {
+/**
+ * Determines various request variables based on the requested URL.
+ */
+function buildDrsRequestInfo(params) {
     const {
         url,
-        requestedFields,
-        auth,
     } = params;
 
-    validateRequest(url, auth, requestedFields);
-    const drsType = determineDrsType(url);
+    const { urlParts, protocolPrefix, sendAuth, bondProvider, accessMethodType } = determineDrsType(url);
+
+    console.log(
+        `DRS URI '${url}' will use authorization required '${sendAuth}', bond provider '${bondProvider}', ` +
+        `and access method type '${accessMethodType}'`
+    );
 
     Object.assign(params, {
-        drsType,
+        urlParts,
+        protocolPrefix,
+        sendAuth,
+        bondProvider,
+        accessMethodType,
     });
 }
 
 /**
- * Retrieves information from the various underlying servers.
- *
- * See also:
- * - https://bvdp-saturn-dev.appspot.com/#workspaces/general-dev-billing-account/DRS%20and%20Signed%20URL%20Development%20-%20Dev
- * - https://lucid.app/lucidchart/invitations/accept/0f899643-76a9-4b9c-84f5-f11ddac86bba
- * - https://lucid.app/lucidchart/invitations/accept/8b6f942b-f7dc-4acc-ac36-318a1685e6ac
+ * Maybe retrieves the initial metadata drsResponse from the DRS provider.
  */
-async function retrieveFromServers(params) {
+async function retrieveDrsMetadata(params) {
     const {
+        url,
         requestedFields,
         auth,
-        drsType,
-        url,
+        urlParts,
+        protocolPrefix,
+        sendAuth,
+        accessMethodType,
     } = params;
 
-    const {sendAuth, bondProvider, accessMethodType} = drsType;
-    console.log(
-        `DRS URI '${url}' will use auth required '${sendAuth}', bond provider '${bondProvider}', ` +
-        `and access method type '${accessMethodType}'`
-    );
-
-    let response;
+    let metadataResponse;
     if (overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS)) {
         try {
-            const httpsMetadataUrl = generateMetadataUrl(drsType);
+            const httpsMetadataUrl = generateMetadataUrl(urlParts, protocolPrefix);
             console.log(
-                `Requesting DRS metadata for '${url}' from '${httpsMetadataUrl}' with auth required '${sendAuth}'`
+                `Requesting DRS metadata for '${url}' from '${httpsMetadataUrl}' ` +
+                `with authorization required '${sendAuth}'`
             );
-            response = await apiAdapter.getJsonFrom(httpsMetadataUrl, sendAuth ? auth : null);
+            metadataResponse = await apiAdapter.getJsonFrom(httpsMetadataUrl, sendAuth ? auth : null);
         } catch (error) {
             throw new RemoteServerError(error, 'Received error while resolving DRS URL.');
         }
@@ -493,7 +496,7 @@ async function retrieveFromServers(params) {
 
     let drsResponse;
     try {
-        drsResponse = responseParser(response);
+        drsResponse = responseParser(metadataResponse);
     } catch (error) {
         throw new RemoteServerError(error, 'Received error while parsing response from DRS URL.');
     }
@@ -520,6 +523,24 @@ async function retrieveFromServers(params) {
         }
     }
 
+    Object.assign(params, {
+        drsResponse,
+        fileName,
+        accessId,
+    });
+}
+
+/**
+ * Maybe retrieves an accessToken from Bond that may be further used to retrieve an accessUrl using an accessId.
+ */
+async function retrieveBondAccessToken(params) {
+    const {
+        url,
+        auth,
+        bondProvider,
+        accessId,
+    } = params;
+
     // Retrieve an accessToken from Bond that will be used to later retrieve the accessUrl from the DRS server.
     let accessToken;
     if (bondProvider && accessId) {
@@ -533,84 +554,171 @@ async function retrieveFromServers(params) {
         }
     }
 
+    Object.assign(params, {
+        accessToken,
+    });
+}
+
+/**
+ * Maybe retrieves the accessUrl from the DRS provider using the accessToken, possibly adding requester pays.
+ */
+async function retrieveDrsAccessUrl(params) {
+    const {
+        url,
+        googleBillingProject,
+        urlParts,
+        protocolPrefix,
+        bondProvider,
+        accessId,
+        accessToken,
+    } = params;
+
     // Retrieve the accessUrl using the returned accessToken, even if the token was empty.
     let accessUrl;
     if (bondProvider && accessId) {
         try {
-            const httpsAccessUrl = generateAccessUrl(drsType, accessId);
-            const accessTokenAuth = `Bearer ${accessToken}`;
+            const httpsAccessUrl = generateAccessUrl(urlParts, protocolPrefix, accessId);
+            const accessUrlAuth = `Bearer ${accessToken}`;
             console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}'`);
-            accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, accessTokenAuth);
+            accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, accessUrlAuth);
         } catch (error) {
             throw new RemoteServerError(error, 'Received error contacting DRS provider.');
         }
     }
 
-    let bondSA;
+    // Check if requester pays billing should be added to the URL.
+    let needsRequesterPays;
+    if (accessUrl && googleBillingProject) {
+        try {
+            needsRequesterPays = await apiAdapter.isGcsRequesterPaysUrl(accessUrl.url);
+        } catch (error) {
+            throw new RemoteServerError(error, 'Received error checking for requester pays.');
+        }
+    }
+
+    if (needsRequesterPays) {
+        // For now assume this is a GCS V2 signed URL that can be modified
+        accessUrl.url = `${accessUrl.url}&userProject=${googleBillingProject}`;
+    }
+
+    Object.assign(params, {
+        accessUrl,
+    });
+}
+
+/**
+ * Maybe retrieve a google service account from Bond that may be used to access the underlying DRS file data.
+ */
+async function retrieveBondServiceAccount(params) {
+    const {
+        url,
+        requestedFields,
+        auth,
+        bondProvider,
+        accessMethodType,
+    } = params;
+
+    let googleServiceAccount;
     // Only retrieve the SA for projects that implicitly or explicitly use GCS for accessing the data.
     const accessMethodTypesRequiringSA = [ACCESS_METHOD_TYPE_NONE, ACCESS_METHOD_TYPE_GCS];
     if (bondProvider &&
         accessMethodTypesRequiringSA.includes(accessMethodType) &&
         overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS)) {
         try {
-            const bondSAKeyUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
-            console.log(`Requesting Bond SA key for '${url}' from '${bondSAKeyUrl}'`);
-            bondSA = await apiAdapter.getJsonFrom(bondSAKeyUrl, auth);
+            const bondServiceAccountKeyUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
+            console.log(`Requesting Bond SA key for '${url}' from '${bondServiceAccountKeyUrl}'`);
+            googleServiceAccount = await apiAdapter.getJsonFrom(bondServiceAccountKeyUrl, auth);
         } catch (error) {
             throw new RemoteServerError(error, 'Received error contacting Bond.');
         }
     }
 
     Object.assign(params, {
-        bondProvider,
-        drsResponse,
-        fileName,
-        accessUrl,
-        bondSA,
+        googleServiceAccount,
     });
 }
 
-function buildResponseInfo(params) {
+/**
+ * Collect the retrieved values into a response to send back to the martha_v3 client.
+ */
+function buildDrsResponseInfo(params) {
     const {
-        requestedFields,
         bondProvider,
         drsResponse,
         fileName,
         accessUrl,
-        bondSA,
+        googleServiceAccount,
     } = params;
 
     const fullResponse =
-        requestedFields.length
-            ? convertToMarthaV3Response(drsResponse, fileName, bondProvider, bondSA, accessUrl)
-            : {};
-    const partialResponse = mask(fullResponse, requestedFields.join(","));
+        convertToMarthaV3Response(drsResponse, fileName, bondProvider, googleServiceAccount, accessUrl);
 
     Object.assign(params, {
-        partialResponse,
+        fullResponse,
     });
 }
 
+/**
+ * Retrieves information from the various underlying servers.
+ *
+ * See also:
+ * - https://bvdp-saturn-dev.appspot.com/#workspaces/general-dev-billing-account/DRS%20and%20Signed%20URL%20Development%20-%20Dev
+ * - https://lucid.app/lucidchart/invitations/accept/0f899643-76a9-4b9c-84f5-f11ddac86bba
+ * - https://lucid.app/lucidchart/invitations/accept/8b6f942b-f7dc-4acc-ac36-318a1685e6ac
+ */
 async function marthaV3Handler(req, res) {
     try {
         // This function counts on the request posting data as "application/json" content-type.
         // See: https://cloud.google.com/functions/docs/writing/http#parsing_http_requests for more details
-        const {url, fields: requestedFields = MARTHA_V3_DEFAULT_FIELDS} = (req && req.body) || {};
-        const {authorization: auth, 'user-agent': userAgent} = req.headers;
+        const {
+            url,
+            googleBillingProject,
+            fields: requestedFields = MARTHA_V3_DEFAULT_FIELDS,
+        } = req.body || {};
+        const {
+            authorization: auth,
+            'user-agent': userAgent,
+        } = req.headers;
         const ip = req.ip;
         console.log(`Received URL '${url}' from agent '${userAgent}' on IP '${ip}'`);
 
+        validateRequest(url, auth, requestedFields);
+
+        const protocol = url.split('://')[0];
         const params = {
             url,
+            googleBillingProject,
             requestedFields,
             auth,
         };
 
-        buildRequestInfo(params);
-        await retrieveFromServers(params);
-        buildResponseInfo(params);
+        switch (protocol) {
+            case 'dos':
+            case 'drs': {
+                buildDrsRequestInfo(params);
+                await retrieveDrsMetadata(params);
+                await retrieveBondAccessToken(params);
+                await retrieveDrsAccessUrl(params);
+                await retrieveBondServiceAccount(params);
+                buildDrsResponseInfo(params);
+                break;
+            }
+            /*
+            Possible future for Terra/FC-UI:
+            Retrieve 'gs' metadata, and maybe process requests for a 'signedUrl' field?
+            Then maybe there would be no need for maintaining the separate fileSummaryV1 nor getSignedUrlV1.
+            See: https://broadworkbench.atlassian.net/wiki/spaces/WA/pages/880050177/Martha+Endpoints+and+Clients
+             */
+            default: {
+                const error = new BadRequestError("'url' must start with 'dos://' or 'drs://'");
+                logAndSendBadRequest(res, error);
+                return;
+            }
+        }
 
-        res.status(200).send(params.partialResponse);
+        console.log(`Returning '${url}' fields ['${requestedFields.join("', '")}']`);
+        const partialResponse = mask(params.fullResponse, requestedFields.join(","));
+        res.status(200).send(partialResponse);
     } catch (error) {
         if (error instanceof BadRequestError) {
             logAndSendBadRequest(res, error);
@@ -623,11 +731,12 @@ async function marthaV3Handler(req, res) {
     }
 }
 
-exports.marthaV3Handler = marthaV3Handler;
-exports.DrsType = DrsType;
-exports.determineDrsType = determineDrsType;
-exports.generateMetadataUrl = generateMetadataUrl;
-exports.generateAccessUrl = generateAccessUrl;
-exports.getDrsAccessId = getDrsAccessId;
-exports.getHttpsUrlParts = getHttpsUrlParts;
-exports.MARTHA_V3_ALL_FIELDS = MARTHA_V3_ALL_FIELDS;
+module.exports = {
+    MARTHA_V3_ALL_FIELDS,
+    getDrsAccessId,
+    getHttpsUrlParts,
+    generateMetadataUrl,
+    generateAccessUrl,
+    determineDrsType,
+    marthaV3Handler,
+};

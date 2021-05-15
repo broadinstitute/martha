@@ -35,14 +35,13 @@ const {
 const test = require('ava');
 const sinon = require('sinon');
 const {
-    marthaV3Handler: marthaV3,
-    DrsType,
-    determineDrsType,
-    generateMetadataUrl,
-    generateAccessUrl,
+    MARTHA_V3_ALL_FIELDS,
     getDrsAccessId,
     getHttpsUrlParts,
-    MARTHA_V3_ALL_FIELDS,
+    generateMetadataUrl,
+    generateAccessUrl,
+    determineDrsType,
+    marthaV3Handler: marthaV3,
 } = require('../../martha/martha_v3');
 const apiAdapter = require('../../common/api_adapter');
 const config = require('../../common/config');
@@ -88,11 +87,14 @@ function mockS3AccessUrl(s3UrlString) {
 }
 
 let getJsonFromApiStub;
-const getJsonFromApiMethodName = 'getJsonFrom';
+let isGcsRequesterPaysUrlApiStub;
+
+const mockGoogleBillingProject = 'some-billing-project';
 
 test.serial.beforeEach(() => {
     sinon.restore(); // If one test fails, the .afterEach() block will not execute, so always clean the slate here
-    getJsonFromApiStub = sinon.stub(apiAdapter, getJsonFromApiMethodName);
+    getJsonFromApiStub = sinon.stub(apiAdapter, 'getJsonFrom');
+    isGcsRequesterPaysUrlApiStub = sinon.stub(apiAdapter, 'isGcsRequesterPaysUrl');
 });
 
 test.serial.afterEach(() => {
@@ -287,6 +289,175 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
     );
 });
 
+// Skipped until BT-237 when GCS requester pays can be tested again
+test.skip('martha_v3 does not add the googleBillingProject if the access url is not requester pays', async (t) => {
+    const drsAccessUrl = mockGcsAccessUrl(bdcDrsResponse.access_methods[0].access_url.url).url;
+    getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
+    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.onCall(2).resolves({ url: drsAccessUrl });
+    isGcsRequesterPaysUrlApiStub.resolves(false);
+
+    const response = mockResponse();
+    await marthaV3(
+        mockRequest(
+            {
+                body: {
+                    url: 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+                    googleBillingProject: mockGoogleBillingProject,
+                    fields: ['accessUrl'],
+                },
+            },
+        ),
+        response,
+    );
+    t.is(response.statusCode, 200);
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
+    t.deepEqual({ ...result }, { accessUrl: { url: drsAccessUrl } });
+
+    sinon.assert.callCount(getJsonFromApiStub, 3);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
+            '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+            null,
+        ],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/fence/accesstoken', bearerAuthorization],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(2).args,
+        [
+            `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
+            '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0/access/gs',
+            `Bearer ${bondAccessTokenResponse.token}`,
+        ],
+    );
+
+    sinon.assert.callCount(isGcsRequesterPaysUrlApiStub, 1);
+    t.deepEqual(isGcsRequesterPaysUrlApiStub.getCall(0).args, [drsAccessUrl]);
+});
+
+// Skipped until BT-237 when GCS requester pays can be tested again
+test.skip('martha_v3 adds the googleBillingProject if the access url is requester pays', async (t) => {
+    const drsAccessUrl = mockGcsAccessUrl(bdcDrsResponse.access_methods[0].access_url.url).url;
+    getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
+    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.onCall(2).resolves({ url: drsAccessUrl });
+    isGcsRequesterPaysUrlApiStub.resolves(true);
+
+    const response = mockResponse();
+    await marthaV3(
+        mockRequest(
+            {
+                body: {
+                    url: 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+                    googleBillingProject: mockGoogleBillingProject,
+                    fields: ['accessUrl'],
+                },
+            },
+        ),
+        response,
+    );
+    t.is(response.statusCode, 200);
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
+    t.deepEqual({ ...result }, { accessUrl: { url: `${drsAccessUrl}&userProject=${mockGoogleBillingProject}` } });
+
+
+    sinon.assert.callCount(getJsonFromApiStub, 3);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
+            '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+            null,
+        ],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/fence/accesstoken', bearerAuthorization],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(2).args,
+        [
+            `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
+            '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0/access/gs',
+            `Bearer ${bondAccessTokenResponse.token}`,
+        ],
+    );
+
+    sinon.assert.callCount(isGcsRequesterPaysUrlApiStub, 1);
+    t.deepEqual(isGcsRequesterPaysUrlApiStub.getCall(0).args, [drsAccessUrl]);
+});
+
+// Skipped until BT-237 when GCS requester pays can be tested again
+test.skip('martha_v3 should return 500 if checking requester pays fails', async (t) => {
+    const drsAccessUrl = mockGcsAccessUrl(bdcDrsResponse.access_methods[0].access_url.url).url;
+    getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
+    getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.onCall(2).resolves({ url: drsAccessUrl });
+    isGcsRequesterPaysUrlApiStub.rejects(new Error('Requester pays check forced to fail by testing stub'));
+
+    const response = mockResponse();
+    await marthaV3(
+        mockRequest(
+            {
+                body: {
+                    url: 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+                    googleBillingProject: mockGoogleBillingProject,
+                    fields: ['accessUrl'],
+                },
+            },
+        ),
+        response,
+    );
+    t.is(response.statusCode, 500);
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
+    t.deepEqual(
+        { ...result },
+        {
+            response: {
+                status: 500,
+                text: 'Received error checking for requester pays. Requester pays check forced to fail by testing stub',
+            },
+            status: 500,
+        },
+    );
+
+    sinon.assert.callCount(getJsonFromApiStub, 3);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
+            '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
+            null,
+        ],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/fence/accesstoken', bearerAuthorization],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(2).args,
+        [
+            `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
+            '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0/access/gs',
+            `Bearer ${bondAccessTokenResponse.token}`,
+        ],
+    );
+
+    sinon.assert.callCount(isGcsRequesterPaysUrlApiStub, 1);
+    t.deepEqual(isGcsRequesterPaysUrlApiStub.getCall(0).args, [drsAccessUrl]);
+});
+
 test.serial('martha_v3 calls the correct endpoints when only the fileName is requested and the metadata contains a name', async (t) => {
     const drsResponse = bdcDrsResponseCustom({
         name: 'HG01131.final.cram.crai',
@@ -430,11 +601,20 @@ test.serial('martha_v3 calls no endpoints when no fields are requested', async (
             fields: [],
         },
     }), response);
-    t.is(response.statusCode, 200);
+    t.is(response.statusCode, 400);
 
     sinon.assert.callCount(response.send, 1);
     const result = response.send.getCall(0).args[0];
-    t.deepEqual({ ...result }, {});
+    t.deepEqual(
+        { ...result },
+        {
+            response: {
+                status: 400,
+                text: "Request is invalid. The 'fields' array was empty.",
+            },
+            status: 400,
+        },
+    );
 
     sinon.assert.callCount(getJsonFromApiStub, 0); // Neither Bond nor DRS was called
 });
@@ -601,7 +781,7 @@ test.serial('martha_v3 should return 400 if no data is posted with the request',
     sinon.assert.callCount(getJsonFromApiStub, 0);
 });
 
-test.serial('martha_v3 should return 400 if given a \'url\' with an invalid value', async (t) => {
+test.serial("martha_v3 should return 400 if given a 'url' with an invalid value", async (t) => {
     const response = mockResponse();
     await marthaV3(mockRequest({ body: { url: 'Not a valid URI' } }), response);
     t.is(response.statusCode, 400);
@@ -613,7 +793,28 @@ test.serial('martha_v3 should return 400 if given a \'url\' with an invalid valu
         {
             response: {
                 status: 400,
-                text: 'Request is invalid. Invalid URL: Not a valid URI',
+                text: "Request is invalid. 'url' must start with 'dos://' or 'drs://'",
+            },
+            status: 400,
+        },
+    );
+
+    sinon.assert.callCount(getJsonFromApiStub, 0);
+});
+
+test.serial("martha_v3 should return 400 if given a 'url' with an invalid drs value", async (t) => {
+    const response = mockResponse();
+    await marthaV3(mockRequest({ body: { url: 'drs://Not a valid URI' } }), response);
+    t.is(response.statusCode, 400);
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
+    t.deepEqual(
+        { ...result },
+        {
+            response: {
+                status: 400,
+                text: 'Request is invalid. Invalid URL: drs://Not a valid URI',
             },
             status: 400,
         },
@@ -1278,15 +1479,13 @@ test.serial('martha_v3 getDrsAccessId should not return an access_id for a null 
 
 test.serial('martha_v3 generateAccessUrl should generate an access url', (t) => {
     const urlParts = getHttpsUrlParts('drs://some.host.example.com/some_id');
-    const drsType = new DrsType(urlParts, '/some_prefix', false, null, null);
-    const result = generateAccessUrl(drsType, 'some_access_id');
+    const result = generateAccessUrl(urlParts, '/some_prefix', 'some_access_id');
     t.is(result, 'https://some.host.example.com/some_prefix/some_id/access/some_access_id');
 });
 
 test.serial('martha_v3 generateAccessUrl should generate an access url with a different port', (t) => {
     const urlParts = getHttpsUrlParts('drs://some.host.example.com:8000/some_id');
-    const drsType = new DrsType(urlParts, '/some_prefix', false, null, null);
-    const result = generateAccessUrl(drsType, 'some_access_id');
+    const result = generateAccessUrl(urlParts, '/some_prefix', 'some_access_id');
     t.is(result, 'https://some.host.example.com:8000/some_prefix/some_id/access/some_access_id');
 });
 
@@ -1298,8 +1497,7 @@ This is hypothetical scenario based on a combination of:
  */
 test.serial('martha_v3 generateAccessUrl should add the query string to the access url', (t) => {
     const urlParts = getHttpsUrlParts('drs://some.host.example.com/some_id?query=value');
-    const drsType = new DrsType(urlParts, '/some_prefix', false, null, null);
-    const result = generateAccessUrl(drsType, 'some_access_id');
+    const result = generateAccessUrl(urlParts, '/some_prefix', 'some_access_id');
     t.is(result, 'https://some.host.example.com/some_prefix/some_id/access/some_access_id?query=value');
 });
 
@@ -1309,8 +1507,8 @@ test.serial('martha_v3 generateAccessUrl should add the query string to the acce
  * @return {string}
  */
 function determineDrsTypeTestWrapper(testUrl) {
-    const drsType = determineDrsType(testUrl);
-    return generateMetadataUrl(drsType);
+    const { urlParts, protocolPrefix } = determineDrsType(testUrl);
+    return generateMetadataUrl(urlParts, protocolPrefix);
 }
 
 /**
