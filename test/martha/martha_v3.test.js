@@ -737,8 +737,35 @@ test.serial('martha_v3 calls bond Bond with the "fence" provider when the Data O
     t.deepEqual(
         getJsonFromApiStub.getCall(0).args,
         [
-            `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
+            `https://${config.HOST_BIODATA_CATALYST_PROD}/ga4gh/drs/v1/objects` +
             '/dg.4503/this_part_can_be_anything',
+            null,
+        ],
+    );
+    t.deepEqual(
+        getJsonFromApiStub.getCall(1).args,
+        ['https://broad-bond-dev.appspot.com/api/link/v1/fence/serviceaccount/key', bearerAuthorization],
+    );
+});
+
+test.serial('martha_v3 calls bond Bond with the "fence" provider when the Data Object URL host is "dg.712C"', async (t) => {
+    getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
+    getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
+
+    const response = mockResponse();
+    await marthaV3(mockRequest({ body: { 'url': 'drs://dg.712C/this_part_can_be_anything' } }), response);
+    t.is(response.statusCode, 200);
+
+    sinon.assert.callCount(response.send, 1);
+    const result = response.send.getCall(0).args[0];
+    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, null));
+
+    sinon.assert.callCount(getJsonFromApiStub, 2);
+    t.deepEqual(
+        getJsonFromApiStub.getCall(0).args,
+        [
+            `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
+            '/dg.712C/this_part_can_be_anything',
             null,
         ],
     );

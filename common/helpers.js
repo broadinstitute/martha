@@ -64,7 +64,7 @@ function determineHostname(someUrl) {
         return someUrl.hostname;
     }
 
-    return config.bioDataCatalystHost;
+    return config.bioDataCatalystLegacyHost;
 }
 
 function determinePathname(someUrl) {
