@@ -49,11 +49,11 @@ const apiAdapter = require('../../common/api_adapter');
 const config = require('../../common/config');
 const mask = require('json-mask');
 
-const bearerAuth = 'bearer abc123';
+const terraAuth = 'bearer abc123';
 
 const mockRequest = (req, requestFields = MARTHA_V3_ALL_FIELDS) => {
     req.method = 'POST';
-    req.headers = { authorization: bearerAuth };
+    req.headers = { authorization: terraAuth };
     if (req.body && typeof req.body.fields === "undefined") {
         req.body.fields = requestFields;
     }
@@ -76,6 +76,22 @@ const googleSAKeyObject = { key: 'A Google Service Account private key json obje
 const bondAccessTokenResponse = {
     token: 'my-fake-token',
     expires_at: 'NEVER'
+};
+
+const bondUrls = (provider) => {
+    const baseUrl = `https://broad-bond-dev.appspot.com/api/link/v1/${provider}`;
+    return {
+        serviceAccountKeyUrl: `${baseUrl}/serviceaccount/key`,
+        accessTokenUrl: `${baseUrl}/accesstoken`
+    };
+};
+
+const drsUrls = (host, id, accessId) => {
+    const objectsUrl = `https://${host}/ga4gh/drs/v1/objects/${id}`;
+    return {
+        objectsUrl,
+        accessUrl: `${objectsUrl}/access/${accessId}`
+    };
 };
 
 function mockGcsAccessUrl(gsUrlString) {
@@ -301,7 +317,7 @@ test.serial('martha_v3 calls the correct endpoints when the accessUrl times out'
     );
     t.deepEqual(
         getJsonFromApiStub.getCall(1).args,
-        ['https://broad-bond-dev.appspot.com/api/link/v1/kids-first/accesstoken', bearerAuth],
+        ['https://broad-bond-dev.appspot.com/api/link/v1/kids-first/accesstoken', terraAuth],
     );
     t.deepEqual(
         getJsonFromApiStub.getCall(2).args,
@@ -350,7 +366,7 @@ test.serial('martha_v3 calls the correct endpoints when the accessUrl returns an
     );
     t.deepEqual(
         getJsonFromApiStub.getCall(1).args,
-        ['https://broad-bond-dev.appspot.com/api/link/v1/kids-first/accesstoken', bearerAuth],
+        ['https://broad-bond-dev.appspot.com/api/link/v1/kids-first/accesstoken', terraAuth],
     );
     t.deepEqual(
         getJsonFromApiStub.getCall(2).args,
@@ -745,34 +761,28 @@ test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t)
 
 // BT-236 temporarily cut access token and access endpoint out of the flow
 test.serial('martha_v3 parses BDC response correctly', async (t) => {
+    const drsHost = config.HOST_BIODATA_CATALYST_STAGING;
+    const {
+        id: objectId, self_uri: drsUri,
+        access_methods: { 0: { access_id: accessId, access_url: { url: gsUrl } } }
+    } = bdcDrsResponse;
+    const bond = bondUrls('fence');
+    const drs = drsUrls(drsHost, objectId, accessId);
+    const drsAccessUrlResponse = mockGcsAccessUrl(gsUrl);
+
     // https://lucid.app/lucidchart/428a0bdd-a884-4fc7-9a49-7bf300ef6777/edit?shared=true&page=0_0#
-    getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
-    getJsonFromApiStub.onCall(1).resolves(googleSAKeyObject);
+    getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(bdcDrsResponse);
+    getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`).resolves(drsAccessUrlResponse);
 
     const response = mockResponse();
-    await marthaV3(
-        mockRequest({ body: { 'url': 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0' } }),
-        response,
-    );
+    await marthaV3(mockRequest({ body: { 'url': drsUri } }), response);
+
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
-    sinon.assert.callCount(getJsonFromApiStub, 2);
-
-    t.deepEqual({ ...result }, bdcDrsMarthaResult(googleSAKeyObject, null));
-
-    t.is(
-        getJsonFromApiStub.getCall(0).args[0],
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects` +
-        '/dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0',
-    );
-    t.falsy(getJsonFromApiStub.getCall(0).args[1]); // no auth passed
-
-    const requestedBondSAKeyUrl = getJsonFromApiStub.getCall(1).args[0];
-    const saKeyUrlMatches = requestedBondSAKeyUrl.match(bondSAKeyUrlRegEx);
-    t.truthy(saKeyUrlMatches, 'Bond SA key URL called does not match Bond SA key URL regular expression');
-    const expectedSAKeyProvider = 'fence';
-    const actualSAKeyProvider = saKeyUrlMatches[2];
-    t.is(actualSAKeyProvider, expectedSAKeyProvider);
+    t.deepEqual(result, bdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse));
+    sinon.assert.callCount(getJsonFromApiStub, 4);
 });
 
 // BT-236 temporarily cut access token and access endpoint out of the flow
