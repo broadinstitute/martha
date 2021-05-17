@@ -349,7 +349,7 @@ function determineDrsType(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_FENCE,
-            ACCESS_METHOD_TYPE_NONE, /* BT-236 BDC signed URLs temporarily turned off */
+            ACCESS_METHOD_TYPE_GCS, /* BT-236 BDC signed URLs temporarily turned off */
         );
     }
 
@@ -478,6 +478,21 @@ async function retrieveFromServers(params) {
         `and access method type '${accessMethodType}'`
     );
 
+    let bondSA;
+    // Only retrieve the SA for projects that implicitly or explicitly use GCS for accessing the data.
+    const accessMethodTypesRequiringSA = [ACCESS_METHOD_TYPE_NONE, ACCESS_METHOD_TYPE_GCS];
+    if (bondProvider &&
+      accessMethodTypesRequiringSA.includes(accessMethodType) &&
+      overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS)) {
+        try {
+            const bondSAKeyUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
+            console.log(`Requesting Bond SA key for '${url}' from '${bondSAKeyUrl}'`);
+            bondSA = await apiAdapter.getJsonFrom(bondSAKeyUrl, auth);
+        } catch (error) {
+            throw new RemoteServerError(error, 'Received error contacting Bond.');
+        }
+    }
+
     let response;
     if (overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS)) {
         try {
@@ -543,21 +558,6 @@ async function retrieveFromServers(params) {
             accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, accessTokenAuth);
         } catch (error) {
             throw new RemoteServerError(error, 'Received error contacting DRS provider.');
-        }
-    }
-
-    let bondSA;
-    // Only retrieve the SA for projects that implicitly or explicitly use GCS for accessing the data.
-    const accessMethodTypesRequiringSA = [ACCESS_METHOD_TYPE_NONE, ACCESS_METHOD_TYPE_GCS];
-    if (bondProvider &&
-        accessMethodTypesRequiringSA.includes(accessMethodType) &&
-        overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS)) {
-        try {
-            const bondSAKeyUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
-            console.log(`Requesting Bond SA key for '${url}' from '${bondSAKeyUrl}'`);
-            bondSA = await apiAdapter.getJsonFrom(bondSAKeyUrl, auth);
-        } catch (error) {
-            throw new RemoteServerError(error, 'Received error contacting Bond.');
         }
     }
 
