@@ -115,15 +115,14 @@ const bondAccessTokenUrlRegEx = /^https:\/\/([^/]+)\/api\/link\/v1\/([a-z-]+)\/a
 
 let getJsonFromApiStub;
 const getJsonFromApiMethodName = 'getJsonFrom';
-const sandbox = sinon.createSandbox();
 
 test.serial.beforeEach(() => {
-    sandbox.restore(); // If one test fails, the .afterEach() block will not execute, so always clean the slate here
-    getJsonFromApiStub = sandbox.stub(apiAdapter, getJsonFromApiMethodName);
+    sinon.restore(); // If one test fails, the .afterEach() block will not execute, so always clean the slate here
+    getJsonFromApiStub = sinon.stub(apiAdapter, getJsonFromApiMethodName);
 });
 
 test.serial.afterEach(() => {
-    sandbox.restore();
+    sinon.restore();
 });
 
 test.serial('martha_v3 uses the default error handler for unexpected errors', async (t) => {
@@ -148,7 +147,7 @@ test.serial('martha_v3 resolves a valid DOS-style url', async (t) => {
 
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
-    t.deepEqual({ ...result }, sampleDosMarthaResult(googleSAKeyObject));
+    t.deepEqual(result, sampleDosMarthaResult(googleSAKeyObject));
 
     sinon.assert.callCount(getJsonFromApiStub, 2);
 });
@@ -178,13 +177,10 @@ test.serial('martha_v3 resolves a valid DRS-style url', async (t) => {
 
 test.serial("martha_v3 doesn't fail when extra data submitted besides a 'url'", async (t) => {
     const response = mockResponse();
-    await marthaV3(mockRequest({
-        body: {
-            url: 'dos://abc/123',
-            pattern: 'gs://',
-            foo: 'bar',
-        },
-    }), response);
+    await marthaV3(
+        mockRequest({ body: { url: 'dos://abc/123', pattern: 'gs://', foo: 'bar' } }),
+        response,
+    );
     t.is(response.statusCode, 200);
 });
 
@@ -217,19 +213,14 @@ test.serial('martha_v3 calls the correct endpoints the googleServiceAccount is r
     getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
 
     const response = mockResponse();
-    await marthaV3(mockRequest({
-        body: {
-            url: 'dos://abc/123',
-            fields: ['googleServiceAccount'],
-        },
-    }), response);
+    await marthaV3(
+        mockRequest({ body: { url: 'dos://abc/123', fields: ['googleServiceAccount'] } }),
+        response
+    );
 
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
-    t.deepEqual(
-        result,
-        mask(sampleDosMarthaResult(googleSAKeyObject), 'googleServiceAccount'),
-    );
+    t.deepEqual(result, mask(sampleDosMarthaResult(googleSAKeyObject), 'googleServiceAccount'));
 
     sinon.assert.callCount(getJsonFromApiStub, 1); // DRS was not called
 });
@@ -249,23 +240,11 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
         .resolves(drsAccessUrlResponse);
 
     const response = mockResponse();
-    await marthaV3(
-        mockRequest(
-            {
-                body: {
-                    url: drsUri,
-                    fields: ['accessUrl'],
-                }
-            },
-        ),
-        response,
-    );
+    await marthaV3(mockRequest({ body: { url: drsUri, fields: ['accessUrl'] } }), response);
 
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
-    t.deepEqual(
-        result,
-        { accessUrl: drsAccessUrlResponse });
+    t.deepEqual(result, { accessUrl: drsAccessUrlResponse });
 
     sinon.assert.callCount(getJsonFromApiStub, 3);
 });
