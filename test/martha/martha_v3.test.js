@@ -175,7 +175,7 @@ test.serial('martha_v3 resolves a valid DRS-style url', async (t) => {
     t.is(response.statusCode, 200);
     t.deepEqual(response.body, sampleDosMarthaResult(googleSAKeyObject));
 
-    sinon.assert.callCount(getJsonFromApiStub, 2); // Bond was called to get SA key
+    sinon.assert.callCount(getJsonFromApiStub, 2);
 });
 
 test.serial("martha_v3 doesn't fail when extra data submitted besides a 'url'", async (t) => {
@@ -205,7 +205,7 @@ test.serial('martha_v3 does not call Bond when only DRS fields are requested', a
         mask(sampleDosMarthaResult(googleSAKeyObject), 'gsUri,size,hashes,timeUpdated,fileName'),
     );
 
-    sinon.assert.callCount(getJsonFromApiStub, 1); // Bond was not called to get SA key
+    sinon.assert.callCount(getJsonFromApiStub, 1);
 });
 
 test.serial('martha_v3 calls the correct endpoints the googleServiceAccount is requested', async (t) => {
@@ -221,7 +221,7 @@ test.serial('martha_v3 calls the correct endpoints the googleServiceAccount is r
     t.is(response.statusCode, 200);
     t.deepEqual(response.body, mask(sampleDosMarthaResult(googleSAKeyObject), 'googleServiceAccount'));
 
-    sinon.assert.callCount(getJsonFromApiStub, 1); // DRS was not called
+    sinon.assert.callCount(getJsonFromApiStub, 1);
 });
 
 test.serial('martha_v3 calls the correct endpoints when only the accessUrl is requested', async (t) => {
@@ -266,7 +266,7 @@ test.serial('martha_v3 calls the correct endpoints when only the fileName is req
     t.is(response.statusCode, 200);
     t.deepEqual(response.body, { fileName });
 
-    sinon.assert.callCount(getJsonFromApiStub, 1); // File name available from the metadata
+    sinon.assert.callCount(getJsonFromApiStub, 1);
 });
 
 test.serial('martha_v3 calls the correct endpoints when only the fileName is requested and the metadata contains only an access id', async (t) => {
@@ -700,7 +700,7 @@ test.serial('martha_v3 parses a Kids First CIB URI response correctly', async (t
 
     t.is(response.statusCode, 200);
     t.deepEqual(response.body, kidsFirstDrsMarthaResult(drsAccessUrlResponse));
-    sinon.assert.callCount(getJsonFromApiStub, 3); // DRS metadata, Bond access token, DRS access URL
+    sinon.assert.callCount(getJsonFromApiStub, 3);
 });
 
 test.serial('martha_v3 parses HCA response correctly', async (t) => {
