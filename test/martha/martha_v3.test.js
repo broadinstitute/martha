@@ -616,7 +616,7 @@ test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(bdcDrsResponse);
     const response = mockResponse();
 
-    await marthaV3(mockRequest({ body: { 'url': drsUri } }), response,);
+    await marthaV3(mockRequest({ body: { 'url': drsUri } }), response);
 
     t.is(response.statusCode, 200);
     t.deepEqual(response.body, bdcDrsMarthaResult(googleSAKeyObject, null));
