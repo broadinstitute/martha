@@ -591,6 +591,18 @@ function buildResponseInfo(params) {
     });
 }
 
+/**
+ * Handle the request as illustrated in:
+ * https://lucid.app/lucidchart/428a0bdd-a884-4fc7-9a49-7bf300ef6777/edit
+ *
+ * At a high level:
+ *   1. Determines the data provider from the DRS URI (based on hostname or compact identifier)
+ *   2. Fetches the Google SA key from Bond [+]
+ *   3. Fetches the DRS metadata from DRS server
+ *   4. Fetches the Fence access token from Bond [+]
+ *   5. Fetches a signed URL from DRS server [+]
+ * ([+] only for some data providers and some objects)
+ */
 async function marthaV3Handler(req, res) {
     try {
         // This function counts on the request posting data as "application/json" content-type.
