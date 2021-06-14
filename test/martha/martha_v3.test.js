@@ -230,7 +230,7 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
         access_methods: { 0: { access_id: accessId, access_url: { url: s3Url } } }
     } = kidsFirstDrsResponse;
     const bond = bondUrls('kids-first');
-    const drs = drsUrls(config.HOST_KIDS_FIRST_PROD, objectId, accessId);
+    const drs = drsUrls(config.HOST_KIDS_FIRST_STAGING, objectId, accessId);
     const drsAccessUrlResponse = mockS3AccessUrl(s3Url);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(kidsFirstDrsResponse);
     getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
@@ -274,7 +274,7 @@ test.serial('martha_v3 calls the correct endpoints when only the fileName is req
         id: objectId, self_uri: drsUri,
         access_methods: { 0: { access_id: accessId } }
     } = kidsFirstDrsResponse;
-    const drs = drsUrls(config.HOST_KIDS_FIRST_PROD, objectId, accessId);
+    const drs = drsUrls(config.HOST_KIDS_FIRST_STAGING, objectId, accessId);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null)
         .resolves(kidsFirstDrsResponseCustom({ name: null, access_url: { url: null } }));
     const response = mockResponse();
@@ -296,7 +296,7 @@ test.serial('martha_v3 calls return the DRS name field for a file name even when
         access_methods: { 0: { access_id: accessId, access_url: { url: s3Url } } },
     } = kidsFirstDrsResponse;
     const bond = bondUrls('kids-first');
-    const drs = drsUrls(config.HOST_KIDS_FIRST_PROD, objectId, accessId);
+    const drs = drsUrls(config.HOST_KIDS_FIRST_STAGING, objectId, accessId);
     const drsAccessUrlResponse = mockS3AccessUrl(s3Url);
     const fileName = 'from_name_field.txt';
     getJsonFromApiStub.withArgs(drs.objectsUrl, null)
@@ -642,7 +642,9 @@ test.serial('martha_v3 parses Anvil response correctly', async (t) => {
 
 test.serial('martha_v3 parses a The AnVIL CIB URI response correctly', async (t) => {
     const bond = bondUrls('anvil');
-    const drs = drsUrls(config.HOST_THE_ANVIL_STAGING, 'dg.ANV0%2F00008531-03d7-418c-b3d3-b7b22b5381a0');
+    const objectId = 'dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0';
+    // The object ID contains a '/' so it must be URI-encoded
+    const drs = drsUrls(config.HOST_THE_ANVIL_STAGING, encodeURIComponent(objectId));
     getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(anvilDrsResponse);
     const response = mockResponse();
@@ -665,7 +667,7 @@ test.serial('martha_v3 parses Kids First response correctly', async (t) => {
     } = kidsFirstDrsResponse;
     const drsAccessUrlResponse = mockS3AccessUrl(s3Url);
     const bond = bondUrls('kids-first');
-    const drs = drsUrls(config.HOST_KIDS_FIRST_PROD, objectId, accessId);
+    const drs = drsUrls(config.HOST_KIDS_FIRST_STAGING, objectId, accessId);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(kidsFirstDrsResponse);
     getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
     getJsonFromApiStub.withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`)
@@ -694,7 +696,7 @@ test.serial('martha_v3 parses a Kids First CIB URI response correctly', async (t
     const response = mockResponse();
 
     await marthaV3(
-        mockRequest({ body: { 'url': 'drs://dg.F82A1A:ed6be7ab-068e-46c8-824a-f39cfbb885cc' } }),
+        mockRequest({ body: { 'url': 'drs://dg.F82A1A:3322361c-73a1-403a-a47a-a842964c7a6f' } }),
         response
     );
 

@@ -339,52 +339,47 @@ const kidsFirstDrsResponse = {
         {
             access_id: 's3',
             access_url: {
-                url:
-                    's3://kf-seq-data-washu/OrofacialCleft/fa9c2cb04f614f90b75323b05bfdd231.bam'
+                url: 's3://kf-study-us-east-1-prd-sd-me0wme0w/source/uploads/IMG_2325.jpg'
             },
             region: '',
             type: 's3'
         }
     ],
-    aliases: [
-
-    ],
+    aliases: [],
     checksums: [
         {
-            checksum: '24e5d5d0ddd094be0ffb672875b10576-6572',
+            checksum: '74c88671bb0cd4cdde5ae45e49db6f47',
             type: 'etag'
         }
     ],
-    contents: [
-
-    ],
-    created_time: '2018-05-23T12:32:32.594470',
+    contents: [],
+    created_time: '2021-03-19T18:49:45.920459',
     description: '',
-    id: 'ed6be7ab-068e-46c8-824a-f39cfbb885cc',
+    form: 'object',
+    id: '3322361c-73a1-403a-a47a-a842964c7a6f',
     mime_type: 'application/json',
-    name: 'fa9c2cb04f614f90b75323b05bfdd231.bam',
-    self_uri:
-        `drs://${config.HOST_KIDS_FIRST_PROD}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
-    size: 55121736836,
-    updated_time: '2018-05-23T12:32:32.594480',
-    version: 'f70e5775'
+    name: 'IMG_2325.jpg',
+    self_uri: `drs://${config.HOST_KIDS_FIRST_STAGING}/3322361c-73a1-403a-a47a-a842964c7a6f`,
+    size: 2625330,
+    updated_time: '2021-03-19T18:49:45.920465',
+    version: '035f4637'
 };
 
 const kidsFirstDrsMarthaResult = (expectedAccessUrl) => {
     return {
         contentType: 'application/json',
-        size: 55121736836,
-        timeCreated: '2018-05-23T12:32:32.594Z',
-        timeUpdated: '2018-05-23T12:32:32.594Z',
+        size: 2625330,
+        timeCreated: '2021-03-19T18:49:45.920Z',
+        timeUpdated: '2021-03-19T18:49:45.920Z',
         bucket: null, // expected, uses S3
         name: null, // there is definitely a name in the server response, why isn't Martha using it?
         accessUrl: expectedAccessUrl,
         gsUri: null, // expected, uses S3
         googleServiceAccount: null,
         bondProvider: 'kids-first',
-        fileName: 'fa9c2cb04f614f90b75323b05bfdd231.bam',
+        fileName: 'IMG_2325.jpg',
         hashes: {
-            etag: '24e5d5d0ddd094be0ffb672875b10576-6572'
+            etag: '74c88671bb0cd4cdde5ae45e49db6f47'
         }
     };
 };
