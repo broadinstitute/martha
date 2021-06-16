@@ -470,6 +470,10 @@ function logAndSendServerError(res, error, description) {
     res.status(errorStatusCode).send(failureResponse);
 }
 
+const delay = (ms) => {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
 module.exports = {
     dataObjectUriToHttps,
     samBaseUrl,
@@ -489,4 +493,5 @@ module.exports = {
     RemoteServerError,
     logAndSendBadRequest,
     logAndSendServerError,
+    delay,
 };

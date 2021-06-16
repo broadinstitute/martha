@@ -5,6 +5,7 @@ const {
     RemoteServerError,
     logAndSendBadRequest,
     logAndSendServerError,
+    delay,
 } = require('../common/helpers');
 const config = require('../common/config');
 const apiAdapter = require('../common/api_adapter');
@@ -86,6 +87,16 @@ const DG_COMPACT_BDC_STAGING = 'dg.712c';
 const DG_COMPACT_THE_ANVIL = 'dg.anv0';
 const DG_COMPACT_CRDC = 'dg.4dfc';
 const DG_COMPACT_KIDS_FIRST = 'dg.f82a1a';
+
+// Google Cloud Functions gives us 60 seconds to respond. We'll use most of it to fetch what we can,
+// but not fail if we happen to time out when fetching a signed URL takes too long.
+let pencilsDownTime = 58;
+
+// For tests that need to probe the behavior near the limit of the Cloud Function timeout, we don't
+// want to have to wait 60 seconds.
+const overridePencilsDownTime = (seconds) => {
+    pencilsDownTime = seconds;
+};
 
 // noinspection JSUnusedGlobalSymbols
 class DrsType {
@@ -478,87 +489,130 @@ async function retrieveFromServers(params) {
         `and access method type '${accessMethodType}'`
     );
 
-    let response;
-    if (overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS)) {
-        try {
-            const httpsMetadataUrl = generateMetadataUrl(drsType);
-            console.log(
-                `Requesting DRS metadata for '${url}' from '${httpsMetadataUrl}' with auth required '${sendAuth}'`
-            );
-            response = await apiAdapter.getJsonFrom(httpsMetadataUrl, sendAuth ? auth : null);
-        } catch (error) {
-            throw new RemoteServerError(error, 'Received error while resolving DRS URL.');
-        }
-    }
-
-    let drsResponse;
-    try {
-        drsResponse = responseParser(response);
-    } catch (error) {
-        throw new RemoteServerError(error, 'Received error while parsing response from DRS URL.');
-    }
-
-    /*
-    Try to retrieve the file name from the initial DRS response.
-
-    NOTE: There is the possibility that whomever uploaded the DRS metadata did not populate the DRS name nor the DRS
-    access URL stored in the DRS provider.
-
-    In that case, the fileName will be returned as null.
-
-    As a change request, for folks ingesting data without populating the name field, martha_v3 could ask the DRS
-    provider for the expensive signed HTTPS URL, then retrieve the name of the file from the path in that URL.
-     */
-    const fileName = getDrsFileName(drsResponse);
-
-    let accessId;
-    if (overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS)) {
-        try {
-            accessId = getDrsAccessId(drsResponse, accessMethodType);
-        } catch (error) {
-            throw new RemoteServerError(error, 'Received error while parsing the access id.');
-        }
-    }
-
-    // Retrieve an accessToken from Bond that will be used to later retrieve the accessUrl from the DRS server.
-    let accessToken;
-    if (bondProvider && accessId) {
-        try {
-            const bondAccessTokenUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/accesstoken`;
-            console.log(`Requesting Bond access token for '${url}' from '${bondAccessTokenUrl}'`);
-            const accessTokenResponse = await apiAdapter.getJsonFrom(bondAccessTokenUrl, auth);
-            accessToken = accessTokenResponse.token;
-        } catch (error) {
-            throw new RemoteServerError(error, 'Received error contacting Bond.');
-        }
-    }
-
-    // Retrieve the accessUrl using the returned accessToken, even if the token was empty.
-    let accessUrl;
-    if (bondProvider && accessId) {
-        try {
-            const httpsAccessUrl = generateAccessUrl(drsType, accessId);
-            const accessTokenAuth = `Bearer ${accessToken}`;
-            console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}'`);
-            accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, accessTokenAuth);
-        } catch (error) {
-            throw new RemoteServerError(error, 'Received error contacting DRS provider.');
-        }
-    }
-
     let bondSA;
-    // Only retrieve the SA for projects that implicitly or explicitly use GCS for accessing the data.
-    const accessMethodTypesRequiringSA = [ACCESS_METHOD_TYPE_NONE, ACCESS_METHOD_TYPE_GCS];
-    if (bondProvider &&
-        accessMethodTypesRequiringSA.includes(accessMethodType) &&
-        overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS)) {
-        try {
-            const bondSAKeyUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
-            console.log(`Requesting Bond SA key for '${url}' from '${bondSAKeyUrl}'`);
-            bondSA = await apiAdapter.getJsonFrom(bondSAKeyUrl, auth);
-        } catch (error) {
-            throw new RemoteServerError(error, 'Received error contacting Bond.');
+    let drsResponse;
+    let fileName;
+    let accessUrl;
+
+    // `fetch` below might time out in a way that we want to report as an error. Since the timeout
+    // interrupts us while we're waiting for a response, we need to capture what we were about to
+    // try doing just before we do it so that we can provide that detail in the error report.
+    let hypotheticalErrorMessage;
+
+    const fetch = async () => {
+        // Only retrieve the SA for projects that implicitly or explicitly use GCS for accessing the data.
+        const accessMethodTypesRequiringSA = [ACCESS_METHOD_TYPE_NONE, ACCESS_METHOD_TYPE_GCS];
+        if (bondProvider &&
+          accessMethodTypesRequiringSA.includes(accessMethodType) &&
+          overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS)) {
+            try {
+                hypotheticalErrorMessage = 'Could not fetch SA key from Bond.';
+                const bondSAKeyUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
+                console.log(`Requesting Bond SA key for '${url}' from '${bondSAKeyUrl}'`);
+                bondSA = await apiAdapter.getJsonFrom(bondSAKeyUrl, auth);
+            } catch (error) {
+                throw new RemoteServerError(error, 'Received error contacting Bond.');
+            }
         }
+
+        let response;
+        if (overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS)) {
+            try {
+                hypotheticalErrorMessage = 'Could not fetch DRS metadata.';
+                const httpsMetadataUrl = generateMetadataUrl(drsType);
+                console.log(
+                    `Requesting DRS metadata for '${url}' from '${httpsMetadataUrl}' with auth required '${sendAuth}'`
+                );
+                response = await apiAdapter.getJsonFrom(httpsMetadataUrl, sendAuth ? auth : null);
+            } catch (error) {
+                throw new RemoteServerError(error, 'Received error while resolving DRS URL.');
+            }
+        }
+
+        try {
+            drsResponse = responseParser(response);
+        } catch (error) {
+            throw new RemoteServerError(error, 'Received error while parsing response from DRS URL.');
+        }
+
+        /*
+         Try to retrieve the file name from the initial DRS response.
+
+         NOTE: There is the possibility that whomever uploaded the DRS metadata did not populate the DRS name nor the DRS
+         access URL stored in the DRS provider.
+
+         In that case, the fileName will be returned as null.
+
+         As a change request, for folks ingesting data without populating the name field, martha_v3 could ask the DRS
+         provider for the expensive signed HTTPS URL, then retrieve the name of the file from the path in that URL.
+         */
+        fileName = getDrsFileName(drsResponse);
+
+        // We've gotten far enough that we don't want to raise an error, even if we run out of time
+        // while fetching a signed URL.
+        hypotheticalErrorMessage = null;
+
+        let accessId;
+
+        try {
+            if (overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS)) {
+                try {
+                    accessId = getDrsAccessId(drsResponse, accessMethodType);
+                } catch (error) {
+                    throw new RemoteServerError(error, 'Received error while parsing the access id.');
+                }
+            }
+
+            // Retrieve an accessToken from Bond that will be used to later retrieve the accessUrl from the DRS server.
+            let accessToken;
+            if (bondProvider && accessId) {
+                try {
+                    const bondAccessTokenUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/accesstoken`;
+                    console.log(`Requesting Bond access token for '${url}' from '${bondAccessTokenUrl}'`);
+                    const accessTokenResponse = await apiAdapter.getJsonFrom(bondAccessTokenUrl, auth);
+                    accessToken = accessTokenResponse.token;
+                } catch (error) {
+                    throw new RemoteServerError(error, 'Received error contacting Bond.');
+                }
+            }
+
+            // Retrieve the accessUrl using the returned accessToken, even if the token was empty.
+            if (bondProvider && accessId) {
+                try {
+                    const httpsAccessUrl = generateAccessUrl(drsType, accessId);
+                    const accessTokenAuth = `Bearer ${accessToken}`;
+                    console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}'`);
+                    accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, accessTokenAuth);
+                } catch (error) {
+                    throw new RemoteServerError(error, 'Received error contacting DRS provider.');
+                }
+            }
+        } catch (error) {
+            // Just logging the error for now. Eventually, we'll want to remove this outer try.
+            console.warn('Ignoring error from fetching signed URL:', error);
+        }
+    };
+
+    let ranOutOfTime;
+    const waitUntilTimeIsAlmostUp = async () => {
+        await delay(pencilsDownTime * 1000);
+        ranOutOfTime = true;
+    };
+
+    // For now, since we can still return native object URLs, we don't want to fail if it takes too
+    // long to fetch a signed URL. Eventually, we won't have native object URLs to fall back on so
+    // we'll have to throw an error, at which point we can remove all of this `Promise.race` stuff.
+    await Promise.race([
+        fetch(),
+        waitUntilTimeIsAlmostUp(),
+    ]);
+
+    if (ranOutOfTime && !hypotheticalErrorMessage) {
+        console.log('Ran out of time fetching a signed URL, but returning everything else we fetched instead of throwing an error.');
+    }
+
+    if (hypotheticalErrorMessage) {
+        throw new RemoteServerError(new Error(hypotheticalErrorMessage), 'Timed out resolving DRS URI.');
     }
 
     Object.assign(params, {
@@ -643,3 +697,4 @@ exports.generateAccessUrl = generateAccessUrl;
 exports.getDrsAccessId = getDrsAccessId;
 exports.getHttpsUrlParts = getHttpsUrlParts;
 exports.MARTHA_V3_ALL_FIELDS = MARTHA_V3_ALL_FIELDS;
+exports.overridePencilsDownTime = overridePencilsDownTime;
