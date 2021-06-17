@@ -608,7 +608,7 @@ async function retrieveFromServers(params) {
     ]);
 
     if (ranOutOfTime && !hypotheticalErrorMessage) {
-        console.log('Ran out of time fetching a signed URL, but returning everything else we fetched instead of throwing an error.');
+        console.log('Ran out of time fetching a signed URL; returning the native URL instead of throwing an error.');
     }
 
     if (hypotheticalErrorMessage) {

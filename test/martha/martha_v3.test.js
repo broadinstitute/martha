@@ -732,7 +732,11 @@ const testWithTimeout = (ms, asyncTestFn) => (t) => {
     return Promise.race([asyncTestFn(t), waitThenFail()]);
 };
 
-test.serial('martha_v3 succeeds within 60 seconds even if fetching a signed URL never returns', testWithTimeout(5 * 1000, async (t) => {
+test.serial('martha_v3 succeeds even if fetching a signed URL never returns', testWithTimeout(5 * 1000, async (t) => {
+    // martha_v3 should return the native access URL instead of letting the Google Cloud Function
+    // infrastructure time out after 60 seconds. For the purposes of this test, `testWithTimeout`
+    // above fails the test after 5 seconds (playing the role of a very impatient GCF timeout).
+    // Meanwhile here, we'll give martha_v3 3 seconds before it gives up on fetching a signed URL.
     overridePencilsDownSeconds(3);
     const {
         id: objectId, self_uri: drsUri,
