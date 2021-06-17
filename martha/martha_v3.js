@@ -593,21 +593,21 @@ async function retrieveFromServers(params) {
         }
     };
 
-    let ranOutOfTime;
+    const timeout = Symbol.for('timeout');
     const waitUntilTimeIsAlmostUp = async () => {
         await delay(pencilsDownSeconds * 1000);
-        ranOutOfTime = true;
+        return timeout;
     };
 
     // For now, since we can still return native object URLs, we don't want to fail if it takes too
     // long to fetch a signed URL. Eventually, we won't have native object URLs to fall back on so
     // we'll have to throw an error, at which point we can remove all of this `Promise.race` stuff.
-    await Promise.race([
+    const winner = await Promise.race([
         fetch(),
         waitUntilTimeIsAlmostUp(),
     ]);
 
-    if (ranOutOfTime && !hypotheticalErrorMessage) {
+    if (winner === timeout && !hypotheticalErrorMessage) {
         console.log('Ran out of time fetching a signed URL; returning the native URL instead of throwing an error.');
     }
 
