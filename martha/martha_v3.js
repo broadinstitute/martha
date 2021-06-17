@@ -90,12 +90,12 @@ const DG_COMPACT_KIDS_FIRST = 'dg.f82a1a';
 
 // Google Cloud Functions gives us 60 seconds to respond. We'll use most of it to fetch what we can,
 // but not fail if we happen to time out when fetching a signed URL takes too long.
-let pencilsDownTime = 58;
+let pencilsDownSeconds = 58;
 
 // For tests that need to probe the behavior near the limit of the Cloud Function timeout, we don't
 // want to have to wait 60 seconds.
-const overridePencilsDownTime = (seconds) => {
-    pencilsDownTime = seconds;
+const overridePencilsDownSeconds = (seconds) => {
+    pencilsDownSeconds = seconds;
 };
 
 // noinspection JSUnusedGlobalSymbols
@@ -595,7 +595,7 @@ async function retrieveFromServers(params) {
 
     let ranOutOfTime;
     const waitUntilTimeIsAlmostUp = async () => {
-        await delay(pencilsDownTime * 1000);
+        await delay(pencilsDownSeconds * 1000);
         ranOutOfTime = true;
     };
 
@@ -697,4 +697,4 @@ exports.generateAccessUrl = generateAccessUrl;
 exports.getDrsAccessId = getDrsAccessId;
 exports.getHttpsUrlParts = getHttpsUrlParts;
 exports.MARTHA_V3_ALL_FIELDS = MARTHA_V3_ALL_FIELDS;
-exports.overridePencilsDownTime = overridePencilsDownTime;
+exports.overridePencilsDownSeconds = overridePencilsDownSeconds;

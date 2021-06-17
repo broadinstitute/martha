@@ -43,7 +43,7 @@ const {
     getDrsAccessId,
     getHttpsUrlParts,
     MARTHA_V3_ALL_FIELDS,
-    overridePencilsDownTime,
+    overridePencilsDownSeconds,
 } = require('../../martha/martha_v3');
 const apiAdapter = require('../../common/api_adapter');
 const config = require('../../common/config');
@@ -733,7 +733,7 @@ const testWithTimeout = (ms, asyncTestFn) => (t) => {
 };
 
 test.serial('martha_v3 succeeds within 60 seconds even if fetching a signed URL never returns', testWithTimeout(5 * 1000, async (t) => {
-    overridePencilsDownTime(3);
+    overridePencilsDownSeconds(3);
     const {
         id: objectId, self_uri: drsUri,
         access_methods: { 0: { access_id: accessId } }
@@ -756,7 +756,7 @@ test.serial('martha_v3 succeeds within 60 seconds even if fetching a signed URL 
 }));
 
 test.serial('martha_v3 fails if something times out before trying to fetch a signed URL', testWithTimeout(5 * 1000, async (t) => {
-    overridePencilsDownTime(3);
+    overridePencilsDownSeconds(3);
     const { id: objectId, self_uri: drsUri } = kidsFirstDrsResponse;
     const drs = drsUrls(config.HOST_KIDS_FIRST_STAGING, objectId);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).callsFake(async () => {
