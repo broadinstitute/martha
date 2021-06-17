@@ -43,9 +43,11 @@ const {
     getDrsAccessId,
     getHttpsUrlParts,
     MARTHA_V3_ALL_FIELDS,
+    overridePencilsDownSeconds,
 } = require('../../martha/martha_v3');
 const apiAdapter = require('../../common/api_adapter');
 const config = require('../../common/config');
+const { delay } = require('../../common/helpers');
 const mask = require('json-mask');
 
 const terraAuth = 'bearer abc123';
@@ -458,8 +460,6 @@ test.serial('martha_v3 should return 500 if Data Object resolution fails', async
     t.is(response.statusCode, 500);
     t.is(response.body.status, 500);
     t.is(response.body.response.text, 'Received error while resolving DRS URL. Data Object Resolution forced to fail by testing stub');
-
-    sinon.assert.callCount(getJsonFromApiStub, 1);
 });
 
 test.serial('martha_v3 should return the underlying status if Data Object resolution fails', async (t) => {
@@ -477,8 +477,6 @@ test.serial('martha_v3 should return the underlying status if Data Object resolu
         response.body.response.text,
         'Received error while resolving DRS URL. Data Object Resolution forced to fail by testing stub',
     );
-
-    sinon.assert.callCount(getJsonFromApiStub, 1);
 });
 
 test.serial('martha_v3 should return 500 if key retrieval from Bond fails', async (t) => {
@@ -493,8 +491,6 @@ test.serial('martha_v3 should return 500 if key retrieval from Bond fails', asyn
     t.is(response.statusCode, 500);
     t.is(response.body.status, 500);
     t.is(response.body.response.text, 'Received error contacting Bond. Bond key lookup forced to fail by testing stub');
-
-    sinon.assert.callCount(getJsonFromApiStub, 2);
 });
 
 test.serial('martha_v3 calls bond Bond with the "fence" provider when the Data Object URL host is "dg.4503"', async (t) => {
@@ -726,6 +722,87 @@ test.serial('martha_v3 parses HCA response correctly', async (t) => {
     t.deepEqual(response.body, hcaDrsMarthaResult);
 
     sinon.assert.callCount(getJsonFromApiStub, 1);
+});
+
+const testWithTimeout = (ms, asyncTestFn) => (t) => {
+    const waitThenFail = async () => {
+        await delay(ms);
+        t.fail(`Test did not complete within ${ms}ms`);
+    };
+    return Promise.race([asyncTestFn(t), waitThenFail()]);
+};
+
+test.serial('martha_v3 succeeds even if fetching a signed URL never returns', testWithTimeout(5 * 1000, async (t) => {
+    // martha_v3 should return the native access URL instead of letting the Google Cloud Function
+    // infrastructure time out after 60 seconds. For the purposes of this test, `testWithTimeout`
+    // above fails the test after 5 seconds (playing the role of a very impatient GCF timeout).
+    // Meanwhile here, we'll give martha_v3 3 seconds before it gives up on fetching a signed URL.
+    overridePencilsDownSeconds(3);
+    const {
+        id: objectId, self_uri: drsUri,
+        access_methods: { 0: { access_id: accessId } }
+    } = kidsFirstDrsResponse;
+    const bond = bondUrls('kids-first');
+    const drs = drsUrls(config.HOST_KIDS_FIRST_STAGING, objectId, accessId);
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(kidsFirstDrsResponse);
+    getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`).callsFake(async () => {
+        await delay(90 * 1000);
+        return 'Boom!';
+    });
+    const response = mockResponse();
+
+    await marthaV3(mockRequest({ body: { 'url': drsUri } }), response);
+
+    t.is(response.statusCode, 200);
+    t.deepEqual(response.body, kidsFirstDrsMarthaResult(null));
+    sinon.assert.callCount(getJsonFromApiStub, 3);
+}));
+
+test.serial('martha_v3 fails if something times out before trying to fetch a signed URL', testWithTimeout(5 * 1000, async (t) => {
+    overridePencilsDownSeconds(3);
+    const { id: objectId, self_uri: drsUri } = kidsFirstDrsResponse;
+    const drs = drsUrls(config.HOST_KIDS_FIRST_STAGING, objectId);
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).callsFake(async () => {
+        await delay(90 * 1000);
+        return 'Boom!';
+    });
+    const response = mockResponse();
+
+    await marthaV3(mockRequest({ body: { 'url': drsUri } }), response);
+
+    t.is(response.statusCode, 500);
+    t.deepEqual(
+        response.body,
+        {
+            response: {
+                status: 500,
+                text: 'Timed out resolving DRS URI. Could not fetch DRS metadata.',
+            },
+            status: 500,
+        },
+    );
+}));
+
+test.serial('martha_v3 succeeds if an error is encountered while fetching a signed URL', async (t) => {
+    const {
+        id: objectId, self_uri: drsUri,
+        access_methods: { 0: { access_id: accessId } }
+    } = kidsFirstDrsResponse;
+    const bond = bondUrls('kids-first');
+    const drs = drsUrls(config.HOST_KIDS_FIRST_STAGING, objectId, accessId);
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(kidsFirstDrsResponse);
+    getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`)
+        .throws(new Error('Test exception from DRS provider'));
+
+    const response = mockResponse();
+
+    await marthaV3(mockRequest({ body: { 'url': drsUri } }), response);
+
+    t.is(response.statusCode, 200);
+    t.deepEqual(response.body, kidsFirstDrsMarthaResult(null));
+    sinon.assert.callCount(getJsonFromApiStub, 3);
 });
 
 test.serial('martha_v3 returns null for fields missing in drs and bond response', async (t) => {
