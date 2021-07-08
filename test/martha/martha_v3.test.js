@@ -10,8 +10,6 @@
 const {
     sampleDosResponse,
     sampleDosMarthaResult,
-    dataGuidsOrgResponse,
-    dataGuidsOrgMarthaResult,
     jadeDrsResponse,
     jadeDrsMarthaResult,
     hcaDrsMarthaResult,
