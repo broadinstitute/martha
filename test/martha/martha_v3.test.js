@@ -507,10 +507,6 @@ test.serial('martha_v3 calls bond Bond with the "fence" provider when the Data O
 });
 
 test.serial('martha_v3 does call Bond and return SA key when the host url is for dataguids.org', async (t) => {
-    const bond = bondUrls('dcf-fence');
-    const dos = dosUrls('dataguids.org', 'a41b0c4f-ebfb-4277-a941-507340dea85d');
-    getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
-    getJsonFromApiStub.withArgs(dos.dataobjectsUrl, null).resolves(dataGuidsOrgResponse);
     const response = mockResponse();
 
     await marthaV3(
@@ -518,10 +514,12 @@ test.serial('martha_v3 does call Bond and return SA key when the host url is for
         response
     );
 
-    t.is(response.statusCode, 200);
-    t.deepEqual(response.body, dataGuidsOrgMarthaResult(googleSAKeyObject));
+    t.is(response.statusCode, 400);
+    t.is(response.body.response.text,
+        'Request is invalid. dataguids.org data has moved. See: https://support.terra.bio/hc/en-us/articles/360060681132'
+    );
 
-    sinon.assert.callCount(getJsonFromApiStub, 2);
+    sinon.assert.callCount(getJsonFromApiStub, 0);
 });
 
 test.serial('martha_v3 does not call Bond or return SA key when the host url is for jade data repo', async (t) => {

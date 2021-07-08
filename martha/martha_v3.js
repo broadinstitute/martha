@@ -407,6 +407,11 @@ function determineDrsType(url) {
         );
     }
 
+    // RIP dataguids.org
+    if (host.endsWith('dataguids.org')) {
+        throw new BadRequestError('dataguids.org data has moved. See: https://support.terra.bio/hc/en-us/articles/360060681132');
+    }
+
     // If we don't recognize the server assume like martha_v2 that everyone else
     // speaks DOS, doesn't require auth, and uses dcf-fence.
     return new DrsType(
