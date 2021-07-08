@@ -98,60 +98,6 @@ const sampleDosMarthaResult = (expectedGoogleServiceAccount) => {
     };
 };
 
-// dataguids.org
-// returned via `curl https://dataguids.org/ga4gh/dos/v1/dataobjects/a41b0c4f-ebfb-4277-a941-507340dea85d`
-const dataGuidsOrgResponse = {
-    data_object: {
-        checksums: [
-            {
-                checksum: '0d22c86537e22ad9e924c7c756b23131',
-                type: 'md5'
-            }
-        ],
-        created: '2018-06-26T18:53:21.416896',
-        description: '',
-        id: 'a41b0c4f-ebfb-4277-a941-507340dea85d',
-        mime_type: '',
-        name: null,
-        size: 39830,
-        updated: '2018-06-26T18:53:21.416908',
-        urls: [
-            {
-                'url':
-                    'gs://gdc-tcga-phs000178-open/a41b0c4f-ebfb-4277-a941-507340dea85d' +
-                    '/nationwidechildrens.org_clinical.TCGA-56-A4BY.xml'
-            },
-            {
-                'url':
-                    's3://tcga-2-open/a41b0c4f-ebfb-4277-a941-507340dea85d' +
-                    '/nationwidechildrens.org_clinical.TCGA-56-A4BY.xml'
-            }
-        ],
-        version: 'a095f638'
-    }
-};
-
-const dataGuidsOrgMarthaResult = (expectedGoogleServiceAccount) => {
-    return {
-        contentType: 'application/octet-stream',
-        size: 39830,
-        timeCreated: '2018-06-26T18:53:21.416Z',
-        timeUpdated: '2018-06-26T18:53:21.416Z',
-        bucket: 'gdc-tcga-phs000178-open',
-        name: 'a41b0c4f-ebfb-4277-a941-507340dea85d/nationwidechildrens.org_clinical.TCGA-56-A4BY.xml',
-        accessUrl: null,
-        gsUri:
-            'gs://gdc-tcga-phs000178-open/a41b0c4f-ebfb-4277-a941-507340dea85d' +
-            '/nationwidechildrens.org_clinical.TCGA-56-A4BY.xml',
-        googleServiceAccount: expectedGoogleServiceAccount,
-        bondProvider: 'dcf-fence',
-        fileName: 'nationwidechildrens.org_clinical.TCGA-56-A4BY.xml',
-        hashes: {
-            md5: '0d22c86537e22ad9e924c7c756b23131'
-        }
-    };
-};
-
 // Jade
 
 const jadeDrsResponse = {
@@ -561,8 +507,6 @@ module.exports = {
     drsObjectWithInvalidFields,
     sampleDosResponse,
     sampleDosMarthaResult,
-    dataGuidsOrgResponse,
-    dataGuidsOrgMarthaResult,
     jadeDrsResponse,
     jadeDrsMarthaResult,
     hcaDrsResponse,
