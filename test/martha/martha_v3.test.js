@@ -201,7 +201,7 @@ test.serial('martha_v3 calls the correct endpoints if the googleServiceAccount i
     const response = mockResponse();
 
     await marthaV3(
-        mockRequest({ body: { url: 'dos://abc/123', fields: ['googleServiceAccount'] } }),
+        mockRequest({ body: { url: `dos://${crdc}/123`, fields: ['googleServiceAccount'] } }),
         response
     );
 
@@ -436,11 +436,11 @@ test.serial('martha_v3 should return 400 if given a \'url\' with an invalid valu
 });
 
 test.serial('martha_v3 should return 500 if Data Object resolution fails', async (t) => {
-    const dos = dosUrls('abc', '123');
-    getJsonFromApiStub.withArgs(dos.dataobjectsUrl, null).rejects(new Error('Data Object Resolution forced to fail by testing stub'));
+    const drs = drsUrls(bdc, '123');
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).rejects(new Error('Data Object Resolution forced to fail by testing stub'));
     const response = mockResponse();
 
-    await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
+    await marthaV3(mockRequest({ body: { 'url': `dos://${bdc}/123` } }), response);
 
     t.is(response.statusCode, 500);
     t.is(response.body.status, 500);
