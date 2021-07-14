@@ -94,12 +94,6 @@ const bondUrls = (provider) => {
     };
 };
 
-const dosUrls = (host, id) => {
-    return {
-        dataobjectsUrl: `https://${host}/ga4gh/dos/v1/dataobjects/${id}`
-    };
-};
-
 const drsUrls = (host, id, accessId) => {
     const objectsUrl = `https://${host}/ga4gh/drs/v1/objects/${id}`;
     return {
