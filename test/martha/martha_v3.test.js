@@ -309,7 +309,7 @@ test.serial('martha_v3 calls no endpoints when no fields are requested', async (
 
     await marthaV3(mockRequest({
         body: {
-            url: 'dos://abc/123',
+            url: `dos://${bdc}/123`,
             fields: [],
         }
     }), response);
