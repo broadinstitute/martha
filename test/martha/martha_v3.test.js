@@ -121,6 +121,7 @@ function mockS3AccessUrl(s3UrlString) {
 }
 
 const bdc = config.HOST_BIODATA_CATALYST_STAGING;
+const crdc = config.HOST_CRDC_STAGING;
 
 let getJsonFromApiStub;
 const getJsonFromApiMethodName = 'getJsonFrom';
@@ -141,22 +142,6 @@ test.serial('martha_v3 uses the default error handler for unexpected errors', as
     const actualError = await t.throwsAsync(marthaV3(badReq, response));
     t.is(actualError, expectedError);
     sinon.assert.callCount(response.send, 0);
-});
-
-// Test the "default" case because we don't know who you are.
-test.serial('martha_v3 resolves a valid DOS-style url using the "dcf-fence" provider', async (t) => {
-    const bond = bondUrls('dcf-fence');
-    const dos = dosUrls('abc', '123');
-    getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
-    getJsonFromApiStub.withArgs(dos.dataobjectsUrl, null).resolves(sampleDosResponse);
-    const response = mockResponse();
-
-    await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
-
-    t.is(response.statusCode, 200);
-    t.deepEqual(response.body, sampleDosMarthaResult(googleSAKeyObject));
-
-    sinon.assert.callCount(getJsonFromApiStub, 2);
 });
 
 // According to the DRS specification authors [0] it's OK for a client to call Martha with a `drs://` URI and get
@@ -183,7 +168,7 @@ test.serial('martha_v3 resolves a valid DRS-style url', async (t) => {
 test.serial("martha_v3 doesn't fail when extra data submitted besides a 'url'", async (t) => {
     const response = mockResponse();
     await marthaV3(
-        mockRequest({ body: { url: 'dos://abc/123', pattern: 'gs://', foo: 'bar' } }),
+        mockRequest({ body: { url: `dos://${bdc}/123`, pattern: 'gs://', foo: 'bar' } }),
         response,
     );
     t.is(response.statusCode, 200);
