@@ -448,13 +448,13 @@ test.serial('martha_v3 should return 500 if Data Object resolution fails', async
 });
 
 test.serial('martha_v3 should return the underlying status if Data Object resolution fails', async (t) => {
-    const dos = dosUrls('abc', '123');
+    const drs = drsUrls(bdc, '123');
     const error = new Error('Data Object Resolution forced to fail by testing stub');
     error.status = 418;
-    getJsonFromApiStub.withArgs(dos.dataobjectsUrl, null).rejects(error);
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).rejects(error);
     const response = mockResponse();
 
-    await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
+    await marthaV3(mockRequest({ body: { 'url': `dos://${bdc}/123` } }), response);
 
     t.is(response.statusCode, 418);
     t.is(response.body.status, 418);
