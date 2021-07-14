@@ -175,13 +175,13 @@ test.serial("martha_v3 doesn't fail when extra data submitted besides a 'url'", 
 });
 
 test.serial('martha_v3 does not call Bond when only DRS fields are requested', async (t) => {
-    const dos = dosUrls('abc', '123');
-    getJsonFromApiStub.withArgs(dos.dataobjectsUrl, null).resolves(sampleDosResponse);
+    const drs = drsUrls(bdc, '123');
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(sampleDosResponse);
     const response = mockResponse();
 
     await marthaV3(mockRequest({
         body: {
-            url: 'dos://abc/123',
+            url: `dos://${bdc}/123`,
             fields: ['gsUri', 'size', 'hashes', 'timeUpdated', 'fileName'],
         },
     }), response);
@@ -195,7 +195,7 @@ test.serial('martha_v3 does not call Bond when only DRS fields are requested', a
     sinon.assert.callCount(getJsonFromApiStub, 1);
 });
 
-test.serial('martha_v3 calls the correct endpoints the googleServiceAccount is requested', async (t) => {
+test.serial('martha_v3 calls the correct endpoints if the googleServiceAccount is requested', async (t) => {
     const bond = bondUrls('dcf-fence');
     getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
     const response = mockResponse();
