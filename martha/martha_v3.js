@@ -78,7 +78,6 @@ const ACCESS_METHOD_TYPE_S3 = 's3';
 const AUTH_REQUIRED = true;
 const AUTH_SKIPPED = false;
 
-const PROTOCOL_PREFIX_DOS='/ga4gh/dos/v1/dataobjects';
 const PROTOCOL_PREFIX_DRS='/ga4gh/drs/v1/objects';
 
 // CIB URIs via https://docs.google.com/document/d/1Wf4enSGOEXD5_AE-uzLoYqjIp5MnePbZ6kYTVFp1WoM/edit#
@@ -167,8 +166,8 @@ function expandCibHost(cibHost) {
         case DG_COMPACT_THE_ANVIL: return config.theAnvilHost;
         case DG_COMPACT_CRDC: return config.crdcHost;
         case DG_COMPACT_KIDS_FIRST: return config.kidsFirstHost;
-        // Someday we'll throw an error. For now replicate the behavior of `martha_v2`.
-        default: return config.bioDataCatalystHost;
+        default:
+            throw new BadRequestError(`Unrecognized Compact Identifier Based host '${cibHost}.'`);
     }
 }
 
@@ -397,6 +396,7 @@ function determineDrsType(url) {
         );
     }
 
+    // Kids First
     if (host.endsWith('.kidsfirstdrc.org')) {
         return new DrsType(
             urlParts,
@@ -412,15 +412,8 @@ function determineDrsType(url) {
         throw new BadRequestError('dataguids.org data has moved. See: https://support.terra.bio/hc/en-us/articles/360060681132');
     }
 
-    // If we don't recognize the server assume like martha_v2 that everyone else
-    // speaks DOS, doesn't require auth, and uses dcf-fence.
-    return new DrsType(
-        urlParts,
-        PROTOCOL_PREFIX_DOS,
-        AUTH_SKIPPED,
-        BOND_PROVIDER_DCF_FENCE,
-        ACCESS_METHOD_TYPE_NONE,
-    );
+    // Fail explicitly for DRS ids for which Martha can not determine a provider.
+    throw new BadRequestError(`Could not determine DRS provider for id "${url}"`);
 }
 
 function validateRequest(url, auth, requestedFields) {

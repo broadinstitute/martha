@@ -120,6 +120,8 @@ function mockS3AccessUrl(s3UrlString) {
     return { url: `https://${s3Url.hostname}.s3-website.us-west-2.amazonaws.com${s3Url.pathname}?sig=ABC` };
 }
 
+const bdc = config.HOST_BIODATA_CATALYST_STAGING;
+
 let getJsonFromApiStub;
 const getJsonFromApiMethodName = 'getJsonFrom';
 
@@ -817,7 +819,7 @@ test.serial('martha_v3 should return 500 if Data Object parsing fails', async (t
     getJsonFromApiStub.withArgs(dos.dataobjectsUrl, null).resolves(dosObjectWithInvalidFields);
     const response = mockResponse();
 
-    await marthaV3(mockRequest({ body: { 'url': 'drs://abc/123' } }), response);
+    await marthaV3(mockRequest({ body: { 'url': 'drs://dg.4503/123' } }), response);
 
     t.is(response.statusCode, 500);
     t.deepEqual(
@@ -965,24 +967,25 @@ function determineDrsTypeTestWrapper(testUrl) {
  * determineDrsType(uri) -> drsUrl Scenario 1: data objects uri with non-dg host and path
  */
 test.serial('martha_v3 determineDrsType should parse dos:// Data Object uri', (t) => {
-    t.is(determineDrsTypeTestWrapper('dos://fo.o/bar'), 'https://fo.o/ga4gh/dos/v1/dataobjects/bar');
+    t.is(determineDrsTypeTestWrapper(`dos://${bdc}/bar`), `https://${bdc}/ga4gh/dos/v1/dataobjects/bar`);
 });
 
 test.serial('martha_v3 determineDrsType should parse drs:// Data Object uri', (t) => {
-    t.is(determineDrsTypeTestWrapper('drs://fo.o/bar'), 'https://fo.o/ga4gh/dos/v1/dataobjects/bar');
+    t.is(determineDrsTypeTestWrapper(`drs://${bdc}/bar`), `https://${bdc}/ga4gh/drs/v1/objects/bar`);
 });
 
 test.serial('martha_v3 determineDrsType should parse drs:// Data Object uri with query part', (t) => {
     t.is(
-        determineDrsTypeTestWrapper('drs://fo.o/bar?version=1&bananas=yummy'),
-        'https://fo.o/ga4gh/dos/v1/dataobjects/bar?version=1&bananas=yummy'
+        determineDrsTypeTestWrapper(`drs://${bdc}/bar?version=1&bananas=yummy`),
+        `https://${bdc}/ga4gh/drs/v1/objects/bar?version=1&bananas=yummy`
     );
 });
 
 test.serial('martha_v3 determineDrsType should parse drs:// Data Object uri when host includes a port number', (t) => {
+    // CIB hosts apparently don't handle ports correctly, e.g. using `dg.4503` here doesn't build a "correct" URL.
     t.is(
-        determineDrsTypeTestWrapper('drs://foo.com:1234/bar'),
-        'https://foo.com:1234/ga4gh/dos/v1/dataobjects/bar'
+        determineDrsTypeTestWrapper(`drs://${bdc}:1234/bar`),
+        `https://${bdc}:1234/ga4gh/drs/v1/objects/bar`
     );
 });
 /**
@@ -994,22 +997,22 @@ test.serial('martha_v3 determineDrsType should parse drs:// Data Object uri when
  */
 test.serial('martha_v3 determineDrsType should parse "dos://" Data Object uri with a host and path', (t) => {
     t.is(
-        determineDrsTypeTestWrapper('dos://dg.2345/bar'),
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345/bar`
+        determineDrsTypeTestWrapper('dos://dg.4503/bar'),
+        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.4503/bar`
     );
 });
 
 test.serial('martha_v3 determineDrsType should parse "drs://" Data Object uri with a host and path', (t) => {
     t.is(
-        determineDrsTypeTestWrapper('drs://dg.2345/bar'),
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345/bar`
+        determineDrsTypeTestWrapper('drs://dg.4503/bar'),
+        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.4503/bar`
     );
 });
 
 test.serial('martha_v3 determineDrsType should parse "drs://dg." Data Object uri with query part', (t) => {
     t.is(
-        determineDrsTypeTestWrapper('drs://dg.2345/bar?version=1&bananas=yummy'),
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345/bar?version=1&bananas=yummy`
+        determineDrsTypeTestWrapper('drs://dg.4503/bar?version=1&bananas=yummy'),
+        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.4503/bar?version=1&bananas=yummy`
     );
 });
 
