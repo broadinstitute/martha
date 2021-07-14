@@ -185,8 +185,8 @@ function concatCibSuffix(cibHost, cibSuffix) {
         // Following the spec and only returning the suffix
         case DG_COMPACT_CRDC: return cibSuffix;
         case DG_COMPACT_KIDS_FIRST: return cibSuffix;
-        // Someday we'll throw an error. For now replicate the behavior of `martha_v2` and assume this URL goes to BDC.
-        default: return `${cibHost}/${cibSuffix}`;
+        default:
+            throw new BadRequestError(`Unrecognized Compact Identifier Based host '${cibHost}'`);
     }
 }
 

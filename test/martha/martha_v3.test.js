@@ -800,11 +800,11 @@ test.serial('martha_v3 returns null for fields missing in drs and bond response'
 });
 
 test.serial('martha_v3 should return 500 if Data Object parsing fails', async (t) => {
-    const dos = dosUrls('abc', '123');
-    getJsonFromApiStub.withArgs(dos.dataobjectsUrl, null).resolves(dosObjectWithInvalidFields);
+    const drs = drsUrls(bdc, '123');
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(dosObjectWithInvalidFields);
     const response = mockResponse();
 
-    await marthaV3(mockRequest({ body: { 'url': 'drs://dg.4503/123' } }), response);
+    await marthaV3(mockRequest({ body: { 'url': `drs://${bdc}/123` } }), response);
 
     t.is(response.statusCode, 500);
     t.deepEqual(
