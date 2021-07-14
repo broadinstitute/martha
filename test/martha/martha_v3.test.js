@@ -152,12 +152,12 @@ test.serial('martha_v3 uses the default error handler for unexpected errors', as
 // [1] https://broadinstitute.slack.com/archives/G011ZUKHCUX/p1597694952108600
 test.serial('martha_v3 resolves a valid DRS-style url', async (t) => {
     const bond = bondUrls('dcf-fence');
-    const dos = dosUrls('abc', '123');
+    const drs = drsUrls(crdc, '123');
     getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
-    getJsonFromApiStub.withArgs(dos.dataobjectsUrl, null).resolves(sampleDosResponse);
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(sampleDosResponse);
     const response = mockResponse();
 
-    await marthaV3(mockRequest({ body: { 'url': 'drs://abc/123' } }), response);
+    await marthaV3(mockRequest({ body: { 'url': `drs://${crdc}/123` } }), response);
 
     t.is(response.statusCode, 200);
     t.deepEqual(response.body, sampleDosMarthaResult(googleSAKeyObject));
