@@ -789,11 +789,11 @@ test.serial('martha_v3 succeeds if an error is encountered while fetching a sign
 });
 
 test.serial('martha_v3 returns null for fields missing in drs and bond response', async (t) => {
-    const dos = dosUrls('abc', '123');
-    getJsonFromApiStub.withArgs(dos.dataobjectsUrl, null).resolves(dosObjectWithMissingFields);
+    const drs = drsUrls(crdc, '123');
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(dosObjectWithMissingFields);
     const response = mockResponse();
 
-    await marthaV3(mockRequest({ body: { 'url': 'drs://abc/123' } }), response); // Also testing dos/drs mismatch here
+    await marthaV3(mockRequest({ body: { 'url': `drs://${crdc}/123` } }), response); // Also testing dos/drs mismatch here
 
     t.is(response.statusCode, 200);
     t.deepEqual(response.body, expectedObjWithMissingFields);
