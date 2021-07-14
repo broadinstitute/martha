@@ -466,12 +466,12 @@ test.serial('martha_v3 should return the underlying status if Data Object resolu
 
 test.serial('martha_v3 should return 500 if key retrieval from Bond fails', async (t) => {
     const bond = bondUrls('dcf-fence');
-    const dos = dosUrls('abc', '123');
+    const drs = drsUrls(crdc, '123');
     getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).rejects(new Error('Bond key lookup forced to fail by testing stub'));
-    getJsonFromApiStub.withArgs(dos.dataobjectsUrl, null).resolves(sampleDosResponse);
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(sampleDosResponse);
     const response = mockResponse();
 
-    await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
+    await marthaV3(mockRequest({ body: { 'url': `dos://${crdc}/123` } }), response);
 
     t.is(response.statusCode, 500);
     t.is(response.body.status, 500);
