@@ -947,10 +947,10 @@ This is hypothetical scenario based on a combination of:
 - access_id values are used to retrieve HTTPS signed URLs
  */
 test.serial('martha_v3 generateAccessUrl should add the query string to the access url', (t) => {
-    const urlParts = getHttpsUrlParts('drs://some.host.example.com/some_id?query=value');
+    const urlParts = getHttpsUrlParts(`drs://${bdc}/some_id?query=value`);
     const drsType = new DrsType(urlParts, '/some_prefix', false, null, null);
     const result = generateAccessUrl(drsType, 'some_access_id');
-    t.is(result, 'https://some.host.example.com/some_prefix/some_id/access/some_access_id?query=value');
+    t.is(result, `https://${bdc}/some_prefix/some_id/access/some_access_id?query=value`);
 });
 
 /**
@@ -967,7 +967,7 @@ function determineDrsTypeTestWrapper(testUrl) {
  * determineDrsType(uri) -> drsUrl Scenario 1: data objects uri with non-dg host and path
  */
 test.serial('martha_v3 determineDrsType should parse dos:// Data Object uri', (t) => {
-    t.is(determineDrsTypeTestWrapper(`dos://${bdc}/bar`), `https://${bdc}/ga4gh/dos/v1/dataobjects/bar`);
+    t.is(determineDrsTypeTestWrapper(`dos://${bdc}/bar`), `https://${bdc}/ga4gh/drs/v1/objects/bar`);
 });
 
 test.serial('martha_v3 determineDrsType should parse drs:// Data Object uri', (t) => {
