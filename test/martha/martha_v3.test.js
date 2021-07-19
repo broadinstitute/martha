@@ -1168,3 +1168,39 @@ test.serial('martha_v3 should parse Data Object uri with BDC staging repo as hos
 /**
  * End Scenario 8
  */
+
+test.serial('martha_v3 should return 4xx with an unrecognized CIB hostname', async (t) => {
+    const response = mockResponse();
+
+    await marthaV3(mockRequest({ body: { 'url': `drs://dg.CAFE/123` } }), response);
+
+    t.is(response.statusCode, 400);
+    t.deepEqual(
+        response.body,
+        {
+            response: {
+                status: 400,
+                text: `Request is invalid. Unrecognized Compact Identifier Based host 'dg.CAFE.'`,
+            },
+            status: 400,
+        },
+    );
+});
+
+test.serial('martha_v3 should return 400 with an unrecognized hostname (failed attempt at CIB hostname)', async (t) => {
+    const response = mockResponse();
+
+    await marthaV3(mockRequest({ body: { 'url': `drs://dg4.DFC/123` } }), response);
+
+    t.is(response.statusCode, 400);
+    t.deepEqual(
+        response.body,
+        {
+            response: {
+                status: 400,
+                text: `Request is invalid. Could not determine DRS provider for id 'drs://dg4.DFC/123'`,
+            },
+            status: 400,
+        },
+    );
+});

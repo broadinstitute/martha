@@ -179,14 +179,13 @@ function expandCibHost(cibHost) {
 function concatCibSuffix(cibHost, cibSuffix) {
     switch (cibHost.toLowerCase()) {
         // Specs? We don't need no stinkin' specs!
-        case DG_COMPACT_BDC_PROD: return `${cibHost}/${cibSuffix}`;
-        case DG_COMPACT_BDC_STAGING: return `${cibHost}/${cibSuffix}`;
-        case DG_COMPACT_THE_ANVIL: return `${cibHost}/${cibSuffix}`;
-        // Following the spec and only returning the suffix
-        case DG_COMPACT_CRDC: return cibSuffix;
-        case DG_COMPACT_KIDS_FIRST: return cibSuffix;
+        case DG_COMPACT_BDC_PROD:
+        case DG_COMPACT_BDC_STAGING:
+        case DG_COMPACT_THE_ANVIL:
+            return `${cibHost}/${cibSuffix}`;
         default:
-            throw new BadRequestError(`Unrecognized Compact Identifier Based host '${cibHost}'`);
+            // Following the spec and only returning the suffix
+            return cibSuffix;
     }
 }
 
@@ -413,7 +412,7 @@ function determineDrsType(url) {
     }
 
     // Fail explicitly for DRS ids for which Martha can not determine a provider.
-    throw new BadRequestError(`Could not determine DRS provider for id "${url}"`);
+    throw new BadRequestError(`Could not determine DRS provider for id '${url}'`);
 }
 
 function validateRequest(url, auth, requestedFields) {
