@@ -94,12 +94,6 @@ const bondUrls = (provider) => {
     };
 };
 
-const dosUrls = (host, id) => {
-    return {
-        dataobjectsUrl: `https://${host}/ga4gh/dos/v1/dataobjects/${id}`
-    };
-};
-
 const drsUrls = (host, id, accessId) => {
     const objectsUrl = `https://${host}/ga4gh/drs/v1/objects/${id}`;
     return {
@@ -119,6 +113,9 @@ function mockS3AccessUrl(s3UrlString) {
     const s3Url = new URL(s3UrlString);
     return { url: `https://${s3Url.hostname}.s3-website.us-west-2.amazonaws.com${s3Url.pathname}?sig=ABC` };
 }
+
+const bdc = config.HOST_BIODATA_CATALYST_STAGING;
+const crdc = config.HOST_CRDC_STAGING;
 
 let getJsonFromApiStub;
 const getJsonFromApiMethodName = 'getJsonFrom';
@@ -141,22 +138,6 @@ test.serial('martha_v3 uses the default error handler for unexpected errors', as
     sinon.assert.callCount(response.send, 0);
 });
 
-// Test the "default" case because we don't know who you are.
-test.serial('martha_v3 resolves a valid DOS-style url using the "dcf-fence" provider', async (t) => {
-    const bond = bondUrls('dcf-fence');
-    const dos = dosUrls('abc', '123');
-    getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
-    getJsonFromApiStub.withArgs(dos.dataobjectsUrl, null).resolves(sampleDosResponse);
-    const response = mockResponse();
-
-    await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
-
-    t.is(response.statusCode, 200);
-    t.deepEqual(response.body, sampleDosMarthaResult(googleSAKeyObject));
-
-    sinon.assert.callCount(getJsonFromApiStub, 2);
-});
-
 // According to the DRS specification authors [0] it's OK for a client to call Martha with a `drs://` URI and get
 // back a DOS object. Martha should just "do the right thing" and return whichever format the server supports,
 // instead of erroring out with a 404 due the URI not being found [1].
@@ -165,12 +146,12 @@ test.serial('martha_v3 resolves a valid DOS-style url using the "dcf-fence" prov
 // [1] https://broadinstitute.slack.com/archives/G011ZUKHCUX/p1597694952108600
 test.serial('martha_v3 resolves a valid DRS-style url', async (t) => {
     const bond = bondUrls('dcf-fence');
-    const dos = dosUrls('abc', '123');
+    const drs = drsUrls(crdc, '123');
     getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
-    getJsonFromApiStub.withArgs(dos.dataobjectsUrl, null).resolves(sampleDosResponse);
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(sampleDosResponse);
     const response = mockResponse();
 
-    await marthaV3(mockRequest({ body: { 'url': 'drs://abc/123' } }), response);
+    await marthaV3(mockRequest({ body: { 'url': `drs://${crdc}/123` } }), response);
 
     t.is(response.statusCode, 200);
     t.deepEqual(response.body, sampleDosMarthaResult(googleSAKeyObject));
@@ -181,20 +162,20 @@ test.serial('martha_v3 resolves a valid DRS-style url', async (t) => {
 test.serial("martha_v3 doesn't fail when extra data submitted besides a 'url'", async (t) => {
     const response = mockResponse();
     await marthaV3(
-        mockRequest({ body: { url: 'dos://abc/123', pattern: 'gs://', foo: 'bar' } }),
+        mockRequest({ body: { url: `dos://${bdc}/123`, pattern: 'gs://', foo: 'bar' } }),
         response,
     );
     t.is(response.statusCode, 200);
 });
 
 test.serial('martha_v3 does not call Bond when only DRS fields are requested', async (t) => {
-    const dos = dosUrls('abc', '123');
-    getJsonFromApiStub.withArgs(dos.dataobjectsUrl, null).resolves(sampleDosResponse);
+    const drs = drsUrls(bdc, '123');
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(sampleDosResponse);
     const response = mockResponse();
 
     await marthaV3(mockRequest({
         body: {
-            url: 'dos://abc/123',
+            url: `dos://${bdc}/123`,
             fields: ['gsUri', 'size', 'hashes', 'timeUpdated', 'fileName'],
         },
     }), response);
@@ -208,13 +189,13 @@ test.serial('martha_v3 does not call Bond when only DRS fields are requested', a
     sinon.assert.callCount(getJsonFromApiStub, 1);
 });
 
-test.serial('martha_v3 calls the correct endpoints the googleServiceAccount is requested', async (t) => {
+test.serial('martha_v3 calls the correct endpoints if the googleServiceAccount is requested', async (t) => {
     const bond = bondUrls('dcf-fence');
     getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
     const response = mockResponse();
 
     await marthaV3(
-        mockRequest({ body: { url: 'dos://abc/123', fields: ['googleServiceAccount'] } }),
+        mockRequest({ body: { url: `dos://${crdc}/123`, fields: ['googleServiceAccount'] } }),
         response
     );
 
@@ -322,7 +303,7 @@ test.serial('martha_v3 calls no endpoints when no fields are requested', async (
 
     await marthaV3(mockRequest({
         body: {
-            url: 'dos://abc/123',
+            url: `dos://${bdc}/123`,
             fields: [],
         }
     }), response);
@@ -449,11 +430,11 @@ test.serial('martha_v3 should return 400 if given a \'url\' with an invalid valu
 });
 
 test.serial('martha_v3 should return 500 if Data Object resolution fails', async (t) => {
-    const dos = dosUrls('abc', '123');
-    getJsonFromApiStub.withArgs(dos.dataobjectsUrl, null).rejects(new Error('Data Object Resolution forced to fail by testing stub'));
+    const drs = drsUrls(bdc, '123');
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).rejects(new Error('Data Object Resolution forced to fail by testing stub'));
     const response = mockResponse();
 
-    await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
+    await marthaV3(mockRequest({ body: { 'url': `dos://${bdc}/123` } }), response);
 
     t.is(response.statusCode, 500);
     t.is(response.body.status, 500);
@@ -461,13 +442,13 @@ test.serial('martha_v3 should return 500 if Data Object resolution fails', async
 });
 
 test.serial('martha_v3 should return the underlying status if Data Object resolution fails', async (t) => {
-    const dos = dosUrls('abc', '123');
+    const drs = drsUrls(bdc, '123');
     const error = new Error('Data Object Resolution forced to fail by testing stub');
     error.status = 418;
-    getJsonFromApiStub.withArgs(dos.dataobjectsUrl, null).rejects(error);
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).rejects(error);
     const response = mockResponse();
 
-    await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
+    await marthaV3(mockRequest({ body: { 'url': `dos://${bdc}/123` } }), response);
 
     t.is(response.statusCode, 418);
     t.is(response.body.status, 418);
@@ -479,12 +460,12 @@ test.serial('martha_v3 should return the underlying status if Data Object resolu
 
 test.serial('martha_v3 should return 500 if key retrieval from Bond fails', async (t) => {
     const bond = bondUrls('dcf-fence');
-    const dos = dosUrls('abc', '123');
+    const drs = drsUrls(crdc, '123');
     getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).rejects(new Error('Bond key lookup forced to fail by testing stub'));
-    getJsonFromApiStub.withArgs(dos.dataobjectsUrl, null).resolves(sampleDosResponse);
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(sampleDosResponse);
     const response = mockResponse();
 
-    await marthaV3(mockRequest({ body: { 'url': 'dos://abc/123' } }), response);
+    await marthaV3(mockRequest({ body: { 'url': `dos://${crdc}/123` } }), response);
 
     t.is(response.statusCode, 500);
     t.is(response.body.status, 500);
@@ -802,22 +783,22 @@ test.serial('martha_v3 succeeds if an error is encountered while fetching a sign
 });
 
 test.serial('martha_v3 returns null for fields missing in drs and bond response', async (t) => {
-    const dos = dosUrls('abc', '123');
-    getJsonFromApiStub.withArgs(dos.dataobjectsUrl, null).resolves(dosObjectWithMissingFields);
+    const drs = drsUrls(crdc, '123');
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(dosObjectWithMissingFields);
     const response = mockResponse();
 
-    await marthaV3(mockRequest({ body: { 'url': 'drs://abc/123' } }), response); // Also testing dos/drs mismatch here
+    await marthaV3(mockRequest({ body: { 'url': `drs://${crdc}/123` } }), response); // Also testing dos/drs mismatch here
 
     t.is(response.statusCode, 200);
     t.deepEqual(response.body, expectedObjWithMissingFields);
 });
 
 test.serial('martha_v3 should return 500 if Data Object parsing fails', async (t) => {
-    const dos = dosUrls('abc', '123');
-    getJsonFromApiStub.withArgs(dos.dataobjectsUrl, null).resolves(dosObjectWithInvalidFields);
+    const drs = drsUrls(bdc, '123');
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(dosObjectWithInvalidFields);
     const response = mockResponse();
 
-    await marthaV3(mockRequest({ body: { 'url': 'drs://abc/123' } }), response);
+    await marthaV3(mockRequest({ body: { 'url': `drs://${bdc}/123` } }), response);
 
     t.is(response.statusCode, 500);
     t.deepEqual(
@@ -945,10 +926,10 @@ This is hypothetical scenario based on a combination of:
 - access_id values are used to retrieve HTTPS signed URLs
  */
 test.serial('martha_v3 generateAccessUrl should add the query string to the access url', (t) => {
-    const urlParts = getHttpsUrlParts('drs://some.host.example.com/some_id?query=value');
+    const urlParts = getHttpsUrlParts(`drs://${bdc}/some_id?query=value`);
     const drsType = new DrsType(urlParts, '/some_prefix', false, null, null);
     const result = generateAccessUrl(drsType, 'some_access_id');
-    t.is(result, 'https://some.host.example.com/some_prefix/some_id/access/some_access_id?query=value');
+    t.is(result, `https://${bdc}/some_prefix/some_id/access/some_access_id?query=value`);
 });
 
 /**
@@ -965,24 +946,25 @@ function determineDrsTypeTestWrapper(testUrl) {
  * determineDrsType(uri) -> drsUrl Scenario 1: data objects uri with non-dg host and path
  */
 test.serial('martha_v3 determineDrsType should parse dos:// Data Object uri', (t) => {
-    t.is(determineDrsTypeTestWrapper('dos://fo.o/bar'), 'https://fo.o/ga4gh/dos/v1/dataobjects/bar');
+    t.is(determineDrsTypeTestWrapper(`dos://${bdc}/bar`), `https://${bdc}/ga4gh/drs/v1/objects/bar`);
 });
 
 test.serial('martha_v3 determineDrsType should parse drs:// Data Object uri', (t) => {
-    t.is(determineDrsTypeTestWrapper('drs://fo.o/bar'), 'https://fo.o/ga4gh/dos/v1/dataobjects/bar');
+    t.is(determineDrsTypeTestWrapper(`drs://${bdc}/bar`), `https://${bdc}/ga4gh/drs/v1/objects/bar`);
 });
 
 test.serial('martha_v3 determineDrsType should parse drs:// Data Object uri with query part', (t) => {
     t.is(
-        determineDrsTypeTestWrapper('drs://fo.o/bar?version=1&bananas=yummy'),
-        'https://fo.o/ga4gh/dos/v1/dataobjects/bar?version=1&bananas=yummy'
+        determineDrsTypeTestWrapper(`drs://${bdc}/bar?version=1&bananas=yummy`),
+        `https://${bdc}/ga4gh/drs/v1/objects/bar?version=1&bananas=yummy`
     );
 });
 
 test.serial('martha_v3 determineDrsType should parse drs:// Data Object uri when host includes a port number', (t) => {
+    // CIB hosts apparently don't handle ports correctly, e.g. using `dg.4503` here doesn't build a "correct" URL.
     t.is(
-        determineDrsTypeTestWrapper('drs://foo.com:1234/bar'),
-        'https://foo.com:1234/ga4gh/dos/v1/dataobjects/bar'
+        determineDrsTypeTestWrapper(`drs://${bdc}:1234/bar`),
+        `https://${bdc}:1234/ga4gh/drs/v1/objects/bar`
     );
 });
 /**
@@ -994,22 +976,22 @@ test.serial('martha_v3 determineDrsType should parse drs:// Data Object uri when
  */
 test.serial('martha_v3 determineDrsType should parse "dos://" Data Object uri with a host and path', (t) => {
     t.is(
-        determineDrsTypeTestWrapper('dos://dg.2345/bar'),
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345/bar`
+        determineDrsTypeTestWrapper('dos://dg.4503/bar'),
+        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.4503/bar`
     );
 });
 
 test.serial('martha_v3 determineDrsType should parse "drs://" Data Object uri with a host and path', (t) => {
     t.is(
-        determineDrsTypeTestWrapper('drs://dg.2345/bar'),
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345/bar`
+        determineDrsTypeTestWrapper('drs://dg.4503/bar'),
+        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.4503/bar`
     );
 });
 
 test.serial('martha_v3 determineDrsType should parse "drs://dg." Data Object uri with query part', (t) => {
     t.is(
-        determineDrsTypeTestWrapper('drs://dg.2345/bar?version=1&bananas=yummy'),
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/dos/v1/dataobjects/dg.2345/bar?version=1&bananas=yummy`
+        determineDrsTypeTestWrapper('drs://dg.4503/bar?version=1&bananas=yummy'),
+        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.4503/bar?version=1&bananas=yummy`
     );
 });
 
@@ -1186,3 +1168,39 @@ test.serial('martha_v3 should parse Data Object uri with BDC staging repo as hos
 /**
  * End Scenario 8
  */
+
+test.serial('martha_v3 should return 4xx with an unrecognized CIB hostname', async (t) => {
+    const response = mockResponse();
+
+    await marthaV3(mockRequest({ body: { 'url': `drs://dg.CAFE/123` } }), response);
+
+    t.is(response.statusCode, 400);
+    t.deepEqual(
+        response.body,
+        {
+            response: {
+                status: 400,
+                text: `Request is invalid. Unrecognized Compact Identifier Based host 'dg.CAFE.'`,
+            },
+            status: 400,
+        },
+    );
+});
+
+test.serial('martha_v3 should return 400 with an unrecognized hostname (failed attempt at CIB hostname)', async (t) => {
+    const response = mockResponse();
+
+    await marthaV3(mockRequest({ body: { 'url': `drs://dg4.DFC/123` } }), response);
+
+    t.is(response.statusCode, 400);
+    t.deepEqual(
+        response.body,
+        {
+            response: {
+                status: 400,
+                text: `Request is invalid. Could not determine DRS provider for id 'drs://dg4.DFC/123'`,
+            },
+            status: 400,
+        },
+    );
+});
