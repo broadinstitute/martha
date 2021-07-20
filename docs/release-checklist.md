@@ -10,7 +10,7 @@ Martha Release Checklist
 
 - [ ] Create a Github ticket for Martha release and copy this checklist there.
 - [ ] Create a git tag for the new version of Martha to be deployed and push it to the github repo (if done locally).
-    - e.g.: `git tag -a 1.5.2 -m "1.5.2"`
+    - e.g.: `git tag -a 1.5.2 -m "1.5.2" && git push origin 1.5.2`
     - [tags for past releases](https://github.com/broadinstitute/martha/releases) to figure out what the last tag was
     - [compare the latest code with the last version](https://github.com/broadinstitute/martha/compare) to figure out what the next tag should be using [semantic versioning](https://semver.org/)
     - [if you're looking for even more info on tags](https://git-scm.com/book/en/v2/Git-Basics-Tagging#_creating_tags)
