@@ -220,6 +220,61 @@ const gen3CrdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl
     }
 }; };
 
+// PDC
+
+const pdcResponse = {
+    access_methods:
+        [
+            {
+                access_id: 's3',
+                access_url:
+                    {
+                        url: 's3://pdcdatastore/studies/262/mzml/20150910-P21-20ug-s02.mzML.gz'
+                    },
+                region: '',
+                type: 's3'
+            }
+        ],
+    aliases: [],
+    checksums:
+        [
+            {
+                checksum: '3703b9ca715d23aca348e8e3fc1c4dc0',
+                type: 'md5'
+            }
+        ],
+    contents: [],
+    created_time: '2021-01-22T12:16:49.634300',
+    description: null,
+    form: 'object',
+    id: 'dg.4DFC/001189b2-cd6b-4d6c-83ca-7a2f441892eb',
+    mime_type: 'application/json',
+    name: '',
+    self_uri: `drs://${config.HOST_CRDC_PROD}/dg.4DFC/001189b2-cd6b-4d6c-83ca-7a2f441892eb`,
+    size: 49927952,
+    updated_time: '2021-01-22T12:16:49.634306',
+    version: '15c06b55',
+};
+
+const pdcDrsMarthaResult = (expectedAccessUrl) => {
+    return {
+        contentType: 'application/json',
+        size: 49927952,
+        timeCreated: '2021-01-22T12:16:49.634Z',
+        timeUpdated: '2021-01-22T12:16:49.634Z',
+        bucket: null,
+        name: null,
+        accessUrl: expectedAccessUrl,
+        gsUri: null,
+        googleServiceAccount: null,
+        bondProvider: 'dcf-fence',
+        fileName: '20150910-P21-20ug-s02.mzML.gz',
+        hashes: {
+            md5: '3703b9ca715d23aca348e8e3fc1c4dc0'
+        }
+    };
+};
+
 // Anvil
 
 const anvilDrsResponse = {
@@ -518,6 +573,8 @@ module.exports = {
     anvilDrsMarthaResult,
     gen3CrdcResponse,
     gen3CrdcDrsMarthaResult,
+    pdcResponse,
+    pdcDrsMarthaResult,
     kidsFirstDrsResponse,
     kidsFirstDrsResponseCustom,
     kidsFirstDrsMarthaResult
