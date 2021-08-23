@@ -397,7 +397,8 @@ function determineDrsType(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_ANVIL,
-            ACCESS_METHOD_TYPES_NONE,
+            // For more info see comment above for BDC's `accessMethodType`
+            [ACCESS_METHOD_TYPE_GCS],
         );
     }
 
