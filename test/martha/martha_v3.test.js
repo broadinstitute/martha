@@ -584,11 +584,11 @@ test.serial('martha_v3 parses PDC response correctly', async (t) => {
 });
 
 test.serial('martha_v3 parses a PDC CIB URI response correctly', async (t) => {
-    const drsUri = 'drs://dg.4DFC:206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc';
+    const objectId = '206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc';
+    const drsUri = `drs://dg.4DFC:${objectId}`;
     const {
         access_methods: { 0: { access_id: accessId, access_url: { url: s3Url } } },
     } = pdcResponse;
-    const objectId = drsUri.replace(/.*:/, '');
     const bond = bondUrls('dcf-fence');
     const drs = drsUrls(config.HOST_CRDC_STAGING, objectId, accessId);
     const drsAccessUrlResponse = mockS3AccessUrl(s3Url);
@@ -600,7 +600,7 @@ test.serial('martha_v3 parses a PDC CIB URI response correctly', async (t) => {
     const response = mockResponse();
 
     await marthaV3(
-        mockRequest({ body: { 'url': 'dos://dg.4DFC:206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc' } }),
+        mockRequest({ body: { 'url': drsUri } }),
         response,
     );
 

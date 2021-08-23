@@ -375,7 +375,18 @@ function determineDrsType(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_FENCE,
-            ACCESS_METHOD_TYPES_NONE, /* BT-236 BDC signed URLs temporarily turned off */
+            /*
+            BT-236 BDC signed URLs temporarily turned off
+
+            As of Aug 2021 we only return signed urls for S3 hosted data. Eventually we will turn on signed urls for
+            data hosted outside of S3. But today this line could equally work as:
+             - `[ACCESS_METHOD_TYPE_GCS]`
+             - `ACCESS_METHOD_TYPES_NONE`
+
+            Since the code currently returns signed URLs only for S3 either option works and the former option was
+            considered "more correct".
+             */
+            [ACCESS_METHOD_TYPE_GCS],
         );
     }
 
@@ -500,7 +511,7 @@ async function retrieveFromServers(params) {
     const {sendAuth, bondProvider, accessMethodTypes} = drsType;
     console.log(
         `DRS URI '${url}' will use auth required '${sendAuth}', bond provider '${bondProvider}', ` +
-        `and access method types '${accessMethodTypes.join("', '")}'`
+        `and access method types '${accessMethodTypes.toString()}'`
     );
 
     let bondSA;
