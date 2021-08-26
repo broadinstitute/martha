@@ -71,7 +71,7 @@ const BOND_PROVIDER_FENCE = 'fence';
 const BOND_PROVIDER_ANVIL = 'anvil';
 const BOND_PROVIDER_KIDS_FIRST = 'kids-first';
 
-const ACCESS_METHOD_TYPE_NONE = null;
+const ACCESS_METHOD_TYPES_NONE = [];
 const ACCESS_METHOD_TYPE_GCS = 'gs';
 const ACCESS_METHOD_TYPE_S3 = 's3';
 
@@ -99,12 +99,29 @@ const overridePencilsDownSeconds = (seconds) => {
 
 // noinspection JSUnusedGlobalSymbols
 class DrsType {
-    constructor(urlParts, protocolPrefix, sendAuth, bondProvider, accessMethodType) {
+    constructor(urlParts, protocolPrefix, sendAuth, bondProvider, accessMethodTypes) {
         this.urlParts = urlParts;
         this.protocolPrefix = protocolPrefix;
         this.sendAuth = sendAuth;
         this.bondProvider = bondProvider;
-        this.accessMethodType = accessMethodType;
+        this.accessMethodTypes = accessMethodTypes;
+    }
+}
+
+/**
+ * Returns the first access method type listed in accessMethodTypes and the drsResponse, otherwise returns undefined.
+ */
+function getDrsAccessMethodType(drsResponse, accessMethodTypes) {
+    if (!accessMethodTypes || !drsResponse || !drsResponse.access_methods) {
+        return;
+    }
+
+    for (const accessMethodType of accessMethodTypes) {
+        for (const accessMethod of drsResponse.access_methods) {
+            if (accessMethod.type === accessMethodType) {
+                return accessMethod.access_id;
+            }
+        }
     }
 }
 
@@ -358,7 +375,18 @@ function determineDrsType(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_FENCE,
-            ACCESS_METHOD_TYPE_NONE, /* BT-236 BDC signed URLs temporarily turned off */
+            /*
+            BT-236 BDC signed URLs temporarily turned off
+
+            As of Aug 2021 we only return signed urls for S3 hosted data. Eventually we will turn on signed urls for
+            data hosted outside of S3. But today this line could equally work as:
+             - `[ACCESS_METHOD_TYPE_GCS]`
+             - `ACCESS_METHOD_TYPES_NONE`
+
+            Since the code currently returns signed URLs only for S3 either option works and the former option was
+            considered "more correct".
+             */
+            [ACCESS_METHOD_TYPE_GCS],
         );
     }
 
@@ -369,7 +397,8 @@ function determineDrsType(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_ANVIL,
-            ACCESS_METHOD_TYPE_NONE,
+            // For more info see comment above for BDC's `accessMethodType`
+            [ACCESS_METHOD_TYPE_GCS],
         );
     }
 
@@ -380,7 +409,7 @@ function determineDrsType(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_REQUIRED,
             BOND_PROVIDER_NONE,
-            ACCESS_METHOD_TYPE_NONE,
+            ACCESS_METHOD_TYPES_NONE,
         );
     }
 
@@ -391,7 +420,7 @@ function determineDrsType(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_DCF_FENCE,
-            ACCESS_METHOD_TYPE_NONE,
+            [ACCESS_METHOD_TYPE_GCS, ACCESS_METHOD_TYPE_S3],
         );
     }
 
@@ -402,7 +431,7 @@ function determineDrsType(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_KIDS_FIRST,
-            ACCESS_METHOD_TYPE_S3,
+            [ACCESS_METHOD_TYPE_S3],
         );
     }
 
@@ -480,10 +509,10 @@ async function retrieveFromServers(params) {
         url,
     } = params;
 
-    const {sendAuth, bondProvider, accessMethodType} = drsType;
+    const {sendAuth, bondProvider, accessMethodTypes} = drsType;
     console.log(
         `DRS URI '${url}' will use auth required '${sendAuth}', bond provider '${bondProvider}', ` +
-        `and access method type '${accessMethodType}'`
+        `and access method types '${accessMethodTypes.toString()}'`
     );
 
     let bondSA;
@@ -497,21 +526,6 @@ async function retrieveFromServers(params) {
     let hypotheticalErrorMessage;
 
     const fetch = async () => {
-        // Only retrieve the SA for projects that implicitly or explicitly use GCS for accessing the data.
-        const accessMethodTypesRequiringSA = [ACCESS_METHOD_TYPE_NONE, ACCESS_METHOD_TYPE_GCS];
-        if (bondProvider &&
-          accessMethodTypesRequiringSA.includes(accessMethodType) &&
-          overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS)) {
-            try {
-                hypotheticalErrorMessage = 'Could not fetch SA key from Bond.';
-                const bondSAKeyUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
-                console.log(`Requesting Bond SA key for '${url}' from '${bondSAKeyUrl}'`);
-                bondSA = await apiAdapter.getJsonFrom(bondSAKeyUrl, auth);
-            } catch (error) {
-                throw new RemoteServerError(error, 'Received error contacting Bond.');
-            }
-        }
-
         let response;
         if (overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS)) {
             try {
@@ -530,6 +544,33 @@ async function retrieveFromServers(params) {
             drsResponse = responseParser(response);
         } catch (error) {
             throw new RemoteServerError(error, 'Received error while parsing response from DRS URL.');
+        }
+
+        const accessMethodType = getDrsAccessMethodType(drsResponse, accessMethodTypes);
+
+        /*
+        As of BT-381, the same DRS server is hosting metadata for CRDC's GCS data and PDC's S3 data.
+
+        So the hostname detection may discover GCS or S3 access_method.types. The royal "we" don't want to download GCS
+        hosted files using signed URLs right now, as the `gsutil` downloader is working ok. Meanwhile, we don't have
+        another option to download S3 hosted files other than signed URLs...
+
+        When BT-161 is completed GCS will also used signed URLs, but that is likely to happen only after switching the
+        Cromwell localizer to `getm`. When appropriate please remove this variable and this comment.
+         */
+        const accessMethodTypeIsS3 = accessMethodType === ACCESS_METHOD_TYPE_S3;
+
+        if (bondProvider &&
+            !accessMethodTypeIsS3 &&
+            overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS)) {
+            try {
+                hypotheticalErrorMessage = 'Could not fetch SA key from Bond.';
+                const bondSAKeyUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
+                console.log(`Requesting Bond SA key for '${url}' from '${bondSAKeyUrl}'`);
+                bondSA = await apiAdapter.getJsonFrom(bondSAKeyUrl, auth);
+            } catch (error) {
+                throw new RemoteServerError(error, 'Received error contacting Bond.');
+            }
         }
 
         /*
@@ -552,7 +593,7 @@ async function retrieveFromServers(params) {
         let accessId;
 
         try {
-            if (overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS)) {
+            if (accessMethodTypeIsS3 && overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS)) {
                 try {
                     accessId = getDrsAccessId(drsResponse, accessMethodType);
                 } catch (error) {

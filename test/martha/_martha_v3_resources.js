@@ -220,6 +220,63 @@ const gen3CrdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl
     }
 }; };
 
+// PDC
+// via:
+//  - Notebook under the "DRS and Signed URL Development - Dev" workspace: `drs_signed_url_flow_crdc_pdc_dev`
+//  - https://nci-crdc-staging.datacommons.io/ga4gh/drs/v1/objects/dg.4DFC/f2ffba75-5197-11e9-9a07-0a80fada099c
+const pdcResponse = {
+    access_methods:
+        [
+            {
+                access_id: 's3',
+                access_url:
+                    {
+                        url: 's3://pdcdatastore-controlled/protein_fasta/CPTAC-2/01BR001_variant_proteome.fasta'
+                    },
+                region: '',
+                type: 's3'
+            }
+        ],
+    aliases: [],
+    checksums:
+        [
+            {
+                checksum: '87a588424a5920617c843f22ee662fda',
+                type: 'md5',
+            },
+        ],
+    contents: [],
+    created_time: '2019-04-01T20:11:15.138998',
+    description: null,
+    form: 'object',
+    id: 'dg.4DFC/f2ffba75-5197-11e9-9a07-0a80fada099c',
+    mime_type: 'application/json',
+    name: null,
+    self_uri: 'drs://nci-crdc-staging.datacommons.io/dg.4DFC/f2ffba75-5197-11e9-9a07-0a80fada099c',
+    size: 34,
+    updated_time: '2019-04-01T20:11:15.139007',
+    version: 'b50ea393'
+};
+
+const pdcDrsMarthaResult = (expectedAccessUrl) => {
+    return {
+        contentType: 'application/json',
+        size: 34,
+        timeCreated: '2019-04-01T20:11:15.138Z',
+        timeUpdated: '2019-04-01T20:11:15.139Z',
+        bucket: null,
+        name: null,
+        accessUrl: expectedAccessUrl,
+        gsUri: null,
+        googleServiceAccount: null,
+        bondProvider: 'dcf-fence',
+        fileName: '01BR001_variant_proteome.fasta',
+        hashes: {
+            md5: '87a588424a5920617c843f22ee662fda'
+        }
+    };
+};
+
 // Anvil
 
 const anvilDrsResponse = {
@@ -518,6 +575,8 @@ module.exports = {
     anvilDrsMarthaResult,
     gen3CrdcResponse,
     gen3CrdcDrsMarthaResult,
+    pdcResponse,
+    pdcDrsMarthaResult,
     kidsFirstDrsResponse,
     kidsFirstDrsResponseCustom,
     kidsFirstDrsMarthaResult

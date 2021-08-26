@@ -24,6 +24,8 @@ const {
     anvilDrsResponse,
     gen3CrdcDrsMarthaResult,
     gen3CrdcResponse,
+    pdcDrsMarthaResult,
+    pdcResponse,
     dosObjectWithMissingFields,
     dosObjectWithInvalidFields,
     drsObjectWithInvalidFields,
@@ -553,6 +555,58 @@ test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t)
     t.deepEqual(response.body, gen3CrdcDrsMarthaResult(googleSAKeyObject, null));
 
     sinon.assert.callCount(getJsonFromApiStub, 2);
+});
+
+test.serial('martha_v3 parses PDC response correctly', async (t) => {
+    const objectId = 'dg.4DFC/f2ffba75-5197-11e9-9a07-0a80fada099c';
+    const drsUri = `drs://${config.HOST_CRDC_STAGING}/${objectId}`;
+    const {
+        access_methods: { 0: { access_id: accessId, access_url: { url: s3Url } } },
+    } = pdcResponse;
+    const bond = bondUrls('dcf-fence');
+    const drs = drsUrls(config.HOST_CRDC_STAGING, objectId, accessId);
+    const drsAccessUrlResponse = mockS3AccessUrl(s3Url);
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(pdcResponse);
+    getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub
+        .withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`)
+        .resolves(drsAccessUrlResponse);
+    const response = mockResponse();
+
+    await marthaV3(
+        mockRequest({ body: { 'url': drsUri } }),
+        response,
+    );
+
+    t.is(response.statusCode, 200);
+    t.deepEqual(response.body, pdcDrsMarthaResult(drsAccessUrlResponse));
+    sinon.assert.callCount(getJsonFromApiStub, 3);
+});
+
+test.serial('martha_v3 parses a PDC CIB URI response correctly', async (t) => {
+    const objectId = 'f2ffba75-5197-11e9-9a07-0a80fada099c';
+    const drsUri = `drs://dg.4DFC:dg.4DFC/${objectId}`;
+    const {
+        access_methods: { 0: { access_id: accessId, access_url: { url: s3Url } } },
+    } = pdcResponse;
+    const bond = bondUrls('dcf-fence');
+    const drs = drsUrls(config.HOST_CRDC_STAGING, objectId, accessId);
+    const drsAccessUrlResponse = mockS3AccessUrl(s3Url);
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(pdcResponse);
+    getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub
+        .withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`)
+        .resolves(drsAccessUrlResponse);
+    const response = mockResponse();
+
+    await marthaV3(
+        mockRequest({ body: { 'url': drsUri } }),
+        response,
+    );
+
+    t.is(response.statusCode, 200);
+    t.deepEqual(response.body, pdcDrsMarthaResult(drsAccessUrlResponse));
+    sinon.assert.callCount(getJsonFromApiStub, 3);
 });
 
 // BT-236 temporarily cut access token and access endpoint out of the flow
