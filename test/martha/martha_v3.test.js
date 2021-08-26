@@ -520,13 +520,13 @@ test.serial('martha_v3 does not call Bond or return SA key when the host url is 
 
 test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
     const bond = bondUrls('dcf-fence');
-    const drs = drsUrls(config.HOST_CRDC_STAGING, '206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc');
+    const drs = drsUrls(config.HOST_CRDC_STAGING, 'dg.4DFC/f2ffba75-5197-11e9-9a07-0a80fada099c');
     getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(gen3CrdcResponse);
     const response = mockResponse();
 
     await marthaV3(
-        mockRequest({ body: { 'url': `dos://${config.HOST_CRDC_STAGING}/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc` } }),
+        mockRequest({ body: { 'url': `dos://${config.HOST_CRDC_STAGING}/dg.4DFC/f2ffba75-5197-11e9-9a07-0a80fada099c` } }),
         response,
     );
 
@@ -541,13 +541,13 @@ test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t)
     // TODO: This object ID is inconsistent with gen3CrdcResponse but, for now, it doesn't break
     // anything. Eventually, when we turn on signed URLs for CRDC, we may want to reconcile the
     // difference so that we can avoid duplication of these IDs between the tests and test data.
-    const drs = drsUrls(config.HOST_CRDC_STAGING, '206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc');
+    const drs = drsUrls(config.HOST_CRDC_STAGING, 'dg.4DFC/f2ffba75-5197-11e9-9a07-0a80fada099c');
     getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(gen3CrdcResponse);
     const response = mockResponse();
 
     await marthaV3(
-        mockRequest({ body: { 'url': 'dos://dg.4DFC:206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc' } }),
+        mockRequest({ body: { 'url': 'dos://dg.4DFC:dg.4DFC/f2ffba75-5197-11e9-9a07-0a80fada099c' } }),
         response,
     );
 
@@ -558,7 +558,7 @@ test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t)
 });
 
 test.serial('martha_v3 parses PDC response correctly', async (t) => {
-    const drsUri = 'drs://dg.4DFC:206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc';
+    const drsUri = 'drs://dg.4DFC:dg.4DFC/f2ffba75-5197-11e9-9a07-0a80fada099c';
     const {
         access_methods: { 0: { access_id: accessId, access_url: { url: s3Url } } },
     } = pdcResponse;
@@ -574,7 +574,7 @@ test.serial('martha_v3 parses PDC response correctly', async (t) => {
     const response = mockResponse();
 
     await marthaV3(
-        mockRequest({ body: { 'url': `dos://${config.HOST_CRDC_STAGING}/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc` } }),
+        mockRequest({ body: { 'url': `dos://${config.HOST_CRDC_STAGING}/dg.4DFC/f2ffba75-5197-11e9-9a07-0a80fada099c` } }),
         response,
     );
 
@@ -584,7 +584,7 @@ test.serial('martha_v3 parses PDC response correctly', async (t) => {
 });
 
 test.serial('martha_v3 parses a PDC CIB URI response correctly', async (t) => {
-    const objectId = '206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc';
+    const objectId = 'dg.4DFC/f2ffba75-5197-11e9-9a07-0a80fada099c';
     const drsUri = `drs://dg.4DFC:${objectId}`;
     const {
         access_methods: { 0: { access_id: accessId, access_url: { url: s3Url } } },

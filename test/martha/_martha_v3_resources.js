@@ -221,7 +221,9 @@ const gen3CrdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl
 }; };
 
 // PDC
-
+// via:
+//  - Notebook under the "DRS and Signed URL Development - Dev" workspace: `drs_signed_url_flow_crdc_pdc_dev`
+//  - https://nci-crdc-staging.datacommons.io/ga4gh/drs/v1/objects/dg.4DFC/f2ffba75-5197-11e9-9a07-0a80fada099c
 const pdcResponse = {
     access_methods:
         [
@@ -229,7 +231,7 @@ const pdcResponse = {
                 access_id: 's3',
                 access_url:
                     {
-                        url: 's3://pdcdatastore/studies/262/mzml/20150910-P21-20ug-s02.mzML.gz'
+                        url: 's3://pdcdatastore-controlled/protein_fasta/CPTAC-2/01BR001_variant_proteome.fasta'
                     },
                 region: '',
                 type: 's3'
@@ -239,38 +241,38 @@ const pdcResponse = {
     checksums:
         [
             {
-                checksum: '3703b9ca715d23aca348e8e3fc1c4dc0',
-                type: 'md5'
-            }
+                checksum: '87a588424a5920617c843f22ee662fda',
+                type: 'md5',
+            },
         ],
     contents: [],
-    created_time: '2021-01-22T12:16:49.634300',
+    created_time: '2019-04-01T20:11:15.138998',
     description: null,
     form: 'object',
-    id: 'dg.4DFC/001189b2-cd6b-4d6c-83ca-7a2f441892eb',
+    id: 'dg.4DFC/f2ffba75-5197-11e9-9a07-0a80fada099c',
     mime_type: 'application/json',
-    name: '',
-    self_uri: `drs://${config.HOST_CRDC_PROD}/dg.4DFC/001189b2-cd6b-4d6c-83ca-7a2f441892eb`,
-    size: 49927952,
-    updated_time: '2021-01-22T12:16:49.634306',
-    version: '15c06b55',
+    name: null,
+    self_uri: 'drs://nci-crdc-staging.datacommons.io/dg.4DFC/f2ffba75-5197-11e9-9a07-0a80fada099c',
+    size: 34,
+    updated_time: '2019-04-01T20:11:15.139007',
+    version: 'b50ea393'
 };
 
 const pdcDrsMarthaResult = (expectedAccessUrl) => {
     return {
         contentType: 'application/json',
-        size: 49927952,
-        timeCreated: '2021-01-22T12:16:49.634Z',
-        timeUpdated: '2021-01-22T12:16:49.634Z',
+        size: 34,
+        timeCreated: '2019-04-01T20:11:15.138Z',
+        timeUpdated: '2019-04-01T20:11:15.139Z',
         bucket: null,
         name: null,
         accessUrl: expectedAccessUrl,
         gsUri: null,
         googleServiceAccount: null,
         bondProvider: 'dcf-fence',
-        fileName: '20150910-P21-20ug-s02.mzML.gz',
+        fileName: '01BR001_variant_proteome.fasta',
         hashes: {
-            md5: '3703b9ca715d23aca348e8e3fc1c4dc0'
+            md5: '87a588424a5920617c843f22ee662fda'
         }
     };
 };
