@@ -662,7 +662,7 @@ test.serial('martha_v3 should return 500 if key retrieval from Bond fails', asyn
 
 test.serial('martha_v3 calls Bond with the "fence" provider when the Data Object URL host is "dg.4503"', async (t) => {
     const bond = bondUrls('fence');
-    const drs = drsUrls(config.HOST_BIODATA_CATALYST_STAGING);
+    const drs = drsUrls(config.HOST_BIODATA_CATALYST_PROD);
     getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(bdcDrsResponse);
     const response = mockResponse();
@@ -670,6 +670,19 @@ test.serial('martha_v3 calls Bond with the "fence" provider when the Data Object
     await marthaV3(mockRequest({ body: { 'url': 'drs://dg.4503/this_part_can_be_anything' } }), response);
 
     t.is(response.statusCode, 200); // Not strictly necessary here, but the test fails if we don't assert something
+    sinon.assert.callCount(getJsonFromApiStub, 2);
+});
+
+test.serial('martha_v3 calls bond Bond with the "fence" provider when the Data Object URL host is "dg.712C"', async (t) => {
+    const bond = bondUrls('fence');
+    const drs = drsUrls(config.HOST_BIODATA_CATALYST_STAGING);
+    getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(bdcDrsResponse);
+    const response = mockResponse();
+
+    await marthaV3(mockRequest({ body: { 'url': 'drs://dg.712C/this_part_can_be_anything' } }), response);
+
+    t.is(response.statusCode, 200);
     sinon.assert.callCount(getJsonFromApiStub, 2);
 });
 
@@ -1232,22 +1245,22 @@ test.serial('martha_v3 determineDrsProvider should parse drs:// Data Object uri 
  */
 test.serial('martha_v3 determineDrsProvider should parse "dos://" Data Object uri with a host and path', (t) => {
     t.is(
-        determineDrsProviderWrapper('dos://dg.4503/bar'),
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.4503/bar`
+        determineDrsProviderWrapper('dos://dg.712C/bar'),
+        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.712C/bar`
     );
 });
 
 test.serial('martha_v3 determineDrsProvider should parse "drs://" Data Object uri with a host and path', (t) => {
     t.is(
-        determineDrsProviderWrapper('drs://dg.4503/bar'),
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.4503/bar`
+        determineDrsProviderWrapper('drs://dg.712C/bar'),
+        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.712C/bar`
     );
 });
 
 test.serial('martha_v3 determineDrsProvider should parse "drs://dg." Data Object uri with query part', (t) => {
     t.is(
-        determineDrsProviderWrapper('drs://dg.4503/bar?version=1&bananas=yummy'),
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.4503/bar?version=1&bananas=yummy`
+        determineDrsProviderWrapper('drs://dg.712C/bar?version=1&bananas=yummy'),
+        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.712C/bar?version=1&bananas=yummy`
     );
 });
 

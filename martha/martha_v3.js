@@ -106,8 +106,8 @@ function getLocalizationPath(drsProvider, drsResponse) {
  */
 function expandCibHost(cibHost) {
     switch (cibHost.toLowerCase()) {
-        case DG_COMPACT_BDC_PROD: return config.bioDataCatalystHost;
-        case DG_COMPACT_BDC_STAGING: return config.bioDataCatalystHost;
+        case DG_COMPACT_BDC_PROD: return config.bioDataCatalystProdHost;
+        case DG_COMPACT_BDC_STAGING: return config.bioDataCatalystStagingHost;
         case DG_COMPACT_THE_ANVIL: return config.theAnvilHost;
         case DG_COMPACT_CRDC: return config.crdcHost;
         case DG_COMPACT_KIDS_FIRST: return config.kidsFirstHost;

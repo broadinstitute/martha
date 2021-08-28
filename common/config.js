@@ -43,7 +43,19 @@ function dsdeEnvFrom(marthaEnv) {
  * Return a configuration object with default values for the specified Martha and DSDE environments.
  * @param marthaEnv {string} Martha environment (mock, dev, prod etc.)
  * @param dsdeEnv {string} The DSDE environment (qa, staging, dev, prod etc.)
- * @returns {{theAnvilHost: (string), crdcHost: (string), kidsFirstHost: (string), bondBaseUrl: string, itMarthaBaseUrl: string, itBondBaseUrl: string, samBaseUrl: string, bioDataCatalystHost: (string)}}
+ * @returns {{
+ *   bioDataCatalystLegacyHost: (string),
+ *   bioDataCatalystProdHost: (string),
+ *   bioDataCatalystStagingHost: (string),
+ *   bondBaseUrl: string,
+ *   externalcredsBaseUrl: string,
+ *   itBondBaseUrl: string,
+ *   itMarthaBaseUrl: string,
+ *   kidsFirstHost: (string),
+ *   passportTestHost: string,
+ *   samBaseUrl: string,
+ *   theAnvilHost: (string),
+ * }}
  */
 function configDefaultsForEnv({marthaEnv, dsdeEnv = dsdeEnvFrom(marthaEnv)}) {
     return {
@@ -59,8 +71,36 @@ function configDefaultsForEnv({marthaEnv, dsdeEnv = dsdeEnvFrom(marthaEnv)}) {
                 }
             })(),
         externalcredsBaseUrl:
-            `https://externalcreds.dsde-${dsdeEnv}.broadinstitute.org`,
-        bioDataCatalystHost:
+          `https://externalcreds.dsde-${dsdeEnv}.broadinstitute.org`,
+        bioDataCatalystProdHost:
+            (() => {
+                switch (marthaEnv) {
+                    case ENV_MOCK:
+                        return HOST_MOCK_DRS;
+                    default:
+                        return HOST_BIODATA_CATALYST_PROD;
+                }
+            })(),
+        bioDataCatalystStagingHost:
+            (() => {
+                switch (marthaEnv) {
+                    case ENV_MOCK:
+                        return HOST_MOCK_DRS;
+                    default:
+                        return HOST_BIODATA_CATALYST_STAGING;
+                }
+            })(),
+        /*
+        Retain existing backwards compatibility for:
+        - fileSummaryV1
+        - getSignedUrlV1
+        - martha_v2
+
+        This variable should be removed once the full functionality for the above endpoints is implemented by martha_v3.
+
+        See BT-203 for more information.
+         */
+        bioDataCatalystLegacyHost:
             (() => {
                 switch (marthaEnv) {
                     case ENV_MOCK:
@@ -182,8 +222,12 @@ function removeUndefined(orig) {
  *      Default: Bond in dsde-dev.
  * @property {string} externalcredsBaseUrl - Base URL for calling External Credentials Manager.
  *      Default: Externalcreds in dsde-dev.
- * @property {string} bioDataCatalystHost Host (hostname + port) for calling DRS resolvers (production or staging)
+ * @property {string} bioDataCatalystProdHost Host (hostname + port) for calling DRS resolvers (production)
  *      or mock DRS for BioData Catalyst.
+ * @property {string} bioDataCatalystStagingHost Host (hostname + port) for calling DRS resolvers (staging)
+ *      or mock DRS for BioData Catalyst.
+ * @property {string} bioDataCatalystLegacyHost Host (hostname + port) for calling DRS resolvers (production or staging)
+ *      or mock DRS for BioData Catalyst, only for use by pre-martha_v3 code!
  * @property {string} theAnvilHost (hostname + port) for calling DRS resolvers (production or staging)
  *      or mock DRS for the AnVIL.
  * @property {string} crdcHost (hostname + port) for calling DRS resolvers (production or staging)
