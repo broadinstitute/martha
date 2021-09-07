@@ -815,7 +815,7 @@ test.serial('martha_v3 fails if something times out before trying to fetch a sig
     );
 }));
 
-test.serial('martha_v3 succeeds if an error is encountered while fetching a signed URL', async (t) => {
+test.serial('martha_v3 passes through the HTTP status if an error is encountered while fetching a signed URL', async (t) => {
     const {
         id: objectId, self_uri: drsUri,
         access_methods: { 0: { access_id: accessId } }
@@ -824,15 +824,30 @@ test.serial('martha_v3 succeeds if an error is encountered while fetching a sign
     const drs = drsUrls(config.HOST_KIDS_FIRST_STAGING, objectId, accessId);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(kidsFirstDrsResponse);
     getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
+
+    class UnauthorizedError extends Error {
+        constructor(message) {
+            super(message);
+            this.status = 401;
+        }
+    }
+
     getJsonFromApiStub.withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`)
-        .throws(new Error('Test exception from DRS provider'));
+        .throws(new UnauthorizedError('Test exception from DRS provider'));
 
     const response = mockResponse();
 
     await marthaV3(mockRequest({ body: { 'url': drsUri } }), response);
 
-    t.is(response.statusCode, 200);
-    t.deepEqual(response.body, kidsFirstDrsMarthaResult(null));
+    t.is(response.statusCode, 401);
+    const kidsFirstErrorResult = {
+        response: {
+            status: 401,
+            text: 'Received error contacting DRS provider. Test exception from DRS provider'
+        },
+        status: 401
+    };
+    t.deepEqual(response.body, kidsFirstErrorResult);
     sinon.assert.callCount(getJsonFromApiStub, 3);
 });
 
