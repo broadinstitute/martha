@@ -815,7 +815,7 @@ test.serial('martha_v3 fails if something times out before trying to fetch a sig
     );
 }));
 
-test.serial('martha_v3 passes through the HTTP status if an error is encountered while fetching an S3 signed URL', async (t) => {
+test.serial('martha_v3 passes through the HTTP status if an error is encountered while fetching a signed URL for an S3 object', async (t) => {
     const {
         id: objectId, self_uri: drsUri,
         access_methods: { 0: { access_id: accessId } }

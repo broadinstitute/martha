@@ -627,12 +627,12 @@ async function retrieveFromServers(params) {
             }
         } catch (error) {
             if (accessMethodTypeIsS3) {
-                // If this is S3 throw if we have failed to build a signed URL. Martha has no concept of a native S3
-                // path so the caller will not have an alternative means of accessing the DRS object.
+                // Throw if this is S3 and we failed to get a signed URL. Martha has no concept of a native S3
+                // path so the caller will not have a fallback means of accessing the object.
                 throw error;
             } else {
                 // For non-S3 just log the error for now. There is still a native GCS path available that the caller
-                // can use to access the DRS object. Eventually, we'll want to remove this outer try.
+                // can use to access the object. Eventually, we'll want to remove this outer try.
                 console.warn('Ignoring error from fetching signed URL:', error);
             }
         }
