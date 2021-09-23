@@ -526,6 +526,7 @@ async function retrieveFromServers(params) {
     // try doing just before we do it so that we can provide that detail in the error report.
     let hypotheticalErrorMessage;
 
+    /* eslint complexity: ["error", 21] */
     const fetch = async () => {
         let response;
         if (overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS)) {
