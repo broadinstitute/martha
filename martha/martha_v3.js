@@ -514,6 +514,7 @@ async function retrieveFromServers(params) {
         `DRS URI '${url}' will use auth required '${sendAuth}', bond provider '${bondProvider}', ` +
         `and access method types '${accessMethodTypes.toString()}'`
     );
+    console.log(`Requested fields are ${requestedFields.join(", ")}`);
 
     let bondSA;
     let drsResponse;
@@ -559,8 +560,14 @@ async function retrieveFromServers(params) {
         Cromwell localizer to `getm`. When appropriate please remove this variable and this comment.
          */
         const accessMethodTypeIsS3 = accessMethodType === ACCESS_METHOD_TYPE_S3;
+        // If the DrsType is definitely not GCS-based then asking Bond for `googleServiceAccount` does not make sense.
+        // This is an extra layer of sanity check because the call above for DRS metadata will not happen if the caller
+        // is not requesting metadata fields. Specifically, Rawls does not know that PDC is S3-based and will ask for
+        // only the `googleServiceAccount` field leaving `accessMethodTypeIsS3` wrongly set to false.
+        const drsTypeHasGcsAccessMethodType = accessMethodTypes.includes(ACCESS_METHOD_TYPE_GCS);
 
         if (bondProvider &&
+            drsTypeHasGcsAccessMethodType &&
             !accessMethodTypeIsS3 &&
             overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS)) {
             try {
