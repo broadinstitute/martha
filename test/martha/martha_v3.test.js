@@ -118,6 +118,7 @@ function mockS3AccessUrl(s3UrlString) {
 
 const bdc = config.HOST_BIODATA_CATALYST_STAGING;
 const crdc = config.HOST_CRDC_STAGING;
+const kidsFirst = config.HOST_KIDS_FIRST_STAGING;
 
 let getJsonFromApiStub;
 const getJsonFromApiMethodName = 'getJsonFrom';
@@ -189,6 +190,25 @@ test.serial('martha_v3 does not call Bond when only DRS fields are requested', a
     );
 
     sinon.assert.callCount(getJsonFromApiStub, 1);
+});
+
+test.serial('martha_v3 does not call anything when only a `googleServiceAccount` is requested for Kids First', async (t) => {
+    const response = mockResponse();
+
+    await marthaV3(mockRequest({
+        body: {
+            url: `drs://${kidsFirst}/123`,
+            fields: ['googleServiceAccount'],
+        },
+    }), response);
+
+    t.is(response.statusCode, 200);
+    t.deepEqual(
+        response.body,
+        { googleServiceAccount: null }
+    );
+
+    sinon.assert.callCount(getJsonFromApiStub, 0);
 });
 
 test.serial('martha_v3 calls the correct endpoints if the googleServiceAccount is requested', async (t) => {

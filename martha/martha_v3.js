@@ -562,9 +562,9 @@ async function retrieveFromServers(params) {
          */
         const accessMethodTypeIsS3 = accessMethodType === ACCESS_METHOD_TYPE_S3;
         // If the DrsType is definitely not GCS-based then asking Bond for `googleServiceAccount` does not make sense.
-        // This is an extra layer of sanity check because the call above for DRS metadata will not happen if the caller
-        // is not requesting metadata fields. Specifically, Rawls does not know that PDC is S3-based and will ask for
-        // only the `googleServiceAccount` field leaving `accessMethodTypeIsS3` wrongly set to false.
+        // This is a required extra layer of sanity checking because the call above for DRS metadata will not happen if
+        // the caller is not requesting metadata fields. Specifically, Rawls does not know that Kids First is S3-based
+        // and will ask for only the `googleServiceAccount` field leaving `accessMethodTypeIsS3` wrongly set to false.
         const drsTypeHasGcsAccessMethodType = accessMethodTypes.includes(ACCESS_METHOD_TYPE_GCS);
 
         if (bondProvider &&
