@@ -519,7 +519,7 @@ async function retrieveFromServers(params) {
         `DRS URI '${url}' will use auth required '${sendAuth}', bond provider '${bondProvider}', ` +
         `and access method types '${accessMethodTypes.toString()}'`
     );
-    console.log(`Requested fields are ${requestedFields.join(", ")}`);
+    console.log(`Requested martha_v3 fields: ${requestedFields.join(", ")}`);
 
     let bondSA;
     let drsResponse;
