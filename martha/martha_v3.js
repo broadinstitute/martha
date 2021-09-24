@@ -106,6 +106,11 @@ class DrsType {
         this.bondProvider = bondProvider;
         this.accessMethodTypes = accessMethodTypes;
     }
+
+    couldHaveGoogleServiceAccount() {
+        // If no Bond provider or if there isn't a GCS access method type there won't be a `googleServiceAccount`.
+        return this.bondProvider && this.accessMethodTypes.includes(ACCESS_METHOD_TYPE_GCS);
+    }
 }
 
 /**
@@ -514,6 +519,7 @@ async function retrieveFromServers(params) {
         `DRS URI '${url}' will use auth required '${sendAuth}', bond provider '${bondProvider}', ` +
         `and access method types '${accessMethodTypes.toString()}'`
     );
+    console.log(`Requested martha_v3 fields: ${requestedFields.join(", ")}`);
 
     let bondSA;
     let drsResponse;
@@ -560,7 +566,7 @@ async function retrieveFromServers(params) {
          */
         const accessMethodTypeIsS3 = accessMethodType === ACCESS_METHOD_TYPE_S3;
 
-        if (bondProvider &&
+        if (drsType.couldHaveGoogleServiceAccount() &&
             !accessMethodTypeIsS3 &&
             overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS)) {
             try {
