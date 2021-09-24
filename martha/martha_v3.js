@@ -106,6 +106,11 @@ class DrsType {
         this.bondProvider = bondProvider;
         this.accessMethodTypes = accessMethodTypes;
     }
+
+    couldHaveGoogleServiceAccount() {
+        // If no Bond provider or if there isn't a GCS access method type there won't be a `googleServiceAccount`.
+        return this.bondProvider && this.accessMethodTypes.includes(ACCESS_METHOD_TYPE_GCS);
+    }
 }
 
 /**
@@ -526,7 +531,6 @@ async function retrieveFromServers(params) {
     // try doing just before we do it so that we can provide that detail in the error report.
     let hypotheticalErrorMessage;
 
-    /* eslint complexity: ["error", 21] */
     const fetch = async () => {
         let response;
         if (overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS)) {
@@ -561,14 +565,8 @@ async function retrieveFromServers(params) {
         Cromwell localizer to `getm`. When appropriate please remove this variable and this comment.
          */
         const accessMethodTypeIsS3 = accessMethodType === ACCESS_METHOD_TYPE_S3;
-        // If the DrsType is definitely not GCS-based then asking Bond for `googleServiceAccount` does not make sense.
-        // This is a required extra layer of sanity checking because the call above for DRS metadata will not happen if
-        // the caller is not requesting metadata fields. Specifically, Rawls does not know that Kids First is S3-based
-        // and will ask for only the `googleServiceAccount` field leaving `accessMethodTypeIsS3` wrongly set to false.
-        const drsTypeHasGcsAccessMethodType = accessMethodTypes.includes(ACCESS_METHOD_TYPE_GCS);
 
-        if (bondProvider &&
-            drsTypeHasGcsAccessMethodType &&
+        if (drsType.couldHaveGoogleServiceAccount() &&
             !accessMethodTypeIsS3 &&
             overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS)) {
             try {
