@@ -65,15 +65,27 @@ const MARTHA_V3_ACCESS_ID_FIELDS = [
     'accessUrl',
 ];
 
+const AccessMethodType = {
+    GCS: "gs",
+    S3: "s3"
+};
+
+const SignedUrlDisposition = {
+    NO: "NO",
+    YES_WITH_ACCESS_TOKEN: "YES_WITH_ACCESS_TOKEN",
+    YES_WITH_CURRENT_AUTH: "YES_WITH_CURRENT_AUTH"
+};
+
+const CouldHaveGoogleServiceAccount = {
+    NO: false,
+    YES: true
+};
+
 const BOND_PROVIDER_NONE = null; // Used for servers that should NOT contact bond
-const BOND_PROVIDER_DCF_FENCE = 'dcf-fence'; // The default when we don't recognize the server
+const BOND_PROVIDER_DCF_FENCE = 'dcf-fence';
 const BOND_PROVIDER_FENCE = 'fence';
 const BOND_PROVIDER_ANVIL = 'anvil';
 const BOND_PROVIDER_KIDS_FIRST = 'kids-first';
-
-const ACCESS_METHOD_TYPES_NONE = [];
-const ACCESS_METHOD_TYPE_GCS = 'gs';
-const ACCESS_METHOD_TYPE_S3 = 's3';
 
 const AUTH_REQUIRED = true;
 const AUTH_SKIPPED = false;
@@ -99,29 +111,33 @@ const overridePencilsDownSeconds = (seconds) => {
 
 // noinspection JSUnusedGlobalSymbols
 class DrsType {
-    constructor(urlParts, protocolPrefix, sendAuth, bondProvider, accessMethodTypes) {
+    constructor(urlParts, protocolPrefix, sendAuth, bondProvider, accessMethodTypes, couldHaveGoogleServiceAccount) {
         this.urlParts = urlParts;
         this.protocolPrefix = protocolPrefix;
         this.sendAuth = sendAuth;
         this.bondProvider = bondProvider;
         this.accessMethodTypes = accessMethodTypes;
+        this.couldHaveGoogleServiceAccount = couldHaveGoogleServiceAccount;
     }
 
-    couldHaveGoogleServiceAccount() {
-        // If no Bond provider or if there isn't a GCS access method type there won't be a `googleServiceAccount`.
-        return this.bondProvider && this.accessMethodTypes.includes(ACCESS_METHOD_TYPE_GCS);
+    shouldFetchAccessTokenFor(accessMethodType) {
+        return this.accessMethodTypes[accessMethodType] === SignedUrlDisposition.YES_WITH_ACCESS_TOKEN;
+    }
+
+    accessMethodTypeKeys() {
+        return this.accessMethodTypes.flatMap((a) => Object.keys(a));
     }
 }
 
 /**
  * Returns the first access method type listed in accessMethodTypes and the drsResponse, otherwise returns undefined.
  */
-function getDrsAccessMethodType(drsResponse, accessMethodTypes) {
-    if (!accessMethodTypes || !drsResponse || !drsResponse.access_methods) {
+function getDrsAccessMethodType(drsResponse, drsType) {
+    if (!drsResponse || !drsResponse.access_methods) {
         return;
     }
 
-    for (const accessMethodType of accessMethodTypes) {
+    for (const accessMethodType of drsType.accessMethodTypeKeys()) {
         for (const accessMethod of drsResponse.access_methods) {
             if (accessMethod.type === accessMethodType) {
                 return accessMethod.access_id;
@@ -370,8 +386,6 @@ function determineDrsType(url) {
     const urlParts = getHttpsUrlParts(url);
     const host = urlParts.httpsUrlHost;
 
-    // First handle servers that we know about...
-
     // BDC, but skip DOS/DRS URIs that might be a fake `martha_v2`-compatible BDC
     if ((host.endsWith(".biodatacatalyst.nhlbi.nih.gov") || (host === config.HOST_MOCK_DRS))
         && !urlParts.httpsUrlMaybeNotBdc) {
@@ -382,16 +396,11 @@ function determineDrsType(url) {
             BOND_PROVIDER_FENCE,
             /*
             BT-236 BDC signed URLs temporarily turned off
-
-            As of Aug 2021 we only return signed urls for S3 hosted data. Eventually we will turn on signed urls for
-            data hosted outside of S3. But today this line could equally work as:
-             - `[ACCESS_METHOD_TYPE_GCS]`
-             - `ACCESS_METHOD_TYPES_NONE`
-
-            Since the code currently returns signed URLs only for S3 either option works and the former option was
-            considered "more correct".
-             */
-            [ACCESS_METHOD_TYPE_GCS],
+            */
+            [{
+                [AccessMethodType.GCS]: SignedUrlDisposition.NO
+            }],
+            CouldHaveGoogleServiceAccount.YES
         );
     }
 
@@ -403,7 +412,10 @@ function determineDrsType(url) {
             AUTH_SKIPPED,
             BOND_PROVIDER_ANVIL,
             // For more info see comment above for BDC's `accessMethodType`
-            [ACCESS_METHOD_TYPE_GCS],
+            [{
+                [AccessMethodType.GCS]: SignedUrlDisposition.NO
+            }],
+            CouldHaveGoogleServiceAccount.YES
         );
     }
 
@@ -414,7 +426,10 @@ function determineDrsType(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_REQUIRED,
             BOND_PROVIDER_NONE,
-            ACCESS_METHOD_TYPES_NONE,
+            [
+                {[AccessMethodType.GCS]: SignedUrlDisposition.YES_WITH_CURRENT_AUTH}
+            ],
+            CouldHaveGoogleServiceAccount.NO
         );
     }
 
@@ -425,7 +440,11 @@ function determineDrsType(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_DCF_FENCE,
-            [ACCESS_METHOD_TYPE_GCS, ACCESS_METHOD_TYPE_S3],
+            [
+                {[AccessMethodType.GCS]: SignedUrlDisposition.NO},
+                {[AccessMethodType.S3]: SignedUrlDisposition.YES_WITH_ACCESS_TOKEN}
+            ],
+            CouldHaveGoogleServiceAccount.YES
         );
     }
 
@@ -436,7 +455,10 @@ function determineDrsType(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_KIDS_FIRST,
-            [ACCESS_METHOD_TYPE_S3],
+            [
+                {[AccessMethodType.S3]: SignedUrlDisposition.YES_WITH_ACCESS_TOKEN}
+            ],
+            CouldHaveGoogleServiceAccount.NO
         );
     }
 
@@ -514,10 +536,11 @@ async function retrieveFromServers(params) {
         url,
     } = params;
 
-    const {sendAuth, bondProvider, accessMethodTypes} = drsType;
+    const {sendAuth, bondProvider} = drsType;
+
     console.log(
         `DRS URI '${url}' will use auth required '${sendAuth}', bond provider '${bondProvider}', ` +
-        `and access method types '${accessMethodTypes.toString()}'`
+        `and access method types '${drsType.accessMethodTypeKeys()}'`
     );
     console.log(`Requested martha_v3 fields: ${requestedFields.join(", ")}`);
 
@@ -552,7 +575,7 @@ async function retrieveFromServers(params) {
             throw new RemoteServerError(error, 'Received error while parsing response from DRS URL.');
         }
 
-        const accessMethodType = getDrsAccessMethodType(drsResponse, accessMethodTypes);
+        const accessMethodType = getDrsAccessMethodType(drsResponse, drsType);
 
         /*
         As of BT-381, the same DRS server is hosting metadata for CRDC's GCS data and PDC's S3 data.
@@ -564,9 +587,9 @@ async function retrieveFromServers(params) {
         When BT-161 is completed GCS will also used signed URLs, but that is likely to happen only after switching the
         Cromwell localizer to `getm`. When appropriate please remove this variable and this comment.
          */
-        const accessMethodTypeIsS3 = accessMethodType === ACCESS_METHOD_TYPE_S3;
+        const accessMethodTypeIsS3 = accessMethodType === "s3";
 
-        if (drsType.couldHaveGoogleServiceAccount() &&
+        if (drsType.couldHaveGoogleServiceAccount &&
             !accessMethodTypeIsS3 &&
             overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS)) {
             try {
@@ -609,7 +632,7 @@ async function retrieveFromServers(params) {
 
             // Retrieve an accessToken from Bond that will be used to later retrieve the accessUrl from the DRS server.
             let accessToken;
-            if (bondProvider && accessId) {
+            if (bondProvider && accessId && drsType.shouldFetchAccessTokenFor(accessMethodType)) {
                 try {
                     const bondAccessTokenUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/accesstoken`;
                     console.log(`Requesting Bond access token for '${url}' from '${bondAccessTokenUrl}'`);
