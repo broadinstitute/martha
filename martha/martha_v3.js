@@ -81,14 +81,18 @@ const CouldHaveGoogleServiceAccount = {
     YES: true
 };
 
-const BOND_PROVIDER_NONE = null; // Used for servers that should NOT contact bond
-const BOND_PROVIDER_DCF_FENCE = 'dcf-fence';
-const BOND_PROVIDER_FENCE = 'fence';
-const BOND_PROVIDER_ANVIL = 'anvil';
-const BOND_PROVIDER_KIDS_FIRST = 'kids-first';
+const BondProvider = {
+    DCF_FENCE: 'dcf-fence',
+    FENCE: 'fence',
+    ANVIL: 'anvil',
+    KIDS_FIRST: 'kids-first',
+    NONE: null
+};
 
-const AUTH_REQUIRED = true;
-const AUTH_SKIPPED = false;
+const MetadataAuth = {
+    YES: true,
+    NO: false
+};
 
 const PROTOCOL_PREFIX_DRS='/ga4gh/drs/v1/objects';
 
@@ -129,13 +133,13 @@ class AccessMethod {
 }
 
 class DrsProvider {
-    constructor(providerName, protocolPrefix, sendAuth, bondProvider, accessMethods, couldHaveGoogleServiceAccount) {
+    constructor(providerName, sendAuth, bondProvider, accessMethods, couldHaveGoogleServiceAccount) {
         this.providerName = providerName;
-        this.protocolPrefix = protocolPrefix;
         this.sendAuth = sendAuth;
         this.bondProvider = bondProvider;
         this.accessMethods = accessMethods;
         this.couldHaveGoogleServiceAccount = couldHaveGoogleServiceAccount;
+        this.protocolPrefix = PROTOCOL_PREFIX_DRS;
     }
 
     accessMethodMatchingType(accessMethod) {
@@ -424,9 +428,8 @@ function determineDrsProvider(url) {
         && !urlParts.httpsUrlMaybeNotBdc) {
         return new DrsProvider(
             "BioData Catalyst (BDC)",
-            PROTOCOL_PREFIX_DRS,
-            AUTH_SKIPPED,
-            BOND_PROVIDER_FENCE,
+            MetadataAuth.NO,
+            BondProvider.FENCE,
             //  BT-236 BDC signed URLs temporarily turned off
             [
                 new AccessMethod(Type.GCS, SignedUrls.NO)
@@ -439,9 +442,8 @@ function determineDrsProvider(url) {
     if (host.endsWith('.theanvil.io')) {
         return new DrsProvider(
             "NHGRI Analysis Visualization and Informatics Lab-space (The AnVIL)",
-            PROTOCOL_PREFIX_DRS,
-            AUTH_SKIPPED,
-            BOND_PROVIDER_ANVIL,
+            MetadataAuth.NO,
+            BondProvider.ANVIL,
             // For more info see comment above for BDC's `accessMethodType`
             [
                 new AccessMethod(Type.GCS, SignedUrls.NO)
@@ -454,9 +456,8 @@ function determineDrsProvider(url) {
     if (jadeDataRepoHostRegex.test(host)) {
         return new DrsProvider(
             "Terra Data Repo (TDR)",
-            PROTOCOL_PREFIX_DRS,
-            AUTH_REQUIRED,
-            BOND_PROVIDER_NONE,
+            MetadataAuth.YES,
+            BondProvider.NONE,
             [
                 new AccessMethod(Type.GCS, SignedUrls.YES_USING_CURRENT_AUTH)
             ],
@@ -468,9 +469,8 @@ function determineDrsProvider(url) {
     if (host.endsWith('.datacommons.io')) {
         return new DrsProvider(
             "NCI Cancer Research / Proteomics Data Commons (CRDC / PDC)",
-            PROTOCOL_PREFIX_DRS,
-            AUTH_SKIPPED,
-            BOND_PROVIDER_DCF_FENCE,
+            MetadataAuth.NO,
+            BondProvider.DCF_FENCE,
             [
                 new AccessMethod(Type.GCS, SignedUrls.NO),
                 new AccessMethod(Type.S3, SignedUrls.YES_USING_ACCESS_TOKEN)
@@ -483,9 +483,8 @@ function determineDrsProvider(url) {
     if (host.endsWith('.kidsfirstdrc.org')) {
         return new DrsProvider(
             "Gabriella Miller Kids First DRC",
-            PROTOCOL_PREFIX_DRS,
-            AUTH_SKIPPED,
-            BOND_PROVIDER_KIDS_FIRST,
+            MetadataAuth.NO,
+            BondProvider.KIDS_FIRST,
             [
                 new AccessMethod(Type.S3, SignedUrls.YES_USING_ACCESS_TOKEN)
             ],
@@ -766,3 +765,4 @@ exports.generateAccessUrl = generateAccessUrl;
 exports.getHttpsUrlParts = getHttpsUrlParts;
 exports.MARTHA_V3_ALL_FIELDS = MARTHA_V3_ALL_FIELDS;
 exports.overridePencilsDownSeconds = overridePencilsDownSeconds;
+exports.PROTOCOL_PREFIX_DRS = PROTOCOL_PREFIX_DRS;

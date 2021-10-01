@@ -43,6 +43,7 @@ const {
     getHttpsUrlParts,
     MARTHA_V3_ALL_FIELDS,
     overridePencilsDownSeconds,
+    PROTOCOL_PREFIX_DRS
 } = require('../../martha/martha_v3');
 const apiAdapter = require('../../common/api_adapter');
 const config = require('../../common/config');
@@ -977,16 +978,16 @@ test.skip('martha_v3 should return 500 on exception trying to get signed URL fro
 
 test.serial('martha_v3 generateAccessUrl should generate an access url', (t) => {
     const urlParts = getHttpsUrlParts('drs://some.host.example.com/some_id');
-    const drsProvider = new DrsProvider('Test Dummy Provider (TDP)', '/some_prefix', false, null, null);
+    const drsProvider = new DrsProvider('Test Dummy Provider (TDP)', false, null, null);
     const result = generateAccessUrl(drsProvider, urlParts, 'some_access_id');
-    t.is(result, 'https://some.host.example.com/some_prefix/some_id/access/some_access_id');
+    t.is(result, `https://some.host.example.com${PROTOCOL_PREFIX_DRS}/some_id/access/some_access_id`);
 });
 
 test.serial('martha_v3 generateAccessUrl should generate an access url with a different port', (t) => {
     const urlParts = getHttpsUrlParts('drs://some.host.example.com:8000/some_id');
     const drsProvider = new DrsProvider('Test Dummy Provider (TDP)', '/some_prefix', false, null, null);
     const result = generateAccessUrl(drsProvider, urlParts, 'some_access_id');
-    t.is(result, 'https://some.host.example.com:8000/some_prefix/some_id/access/some_access_id');
+    t.is(result, `https://some.host.example.com:8000${PROTOCOL_PREFIX_DRS}/some_id/access/some_access_id`);
 });
 
 /*
@@ -999,7 +1000,7 @@ test.serial('martha_v3 generateAccessUrl should add the query string to the acce
     const urlParts = getHttpsUrlParts(`drs://${bdc}/some_id?query=value`);
     const drsProvider = new DrsProvider('Test Dummy Provider (TDP)', '/some_prefix', false, null, null);
     const result = generateAccessUrl(drsProvider, urlParts, 'some_access_id');
-    t.is(result, `https://${bdc}/some_prefix/some_id/access/some_access_id?query=value`);
+    t.is(result, `https://${bdc}${PROTOCOL_PREFIX_DRS}/some_id/access/some_access_id?query=value`);
 });
 
 /**
