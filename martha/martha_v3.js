@@ -129,9 +129,8 @@ class AccessMethod {
 }
 
 class DrsProvider {
-    constructor(providerName, urlParts, protocolPrefix, sendAuth, bondProvider, accessMethods, couldHaveGoogleServiceAccount) {
+    constructor(providerName, protocolPrefix, sendAuth, bondProvider, accessMethods, couldHaveGoogleServiceAccount) {
         this.providerName = providerName;
-        this.urlParts = urlParts;
         this.protocolPrefix = protocolPrefix;
         this.sendAuth = sendAuth;
         this.bondProvider = bondProvider;
@@ -139,17 +138,24 @@ class DrsProvider {
         this.couldHaveGoogleServiceAccount = couldHaveGoogleServiceAccount;
     }
 
+    accessMethodMatchingType(accessMethod) {
+        return this.accessMethods.find((o) => o.accessMethodType === accessMethod.type);
+    }
+
     shouldFetchAccessToken(accessMethod, requestedFields) {
         return this.bondProvider &&
             accessMethod &&
             accessMethod.type === Type.S3 &&
             overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&
-            this.accessMethods.find(
-                (o) => o.accessMethodType === accessMethod.type).signedUrlDisposition === SignedUrls.YES_USING_ACCESS_TOKEN;
+            this.accessMethodMatchingType(accessMethod).signedUrlDisposition === SignedUrls.YES_USING_ACCESS_TOKEN;
     }
 
     shouldFetchAccessUrl(accessMethod, requestedFields) {
-        return this.shouldFetchAccessToken(accessMethod, requestedFields) && accessMethod.access_id;
+        return this.bondProvider &&
+            accessMethod &&
+            accessMethod.type === Type.S3 &&
+            overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&
+            this.accessMethodMatchingType(accessMethod).signedUrlDisposition !== SignedUrls.NO;
     }
 
     // eslint-disable-next-line id-length
@@ -173,34 +179,19 @@ class DrsProvider {
 }
 
 /**
- * Returns the first access method in `drsType.accessMethodTypes()` with a type that matches the type of an access
+ * Returns the first access method in `drsProvider.accessMethodTypes()` with a type that matches the type of an access
  * method in `drsResponse`, otherwise `undefined`.
  */
-function getAccessMethod(drsResponse, drsType) {
+function getAccessMethod(drsResponse, drsProvider) {
     if (!drsResponse || !drsResponse.access_methods) {
         return;
     }
 
-    for (const accessMethodType of drsType.accessMethodTypes()) {
+    for (const accessMethodType of drsProvider.accessMethodTypes()) {
         for (const accessMethod of drsResponse.access_methods) {
             if (accessMethod.type === accessMethodType) {
                 return accessMethod;
             }
-        }
-    }
-}
-
-/**
- * Returns undefined if the matching access method does not have an access_id
- * or if the accessMethodType is falsy or if the drsResponse is falsy.
- */
-function getDrsAccessId(drsResponse, accessMethodType) {
-    if (!accessMethodType || !drsResponse || !drsResponse.access_methods) {
-        return;
-    }
-    for (const accessMethod of drsResponse.access_methods) {
-        if (accessMethod.type === accessMethodType) {
-            return accessMethod.access_id;
         }
     }
 }
@@ -366,24 +357,22 @@ function getHttpsUrlParts(url) {
 }
 
 // NOTE: reimplementation of dataObjectUriToHttps in helper.js
-function generateMetadataUrl(drsType) {
-    const { urlParts, protocolPrefix } = drsType;
+function generateMetadataUrl(drsProvider, urlParts) {
     // Construct a WHATWG URL by first only setting the protocol and the hostname: https://github.com/whatwg/url/issues/354
     const generatedUrl = new URL(`https://${urlParts.httpsUrlHost}`);
     generatedUrl.port = urlParts.httpsUrlPort;
-    generatedUrl.pathname = `${protocolPrefix}/${urlParts.protocolSuffix}`;
+    generatedUrl.pathname = `${drsProvider.protocolPrefix}/${urlParts.protocolSuffix}`;
     if (urlParts.httpsUrlSearch) {
         generatedUrl.search = urlParts.httpsUrlSearch;
     }
     return url.format(generatedUrl);
 }
 
-function generateAccessUrl(drsType, accessId) {
-    const { urlParts, protocolPrefix } = drsType;
+function generateAccessUrl(drsProvider, urlParts, accessId) {
     // Construct a WHATWG URL by first only setting the protocol and the hostname: https://github.com/whatwg/url/issues/354
     const generatedUrl = new URL(`https://${urlParts.httpsUrlHost}`);
     generatedUrl.port = urlParts.httpsUrlPort;
-    generatedUrl.pathname = `${protocolPrefix}/${urlParts.protocolSuffix}/access/${accessId}`;
+    generatedUrl.pathname = `${drsProvider.protocolPrefix}/${urlParts.protocolSuffix}/access/${accessId}`;
     if (urlParts.httpsUrlSearch) {
         generatedUrl.search = urlParts.httpsUrlSearch;
     }
@@ -435,7 +424,6 @@ function determineDrsProvider(url) {
         && !urlParts.httpsUrlMaybeNotBdc) {
         return new DrsProvider(
             "BioData Catalyst (BDC)",
-            urlParts,
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_FENCE,
@@ -451,7 +439,6 @@ function determineDrsProvider(url) {
     if (host.endsWith('.theanvil.io')) {
         return new DrsProvider(
             "NHGRI Analysis Visualization and Informatics Lab-space (The AnVIL)",
-            urlParts,
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_ANVIL,
@@ -467,7 +454,6 @@ function determineDrsProvider(url) {
     if (jadeDataRepoHostRegex.test(host)) {
         return new DrsProvider(
             "Terra Data Repo (TDR)",
-            urlParts,
             PROTOCOL_PREFIX_DRS,
             AUTH_REQUIRED,
             BOND_PROVIDER_NONE,
@@ -482,7 +468,6 @@ function determineDrsProvider(url) {
     if (host.endsWith('.datacommons.io')) {
         return new DrsProvider(
             "NCI Cancer Research / Proteomics Data Commons (CRDC / PDC)",
-            urlParts,
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_DCF_FENCE,
@@ -498,7 +483,6 @@ function determineDrsProvider(url) {
     if (host.endsWith('.kidsfirstdrc.org')) {
         return new DrsProvider(
             "Gabriella Miller Kids First DRC",
-            urlParts,
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_KIDS_FIRST,
@@ -548,10 +532,12 @@ function buildRequestInfo(params) {
     } = params;
 
     validateRequest(url, auth, requestedFields);
-    const drsType = determineDrsProvider(url);
+    const drsProvider = determineDrsProvider(url);
+    const urlParts = getHttpsUrlParts(url);
 
     Object.assign(params, {
-        drsType,
+        drsProvider,
+        urlParts,
     });
 }
 
@@ -567,15 +553,16 @@ async function retrieveFromServers(params) {
     const {
         requestedFields,
         auth,
-        drsType,
+        drsProvider,
         url,
+        urlParts
     } = params;
 
-    const {sendAuth, bondProvider} = drsType;
+    const {sendAuth, bondProvider} = drsProvider;
 
     console.log(
         `DRS URI '${url}' will use auth required '${sendAuth}', bond provider '${bondProvider}', ` +
-        `and access method types '${drsType.accessMethodTypes()}'`
+        `and access method types '${drsProvider.accessMethodTypes().join(", ")}'`
     );
     console.log(`Requested martha_v3 fields: ${requestedFields.join(", ")}`);
 
@@ -594,7 +581,7 @@ async function retrieveFromServers(params) {
         if (overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS)) {
             try {
                 hypotheticalErrorMessage = 'Could not fetch DRS metadata.';
-                const httpsMetadataUrl = generateMetadataUrl(drsType);
+                const httpsMetadataUrl = generateMetadataUrl(drsProvider, urlParts);
                 console.log(
                     `Requesting DRS metadata for '${url}' from '${httpsMetadataUrl}' with auth required '${sendAuth}'`
                 );
@@ -610,9 +597,9 @@ async function retrieveFromServers(params) {
             throw new RemoteServerError(error, 'Received error while parsing response from DRS URL.');
         }
 
-        const accessMethod = getAccessMethod(drsResponse, drsType);
+        const accessMethod = getAccessMethod(drsResponse, drsProvider);
 
-        if (drsType.shouldFetchGoogleServiceAccount(accessMethod, requestedFields)) {
+        if (drsProvider.shouldFetchGoogleServiceAccount(accessMethod, requestedFields)) {
             try {
                 hypotheticalErrorMessage = 'Could not fetch SA key from Bond.';
                 const bondSAKeyUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
@@ -643,7 +630,7 @@ async function retrieveFromServers(params) {
         try {
             // Retrieve an accessToken from Bond that will be used to later retrieve the accessUrl from the DRS server.
             let accessToken;
-            if (drsType.shouldFetchAccessToken(accessMethod, requestedFields)) {
+            if (drsProvider.shouldFetchAccessToken(accessMethod, requestedFields)) {
                 try {
                     const bondAccessTokenUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/accesstoken`;
                     console.log(`Requesting Bond access token for '${url}' from '${bondAccessTokenUrl}'`);
@@ -655,9 +642,9 @@ async function retrieveFromServers(params) {
             }
 
             // Retrieve the accessUrl using the returned accessToken, even if the token was empty.
-            if (drsType.shouldFetchAccessUrl(accessMethod, requestedFields)) {
+            if (drsProvider.shouldFetchAccessUrl(accessMethod, requestedFields)) {
                 try {
-                    const httpsAccessUrl = generateAccessUrl(drsType, accessMethod.access_id);
+                    const httpsAccessUrl = generateAccessUrl(drsProvider, urlParts, accessMethod.access_id);
                     const accessTokenAuth = `Bearer ${accessToken}`;
                     console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}'`);
                     accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, accessTokenAuth);
@@ -666,7 +653,7 @@ async function retrieveFromServers(params) {
                 }
             }
         } catch (error) {
-            if (drsType.shouldFailOnAccessUrlFail(accessMethod)) {
+            if (drsProvider.shouldFailOnAccessUrlFail(accessMethod)) {
                 throw error;
             }
             // For non-S3 just log the error for now. There is still a native GCS path available that the caller
@@ -776,7 +763,6 @@ exports.DrsProvider = DrsProvider;
 exports.determineDrsProvider = determineDrsProvider;
 exports.generateMetadataUrl = generateMetadataUrl;
 exports.generateAccessUrl = generateAccessUrl;
-exports.getDrsAccessId = getDrsAccessId;
 exports.getHttpsUrlParts = getHttpsUrlParts;
 exports.MARTHA_V3_ALL_FIELDS = MARTHA_V3_ALL_FIELDS;
 exports.overridePencilsDownSeconds = overridePencilsDownSeconds;
