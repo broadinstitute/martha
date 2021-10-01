@@ -138,7 +138,6 @@ class DrsProvider {
         this.sendAuth = sendAuth;
         this.bondProvider = bondProvider;
         this.accessMethods = accessMethods;
-        this.protocolPrefix = PROTOCOL_PREFIX_DRS;
     }
 
     accessMethodMatchingType(accessMethod) {
@@ -287,7 +286,7 @@ function expandCibSuffix(cibHost, cibSuffix, cibSeparator) {
 }
 
 /**
- * Returns the url parts of the DOS or DRS url, minus the protocol prefix as that is dependent on the host.
+ * Returns the url parts of the DOS or DRS url.
  */
 function getHttpsUrlParts(url) {
     /*
@@ -365,7 +364,7 @@ function generateMetadataUrl(drsProvider, urlParts) {
     // Construct a WHATWG URL by first only setting the protocol and the hostname: https://github.com/whatwg/url/issues/354
     const generatedUrl = new URL(`https://${urlParts.httpsUrlHost}`);
     generatedUrl.port = urlParts.httpsUrlPort;
-    generatedUrl.pathname = `${drsProvider.protocolPrefix}/${urlParts.protocolSuffix}`;
+    generatedUrl.pathname = `${PROTOCOL_PREFIX_DRS}/${urlParts.protocolSuffix}`;
     if (urlParts.httpsUrlSearch) {
         generatedUrl.search = urlParts.httpsUrlSearch;
     }
@@ -376,7 +375,7 @@ function generateAccessUrl(drsProvider, urlParts, accessId) {
     // Construct a WHATWG URL by first only setting the protocol and the hostname: https://github.com/whatwg/url/issues/354
     const generatedUrl = new URL(`https://${urlParts.httpsUrlHost}`);
     generatedUrl.port = urlParts.httpsUrlPort;
-    generatedUrl.pathname = `${drsProvider.protocolPrefix}/${urlParts.protocolSuffix}/access/${accessId}`;
+    generatedUrl.pathname = `${PROTOCOL_PREFIX_DRS}/${urlParts.protocolSuffix}/access/${accessId}`;
     if (urlParts.httpsUrlSearch) {
         generatedUrl.search = urlParts.httpsUrlSearch;
     }
