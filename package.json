@@ -6,7 +6,7 @@
   "scripts": {
     "start": "functions-framework --target=index --port=8010",
     "test": "./minnie-kenny.sh && nyc --reporter=html --reporter=text ava -m !smoketest* -m !live_test* -m !integration*",
-    "me": "ava --match 'martha_v3 parses PDC response correctly'",
+    "me": "ava --match 'martha_v3 calls the correct endpoints when only the fileName is requested and the metadata contains only an access id'",
     "smoketest": "ava --timeout 10m --match smoketest*",
     "smoketest_v2": "ava -m smoketest_v2*",
     "smoketest_v3": "ava --timeout 10m --match smoketest_v3*",

@@ -494,7 +494,7 @@ test.serial('martha_v3 should return 500 if key retrieval from Bond fails', asyn
     t.is(response.body.response.text, 'Received error contacting Bond. Bond key lookup forced to fail by testing stub');
 });
 
-test.serial('martha_v3 calls bond Bond with the "fence" provider when the Data Object URL host is "dg.4503"', async (t) => {
+test.serial('martha_v3 calls Bond with the "fence" provider when the Data Object URL host is "dg.4503"', async (t) => {
     const bond = bondUrls('fence');
     const drs = drsUrls(config.HOST_BIODATA_CATALYST_STAGING);
     getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);

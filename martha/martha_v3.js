@@ -103,6 +103,18 @@ const DG_COMPACT_KIDS_FIRST = 'dg.f82a1a';
 // but not fail if we happen to time out when fetching a signed URL takes too long.
 let pencilsDownSeconds = 58;
 
+/**
+ * Used to check if any of the requested fields overlap with fields dependent on an underlying service.
+ *
+ * @param {string[]} requestedFields
+ * @param {string[]} serviceFields
+ * @returns {boolean} true if the requested fields overlap
+ */
+function overlapFields(requestedFields, serviceFields) {
+    // via https://medium.com/@alvaro.saburido/set-theory-for-arrays-in-es6-eb2f20a61848
+    return requestedFields.filter((field) => serviceFields.includes(field)).length !== 0;
+}
+
 // For tests that need to probe the behavior near the limit of the Cloud Function timeout, we don't
 // want to have to wait 60 seconds.
 const overridePencilsDownSeconds = (seconds) => {
@@ -127,20 +139,43 @@ class DrsProvider {
         this.couldHaveGoogleServiceAccount = couldHaveGoogleServiceAccount;
     }
 
-    shouldFetchAccessTokenFor(accessMethodType) {
-        return this.accessMethods.find(
-            (o) => o.accessMethodType === accessMethodType).signedUrlDisposition === SignedUrls.YES_USING_ACCESS_TOKEN;
+    shouldFetchAccessToken(accessMethod, requestedFields) {
+        return this.bondProvider &&
+            accessMethod &&
+            accessMethod.type === Type.S3 &&
+            overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&
+            this.accessMethods.find(
+                (o) => o.accessMethodType === accessMethod.type).signedUrlDisposition === SignedUrls.YES_USING_ACCESS_TOKEN;
+    }
+
+    shouldFetchAccessUrl(accessMethod, requestedFields) {
+        return this.shouldFetchAccessToken(accessMethod, requestedFields) && accessMethod.access_id;
+    }
+
+    // eslint-disable-next-line id-length
+    shouldFetchGoogleServiceAccount(accessMethod, requestedFields) {
+        return this.couldHaveGoogleServiceAccount &&
+            accessMethod &&
+            accessMethod.type === Type.GCS &&
+            overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS);
     }
 
     accessMethodTypes() {
         return this.accessMethods.map((m) => m.accessMethodType);
     }
+
+    shouldFailOnAccessUrlFail(accessMethod) {
+        // Throw if the access method was S3 and we failed to get a signed URL. Martha's clients can't currently deal
+        // with a native S3 path so the caller will not have a fallback means of accessing the object.
+        return this && accessMethod && accessMethod.type === Type.S3;
+    }
 }
 
 /**
- * Returns the first access method type listed in accessMethodTypes and the drsResponse, otherwise returns undefined.
+ * Returns the first access method in `drsType.accessMethodTypes()` with a type that matches the type of an access
+ * method in `drsResponse`, otherwise `undefined`.
  */
-function getDrsAccessMethodType(drsResponse, drsType) {
+function getAccessMethod(drsResponse, drsType) {
     if (!drsResponse || !drsResponse.access_methods) {
         return;
     }
@@ -148,7 +183,7 @@ function getDrsAccessMethodType(drsResponse, drsType) {
     for (const accessMethodType of drsType.accessMethodTypes()) {
         for (const accessMethod of drsResponse.access_methods) {
             if (accessMethod.type === accessMethodType) {
-                return accessMethod.access_id;
+                return accessMethod;
             }
         }
     }
@@ -504,18 +539,6 @@ function validateRequest(url, auth, requestedFields) {
     }
 }
 
-/**
- * Used to check if any of the requested fields overlap with fields dependent on an underlying service.
- *
- * @param {string[]} requestedFields
- * @param {string[]} serviceFields
- * @returns {boolean} true if the requested fields overlap
- */
-function overlapFields(requestedFields, serviceFields) {
-    // via https://medium.com/@alvaro.saburido/set-theory-for-arrays-in-es6-eb2f20a61848
-    return requestedFields.filter((field) => serviceFields.includes(field)).length !== 0;
-}
-
 function buildRequestInfo(params) {
     const {
         url,
@@ -586,23 +609,9 @@ async function retrieveFromServers(params) {
             throw new RemoteServerError(error, 'Received error while parsing response from DRS URL.');
         }
 
-        const accessMethodType = getDrsAccessMethodType(drsResponse, drsType);
+        const accessMethod = getAccessMethod(drsResponse, drsType);
 
-        /*
-        As of BT-381, the same DRS server is hosting metadata for CRDC's GCS data and PDC's S3 data.
-
-        So the hostname detection may discover GCS or S3 access_method.types. The royal "we" don't want to download GCS
-        hosted files using signed URLs right now, as the `gsutil` downloader is working ok. Meanwhile, we don't have
-        another option to download S3 hosted files other than signed URLs...
-
-        When BT-161 is completed GCS will also used signed URLs, but that is likely to happen only after switching the
-        Cromwell localizer to `getm`. When appropriate please remove this variable and this comment.
-         */
-        const accessMethodTypeIsS3 = accessMethodType === "s3";
-
-        if (drsType.couldHaveGoogleServiceAccount &&
-            !accessMethodTypeIsS3 &&
-            overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS)) {
+        if (drsType.shouldFetchGoogleServiceAccount(accessMethod, requestedFields)) {
             try {
                 hypotheticalErrorMessage = 'Could not fetch SA key from Bond.';
                 const bondSAKeyUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
@@ -630,20 +639,10 @@ async function retrieveFromServers(params) {
         // while fetching a signed URL.
         hypotheticalErrorMessage = null;
 
-        let accessId;
-
         try {
-            if (accessMethodTypeIsS3 && overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS)) {
-                try {
-                    accessId = getDrsAccessId(drsResponse, accessMethodType);
-                } catch (error) {
-                    throw new RemoteServerError(error, 'Received error while parsing the access id.');
-                }
-            }
-
             // Retrieve an accessToken from Bond that will be used to later retrieve the accessUrl from the DRS server.
             let accessToken;
-            if (bondProvider && accessId && drsType.shouldFetchAccessTokenFor(accessMethodType)) {
+            if (drsType.shouldFetchAccessToken(accessMethod, requestedFields)) {
                 try {
                     const bondAccessTokenUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/accesstoken`;
                     console.log(`Requesting Bond access token for '${url}' from '${bondAccessTokenUrl}'`);
@@ -655,9 +654,9 @@ async function retrieveFromServers(params) {
             }
 
             // Retrieve the accessUrl using the returned accessToken, even if the token was empty.
-            if (bondProvider && accessId) {
+            if (drsType.shouldFetchAccessUrl(accessMethod, requestedFields)) {
                 try {
-                    const httpsAccessUrl = generateAccessUrl(drsType, accessId);
+                    const httpsAccessUrl = generateAccessUrl(drsType, accessMethod.access_id);
                     const accessTokenAuth = `Bearer ${accessToken}`;
                     console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}'`);
                     accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, accessTokenAuth);
@@ -666,9 +665,7 @@ async function retrieveFromServers(params) {
                 }
             }
         } catch (error) {
-            if (accessMethodTypeIsS3) {
-                // Throw if this is S3 and we failed to get a signed URL. Martha has no concept of a native S3
-                // path so the caller will not have a fallback means of accessing the object.
+            if (drsType.shouldFailOnAccessUrlFail(accessMethod)) {
                 throw error;
             }
             // For non-S3 just log the error for now. There is still a native GCS path available that the caller
