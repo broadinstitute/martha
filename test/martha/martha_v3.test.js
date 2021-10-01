@@ -36,8 +36,8 @@ const test = require('ava');
 const sinon = require('sinon');
 const {
     marthaV3Handler: marthaV3,
-    DrsType,
-    determineDrsType,
+    DrsProvider,
+    determineDrsProvider,
     generateMetadataUrl,
     generateAccessUrl,
     getDrsAccessId,
@@ -996,14 +996,14 @@ test.serial('martha_v3 getDrsAccessId should not return an access_id for a null 
 
 test.serial('martha_v3 generateAccessUrl should generate an access url', (t) => {
     const urlParts = getHttpsUrlParts('drs://some.host.example.com/some_id');
-    const drsType = new DrsType(urlParts, '/some_prefix', false, null, null);
+    const drsType = new DrsProvider('Test Dummy Provider (TDP)', urlParts, '/some_prefix', false, null, null);
     const result = generateAccessUrl(drsType, 'some_access_id');
     t.is(result, 'https://some.host.example.com/some_prefix/some_id/access/some_access_id');
 });
 
 test.serial('martha_v3 generateAccessUrl should generate an access url with a different port', (t) => {
     const urlParts = getHttpsUrlParts('drs://some.host.example.com:8000/some_id');
-    const drsType = new DrsType(urlParts, '/some_prefix', false, null, null);
+    const drsType = new DrsProvider('Test Dummy Provider (TDP)', urlParts, '/some_prefix', false, null, null);
     const result = generateAccessUrl(drsType, 'some_access_id');
     t.is(result, 'https://some.host.example.com:8000/some_prefix/some_id/access/some_access_id');
 });
@@ -1016,7 +1016,7 @@ This is hypothetical scenario based on a combination of:
  */
 test.serial('martha_v3 generateAccessUrl should add the query string to the access url', (t) => {
     const urlParts = getHttpsUrlParts(`drs://${bdc}/some_id?query=value`);
-    const drsType = new DrsType(urlParts, '/some_prefix', false, null, null);
+    const drsType = new DrsProvider('Test Dummy Provider (TDP)', urlParts, '/some_prefix', false, null, null);
     const result = generateAccessUrl(drsType, 'some_access_id');
     t.is(result, `https://${bdc}/some_prefix/some_id/access/some_access_id?query=value`);
 });
@@ -1027,7 +1027,7 @@ test.serial('martha_v3 generateAccessUrl should add the query string to the acce
  * @return {string}
  */
 function determineDrsTypeTestWrapper(testUrl) {
-    const drsType = determineDrsType(testUrl);
+    const drsType = determineDrsProvider(testUrl);
     return generateMetadataUrl(drsType);
 }
 

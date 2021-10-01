@@ -117,8 +117,9 @@ class AccessMethod {
 }
 
 // noinspection JSUnusedGlobalSymbols
-class DrsType {
-    constructor(urlParts, protocolPrefix, sendAuth, bondProvider, accessMethods, couldHaveGoogleServiceAccount) {
+class DrsProvider {
+    constructor(name, urlParts, protocolPrefix, sendAuth, bondProvider, accessMethods, couldHaveGoogleServiceAccount) {
+        this.name = name;
         this.urlParts = urlParts;
         this.protocolPrefix = protocolPrefix;
         this.sendAuth = sendAuth;
@@ -306,7 +307,7 @@ function getHttpsUrlParts(url) {
                     cibMatch.groups.separator,
                 ),
             httpsUrlSearch: cibMatch.groups.query,
-            // See `determineDrsType` for more info on this `martha_v2` backwards compatibility
+            // See `determineDrsProvider` for more info on this `martha_v2` backwards compatibility
             httpsUrlMaybeNotBdc:
                 ![DG_COMPACT_BDC_PROD, DG_COMPACT_BDC_STAGING].includes(cibMatch.groups.host.toLowerCase()),
         };
@@ -388,16 +389,17 @@ function responseParser (response) {
  * If you update this function update the README too!
  *
  * @param url {string} The URL to be tested
- * @return {DrsType}
+ * @return {DrsProvider}
  */
-function determineDrsType(url) {
+function determineDrsProvider(url) {
     const urlParts = getHttpsUrlParts(url);
     const host = urlParts.httpsUrlHost;
 
     // BDC, but skip DOS/DRS URIs that might be a fake `martha_v2`-compatible BDC
     if ((host.endsWith(".biodatacatalyst.nhlbi.nih.gov") || (host === config.HOST_MOCK_DRS))
         && !urlParts.httpsUrlMaybeNotBdc) {
-        return new DrsType(
+        return new DrsProvider(
+            "BioData Catalyst (BDC)",
             urlParts,
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
@@ -414,7 +416,8 @@ function determineDrsType(url) {
 
     // The AnVIL
     if (host.endsWith('.theanvil.io')) {
-        return new DrsType(
+        return new DrsProvider(
+            "NHGRI Analysis Visualization and Informatics Lab-space (AnVIL)",
             urlParts,
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
@@ -429,7 +432,8 @@ function determineDrsType(url) {
 
     // Jade Data Repo
     if (jadeDataRepoHostRegex.test(host)) {
-        return new DrsType(
+        return new DrsProvider(
+            "Terra Data Repo (TDR)",
             urlParts,
             PROTOCOL_PREFIX_DRS,
             AUTH_REQUIRED,
@@ -443,7 +447,8 @@ function determineDrsType(url) {
 
     // CRDC
     if (host.endsWith('.datacommons.io')) {
-        return new DrsType(
+        return new DrsProvider(
+            "NCI Cancer Research / Proteomics Data Commons (CRDC / PDC)",
             urlParts,
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
@@ -458,7 +463,8 @@ function determineDrsType(url) {
 
     // Kids First
     if (host.endsWith('.kidsfirstdrc.org')) {
-        return new DrsType(
+        return new DrsProvider(
+            "Gabriella Miller Kids First DRC",
             urlParts,
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
@@ -521,7 +527,7 @@ function buildRequestInfo(params) {
     } = params;
 
     validateRequest(url, auth, requestedFields);
-    const drsType = determineDrsType(url);
+    const drsType = determineDrsProvider(url);
 
     Object.assign(params, {
         drsType,
@@ -771,8 +777,8 @@ async function marthaV3Handler(req, res) {
 }
 
 exports.marthaV3Handler = marthaV3Handler;
-exports.DrsType = DrsType;
-exports.determineDrsType = determineDrsType;
+exports.DrsProvider = DrsProvider;
+exports.determineDrsProvider = determineDrsProvider;
 exports.generateMetadataUrl = generateMetadataUrl;
 exports.generateAccessUrl = generateAccessUrl;
 exports.getDrsAccessId = getDrsAccessId;
