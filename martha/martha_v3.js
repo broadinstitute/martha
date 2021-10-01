@@ -65,15 +65,15 @@ const MARTHA_V3_ACCESS_ID_FIELDS = [
     'accessUrl',
 ];
 
-const AccessMethodType = {
+const Type = {
     GCS: "gs",
     S3: "s3"
 };
 
-const SignedUrlDisposition = {
+const SignedUrls = {
     NO: "NO",
-    YES_WITH_ACCESS_TOKEN: "YES_WITH_ACCESS_TOKEN",
-    YES_WITH_CURRENT_AUTH: "YES_WITH_CURRENT_AUTH"
+    YES_USING_ACCESS_TOKEN: "YES_WITH_ACCESS_TOKEN",
+    YES_USING_CURRENT_AUTH: "YES_WITH_CURRENT_AUTH"
 };
 
 const CouldHaveGoogleServiceAccount = {
@@ -109,23 +109,31 @@ const overridePencilsDownSeconds = (seconds) => {
     pencilsDownSeconds = seconds;
 };
 
+class AccessMethod {
+    constructor(accessMethodType, signedUrlDisposition) {
+        this.accessMethodType = accessMethodType;
+        this.signedUrlDisposition = signedUrlDisposition;
+    }
+}
+
 // noinspection JSUnusedGlobalSymbols
 class DrsType {
-    constructor(urlParts, protocolPrefix, sendAuth, bondProvider, accessMethodTypes, couldHaveGoogleServiceAccount) {
+    constructor(urlParts, protocolPrefix, sendAuth, bondProvider, accessMethods, couldHaveGoogleServiceAccount) {
         this.urlParts = urlParts;
         this.protocolPrefix = protocolPrefix;
         this.sendAuth = sendAuth;
         this.bondProvider = bondProvider;
-        this.accessMethodTypes = accessMethodTypes;
+        this.accessMethods = accessMethods;
         this.couldHaveGoogleServiceAccount = couldHaveGoogleServiceAccount;
     }
 
     shouldFetchAccessTokenFor(accessMethodType) {
-        return this.accessMethodTypes.find((o) => Object.keys(o)[0] === accessMethodType)[accessMethodType] === SignedUrlDisposition.YES_WITH_ACCESS_TOKEN;
+        return this.accessMethods.find(
+            (o) => o.accessMethodType === accessMethodType).signedUrlDisposition === SignedUrls.YES_USING_ACCESS_TOKEN;
     }
 
-    accessMethodTypeKeys() {
-        return this.accessMethodTypes.flatMap((a) => Object.keys(a));
+    accessMethodTypes() {
+        return this.accessMethods.map((m) => m.accessMethodType);
     }
 }
 
@@ -137,7 +145,7 @@ function getDrsAccessMethodType(drsResponse, drsType) {
         return;
     }
 
-    for (const accessMethodType of drsType.accessMethodTypeKeys()) {
+    for (const accessMethodType of drsType.accessMethodTypes()) {
         for (const accessMethod of drsResponse.access_methods) {
             if (accessMethod.type === accessMethodType) {
                 return accessMethod.access_id;
@@ -397,9 +405,9 @@ function determineDrsType(url) {
             /*
             BT-236 BDC signed URLs temporarily turned off
             */
-            [{
-                [AccessMethodType.GCS]: SignedUrlDisposition.NO
-            }],
+            [
+                new AccessMethod(Type.GCS, SignedUrls.NO)
+            ],
             CouldHaveGoogleServiceAccount.YES
         );
     }
@@ -412,9 +420,9 @@ function determineDrsType(url) {
             AUTH_SKIPPED,
             BOND_PROVIDER_ANVIL,
             // For more info see comment above for BDC's `accessMethodType`
-            [{
-                [AccessMethodType.GCS]: SignedUrlDisposition.NO
-            }],
+            [
+                new AccessMethod(Type.GCS, SignedUrls.NO)
+            ],
             CouldHaveGoogleServiceAccount.YES
         );
     }
@@ -427,7 +435,7 @@ function determineDrsType(url) {
             AUTH_REQUIRED,
             BOND_PROVIDER_NONE,
             [
-                {[AccessMethodType.GCS]: SignedUrlDisposition.YES_WITH_CURRENT_AUTH}
+                new AccessMethod(Type.GCS, SignedUrls.YES_USING_CURRENT_AUTH)
             ],
             CouldHaveGoogleServiceAccount.NO
         );
@@ -441,8 +449,8 @@ function determineDrsType(url) {
             AUTH_SKIPPED,
             BOND_PROVIDER_DCF_FENCE,
             [
-                {[AccessMethodType.GCS]: SignedUrlDisposition.NO},
-                {[AccessMethodType.S3]: SignedUrlDisposition.YES_WITH_ACCESS_TOKEN}
+                new AccessMethod(Type.GCS, SignedUrls.NO),
+                new AccessMethod(Type.S3, SignedUrls.YES_USING_ACCESS_TOKEN)
             ],
             CouldHaveGoogleServiceAccount.YES
         );
@@ -456,7 +464,7 @@ function determineDrsType(url) {
             AUTH_SKIPPED,
             BOND_PROVIDER_KIDS_FIRST,
             [
-                {[AccessMethodType.S3]: SignedUrlDisposition.YES_WITH_ACCESS_TOKEN}
+                new AccessMethod(Type.S3, SignedUrls.YES_USING_ACCESS_TOKEN)
             ],
             CouldHaveGoogleServiceAccount.NO
         );
@@ -540,7 +548,7 @@ async function retrieveFromServers(params) {
 
     console.log(
         `DRS URI '${url}' will use auth required '${sendAuth}', bond provider '${bondProvider}', ` +
-        `and access method types '${drsType.accessMethodTypeKeys()}'`
+        `and access method types '${drsType.accessMethodTypes()}'`
     );
     console.log(`Requested martha_v3 fields: ${requestedFields.join(", ")}`);
 
