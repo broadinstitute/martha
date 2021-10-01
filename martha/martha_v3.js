@@ -66,14 +66,14 @@ const MARTHA_V3_ACCESS_ID_FIELDS = [
 ];
 
 const Type = {
-    GCS: "gs",
-    S3: "s3"
+    GCS: 'gs',
+    S3: 's3'
 };
 
 const SignedUrls = {
-    NO: "NO",
-    YES_USING_ACCESS_TOKEN: "YES_USING_ACCESS_TOKEN",
-    YES_USING_CURRENT_AUTH: "YES_USING_CURRENT_AUTH"
+    NO: 'NO',
+    YES_USING_ACCESS_TOKEN: 'YES_USING_ACCESS_TOKEN',
+    YES_USING_CURRENT_AUTH: 'YES_USING_CURRENT_AUTH'
 };
 
 const BondProvider = {
@@ -418,10 +418,10 @@ function determineDrsProvider(url) {
     const host = urlParts.httpsUrlHost;
 
     // BDC, but skip DOS/DRS URIs that might be a fake `martha_v2`-compatible BDC
-    if ((host.endsWith(".biodatacatalyst.nhlbi.nih.gov") || (host === config.HOST_MOCK_DRS))
+    if ((host.endsWith('.biodatacatalyst.nhlbi.nih.gov') || (host === config.HOST_MOCK_DRS))
         && !urlParts.httpsUrlMaybeNotBdc) {
         return new DrsProvider(
-            "BioData Catalyst (BDC)",
+            'BioData Catalyst (BDC)',
             MetadataAuth.NO,
             BondProvider.FENCE,
             [
@@ -433,7 +433,7 @@ function determineDrsProvider(url) {
     // The AnVIL
     if (host.endsWith('.theanvil.io')) {
         return new DrsProvider(
-            "NHGRI Analysis Visualization and Informatics Lab-space (The AnVIL)",
+            'NHGRI Analysis Visualization and Informatics Lab-space (The AnVIL)',
             MetadataAuth.NO,
             BondProvider.ANVIL,
             // For more info see comment above for BDC's `accessMethodType`
@@ -446,7 +446,7 @@ function determineDrsProvider(url) {
     // Jade Data Repo
     if (jadeDataRepoHostRegex.test(host)) {
         return new DrsProvider(
-            "Terra Data Repo (TDR)",
+            'Terra Data Repo (TDR)',
             MetadataAuth.YES,
             BondProvider.NONE,
             [
@@ -458,7 +458,7 @@ function determineDrsProvider(url) {
     // CRDC / PDC
     if (host.endsWith('.datacommons.io')) {
         return new DrsProvider(
-            "NCI Cancer Research / Proteomics Data Commons (CRDC / PDC)",
+            'NCI Cancer Research / Proteomics Data Commons (CRDC / PDC)',
             MetadataAuth.NO,
             BondProvider.DCF_FENCE,
             [
@@ -471,7 +471,7 @@ function determineDrsProvider(url) {
     // Kids First
     if (host.endsWith('.kidsfirstdrc.org')) {
         return new DrsProvider(
-            "Gabriella Miller Kids First DRC",
+            'Gabriella Miller Kids First DRC',
             MetadataAuth.NO,
             BondProvider.KIDS_FIRST,
             [
@@ -545,7 +545,7 @@ async function retrieveFromServers(params) {
         urlParts
     } = params;
 
-    const {sendMetadataAuth: sendMetadataAuth, bondProvider} = drsProvider;
+    const {sendMetadataAuth, bondProvider} = drsProvider;
 
     console.log(
         `DRS URI '${url}' will use metadata auth required '${sendMetadataAuth}', bond provider '${bondProvider}', ` +
