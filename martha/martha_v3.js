@@ -155,8 +155,9 @@ class DrsProvider {
     // eslint-disable-next-line id-length
     shouldFetchGoogleServiceAccount(accessMethod, requestedFields) {
         return this.couldHaveGoogleServiceAccount &&
-            accessMethod &&
-            accessMethod.type === Type.GCS &&
+            // "Not definitely not GCS". A falsy accessMethod is okay because there may not have been a preceding
+            // metadata request.
+            (!accessMethod || accessMethod.type === Type.GCS) &&
             overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS);
     }
 
