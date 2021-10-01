@@ -133,12 +133,11 @@ class AccessMethod {
 }
 
 class DrsProvider {
-    constructor(providerName, sendAuth, bondProvider, accessMethods, couldHaveGoogleServiceAccount) {
+    constructor(providerName, sendAuth, bondProvider, accessMethods) {
         this.providerName = providerName;
         this.sendAuth = sendAuth;
         this.bondProvider = bondProvider;
         this.accessMethods = accessMethods;
-        this.couldHaveGoogleServiceAccount = couldHaveGoogleServiceAccount;
         this.protocolPrefix = PROTOCOL_PREFIX_DRS;
     }
 
@@ -164,10 +163,11 @@ class DrsProvider {
 
     // eslint-disable-next-line id-length
     shouldFetchGoogleServiceAccount(accessMethod, requestedFields) {
-        return this.couldHaveGoogleServiceAccount &&
+        return this.bondProvider !== BondProvider.NONE &&
             // "Not definitely not GCS". A falsy accessMethod is okay because there may not have been a preceding
             // metadata request.
             (!accessMethod || accessMethod.type === Type.GCS) &&
+            this.accessMethodTypes().includes(Type.GCS) &&
             overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS);
     }
 
@@ -430,11 +430,9 @@ function determineDrsProvider(url) {
             "BioData Catalyst (BDC)",
             MetadataAuth.NO,
             BondProvider.FENCE,
-            //  BT-236 BDC signed URLs temporarily turned off
             [
-                new AccessMethod(Type.GCS, SignedUrls.NO)
-            ],
-            CouldHaveGoogleServiceAccount.YES
+                new AccessMethod(Type.GCS, SignedUrls.NO) //  BT-236 BDC signed URLs temporarily turned off
+            ]
         );
     }
 
@@ -447,8 +445,7 @@ function determineDrsProvider(url) {
             // For more info see comment above for BDC's `accessMethodType`
             [
                 new AccessMethod(Type.GCS, SignedUrls.NO)
-            ],
-            CouldHaveGoogleServiceAccount.YES
+            ]
         );
     }
 
@@ -460,8 +457,7 @@ function determineDrsProvider(url) {
             BondProvider.NONE,
             [
                 new AccessMethod(Type.GCS, SignedUrls.YES_USING_CURRENT_AUTH)
-            ],
-            CouldHaveGoogleServiceAccount.NO
+            ]
         );
     }
 
@@ -474,8 +470,7 @@ function determineDrsProvider(url) {
             [
                 new AccessMethod(Type.GCS, SignedUrls.NO),
                 new AccessMethod(Type.S3, SignedUrls.YES_USING_ACCESS_TOKEN)
-            ],
-            CouldHaveGoogleServiceAccount.YES
+            ]
         );
     }
 
