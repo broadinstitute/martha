@@ -76,11 +76,6 @@ const SignedUrls = {
     YES_USING_CURRENT_AUTH: "YES_USING_CURRENT_AUTH"
 };
 
-const CouldHaveGoogleServiceAccount = {
-    NO: false,
-    YES: true
-};
-
 const BondProvider = {
     DCF_FENCE: 'dcf-fence',
     FENCE: 'fence',
@@ -481,8 +476,7 @@ function determineDrsProvider(url) {
             BondProvider.KIDS_FIRST,
             [
                 new AccessMethod(Type.S3, SignedUrls.YES_USING_ACCESS_TOKEN)
-            ],
-            CouldHaveGoogleServiceAccount.NO
+            ]
         );
     }
 
