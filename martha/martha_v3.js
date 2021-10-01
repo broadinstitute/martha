@@ -72,8 +72,8 @@ const Type = {
 
 const SignedUrls = {
     NO: "NO",
-    YES_USING_ACCESS_TOKEN: "YES_WITH_ACCESS_TOKEN",
-    YES_USING_CURRENT_AUTH: "YES_WITH_CURRENT_AUTH"
+    YES_USING_ACCESS_TOKEN: "YES_USING_ACCESS_TOKEN",
+    YES_USING_CURRENT_AUTH: "YES_USING_CURRENT_AUTH"
 };
 
 const CouldHaveGoogleServiceAccount = {
@@ -133,9 +133,9 @@ class AccessMethod {
 }
 
 class DrsProvider {
-    constructor(providerName, sendAuth, bondProvider, accessMethods) {
+    constructor(providerName, sendMetadataAuth, bondProvider, accessMethods) {
         this.providerName = providerName;
-        this.sendAuth = sendAuth;
+        this.sendMetadataAuth = sendMetadataAuth;
         this.bondProvider = bondProvider;
         this.accessMethods = accessMethods;
     }
@@ -175,8 +175,8 @@ class DrsProvider {
     }
 
     shouldFailOnAccessUrlFail(accessMethod) {
-        // Fail if we failed to get a signed URL and the access method is truthy but not GCS. Martha clients currently
-        // can't deal with cloud native paths other than GCS so there won't be a fallback way of accessing the object.
+        // Fail if we failed to get a signed URL and the access method is truthy but its type is not GCS. Martha clients
+        // currently can't deal with cloud paths other than GCS so there isn't a fallback way of accessing the object.
         return this && accessMethod && accessMethod.type !== Type.GCS;
     }
 }
@@ -551,10 +551,10 @@ async function retrieveFromServers(params) {
         urlParts
     } = params;
 
-    const {sendAuth, bondProvider} = drsProvider;
+    const {sendMetadataAuth: sendMetadataAuth, bondProvider} = drsProvider;
 
     console.log(
-        `DRS URI '${url}' will use auth required '${sendAuth}', bond provider '${bondProvider}', ` +
+        `DRS URI '${url}' will use metadata auth required '${sendMetadataAuth}', bond provider '${bondProvider}', ` +
         `and access method types '${drsProvider.accessMethodTypes().join(", ")}'`
     );
     console.log(`Requested martha_v3 fields: ${requestedFields.join(", ")}`);
@@ -576,9 +576,9 @@ async function retrieveFromServers(params) {
                 hypotheticalErrorMessage = 'Could not fetch DRS metadata.';
                 const httpsMetadataUrl = generateMetadataUrl(drsProvider, urlParts);
                 console.log(
-                    `Requesting DRS metadata for '${url}' from '${httpsMetadataUrl}' with auth required '${sendAuth}'`
+                    `Requesting DRS metadata for '${url}' from '${httpsMetadataUrl}' with auth required '${sendMetadataAuth}'`
                 );
-                response = await apiAdapter.getJsonFrom(httpsMetadataUrl, sendAuth ? auth : null);
+                response = await apiAdapter.getJsonFrom(httpsMetadataUrl, sendMetadataAuth ? auth : null);
             } catch (error) {
                 throw new RemoteServerError(error, 'Received error while resolving DRS URL.');
             }
@@ -638,9 +638,13 @@ async function retrieveFromServers(params) {
             if (drsProvider.shouldFetchAccessUrl(accessMethod, requestedFields)) {
                 try {
                     const httpsAccessUrl = generateAccessUrl(drsProvider, urlParts, accessMethod.access_id);
-                    const accessTokenAuth = `Bearer ${accessToken}`;
+                    // Use the access token fetched in the call above or the auth submitted to Martha directly by the
+                    // caller as appropriate.
+                    const providerAccessMethod = drsProvider.accessMethodMatchingType(accessMethod);
+                    const accessTokenAuth = providerAccessMethod.signedUrlDisposition === SignedUrls.YES_USING_ACCESS_TOKEN;
+                    const accessUrlAuth = accessTokenAuth ? `Bearer ${accessToken}` : auth;
                     console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}'`);
-                    accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, accessTokenAuth);
+                    accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, accessUrlAuth);
                 } catch (error) {
                     throw new RemoteServerError(error, 'Received error contacting DRS provider.');
                 }
