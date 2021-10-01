@@ -121,7 +121,7 @@ class DrsType {
     }
 
     shouldFetchAccessTokenFor(accessMethodType) {
-        return this.accessMethodTypes[accessMethodType] === SignedUrlDisposition.YES_WITH_ACCESS_TOKEN;
+        return this.accessMethodTypes.find((o) => Object.keys(o)[0] === accessMethodType)[accessMethodType] === SignedUrlDisposition.YES_WITH_ACCESS_TOKEN;
     }
 
     accessMethodTypeKeys() {
