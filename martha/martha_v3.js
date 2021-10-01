@@ -116,10 +116,9 @@ class AccessMethod {
     }
 }
 
-// noinspection JSUnusedGlobalSymbols
 class DrsProvider {
-    constructor(name, urlParts, protocolPrefix, sendAuth, bondProvider, accessMethods, couldHaveGoogleServiceAccount) {
-        this.name = name;
+    constructor(providerName, urlParts, protocolPrefix, sendAuth, bondProvider, accessMethods, couldHaveGoogleServiceAccount) {
+        this.providerName = providerName;
         this.urlParts = urlParts;
         this.protocolPrefix = protocolPrefix;
         this.sendAuth = sendAuth;
@@ -404,9 +403,7 @@ function determineDrsProvider(url) {
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
             BOND_PROVIDER_FENCE,
-            /*
-            BT-236 BDC signed URLs temporarily turned off
-            */
+            //  BT-236 BDC signed URLs temporarily turned off
             [
                 new AccessMethod(Type.GCS, SignedUrls.NO)
             ],
@@ -417,7 +414,7 @@ function determineDrsProvider(url) {
     // The AnVIL
     if (host.endsWith('.theanvil.io')) {
         return new DrsProvider(
-            "NHGRI Analysis Visualization and Informatics Lab-space (AnVIL)",
+            "NHGRI Analysis Visualization and Informatics Lab-space (The AnVIL)",
             urlParts,
             PROTOCOL_PREFIX_DRS,
             AUTH_SKIPPED,
@@ -445,7 +442,7 @@ function determineDrsProvider(url) {
         );
     }
 
-    // CRDC
+    // CRDC / PDC
     if (host.endsWith('.datacommons.io')) {
         return new DrsProvider(
             "NCI Cancer Research / Proteomics Data Commons (CRDC / PDC)",
