@@ -166,9 +166,9 @@ class DrsProvider {
     }
 
     shouldFailOnAccessUrlFail(accessMethod) {
-        // Throw if the access method was S3 and we failed to get a signed URL. Martha's clients can't currently deal
-        // with a native S3 path so the caller will not have a fallback means of accessing the object.
-        return this && accessMethod && accessMethod.type === Type.S3;
+        // Fail if we failed to get a signed URL and the access method is truthy but not GCS. Martha clients currently
+        // can't deal with cloud native paths other than GCS so there won't be a fallback way of accessing the object.
+        return this && accessMethod && accessMethod.type !== Type.GCS;
     }
 }
 
