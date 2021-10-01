@@ -174,6 +174,28 @@ class DrsProvider {
         // currently can't deal with cloud paths other than GCS so there isn't a fallback way of accessing the object.
         return this && accessMethod && accessMethod.type !== Type.GCS;
     }
+
+    accessUrlAuth(accessMethod, accessToken, requestAuth) {
+        const providerAccessMethod = this.accessMethodMatchingType(accessMethod);
+        if (!providerAccessMethod) {
+            throw new BadRequestError(
+                `Programmer error: no access method of type '${accessMethod.type}' found in DRS Provider '${this.providerName}'`
+            );
+        }
+        switch (providerAccessMethod.signedUrlDisposition) {
+            case SignedUrls.YES_USING_ACCESS_TOKEN:
+                return `Bearer ${accessToken}`;
+            case SignedUrls.YES_USING_CURRENT_AUTH:
+                return requestAuth;
+            default:
+                throw new BadRequestError(
+                    `Programmer error: 'accessUrlAuth' called with signed URL disposition ${providerAccessMethod.signedUrlDisposition} for provider ${this.providerName}`);
+        }
+    }
+}
+
+function shouldRequestMetadata(requestedFields) {
+    return overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS);
 }
 
 /**
@@ -565,7 +587,7 @@ async function retrieveFromServers(params) {
 
     const fetch = async () => {
         let response;
-        if (overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS)) {
+        if (shouldRequestMetadata(requestedFields)) {
             try {
                 hypotheticalErrorMessage = 'Could not fetch DRS metadata.';
                 const httpsMetadataUrl = generateMetadataUrl(drsProvider, urlParts);
@@ -634,9 +656,7 @@ async function retrieveFromServers(params) {
                     const httpsAccessUrl = generateAccessUrl(drsProvider, urlParts, accessMethod.access_id);
                     // Use the access token fetched in the call above or the auth submitted to Martha directly by the
                     // caller as appropriate.
-                    const providerAccessMethod = drsProvider.accessMethodMatchingType(accessMethod);
-                    const accessTokenAuth = providerAccessMethod.signedUrlDisposition === SignedUrls.YES_USING_ACCESS_TOKEN;
-                    const accessUrlAuth = accessTokenAuth ? `Bearer ${accessToken}` : auth;
+                    const accessUrlAuth = drsProvider.accessUrlAuth(accessMethod, accessToken, auth);
                     console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}'`);
                     accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, accessUrlAuth);
                 } catch (error) {
