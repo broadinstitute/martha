@@ -12,11 +12,11 @@ const {
     MARTHA_V3_DEFAULT_FIELDS,
     MARTHA_V3_ALL_FIELDS,
     overlapFields,
-} = require("martha_fields");
+} = require("./martha_fields");
 
 const {
     determineDrsProvider
-} = require("drs_providers");
+} = require("./drs_providers");
 
 const config = require('../common/config');
 const apiAdapter = require('../common/api_adapter');

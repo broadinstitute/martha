@@ -44,13 +44,13 @@ const {
 } = require('../../martha/martha_v3');
 
 const {
-    MARTHA_V3_ALL_FIELDS,
-} = require("../../martha/martha_fields");
-
-const {
     DrsProvider,
     determineDrsProvider,
 } = require("../../martha/drs_providers");
+
+const {
+    MARTHA_V3_ALL_FIELDS,
+} = require("../../martha/martha_fields");
 
 const apiAdapter = require('../../common/api_adapter');
 const config = require('../../common/config');

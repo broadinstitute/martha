@@ -9,7 +9,7 @@ const {
     MARTHA_V3_ACCESS_ID_FIELDS,
     MARTHA_V3_BOND_SA_FIELDS,
     overlapFields
-} = require("martha_fields");
+} = require("./martha_fields");
 
 const AccessMethodType = {
     GCS: 'gs',
@@ -224,4 +224,5 @@ function determineDrsProvider(url, urlParts, drsProviderInstances = DrsProviderI
     throw new BadRequestError(`Could not determine DRS provider for id '${url}'`);
 }
 
+exports.DrsProvider = DrsProvider;
 exports.determineDrsProvider = determineDrsProvider;
