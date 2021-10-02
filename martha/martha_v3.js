@@ -60,7 +60,7 @@ const AccessMethodType = {
 
 const SignedUrls = {
     NO: 'NO',
-    YES_USING_ACCESS_TOKEN: 'YES_USING_ACCESS_TOKEN',
+    YES_USING_FENCE_TOKEN: 'YES_USING_FENCE_TOKEN',
     YES_USING_CURRENT_AUTH: 'YES_USING_CURRENT_AUTH'
 };
 
@@ -127,24 +127,45 @@ class DrsProvider {
         return this.accessMethods.find((o) => o.accessMethodType === accessMethod.type);
     }
 
-    shouldFetchAccessToken(accessMethod, requestedFields) {
+    /**
+     * Should Martha call Bond to retrieve a Fence access token to use when later calling the `access` endpoint to
+     * retrieve a signed URL. Should return `true` for Gen3 signed URL flows and `false` otherwise, including TDR signed
+     * URL flows (TDR uses the same auth supplied to the current Martha request as the auth for calling `access`).
+     * @param accessMethod
+     * @param requestedFields
+     * @return {boolean}
+     */
+    shouldFetchFenceToken(accessMethod, requestedFields) {
         return this.bondProvider &&
             accessMethod &&
             accessMethod.type === AccessMethodType.S3 &&
             overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&
-            this.accessMethodMatchingType(accessMethod).signedUrlDisposition === SignedUrls.YES_USING_ACCESS_TOKEN;
+            this.accessMethodMatchingType(accessMethod).signedUrlDisposition === SignedUrls.YES_USING_FENCE_TOKEN;
     }
 
+    /**
+     * Should Martha call the DRS provider's `access` endpoint to get a signed URL.
+     * @param accessMethod
+     * @param requestedFields
+     * @return {boolean}
+     */
     shouldFetchAccessUrl(accessMethod, requestedFields) {
         return overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&
             this.accessMethodMatchingType(accessMethod).signedUrlDisposition !== SignedUrls.NO;
     }
 
-    // eslint-disable-next-line id-length
-    shouldFetchGoogleServiceAccount(accessMethod, requestedFields) {
+    /**
+     * Should Martha fetch the Google user service account from Bond. Because this account is Google-specific it should
+     * not be fetched if we know the underlying data is not GCS-based.
+     * @param accessMethod
+     * @param requestedFields
+     * @return {boolean}
+     */
+    shouldFetchUserServiceAccount(accessMethod, requestedFields) {
+        // This account would be stored in Bond so no Bond means no account.
         return this.bondProvider !== BondProvider.NONE &&
             // "Not definitely not GCS". A falsy accessMethod is okay because there may not have been a preceding
-            // metadata request.
+            // metadata request to determine the accessMethod.
             (!accessMethod || accessMethod.type === AccessMethodType.GCS) &&
             this.accessMethodTypes().includes(AccessMethodType.GCS) &&
             overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS);
@@ -163,7 +184,7 @@ class DrsProvider {
     accessUrlAuth(accessMethod, accessToken, requestAuth) {
         const providerAccessMethod = this.accessMethodMatchingType(accessMethod);
         switch (providerAccessMethod.signedUrlDisposition) {
-            case SignedUrls.YES_USING_ACCESS_TOKEN:
+            case SignedUrls.YES_USING_FENCE_TOKEN:
                 return `Bearer ${accessToken}`;
             case SignedUrls.YES_USING_CURRENT_AUTH:
                 return requestAuth;
@@ -465,7 +486,7 @@ function determineDrsProvider(url, urlParts) {
             BondProvider.DCF_FENCE,
             [
                 new AccessMethod(AccessMethodType.GCS, SignedUrls.NO),
-                new AccessMethod(AccessMethodType.S3, SignedUrls.YES_USING_ACCESS_TOKEN)
+                new AccessMethod(AccessMethodType.S3, SignedUrls.YES_USING_FENCE_TOKEN)
             ]
         );
     }
@@ -477,7 +498,7 @@ function determineDrsProvider(url, urlParts) {
             MetadataAuth.NO,
             BondProvider.KIDS_FIRST,
             [
-                new AccessMethod(AccessMethodType.S3, SignedUrls.YES_USING_ACCESS_TOKEN)
+                new AccessMethod(AccessMethodType.S3, SignedUrls.YES_USING_FENCE_TOKEN)
             ]
         );
     }
@@ -588,7 +609,7 @@ async function retrieveFromServers(params) {
 
         const accessMethod = getAccessMethod(drsResponse, drsProvider);
 
-        if (drsProvider.shouldFetchGoogleServiceAccount(accessMethod, requestedFields)) {
+        if (drsProvider.shouldFetchUserServiceAccount(accessMethod, requestedFields)) {
             try {
                 hypotheticalErrorMessage = 'Could not fetch SA key from Bond.';
                 const bondSAKeyUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
@@ -617,9 +638,8 @@ async function retrieveFromServers(params) {
         hypotheticalErrorMessage = null;
 
         try {
-            // Retrieve an accessToken from Bond that will be used to later retrieve the accessUrl from the DRS server.
             let accessToken;
-            if (drsProvider.shouldFetchAccessToken(accessMethod, requestedFields)) {
+            if (drsProvider.shouldFetchFenceToken(accessMethod, requestedFields)) {
                 try {
                     const bondAccessTokenUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/accesstoken`;
                     console.log(`Requesting Bond access token for '${url}' from '${bondAccessTokenUrl}'`);
