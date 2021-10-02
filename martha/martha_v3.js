@@ -309,7 +309,7 @@ function buildRequestInfo(params) {
     const urlParts = getHttpsUrlParts(url);
     const drsProvider = determineDrsProvider(url, urlParts, drsProviderInstances);
     // Force the retrieval of a signed URL for this request if the `martha-force-signed-url` header is set.
-    Object.assign(drsProvider, {forceSignedUrl});
+    Object.assign(drsProvider, {forceSignedUrl: Boolean(forceSignedUrl)});
 
     Object.assign(params, {
         drsProvider,
