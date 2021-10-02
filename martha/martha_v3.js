@@ -430,8 +430,8 @@ async function retrieveFromServers(params) {
             if (drsProvider.shouldFailOnAccessUrlFail(accessMethod)) {
                 throw error;
             }
-            // For non-S3 just log the error for now. There is still a native GCS path available that the caller
-            // can use to access the object. Eventually, we'll want to remove this outer try.
+            // Just log the error for now, there should be a cloud native way for the user to access the object.
+            // Eventually once signed URLs are on by default for all providers we'll want to remove this outer try.
             console.warn('Ignoring error from fetching signed URL:', error);
         }
     };
