@@ -1009,8 +1009,8 @@ test.serial('martha_v3 generateAccessUrl should add the query string to the acce
  * @return {string}
  */
 function determineDrsProviderWrapper(testUrl) {
-    const drsProvider = determineDrsProvider(testUrl);
     const urlParts = getHttpsUrlParts(testUrl);
+    const drsProvider = determineDrsProvider(testUrl, urlParts);
     return generateMetadataUrl(drsProvider, urlParts);
 }
 

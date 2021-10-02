@@ -148,10 +148,7 @@ class DrsProvider {
     }
 
     shouldFetchAccessUrl(accessMethod, requestedFields) {
-        return this.bondProvider &&
-            accessMethod &&
-            accessMethod.type === Type.S3 &&
-            overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&
+        return overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&
             this.accessMethodMatchingType(accessMethod).signedUrlDisposition !== SignedUrls.NO;
     }
 
@@ -177,11 +174,6 @@ class DrsProvider {
 
     accessUrlAuth(accessMethod, accessToken, requestAuth) {
         const providerAccessMethod = this.accessMethodMatchingType(accessMethod);
-        if (!providerAccessMethod) {
-            throw new BadRequestError(
-                `Programmer error: no access method of type '${accessMethod.type}' found in DRS Provider '${this.providerName}'`
-            );
-        }
         switch (providerAccessMethod.signedUrlDisposition) {
             case SignedUrls.YES_USING_ACCESS_TOKEN:
                 return `Bearer ${accessToken}`;
@@ -432,11 +424,11 @@ function responseParser (response) {
  *
  * If you update this function update the README too!
  *
- * @param url {string} The URL to be tested
+ * @param url {String} The full URL to be tested
+ * @param urlParts {Object} The URL parts to be tested
  * @return {DrsProvider}
  */
-function determineDrsProvider(url) {
-    const urlParts = getHttpsUrlParts(url);
+function determineDrsProvider(url, urlParts) {
     const host = urlParts.httpsUrlHost;
 
     // BDC, but skip DOS/DRS URIs that might be a fake `martha_v2`-compatible BDC
@@ -541,8 +533,8 @@ function buildRequestInfo(params) {
     } = params;
 
     validateRequest(url, auth, requestedFields);
-    const drsProvider = determineDrsProvider(url);
     const urlParts = getHttpsUrlParts(url);
+    const drsProvider = determineDrsProvider(url, urlParts);
 
     Object.assign(params, {
         drsProvider,
