@@ -48,6 +48,7 @@ class DrsProvider {
         this.sendMetadataAuth = sendMetadataAuth;
         this.bondProvider = bondProvider;
         this.accessMethods = accessMethods;
+        this.accessMethodTypes = accessMethods && accessMethods.map((m) => m.accessMethodType);
     }
 
     accessMethodHavingSameTypeAs(accessMethod) {
@@ -93,12 +94,8 @@ class DrsProvider {
             // "Not definitely not GCS". A falsy accessMethod is okay because there may not have been a preceding
             // metadata request to determine the accessMethod.
             (!accessMethod || accessMethod.type === AccessMethodType.GCS) &&
-            this.accessMethodTypes().includes(AccessMethodType.GCS) &&
+            this.accessMethodTypes.includes(AccessMethodType.GCS) &&
             overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS);
-    }
-
-    accessMethodTypes() {
-        return this.accessMethods.map((m) => m.accessMethodType);
     }
 
     shouldFailOnAccessUrlFail(accessMethod) {

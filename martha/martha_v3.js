@@ -48,7 +48,7 @@ function shouldRequestMetadata(requestedFields) {
 }
 
 /**
- * Returns the first access method in `drsProvider.accessMethodTypes()` with a type that matches the type of an access
+ * Returns the first access method in `drsProvider.accessMethodTypes` with a type that matches the type of an access
  * method in `drsResponse`, otherwise `undefined`.
  */
 function getAccessMethod(drsResponse, drsProvider) {
@@ -56,7 +56,7 @@ function getAccessMethod(drsResponse, drsProvider) {
         return;
     }
 
-    for (const accessMethodType of drsProvider.accessMethodTypes()) {
+    for (const accessMethodType of drsProvider.accessMethodTypes) {
         for (const accessMethod of drsResponse.access_methods) {
             if (accessMethod.type === accessMethodType) {
                 return accessMethod;
@@ -335,7 +335,7 @@ async function retrieveFromServers(params) {
 
     console.log(
         `DRS URI '${url}' will use metadata auth required '${sendMetadataAuth}', bond provider '${bondProvider}', ` +
-        `and access method types '${drsProvider.accessMethodTypes().join(", ")}'`
+        `and access method types '${drsProvider.accessMethodTypes.join(", ")}'`
     );
     console.log(`Requested martha_v3 fields: ${requestedFields.join(", ")}`);
 
