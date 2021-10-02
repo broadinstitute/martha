@@ -50,7 +50,7 @@ class DrsProvider {
         this.accessMethods = accessMethods;
     }
 
-    accessMethodMatchingType(accessMethod) {
+    accessMethodHavingSameTypeAs(accessMethod) {
         return this.accessMethods.find((o) => o.accessMethodType === accessMethod.type);
     }
 
@@ -65,9 +65,8 @@ class DrsProvider {
     shouldFetchFenceToken(accessMethod, requestedFields) {
         return this.bondProvider &&
             accessMethod &&
-            accessMethod.type === AccessMethodType.S3 &&
             overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&
-            this.accessMethodMatchingType(accessMethod).signedUrlDisposition === SignedUrls.YES_USING_FENCE_TOKEN;
+            this.accessMethodHavingSameTypeAs(accessMethod).signedUrlDisposition === SignedUrls.YES_USING_FENCE_TOKEN;
     }
 
     /**
@@ -78,7 +77,7 @@ class DrsProvider {
      */
     shouldFetchAccessUrl(accessMethod, requestedFields) {
         return overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&
-            this.accessMethodMatchingType(accessMethod).signedUrlDisposition !== SignedUrls.NO;
+            this.accessMethodHavingSameTypeAs(accessMethod).signedUrlDisposition !== SignedUrls.NO;
     }
 
     /**
@@ -109,7 +108,7 @@ class DrsProvider {
     }
 
     accessUrlAuth(accessMethod, accessToken, requestAuth) {
-        const providerAccessMethod = this.accessMethodMatchingType(accessMethod);
+        const providerAccessMethod = this.accessMethodHavingSameTypeAs(accessMethod);
         switch (providerAccessMethod.signedUrlDisposition) {
             case SignedUrls.YES_USING_FENCE_TOKEN:
                 return `Bearer ${accessToken}`;
