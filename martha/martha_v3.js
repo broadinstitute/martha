@@ -15,7 +15,8 @@ const {
 } = require("./martha_fields");
 
 const {
-    determineDrsProvider
+    determineDrsProvider,
+    DrsProviderInstances: DefaultDrsProviderInstances,
 } = require("./drs_providers");
 
 const config = require('../common/config');
@@ -300,11 +301,12 @@ function buildRequestInfo(params) {
         url,
         requestedFields,
         auth,
+        drsProviderInstances,
     } = params;
 
     validateRequest(url, auth, requestedFields);
     const urlParts = getHttpsUrlParts(url);
-    const drsProvider = determineDrsProvider(url, urlParts);
+    const drsProvider = determineDrsProvider(url, urlParts, drsProviderInstances);
 
     Object.assign(params, {
         drsProvider,
@@ -498,7 +500,7 @@ function buildResponseInfo(params) {
  *   5. Fetches a signed URL from DRS server [+]
  * ([+] only for some data providers and some objects)
  */
-async function marthaV3Handler(req, res) {
+async function marthaV3Handler(req, res, drsProviderInstances = DefaultDrsProviderInstances) {
     try {
         // This function counts on the request posting data as "application/json" content-type.
         // See: https://cloud.google.com/functions/docs/writing/http#parsing_http_requests for more details
@@ -511,6 +513,7 @@ async function marthaV3Handler(req, res) {
             url,
             requestedFields,
             auth,
+            drsProviderInstances
         };
 
         buildRequestInfo(params);

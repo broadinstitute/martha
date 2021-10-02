@@ -40,12 +40,13 @@ const {
     generateAccessUrl,
     getHttpsUrlParts,
     overridePencilsDownSeconds,
-    PROTOCOL_PREFIX_DRS
+    PROTOCOL_PREFIX_DRS,
 } = require('../../martha/martha_v3');
 
 const {
     DrsProvider,
     determineDrsProvider,
+    DrsProviderInstances: DefaultDrsProviderInstances,
 } = require("../../martha/drs_providers");
 
 const {
@@ -1017,7 +1018,7 @@ test.serial('martha_v3 generateAccessUrl should add the query string to the acce
  */
 function determineDrsProviderWrapper(testUrl) {
     const urlParts = getHttpsUrlParts(testUrl);
-    const drsProvider = determineDrsProvider(testUrl, urlParts);
+    const drsProvider = determineDrsProvider(testUrl, urlParts, DefaultDrsProviderInstances);
     return generateMetadataUrl(drsProvider, urlParts);
 }
 
