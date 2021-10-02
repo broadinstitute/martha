@@ -302,11 +302,14 @@ function buildRequestInfo(params) {
         requestedFields,
         auth,
         drsProviderInstances,
+        forceSignedUrl,
     } = params;
 
     validateRequest(url, auth, requestedFields);
     const urlParts = getHttpsUrlParts(url);
     const drsProvider = determineDrsProvider(url, urlParts, drsProviderInstances);
+    // Force the retrieval of a signed URL for this request if the `martha-force-signed-url` header is set.
+    Object.assign(drsProvider, {forceSignedUrl});
 
     Object.assign(params, {
         drsProvider,
@@ -505,7 +508,7 @@ async function marthaV3Handler(req, res, drsProviderInstances = DefaultDrsProvid
         // This function counts on the request posting data as "application/json" content-type.
         // See: https://cloud.google.com/functions/docs/writing/http#parsing_http_requests for more details
         const {url, fields: requestedFields = MARTHA_V3_DEFAULT_FIELDS} = (req && req.body) || {};
-        const {authorization: auth, 'user-agent': userAgent} = req.headers;
+        const {authorization: auth, 'user-agent': userAgent, 'martha-force-signed-url': forceSignedUrl} = req.headers;
         const ip = req.ip;
         console.log(`Received URL '${url}' from agent '${userAgent}' on IP '${ip}'`);
 
@@ -513,6 +516,7 @@ async function marthaV3Handler(req, res, drsProviderInstances = DefaultDrsProvid
             url,
             requestedFields,
             auth,
+            forceSignedUrl,
             drsProviderInstances
         };
 

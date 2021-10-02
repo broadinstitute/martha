@@ -48,12 +48,13 @@ class AccessMethod {
 }
 
 class DrsProvider {
-    constructor(providerName, sendMetadataAuth, bondProvider, accessMethods) {
+    constructor(providerName, sendMetadataAuth, bondProvider, accessMethods, forceSignedUrl = false) {
         this.providerName = providerName;
         this.sendMetadataAuth = sendMetadataAuth;
         this.bondProvider = bondProvider;
         this.accessMethods = accessMethods;
         this.accessMethodTypes = accessMethods && accessMethods.map((m) => m.accessMethodType);
+        this.forceSignedUrl = forceSignedUrl;
     }
 
     accessMethodHavingSameTypeAs(accessMethod) {
@@ -66,13 +67,12 @@ class DrsProvider {
      * URL flows (TDR uses the same auth supplied to the current Martha request for calling `access`).
      * @param accessMethod
      * @param requestedFields
-     * @param forceSignedUrl
      * @return {boolean}
      */
-    shouldFetchFenceToken(accessMethod, requestedFields, forceSignedUrl) {
+    shouldFetchFenceToken(accessMethod, requestedFields) {
         return this.bondProvider &&
             overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&
-            (forceSignedUrl || (accessMethod &&
+            (this.forceSignedUrl || (accessMethod &&
                 this.accessMethods.find((m) => m.accessMethodType === accessMethod.type &&
                     m.signedUrlAuth === AccessAuth.FENCE_TOKEN &&
                     m.signedUrlEnabled === Enabled.TRUE)));
@@ -82,12 +82,11 @@ class DrsProvider {
      * Should Martha call the DRS provider's `access` endpoint to get a signed URL.
      * @param accessMethod
      * @param requestedFields
-     * @param forceSignedUrl
      * @return {boolean}
      */
-    shouldFetchAccessUrl(accessMethod, requestedFields, forceSignedUrl) {
+    shouldFetchAccessUrl(accessMethod, requestedFields) {
         return overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&
-            (forceSignedUrl || (accessMethod &&
+            (this.forceSignedUrl || (accessMethod &&
                 this.accessMethods.find((m) => m.accessMethodType === accessMethod.type &&
                     m.signedUrlEnabled === Enabled.TRUE)));
     }
