@@ -1,5 +1,4 @@
 const {
-    jadeDataRepoHostRegex,
     convertToMarthaV3Response,
     BadRequestError,
     RemoteServerError,
@@ -7,75 +6,22 @@ const {
     logAndSendServerError,
     delay,
 } = require('../common/helpers');
+
+const {
+    MARTHA_V3_METADATA_FIELDS,
+    MARTHA_V3_DEFAULT_FIELDS,
+    MARTHA_V3_ALL_FIELDS,
+    overlapFields,
+} = require("martha_fields");
+
+const {
+    determineDrsProvider
+} = require("drs_providers");
+
 const config = require('../common/config');
 const apiAdapter = require('../common/api_adapter');
 const url = require('url');
 const mask = require('json-mask');
-
-const MARTHA_V3_CORE_FIELDS = [
-    'gsUri',
-    'bucket',
-    'name',
-    'fileName',
-    'contentType',
-    'size',
-    'hashes',
-    'timeCreated',
-    'timeUpdated',
-];
-
-// All fields that can be returned in the martha_v3 response.
-const MARTHA_V3_ALL_FIELDS = [
-    ...MARTHA_V3_CORE_FIELDS,
-    'googleServiceAccount',
-    'bondProvider',
-    'accessUrl',
-];
-
-const MARTHA_V3_DEFAULT_FIELDS = [
-    ...MARTHA_V3_CORE_FIELDS,
-    'googleServiceAccount',
-];
-
-// Response fields dependent on the DOS or DRS servers
-const MARTHA_V3_METADATA_FIELDS = [
-    ...MARTHA_V3_CORE_FIELDS,
-    'accessUrl',
-];
-
-// Response fields dependent on the Bond service account
-const MARTHA_V3_BOND_SA_FIELDS = [
-    'googleServiceAccount',
-];
-
-// Response fields dependent on the the access_id
-const MARTHA_V3_ACCESS_ID_FIELDS = [
-    'accessUrl',
-];
-
-const AccessMethodType = {
-    GCS: 'gs',
-    S3: 's3'
-};
-
-const SignedUrls = {
-    NO: 'NO',
-    YES_USING_FENCE_TOKEN: 'YES_USING_FENCE_TOKEN',
-    YES_USING_CURRENT_AUTH: 'YES_USING_CURRENT_AUTH'
-};
-
-const BondProvider = {
-    DCF_FENCE: 'dcf-fence',
-    FENCE: 'fence',
-    ANVIL: 'anvil',
-    KIDS_FIRST: 'kids-first',
-    NONE: null
-};
-
-const MetadataAuth = {
-    YES: true,
-    NO: false
-};
 
 const PROTOCOL_PREFIX_DRS='/ga4gh/drs/v1/objects';
 
@@ -90,110 +36,11 @@ const DG_COMPACT_KIDS_FIRST = 'dg.f82a1a';
 // but not fail if we happen to time out when fetching a signed URL takes too long.
 let pencilsDownSeconds = 58;
 
-/**
- * Used to check if any of the requested fields overlap with fields dependent on an underlying service.
- *
- * @param {string[]} requestedFields
- * @param {string[]} serviceFields
- * @returns {boolean} true if the requested fields overlap
- */
-function overlapFields(requestedFields, serviceFields) {
-    // via https://medium.com/@alvaro.saburido/set-theory-for-arrays-in-es6-eb2f20a61848
-    return requestedFields.filter((field) => serviceFields.includes(field)).length !== 0;
-}
-
 // For tests that need to probe the behavior near the limit of the Cloud Function timeout, we don't
 // want to have to wait 60 seconds.
 const overridePencilsDownSeconds = (seconds) => {
     pencilsDownSeconds = seconds;
 };
-
-class AccessMethod {
-    constructor(accessMethodType, signedUrlDisposition) {
-        this.accessMethodType = accessMethodType;
-        this.signedUrlDisposition = signedUrlDisposition;
-    }
-}
-
-class DrsProvider {
-    constructor(providerName, sendMetadataAuth, bondProvider, accessMethods) {
-        this.providerName = providerName;
-        this.sendMetadataAuth = sendMetadataAuth;
-        this.bondProvider = bondProvider;
-        this.accessMethods = accessMethods;
-    }
-
-    accessMethodMatchingType(accessMethod) {
-        return this.accessMethods.find((o) => o.accessMethodType === accessMethod.type);
-    }
-
-    /**
-     * Should Martha call Bond to retrieve a Fence access token to use when later calling the `access` endpoint to
-     * retrieve a signed URL. Should return `true` for Gen3 signed URL flows and `false` otherwise, including TDR signed
-     * URL flows (TDR uses the same auth supplied to the current Martha request as the auth for calling `access`).
-     * @param accessMethod
-     * @param requestedFields
-     * @return {boolean}
-     */
-    shouldFetchFenceToken(accessMethod, requestedFields) {
-        return this.bondProvider &&
-            accessMethod &&
-            accessMethod.type === AccessMethodType.S3 &&
-            overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&
-            this.accessMethodMatchingType(accessMethod).signedUrlDisposition === SignedUrls.YES_USING_FENCE_TOKEN;
-    }
-
-    /**
-     * Should Martha call the DRS provider's `access` endpoint to get a signed URL.
-     * @param accessMethod
-     * @param requestedFields
-     * @return {boolean}
-     */
-    shouldFetchAccessUrl(accessMethod, requestedFields) {
-        return overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&
-            this.accessMethodMatchingType(accessMethod).signedUrlDisposition !== SignedUrls.NO;
-    }
-
-    /**
-     * Should Martha fetch the Google user service account from Bond. Because this account is Google-specific it should
-     * not be fetched if we know the underlying data is not GCS-based.
-     * @param accessMethod
-     * @param requestedFields
-     * @return {boolean}
-     */
-    shouldFetchUserServiceAccount(accessMethod, requestedFields) {
-        // This account would be stored in Bond so no Bond means no account.
-        return this.bondProvider !== BondProvider.NONE &&
-            // "Not definitely not GCS". A falsy accessMethod is okay because there may not have been a preceding
-            // metadata request to determine the accessMethod.
-            (!accessMethod || accessMethod.type === AccessMethodType.GCS) &&
-            this.accessMethodTypes().includes(AccessMethodType.GCS) &&
-            overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS);
-    }
-
-    accessMethodTypes() {
-        return this.accessMethods.map((m) => m.accessMethodType);
-    }
-
-    shouldFailOnAccessUrlFail(accessMethod) {
-        // Fail if we failed to get a signed URL and the access method is truthy but its type is not GCS. Martha clients
-        // currently can't deal with cloud paths other than GCS so there isn't a fallback way of accessing the object.
-        return this && accessMethod && accessMethod.type !== AccessMethodType.GCS;
-    }
-
-    accessUrlAuth(accessMethod, accessToken, requestAuth) {
-        const providerAccessMethod = this.accessMethodMatchingType(accessMethod);
-        switch (providerAccessMethod.signedUrlDisposition) {
-            case SignedUrls.YES_USING_FENCE_TOKEN:
-                return `Bearer ${accessToken}`;
-            case SignedUrls.YES_USING_CURRENT_AUTH:
-                return requestAuth;
-            default:
-                throw new BadRequestError(
-                    `Programmer error: 'accessUrlAuth' called with signed URL disposition ${providerAccessMethod.signedUrlDisposition} for provider ${this.providerName}`);
-        }
-    }
-}
 
 function shouldRequestMetadata(requestedFields) {
     return overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS);
@@ -424,92 +271,6 @@ function responseParser (response) {
             .filter((e) => e.url.startsWith('gs://'))
             .map((gsUrl) => { return { type: 'gs', access_url: { url: gsUrl.url } }; });
     return { access_methods, checksums, created_time, mime_type, name, size, updated_time };
-}
-
-/** *************************************************************************************************
- * Here is where all the logic lives that pairs a particular kind of URI with its
- * resolving-URL-generating parser, what path to use to make a Bond request for an SA (if any), and
- * a response parser.
- *
- * If you update this function update the README too!
- *
- * @param url {String} The full URL to be tested
- * @param urlParts {Object} The URL parts to be tested
- * @return {DrsProvider}
- */
-function determineDrsProvider(url, urlParts) {
-    const host = urlParts.httpsUrlHost;
-
-    // BDC, but skip DOS/DRS URIs that might be a fake `martha_v2`-compatible BDC
-    if ((host.endsWith('.biodatacatalyst.nhlbi.nih.gov') || (host === config.HOST_MOCK_DRS))
-        && !urlParts.httpsUrlMaybeNotBdc) {
-        return new DrsProvider(
-            'BioData Catalyst (BDC)',
-            MetadataAuth.NO,
-            BondProvider.FENCE,
-            [
-                new AccessMethod(AccessMethodType.GCS, SignedUrls.NO) //  BT-236 BDC signed URLs temporarily turned off
-            ]
-        );
-    }
-
-    // The AnVIL
-    if (host.endsWith('.theanvil.io')) {
-        return new DrsProvider(
-            'NHGRI Analysis Visualization and Informatics Lab-space (The AnVIL)',
-            MetadataAuth.NO,
-            BondProvider.ANVIL,
-            // For more info see comment above for BDC's `accessMethodType`
-            [
-                new AccessMethod(AccessMethodType.GCS, SignedUrls.NO)
-            ]
-        );
-    }
-
-    // Jade Data Repo
-    if (jadeDataRepoHostRegex.test(host)) {
-        return new DrsProvider(
-            'Terra Data Repo (TDR)',
-            MetadataAuth.YES,
-            BondProvider.NONE,
-            [
-                new AccessMethod(AccessMethodType.GCS, SignedUrls.NO)
-            ]
-        );
-    }
-
-    // CRDC / PDC
-    if (host.endsWith('.datacommons.io')) {
-        return new DrsProvider(
-            'NCI Cancer Research / Proteomics Data Commons (CRDC / PDC)',
-            MetadataAuth.NO,
-            BondProvider.DCF_FENCE,
-            [
-                new AccessMethod(AccessMethodType.GCS, SignedUrls.NO),
-                new AccessMethod(AccessMethodType.S3, SignedUrls.YES_USING_FENCE_TOKEN)
-            ]
-        );
-    }
-
-    // Kids First
-    if (host.endsWith('.kidsfirstdrc.org')) {
-        return new DrsProvider(
-            'Gabriella Miller Kids First DRC',
-            MetadataAuth.NO,
-            BondProvider.KIDS_FIRST,
-            [
-                new AccessMethod(AccessMethodType.S3, SignedUrls.YES_USING_FENCE_TOKEN)
-            ]
-        );
-    }
-
-    // RIP dataguids.org
-    if (host.endsWith('dataguids.org')) {
-        throw new BadRequestError('dataguids.org data has moved. See: https://support.terra.bio/hc/en-us/articles/360060681132');
-    }
-
-    // Fail explicitly for DRS ids for which Martha can not determine a provider.
-    throw new BadRequestError(`Could not determine DRS provider for id '${url}'`);
 }
 
 function validateRequest(url, auth, requestedFields) {
@@ -770,11 +531,8 @@ async function marthaV3Handler(req, res) {
 }
 
 exports.marthaV3Handler = marthaV3Handler;
-exports.DrsProvider = DrsProvider;
-exports.determineDrsProvider = determineDrsProvider;
 exports.generateMetadataUrl = generateMetadataUrl;
 exports.generateAccessUrl = generateAccessUrl;
 exports.getHttpsUrlParts = getHttpsUrlParts;
-exports.MARTHA_V3_ALL_FIELDS = MARTHA_V3_ALL_FIELDS;
 exports.overridePencilsDownSeconds = overridePencilsDownSeconds;
 exports.PROTOCOL_PREFIX_DRS = PROTOCOL_PREFIX_DRS;

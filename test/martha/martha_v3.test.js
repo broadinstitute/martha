@@ -36,15 +36,22 @@ const test = require('ava');
 const sinon = require('sinon');
 const {
     marthaV3Handler: marthaV3,
-    DrsProvider,
-    determineDrsProvider,
     generateMetadataUrl,
     generateAccessUrl,
     getHttpsUrlParts,
-    MARTHA_V3_ALL_FIELDS,
     overridePencilsDownSeconds,
     PROTOCOL_PREFIX_DRS
 } = require('../../martha/martha_v3');
+
+const {
+    MARTHA_V3_ALL_FIELDS,
+} = require("../../martha/martha_fields");
+
+const {
+    DrsProvider,
+    determineDrsProvider,
+} = require("../../martha/drs_providers");
+
 const apiAdapter = require('../../common/api_adapter');
 const config = require('../../common/config');
 const { delay } = require('../../common/helpers');
