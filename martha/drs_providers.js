@@ -16,10 +16,14 @@ const AccessMethodType = {
     S3: 's3'
 };
 
-const SignedUrls = {
-    NO: 'NO',
-    YES_USING_FENCE_TOKEN: 'YES_USING_FENCE_TOKEN',
-    YES_USING_CURRENT_AUTH: 'YES_USING_CURRENT_AUTH'
+const SignedUrlAuth = {
+    FENCE_TOKEN: "FENCE_TOKEN",
+    CURRENT_AUTH: "CURRENT_AUTH"
+};
+
+const SignedUrlEnabled = {
+    ON: "ON",
+    OFF: "OFF",
 };
 
 const BondProvider = {
@@ -36,9 +40,10 @@ const MetadataAuth = {
 };
 
 class AccessMethod {
-    constructor(accessMethodType, signedUrlDisposition) {
+    constructor(accessMethodType, signedUrlAuth, signedUrlEnabled) {
         this.accessMethodType = accessMethodType;
-        this.signedUrlDisposition = signedUrlDisposition;
+        this.signedUrlAuth = signedUrlAuth;
+        this.signedUrlEnabled = signedUrlEnabled;
     }
 }
 
@@ -58,27 +63,33 @@ class DrsProvider {
     /**
      * Should Martha call Bond to retrieve a Fence access token to use when later calling the `access` endpoint to
      * retrieve a signed URL. Should return `true` for Gen3 signed URL flows and `false` otherwise, including TDR signed
-     * URL flows (TDR uses the same auth supplied to the current Martha request as the auth for calling `access`).
+     * URL flows (TDR uses the same auth supplied to the current Martha request for calling `access`).
      * @param accessMethod
      * @param requestedFields
+     * @param forceSignedUrl
      * @return {boolean}
      */
-    shouldFetchFenceToken(accessMethod, requestedFields) {
+    shouldFetchFenceToken(accessMethod, requestedFields, forceSignedUrl) {
         return this.bondProvider &&
-            accessMethod &&
             overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&
-            this.accessMethodHavingSameTypeAs(accessMethod).signedUrlDisposition === SignedUrls.YES_USING_FENCE_TOKEN;
+            (forceSignedUrl || (accessMethod &&
+                this.accessMethods.find((m) => m.accessMethodType === accessMethod.type &&
+                    m.signedUrlAuth === SignedUrlAuth.FENCE_TOKEN &&
+                    m.signedUrlEnabled === SignedUrlEnabled.ON)));
     }
 
     /**
      * Should Martha call the DRS provider's `access` endpoint to get a signed URL.
      * @param accessMethod
      * @param requestedFields
+     * @param forceSignedUrl
      * @return {boolean}
      */
-    shouldFetchAccessUrl(accessMethod, requestedFields) {
+    shouldFetchAccessUrl(accessMethod, requestedFields, forceSignedUrl) {
         return overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&
-            this.accessMethodHavingSameTypeAs(accessMethod).signedUrlDisposition !== SignedUrls.NO;
+            (forceSignedUrl || (accessMethod &&
+                this.accessMethods.find((m) => m.accessMethodType === accessMethod.type &&
+                    m.signedUrlEnabled === SignedUrlEnabled.ON)));
     }
 
     /**
@@ -106,14 +117,14 @@ class DrsProvider {
 
     accessUrlAuth(accessMethod, accessToken, requestAuth) {
         const providerAccessMethod = this.accessMethodHavingSameTypeAs(accessMethod);
-        switch (providerAccessMethod.signedUrlDisposition) {
-            case SignedUrls.YES_USING_FENCE_TOKEN:
+        switch (providerAccessMethod.signedUrlAuth) {
+            case SignedUrlAuth.FENCE_TOKEN:
                 return `Bearer ${accessToken}`;
-            case SignedUrls.YES_USING_CURRENT_AUTH:
+            case SignedUrlAuth.CURRENT_AUTH:
                 return requestAuth;
             default:
                 throw new BadRequestError(
-                    `Programmer error: 'accessUrlAuth' called with signed URL disposition ${providerAccessMethod.signedUrlDisposition} for provider ${this.providerName}`);
+                    `Programmer error: 'accessUrlAuth' called with signed URL disposition ${providerAccessMethod.SignedUrlEnabled} for provider ${this.providerName}`);
         }
     }
 }
@@ -125,7 +136,8 @@ const BioDataCatalystDrsProvider = new DrsProvider(
     MetadataAuth.NO,
     BondProvider.FENCE,
     [
-        new AccessMethod(AccessMethodType.GCS, SignedUrls.NO) //  BT-236 BDC signed URLs temporarily turned off
+        //  BT-236 BDC signed URLs temporarily turned off
+        new AccessMethod(AccessMethodType.GCS, SignedUrlAuth.FENCE_TOKEN, SignedUrlEnabled.OFF)
     ]
 );
 
@@ -134,7 +146,7 @@ const TerraDataRepoDrsProvider = new DrsProvider(
     MetadataAuth.YES,
     BondProvider.NONE,
     [
-        new AccessMethod(AccessMethodType.GCS, SignedUrls.NO)
+        new AccessMethod(AccessMethodType.GCS, SignedUrlAuth.CURRENT_AUTH, SignedUrlEnabled.OFF)
     ]
 );
 
@@ -143,7 +155,7 @@ const KidsFirstDrsProvider = new DrsProvider(
     MetadataAuth.NO,
     BondProvider.KIDS_FIRST,
     [
-        new AccessMethod(AccessMethodType.S3, SignedUrls.YES_USING_FENCE_TOKEN)
+        new AccessMethod(AccessMethodType.S3, SignedUrlAuth.FENCE_TOKEN, SignedUrlEnabled.ON)
     ]
 );
 
@@ -152,7 +164,7 @@ const AnvilDrsProvider = new DrsProvider(
     MetadataAuth.NO,
     BondProvider.ANVIL,
     [
-        new AccessMethod(AccessMethodType.GCS, SignedUrls.NO)
+        new AccessMethod(AccessMethodType.GCS, SignedUrlAuth.FENCE_TOKEN, SignedUrlEnabled.OFF)
     ]
 );
 
@@ -161,8 +173,8 @@ const CrdcProvider = new DrsProvider(
     MetadataAuth.NO,
     BondProvider.DCF_FENCE,
     [
-        new AccessMethod(AccessMethodType.GCS, SignedUrls.NO),
-        new AccessMethod(AccessMethodType.S3, SignedUrls.YES_USING_FENCE_TOKEN)
+        new AccessMethod(AccessMethodType.GCS, SignedUrlAuth.FENCE_TOKEN, SignedUrlEnabled.OFF),
+        new AccessMethod(AccessMethodType.S3, SignedUrlAuth.FENCE_TOKEN, SignedUrlEnabled.ON)
     ]
 );
 
