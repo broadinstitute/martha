@@ -12,8 +12,7 @@ const apiAdapter = require('../common/api_adapter');
 const url = require('url');
 const mask = require('json-mask');
 
-// All fields that can be returned in the martha_v3 response.
-const MARTHA_V3_ALL_FIELDS = [
+const MARTHA_V3_CORE_FIELDS = [
     'gsUri',
     'bucket',
     'name',
@@ -23,35 +22,24 @@ const MARTHA_V3_ALL_FIELDS = [
     'hashes',
     'timeCreated',
     'timeUpdated',
+];
+
+// All fields that can be returned in the martha_v3 response.
+const MARTHA_V3_ALL_FIELDS = [
+    ...MARTHA_V3_CORE_FIELDS,
     'googleServiceAccount',
     'bondProvider',
     'accessUrl',
 ];
 
 const MARTHA_V3_DEFAULT_FIELDS = [
-    'gsUri',
-    'bucket',
-    'name',
-    'fileName',
-    'contentType',
-    'size',
-    'hashes',
-    'timeCreated',
-    'timeUpdated',
+    ...MARTHA_V3_CORE_FIELDS,
     'googleServiceAccount',
 ];
 
 // Response fields dependent on the DOS or DRS servers
 const MARTHA_V3_METADATA_FIELDS = [
-    'gsUri',
-    'bucket',
-    'name',
-    'fileName',
-    'contentType',
-    'size',
-    'hashes',
-    'timeCreated',
-    'timeUpdated',
+    ...MARTHA_V3_CORE_FIELDS,
     'accessUrl',
 ];
 
@@ -65,7 +53,7 @@ const MARTHA_V3_ACCESS_ID_FIELDS = [
     'accessUrl',
 ];
 
-const Type = {
+const AccessMethodType = {
     GCS: 'gs',
     S3: 's3'
 };
@@ -142,7 +130,7 @@ class DrsProvider {
     shouldFetchAccessToken(accessMethod, requestedFields) {
         return this.bondProvider &&
             accessMethod &&
-            accessMethod.type === Type.S3 &&
+            accessMethod.type === AccessMethodType.S3 &&
             overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&
             this.accessMethodMatchingType(accessMethod).signedUrlDisposition === SignedUrls.YES_USING_ACCESS_TOKEN;
     }
@@ -157,8 +145,8 @@ class DrsProvider {
         return this.bondProvider !== BondProvider.NONE &&
             // "Not definitely not GCS". A falsy accessMethod is okay because there may not have been a preceding
             // metadata request.
-            (!accessMethod || accessMethod.type === Type.GCS) &&
-            this.accessMethodTypes().includes(Type.GCS) &&
+            (!accessMethod || accessMethod.type === AccessMethodType.GCS) &&
+            this.accessMethodTypes().includes(AccessMethodType.GCS) &&
             overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS);
     }
 
@@ -169,7 +157,7 @@ class DrsProvider {
     shouldFailOnAccessUrlFail(accessMethod) {
         // Fail if we failed to get a signed URL and the access method is truthy but its type is not GCS. Martha clients
         // currently can't deal with cloud paths other than GCS so there isn't a fallback way of accessing the object.
-        return this && accessMethod && accessMethod.type !== Type.GCS;
+        return this && accessMethod && accessMethod.type !== AccessMethodType.GCS;
     }
 
     accessUrlAuth(accessMethod, accessToken, requestAuth) {
@@ -439,7 +427,7 @@ function determineDrsProvider(url, urlParts) {
             MetadataAuth.NO,
             BondProvider.FENCE,
             [
-                new AccessMethod(Type.GCS, SignedUrls.NO) //  BT-236 BDC signed URLs temporarily turned off
+                new AccessMethod(AccessMethodType.GCS, SignedUrls.NO) //  BT-236 BDC signed URLs temporarily turned off
             ]
         );
     }
@@ -452,7 +440,7 @@ function determineDrsProvider(url, urlParts) {
             BondProvider.ANVIL,
             // For more info see comment above for BDC's `accessMethodType`
             [
-                new AccessMethod(Type.GCS, SignedUrls.NO)
+                new AccessMethod(AccessMethodType.GCS, SignedUrls.NO)
             ]
         );
     }
@@ -464,7 +452,7 @@ function determineDrsProvider(url, urlParts) {
             MetadataAuth.YES,
             BondProvider.NONE,
             [
-                new AccessMethod(Type.GCS, SignedUrls.YES_USING_CURRENT_AUTH)
+                new AccessMethod(AccessMethodType.GCS, SignedUrls.NO)
             ]
         );
     }
@@ -476,8 +464,8 @@ function determineDrsProvider(url, urlParts) {
             MetadataAuth.NO,
             BondProvider.DCF_FENCE,
             [
-                new AccessMethod(Type.GCS, SignedUrls.NO),
-                new AccessMethod(Type.S3, SignedUrls.YES_USING_ACCESS_TOKEN)
+                new AccessMethod(AccessMethodType.GCS, SignedUrls.NO),
+                new AccessMethod(AccessMethodType.S3, SignedUrls.YES_USING_ACCESS_TOKEN)
             ]
         );
     }
@@ -489,7 +477,7 @@ function determineDrsProvider(url, urlParts) {
             MetadataAuth.NO,
             BondProvider.KIDS_FIRST,
             [
-                new AccessMethod(Type.S3, SignedUrls.YES_USING_ACCESS_TOKEN)
+                new AccessMethod(AccessMethodType.S3, SignedUrls.YES_USING_ACCESS_TOKEN)
             ]
         );
     }
