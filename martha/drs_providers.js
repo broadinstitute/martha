@@ -16,14 +16,14 @@ const AccessMethodType = {
     S3: 's3'
 };
 
-const SignedUrlAuth = {
+const AccessAuth = {
     FENCE_TOKEN: "FENCE_TOKEN",
-    CURRENT_AUTH: "CURRENT_AUTH"
+    CURRENT_REQUEST: "CURRENT_REQUEST"
 };
 
-const SignedUrlEnabled = {
-    ON: "ON",
-    OFF: "OFF",
+const Enabled = {
+    TRUE: "TRUE",
+    FALSE: "FALSE",
 };
 
 const BondProvider = {
@@ -74,8 +74,8 @@ class DrsProvider {
             overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&
             (forceSignedUrl || (accessMethod &&
                 this.accessMethods.find((m) => m.accessMethodType === accessMethod.type &&
-                    m.signedUrlAuth === SignedUrlAuth.FENCE_TOKEN &&
-                    m.signedUrlEnabled === SignedUrlEnabled.ON)));
+                    m.signedUrlAuth === AccessAuth.FENCE_TOKEN &&
+                    m.signedUrlEnabled === Enabled.TRUE)));
     }
 
     /**
@@ -89,7 +89,7 @@ class DrsProvider {
         return overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&
             (forceSignedUrl || (accessMethod &&
                 this.accessMethods.find((m) => m.accessMethodType === accessMethod.type &&
-                    m.signedUrlEnabled === SignedUrlEnabled.ON)));
+                    m.signedUrlEnabled === Enabled.TRUE)));
     }
 
     /**
@@ -118,9 +118,9 @@ class DrsProvider {
     accessUrlAuth(accessMethod, accessToken, requestAuth) {
         const providerAccessMethod = this.accessMethodHavingSameTypeAs(accessMethod);
         switch (providerAccessMethod.signedUrlAuth) {
-            case SignedUrlAuth.FENCE_TOKEN:
+            case AccessAuth.FENCE_TOKEN:
                 return `Bearer ${accessToken}`;
-            case SignedUrlAuth.CURRENT_AUTH:
+            case AccessAuth.CURRENT_REQUEST:
                 return requestAuth;
             default:
                 throw new BadRequestError(
@@ -137,7 +137,7 @@ const BioDataCatalystDrsProvider = new DrsProvider(
     BondProvider.FENCE,
     [
         //  BT-236 BDC signed URLs temporarily turned off
-        new AccessMethod(AccessMethodType.GCS, SignedUrlAuth.FENCE_TOKEN, SignedUrlEnabled.OFF)
+        new AccessMethod(AccessMethodType.GCS, AccessAuth.FENCE_TOKEN, Enabled.FALSE)
     ]
 );
 
@@ -146,7 +146,7 @@ const TerraDataRepoDrsProvider = new DrsProvider(
     MetadataAuth.YES,
     BondProvider.NONE,
     [
-        new AccessMethod(AccessMethodType.GCS, SignedUrlAuth.CURRENT_AUTH, SignedUrlEnabled.OFF)
+        new AccessMethod(AccessMethodType.GCS, AccessAuth.CURRENT_REQUEST, Enabled.FALSE)
     ]
 );
 
@@ -155,7 +155,7 @@ const KidsFirstDrsProvider = new DrsProvider(
     MetadataAuth.NO,
     BondProvider.KIDS_FIRST,
     [
-        new AccessMethod(AccessMethodType.S3, SignedUrlAuth.FENCE_TOKEN, SignedUrlEnabled.ON)
+        new AccessMethod(AccessMethodType.S3, AccessAuth.FENCE_TOKEN, Enabled.TRUE)
     ]
 );
 
@@ -164,7 +164,7 @@ const AnvilDrsProvider = new DrsProvider(
     MetadataAuth.NO,
     BondProvider.ANVIL,
     [
-        new AccessMethod(AccessMethodType.GCS, SignedUrlAuth.FENCE_TOKEN, SignedUrlEnabled.OFF)
+        new AccessMethod(AccessMethodType.GCS, AccessAuth.FENCE_TOKEN, Enabled.FALSE)
     ]
 );
 
@@ -173,8 +173,8 @@ const CrdcProvider = new DrsProvider(
     MetadataAuth.NO,
     BondProvider.DCF_FENCE,
     [
-        new AccessMethod(AccessMethodType.GCS, SignedUrlAuth.FENCE_TOKEN, SignedUrlEnabled.OFF),
-        new AccessMethod(AccessMethodType.S3, SignedUrlAuth.FENCE_TOKEN, SignedUrlEnabled.ON)
+        new AccessMethod(AccessMethodType.GCS, AccessAuth.FENCE_TOKEN, Enabled.FALSE),
+        new AccessMethod(AccessMethodType.S3, AccessAuth.FENCE_TOKEN, Enabled.TRUE)
     ]
 );
 
