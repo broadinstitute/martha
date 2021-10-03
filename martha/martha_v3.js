@@ -348,7 +348,7 @@ async function retrieveFromServers(params) {
 
     const fetch = async () => {
         let response;
-        if (drsProvider.shouldRequestMetadata(requestedFields)) {
+        if (DrsProvider.shouldRequestMetadata(requestedFields)) {
             try {
                 hypotheticalErrorMessage = 'Could not fetch DRS metadata.';
                 const httpsMetadataUrl = generateMetadataUrl(drsProvider, urlParts);

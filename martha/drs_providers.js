@@ -109,7 +109,7 @@ class DrsProvider {
             overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS);
     }
 
-    static shouldFailOnAccessUrlFail(accessMethod) {
+    shouldFailOnAccessUrlFail(accessMethod) {
         // Fail this request if Martha was unable to get an access/signed URL and the access method is truthy but its
         // type is not GCS. Martha clients currently can't deal with cloud paths other than GCS so there isn't a
         // fallback way of accessing the object.
@@ -119,11 +119,11 @@ class DrsProvider {
         // support headers, which at the time of this writing is not true at least for the Cromwell localizer using getm
         // 0.0.4. This also presumes that the Martha response would fall back to a different access method than the
         // GCS/Azure one for which Martha tried and failed to get a signed URL. The current code does not support this.
-        return accessMethod && accessMethod.type !== AccessMethodType.GCS;
+        return this && accessMethod && accessMethod.type !== AccessMethodType.GCS;
     }
 
-    static shouldRequestMetadata(requestedFields) {
-        return overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS);
+    shouldRequestMetadata(requestedFields) {
+        return this && overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS);
     }
 
     accessUrlAuth(accessMethod, accessToken, requestAuth) {
