@@ -8,7 +8,7 @@ const config = require("../common/config");
 const {
     MARTHA_V3_ACCESS_ID_FIELDS,
     MARTHA_V3_BOND_SA_FIELDS,
-    overlapFields
+    overlapFields, MARTHA_V3_METADATA_FIELDS
 } = require("./martha_fields");
 
 const AccessMethodType = {
@@ -54,7 +54,7 @@ class DrsProvider {
         this.bondProvider = bondProvider;
         this.accessMethods = accessMethods;
         this.accessMethodTypes = accessMethods && accessMethods.map((m) => m.accessMethodType);
-        // may be overridden in request headers or tests
+        // may be overridden in request headers or tests, set it explicitly here to placate eslint.
         this.forceAccessUrl = false;
     }
 
@@ -70,7 +70,7 @@ class DrsProvider {
      * @param requestedFields
      * @return {boolean}
      */
-    shouldFetchFenceToken(accessMethod, requestedFields) {
+    shouldFetchFenceAccessToken(accessMethod, requestedFields) {
         return this.bondProvider &&
             overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&
             (this.forceAccessUrl || (accessMethod &&
@@ -109,10 +109,21 @@ class DrsProvider {
             overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS);
     }
 
-    shouldFailOnAccessUrlFail(accessMethod) {
-        // Fail if we failed to get a signed URL and the access method is truthy but its type is not GCS. Martha clients
-        // currently can't deal with cloud paths other than GCS so there isn't a fallback way of accessing the object.
-        return this && accessMethod && accessMethod.type !== AccessMethodType.GCS;
+    static shouldFailOnAccessUrlFail(accessMethod) {
+        // Fail this request if Martha was unable to get an access/signed URL and the access method is truthy but its
+        // type is not GCS. Martha clients currently can't deal with cloud paths other than GCS so there isn't a
+        // fallback way of accessing the object.
+        // Note: TDR's metadata responses for objects stored in GCS include an `https` access method with a URL and
+        // headers (the headers containing the same bearer auth as in the TDR metadata request) which could be used for
+        // download without fetching a signed URL. However this presumes that the URL downloaders in Martha clients
+        // support headers, which at the time of this writing is not true at least for the Cromwell localizer using getm
+        // 0.0.4. This also presumes that the Martha response would fall back to a different access method than the
+        // GCS/Azure one for which Martha tried and failed to get a signed URL. The current code does not support this.
+        return accessMethod && accessMethod.type !== AccessMethodType.GCS;
+    }
+
+    static shouldRequestMetadata(requestedFields) {
+        return overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS);
     }
 
     accessUrlAuth(accessMethod, accessToken, requestAuth) {
@@ -130,13 +141,13 @@ class DrsProvider {
 }
 
 // Define the default provider implementations here and insert them as the values in the `DrsProviderInstances` object
-// below. Test should override the map values to ensure providers work as expected with signed URLs turned on or off.
+// below. Tests can override the map values to ensure providers work as expected with signed URLs on or off.
 const BioDataCatalystDrsProvider = new DrsProvider(
     'BioData Catalyst (BDC)',
     MetadataAuth.NO,
     BondProvider.FENCE,
     [
-        //  BT-236 BDC signed URLs temporarily turned off
+        //  BT-236 BDC access (signed) URLs temporarily turned off
         new AccessMethod(AccessMethodType.GCS, AccessUrlAuth.FENCE_TOKEN, FetchAccessUrl.NO)
     ]
 );

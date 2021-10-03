@@ -8,10 +8,8 @@ const {
 } = require('../common/helpers');
 
 const {
-    MARTHA_V3_METADATA_FIELDS,
     MARTHA_V3_DEFAULT_FIELDS,
     MARTHA_V3_ALL_FIELDS,
-    overlapFields,
 } = require("./martha_fields");
 
 const {
@@ -42,10 +40,6 @@ let pencilsDownSeconds = 58;
 const overridePencilsDownSeconds = (seconds) => {
     pencilsDownSeconds = seconds;
 };
-
-function shouldRequestMetadata(requestedFields) {
-    return overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS);
-}
 
 /**
  * Returns the first access method in `drsProvider.accessMethodTypes` with a type that matches the type of an access
@@ -354,7 +348,7 @@ async function retrieveFromServers(params) {
 
     const fetch = async () => {
         let response;
-        if (shouldRequestMetadata(requestedFields)) {
+        if (drsProvider.shouldRequestMetadata(requestedFields)) {
             try {
                 hypotheticalErrorMessage = 'Could not fetch DRS metadata.';
                 const httpsMetadataUrl = generateMetadataUrl(drsProvider, urlParts);
@@ -405,7 +399,7 @@ async function retrieveFromServers(params) {
 
         try {
             let accessToken;
-            if (drsProvider.shouldFetchFenceToken(accessMethod, requestedFields)) {
+            if (drsProvider.shouldFetchFenceAccessToken(accessMethod, requestedFields)) {
                 try {
                     const bondAccessTokenUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/accesstoken`;
                     console.log(`Requesting Bond access token for '${url}' from '${bondAccessTokenUrl}'`);
