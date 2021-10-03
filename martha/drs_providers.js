@@ -53,13 +53,16 @@ class DrsProvider {
         this.sendMetadataAuth = sendMetadataAuth;
         this.bondProvider = bondProvider;
         this.accessMethods = accessMethods;
-        this.accessMethodTypes = accessMethods && accessMethods.map((m) => m.accessMethodType);
         // may be overridden in request headers or tests, set it explicitly here to placate eslint.
         this.forceAccessUrl = false;
     }
 
     accessMethodHavingSameTypeAs(accessMethod) {
         return this.accessMethods.find((o) => o.accessMethodType === accessMethod.type);
+    }
+
+    accessMethodTypes() {
+        return this && this.accessMethods && this.accessMethods.map((m) => m.accessMethodType);
     }
 
     /**
@@ -105,7 +108,7 @@ class DrsProvider {
             // "Not definitely not GCS". A falsy accessMethod is okay because there may not have been a preceding
             // metadata request to determine the accessMethod.
             (!accessMethod || accessMethod.type === AccessMethodType.GCS) &&
-            this.accessMethodTypes.includes(AccessMethodType.GCS) &&
+            this.accessMethodTypes().includes(AccessMethodType.GCS) &&
             overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS);
     }
 
