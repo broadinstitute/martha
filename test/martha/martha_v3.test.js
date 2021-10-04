@@ -52,7 +52,7 @@ const {
 } = require("../../martha/drs_providers");
 
 const {
-    MARTHA_V3_ALL_FIELDS,
+    MARTHA_V3_ALL_FIELDS, MARTHA_V3_ACCESS_ID_FIELDS,
 } = require("../../martha/martha_fields");
 
 const apiAdapter = require('../../common/api_adapter');
@@ -261,7 +261,7 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
     sinon.assert.callCount(getJsonFromApiStub, 3);
 });
 
-test.serial('martha_v3 calls the correct endpoints when only the accessUrl is requested for TDR', async (t) => {
+test.serial('martha_v3 calls the correct endpoints when access url fetch is forced for TDR', async (t) => {
     const {
         id: objectId, self_uri: drsUri,
         access_methods: { 0: { access_id: accessId, access_url: { url: gsUrl } } }
@@ -274,8 +274,8 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
     getJsonFromApiStub.withArgs(drs.accessUrl, terraAuth).resolves(jadeAccessUrlAccessResponse);
     const response = mockResponse();
     const request = mockRequest(
-        { body: { url: drsUri, fields: ['accessUrl'] } },
-        MARTHA_V3_ALL_FIELDS,
+        { body: { url: drsUri } },
+        MARTHA_V3_ACCESS_ID_FIELDS,
         FORCE_ACCESS_URL
     );
 
