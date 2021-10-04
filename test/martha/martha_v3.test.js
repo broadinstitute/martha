@@ -30,6 +30,8 @@ const {
     dosObjectWithInvalidFields,
     drsObjectWithInvalidFields,
     expectedObjWithMissingFields,
+    jadeAccessUrlMetadataResponse,
+    jadeAccessUrlAccessResponse
 } = require('./_martha_v3_resources.js');
 
 const test = require('ava');
@@ -60,9 +62,9 @@ const mask = require('json-mask');
 
 const terraAuth = 'bearer abc123';
 
-const mockRequest = (req, requestFields = MARTHA_V3_ALL_FIELDS) => {
+const mockRequest = (req, requestFields = MARTHA_V3_ALL_FIELDS, forceAccessUrl = false) => {
     req.method = 'POST';
-    req.headers = { authorization: terraAuth };
+    req.headers = { 'authorization': terraAuth, 'martha-force-access-url': forceAccessUrl };
     if (req.body && typeof req.body.fields === "undefined") {
         req.body.fields = requestFields;
     }
@@ -112,11 +114,14 @@ const drsUrls = (host, id, accessId) => {
     };
 };
 
-// This will not be unused when we eventually turn on signed URLs for a dataset hosted in GCS.
-// eslint-disable-next-line no-unused-vars
+const FORCE_ACCESS_URL = true;
+
 function mockGcsAccessUrl(gsUrlString) {
     const gsUrl = new URL(gsUrlString);
-    return { url: `https://storage.googleapis.com/${gsUrl.hostname}${gsUrl.pathname}?sig=ABC` };
+    return {
+        url: `https://storage.googleapis.com/${gsUrl.hostname}${gsUrl.pathname}?sig=ABC`,
+        headers: null
+    };
 }
 
 function mockS3AccessUrl(s3UrlString) {
@@ -255,6 +260,30 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
     t.deepEqual(response.body, { accessUrl: drsAccessUrlResponse });
 
     sinon.assert.callCount(getJsonFromApiStub, 3);
+});
+
+test.serial('martha_v3 calls the correct endpoints when only the accessUrl is requested for TDR', async (t) => {
+    const {
+        id: objectId, self_uri: drsUri,
+        access_methods: { 0: { access_id: accessId, access_url: { url: gsUrl } } }
+    } = jadeAccessUrlMetadataResponse;
+    const drs = drsUrls('jade.datarepo-dev.broadinstitute.org', objectId, accessId);
+    const drsAccessUrlResponse = mockGcsAccessUrl(gsUrl);
+    getJsonFromApiStub.withArgs(drs.objectsUrl, terraAuth).resolves(jadeAccessUrlMetadataResponse);
+    getJsonFromApiStub.withArgs(drs.accessUrl, terraAuth).resolves(jadeAccessUrlAccessResponse);
+    const response = mockResponse();
+    const request = mockRequest(
+        { body: { url: drsUri, fields: ['accessUrl'] } },
+        MARTHA_V3_ALL_FIELDS,
+        FORCE_ACCESS_URL
+    );
+
+    await marthaV3(request, response);
+
+    t.is(response.statusCode, 200);
+    t.deepEqual(response.body, { accessUrl: drsAccessUrlResponse });
+
+    sinon.assert.callCount(getJsonFromApiStub, 2);
 });
 
 test.serial('martha_v3 calls the correct endpoints when only the fileName is requested and the metadata contains a name', async (t) => {

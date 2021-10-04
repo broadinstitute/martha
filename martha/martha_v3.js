@@ -14,7 +14,6 @@ const {
 
 const {
     determineDrsProvider,
-    DrsProviderInstances: DefaultDrsProviderInstances,
 } = require("./drs_providers");
 
 const config = require('../common/config');
@@ -295,13 +294,12 @@ function buildRequestInfo(params) {
         url,
         requestedFields,
         auth,
-        drsProviderInstances,
         forceAccessUrl,
     } = params;
 
     validateRequest(url, auth, requestedFields);
     const urlParts = getHttpsUrlParts(url);
-    const drsProvider = determineDrsProvider(url, urlParts, drsProviderInstances);
+    const drsProvider = determineDrsProvider(url, urlParts);
     // Force the retrieval of a (signed) access URL for this request if the `martha-force-access-url` header is set.
     Object.assign(drsProvider, {forceAccessUrl: Boolean(forceAccessUrl)});
 
@@ -331,6 +329,7 @@ async function retrieveFromServers(params) {
     const {sendMetadataAuth, bondProvider} = drsProvider;
 
     // TODO: figure out JSON logging for Martha (and Bond), the multiline logging situation is a mess.
+    // e.g. any stack traces for Martha / Bond appear as one log entry per frame
     console.log(
         `DRS URI '${url}' will use DRS provider:\n${JSON.stringify(drsProvider, null, 2)}`
     );
@@ -497,7 +496,7 @@ function buildResponseInfo(params) {
  *   5. Fetches a signed URL from DRS server [+]
  * ([+] only for some data providers and some objects)
  */
-async function marthaV3Handler(req, res, drsProviderInstances = DefaultDrsProviderInstances) {
+async function marthaV3Handler(req, res) {
     try {
         // This function counts on the request posting data as "application/json" content-type.
         // See: https://cloud.google.com/functions/docs/writing/http#parsing_http_requests for more details
@@ -511,7 +510,6 @@ async function marthaV3Handler(req, res, drsProviderInstances = DefaultDrsProvid
             requestedFields,
             auth,
             forceAccessUrl,
-            drsProviderInstances
         };
 
         buildRequestInfo(params);

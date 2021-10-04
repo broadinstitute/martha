@@ -208,7 +208,7 @@ const DrsProviderInstances = {
  * @param drsProviderInstances {Object} Mapping of DRS provider keys to implementations, useful for testing.
  * @return {DrsProvider}
  */
-function determineDrsProvider(url, urlParts, drsProviderInstances) {
+function determineDrsProvider(url, urlParts, drsProviderInstances = DrsProviderInstances) {
     const host = urlParts.httpsUrlHost;
 
     // BDC, but skip DOS/DRS URIs that might be a fake `martha_v2`-compatible BDC
