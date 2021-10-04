@@ -120,7 +120,6 @@ function mockGcsAccessUrl(gsUrlString) {
     const gsUrl = new URL(gsUrlString);
     return {
         url: `https://storage.googleapis.com/${gsUrl.hostname}${gsUrl.pathname}?sig=ABC`,
-        headers: null
     };
 }
 
@@ -268,7 +267,9 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
         access_methods: { 0: { access_id: accessId, access_url: { url: gsUrl } } }
     } = jadeAccessUrlMetadataResponse;
     const drs = drsUrls('jade.datarepo-dev.broadinstitute.org', objectId, accessId);
-    const drsAccessUrlResponse = mockGcsAccessUrl(gsUrl);
+    // 2021-10-04 Jade returns `"headers": null` if there are no headers, while the Gen3 repos we have worked with to
+    // date omit the "headers" kv completely.
+    const drsAccessUrlResponse = {...mockGcsAccessUrl(gsUrl), 'headers': null};
     getJsonFromApiStub.withArgs(drs.objectsUrl, terraAuth).resolves(jadeAccessUrlMetadataResponse);
     getJsonFromApiStub.withArgs(drs.accessUrl, terraAuth).resolves(jadeAccessUrlAccessResponse);
     const response = mockResponse();

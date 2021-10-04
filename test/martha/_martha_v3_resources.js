@@ -7,6 +7,8 @@
 
 const config = require('../../common/config');
 
+const fakeToken = 'Definitely not a real token';
+
 const dosObjectWithMissingFields = {
     data_object: {
         id: 'v1_abc-123',
@@ -189,7 +191,7 @@ const jadeAccessUrlMetadataResponse = {
             "access_url": {
                 "url": "https://www.googleapis.com/storage/v1/b/broad-jade-dev-data-bucket/o/ca8edd48-e954-4c20-b911-b017fedffb67%2Fc0e40912-8b14-43f6-9a2f-b278144d0060?alt=media",
                 "headers": [
-                    "Authorization: Bearish"
+                    `Authorization: Bearer ${fakeToken}`
                 ]
             },
             "access_id": null,
@@ -205,7 +207,7 @@ const jadeAccessUrlMetadataResponse = {
 
 const jadeAccessUrlAccessResponse = {
     "url": "https://storage.googleapis.com/broad-jade-dev-data-bucket/ca8edd48-e954-4c20-b911-b017fedffb67/c0e40912-8b14-43f6-9a2f-b278144d0060?sig=ABC",
-    "headers": null
+    "headers": null // 2021-10-04 Unlike any known Gen3 systems Jade dev returns access `headers` with a null value.
 };
 
 // Gen3/CRDC
@@ -548,7 +550,6 @@ const bdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl) => 
 // HCA
 // returned via
 //   `curl https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe`
-const fakeToken = 'Definitely not a real token';
 const hcaDrsResponse = {
     id: 'v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe',
     name: 'E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz',
