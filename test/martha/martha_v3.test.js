@@ -58,6 +58,7 @@ const apiAdapter = require('../../common/api_adapter');
 const config = require('../../common/config');
 const { delay } = require('../../common/helpers');
 const mask = require('json-mask');
+const {BondProviders} = require("../../common/bond");
 
 const terraAuth = 'bearer abc123';
 
@@ -284,6 +285,58 @@ test.serial('martha_v3 calls the correct endpoints when access url fetch is forc
     t.deepEqual(response.body, { accessUrl: drsAccessUrlResponse });
 
     sinon.assert.callCount(getJsonFromApiStub, 2);
+});
+
+test.serial('martha_v3 calls the correct endpoints when access url fetch is forced for BDC', async (t) => {
+    const {
+        id: objectId, self_uri: drsUri,
+        access_methods: { 0: { access_id: accessId, access_url: { url: gsUrl } } }
+    } = bdcDrsResponse;
+    const bond = bondUrls(BondProviders.FENCE);
+    const drs = drsUrls(config.HOST_BIODATA_CATALYST_STAGING, objectId, accessId);
+    const drsAccessUrlResponse = mockGcsAccessUrl(gsUrl);
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(bdcDrsResponse);
+    getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`)
+        .resolves(drsAccessUrlResponse);
+    const response = mockResponse();
+    const request = mockRequest(
+        {body: {url: drsUri, fields: ['accessUrl']}},
+        MARTHA_V3_ACCESS_ID_FIELDS,
+        FORCE_ACCESS_URL
+    );
+    await marthaV3(request, response);
+
+    t.is(response.statusCode, 200);
+    t.deepEqual(response.body, { accessUrl: drsAccessUrlResponse });
+
+    sinon.assert.callCount(getJsonFromApiStub, 3);
+});
+
+test.serial('martha_v3 calls the correct endpoints when access url fetch is forced for CRDC', async (t) => {
+    const {
+        id: objectId, self_uri: drsUri,
+        access_methods: { 0: { access_id: accessId, access_url: { url: gsUrl } } }
+    } = gen3CrdcResponse;
+    const bond = bondUrls(BondProviders.DCF_FENCE);
+    const drs = drsUrls(config.HOST_CRDC_PROD, objectId, accessId);
+    const drsAccessUrlResponse = mockGcsAccessUrl(gsUrl);
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(gen3CrdcResponse);
+    getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`)
+        .resolves(drsAccessUrlResponse);
+    const response = mockResponse();
+    const request = mockRequest(
+        {body: {url: drsUri, fields: ['accessUrl']}},
+        MARTHA_V3_ACCESS_ID_FIELDS,
+        FORCE_ACCESS_URL
+    );
+    await marthaV3(request, response);
+
+    t.is(response.statusCode, 200);
+    t.deepEqual(response.body, { accessUrl: drsAccessUrlResponse });
+
+    sinon.assert.callCount(getJsonFromApiStub, 3);
 });
 
 test.serial('martha_v3 calls the correct endpoints when only the fileName is requested and the metadata contains a name', async (t) => {
