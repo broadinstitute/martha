@@ -160,6 +160,7 @@ const jadeDrsMarthaResult = {
 const jadeAccessUrlMetadataResponse = {
     "id": "v1_0c86170e-312d-4b39-a0a4-2a2bfaa24c7a_c0e40912-8b14-43f6-9a2f-b278144d0060",
     "name": "hapmap_3.3.hg38.vcf.gz",
+    // 2021-10-04 this is a minor forgery, dev TDR actually had a `null` value for the "self_uri" key
     "self_uri": "drs://jade.datarepo-dev.broadinstitute.org/v1_0c86170e-312d-4b39-a0a4-2a2bfaa24c7a_c0e40912-8b14-43f6-9a2f-b278144d0060",
     "size": 62043448,
     "created_time": "2020-08-04T19:55:22.570Z",
@@ -203,11 +204,6 @@ const jadeAccessUrlMetadataResponse = {
     "aliases": [
         "/CromwellSimpleWithFilerefs/gs:/broad-jade-dev-data-bucket/ca8edd48-e954-4c20-b911-b017fedffb67/hapmap_3.3.hg38.vcf.gz"
     ]
-};
-
-const jadeAccessUrlAccessResponse = {
-    "url": "https://storage.googleapis.com/broad-jade-dev-data-bucket/ca8edd48-e954-4c20-b911-b017fedffb67/c0e40912-8b14-43f6-9a2f-b278144d0060?sig=ABC",
-    "headers": null // 2021-10-04 Unlike any known Gen3 systems Jade dev returns access `headers` with a null value.
 };
 
 // Gen3/CRDC
@@ -635,5 +631,4 @@ module.exports = {
     kidsFirstDrsResponseCustom,
     kidsFirstDrsMarthaResult,
     jadeAccessUrlMetadataResponse,
-    jadeAccessUrlAccessResponse,
 };

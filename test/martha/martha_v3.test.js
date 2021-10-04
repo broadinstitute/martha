@@ -31,7 +31,6 @@ const {
     drsObjectWithInvalidFields,
     expectedObjWithMissingFields,
     jadeAccessUrlMetadataResponse,
-    jadeAccessUrlAccessResponse
 } = require('./_martha_v3_resources.js');
 
 const test = require('ava');
@@ -271,7 +270,7 @@ test.serial('martha_v3 calls the correct endpoints when access url fetch is forc
     // date omit the "headers" kv completely.
     const drsAccessUrlResponse = {...mockGcsAccessUrl(gsUrl), 'headers': null};
     getJsonFromApiStub.withArgs(drs.objectsUrl, terraAuth).resolves(jadeAccessUrlMetadataResponse);
-    getJsonFromApiStub.withArgs(drs.accessUrl, terraAuth).resolves(jadeAccessUrlAccessResponse);
+    getJsonFromApiStub.withArgs(drs.accessUrl, terraAuth).resolves(drsAccessUrlResponse);
     const response = mockResponse();
     const request = mockRequest(
         { body: { url: drsUri } },
