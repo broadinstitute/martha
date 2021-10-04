@@ -129,7 +129,7 @@ class DrsProvider {
         return this && overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS);
     }
 
-    accessUrlAuth(accessMethod, accessToken, requestAuth) {
+    determineAccessUrlAuth(accessMethod, accessToken, requestAuth) {
         const providerAccessMethod = this.accessMethodHavingSameTypeAs(accessMethod);
         switch (providerAccessMethod.accessUrlAuth) {
             case AccessUrlAuth.FENCE_TOKEN:
@@ -138,7 +138,7 @@ class DrsProvider {
                 return requestAuth;
             default:
                 throw new BadRequestError(
-                    `Programmer error: 'accessUrlAuth' called with signed URL disposition ${providerAccessMethod.SignedUrlEnabled} for provider ${this.providerName}`);
+                    `Programmer error: 'determineAccessUrlAuth' called with AccessUrlAuth.${providerAccessMethod.accessUrlAuth} for provider ${this.providerName}`);
         }
     }
 }

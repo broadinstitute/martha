@@ -415,7 +415,7 @@ async function retrieveFromServers(params) {
                     const httpsAccessUrl = generateAccessUrl(drsProvider, urlParts, accessMethod.access_id);
                     // Use the access token fetched in the call above or the auth submitted to Martha directly by the
                     // caller as appropriate.
-                    const accessUrlAuth = drsProvider.accessUrlAuth(accessMethod, accessToken, auth);
+                    const accessUrlAuth = drsProvider.determineAccessUrlAuth(accessMethod, accessToken, auth);
                     console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}'`);
                     accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, accessUrlAuth);
                 } catch (error) {
