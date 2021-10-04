@@ -339,6 +339,32 @@ test.serial('martha_v3 calls the correct endpoints when access url fetch is forc
     sinon.assert.callCount(getJsonFromApiStub, 3);
 });
 
+test.serial('martha_v3 calls the correct endpoints when access url fetch is forced for The AnVIL', async (t) => {
+    const {
+        id: objectId, self_uri: drsUri,
+        access_methods: { 0: { access_id: accessId, access_url: { url: gsUrl } } }
+    } = anvilDrsResponse;
+    const bond = bondUrls(BondProviders.ANVIL);
+    const drs = drsUrls(config.HOST_THE_ANVIL_PROD, objectId, accessId);
+    const drsAccessUrlResponse = mockGcsAccessUrl(gsUrl);
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(gen3CrdcResponse);
+    getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`)
+        .resolves(drsAccessUrlResponse);
+    const response = mockResponse();
+    const request = mockRequest(
+        {body: {url: drsUri, fields: ['accessUrl']}},
+        MARTHA_V3_ACCESS_ID_FIELDS,
+        FORCE_ACCESS_URL
+    );
+    await marthaV3(request, response);
+
+    t.is(response.statusCode, 200);
+    t.deepEqual(response.body, { accessUrl: drsAccessUrlResponse });
+
+    sinon.assert.callCount(getJsonFromApiStub, 3);
+});
+
 test.serial('martha_v3 calls the correct endpoints when only the fileName is requested and the metadata contains a name', async (t) => {
     const fileName = 'HG01131.final.cram.crai';
     const drsResponse = bdcDrsResponseCustom({
