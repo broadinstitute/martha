@@ -51,7 +51,7 @@ const {
 } = require("../../martha/drs_providers");
 
 const {
-    MARTHA_V3_ALL_FIELDS, MARTHA_V3_ACCESS_ID_FIELDS,
+    MARTHA_V3_ALL_FIELDS,
 } = require("../../martha/martha_fields");
 
 const apiAdapter = require('../../common/api_adapter');
@@ -62,11 +62,12 @@ const {BondProviders} = require("../../common/bond");
 
 const terraAuth = 'bearer abc123';
 
-const mockRequest = (req, requestFields = MARTHA_V3_ALL_FIELDS, forceAccessUrl = false) => {
+const mockRequest = (req, options = {}) => {
+    const forceAccessUrl = options.forceAccessUrl || false;
     req.method = 'POST';
     req.headers = { 'authorization': terraAuth, 'martha-force-access-url': forceAccessUrl };
     if (req.body && typeof req.body.fields === "undefined") {
-        req.body.fields = requestFields;
+        req.body.fields = MARTHA_V3_ALL_FIELDS;
     }
     return req;
 };
@@ -113,8 +114,6 @@ const drsUrls = (host, id, accessId) => {
         accessUrl: `${objectsUrl}/access/${accessId}`
     };
 };
-
-const FORCE_ACCESS_URL = true;
 
 function mockGcsAccessUrl(gsUrlString) {
     const gsUrl = new URL(gsUrlString);
@@ -229,7 +228,12 @@ test.serial('martha_v3 calls the correct endpoints if the googleServiceAccount i
     const response = mockResponse();
 
     await marthaV3(
-        mockRequest({ body: { url: `dos://${crdc}/123`, fields: ['googleServiceAccount'] } }),
+        mockRequest({
+            body: {
+                url: `dos://${crdc}/123`,
+                fields: ['googleServiceAccount']
+            }
+        }),
         response
     );
 
@@ -252,8 +256,9 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
     getJsonFromApiStub.withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`)
         .resolves(drsAccessUrlResponse);
     const response = mockResponse();
+    const request = mockRequest({body: {url: drsUri, fields: ['accessUrl']}});
 
-    await marthaV3(mockRequest({ body: { url: drsUri, fields: ['accessUrl'] } }), response);
+    await marthaV3(request, response);
 
     t.is(response.statusCode, 200);
     t.deepEqual(response.body, { accessUrl: drsAccessUrlResponse });
@@ -273,11 +278,7 @@ test.serial('martha_v3 calls the correct endpoints when access url fetch is forc
     getJsonFromApiStub.withArgs(drs.objectsUrl, terraAuth).resolves(jadeAccessUrlMetadataResponse);
     getJsonFromApiStub.withArgs(drs.accessUrl, terraAuth).resolves(drsAccessUrlResponse);
     const response = mockResponse();
-    const request = mockRequest(
-        { body: { url: drsUri } },
-        MARTHA_V3_ACCESS_ID_FIELDS,
-        FORCE_ACCESS_URL
-    );
+    const request = mockRequest({body: {url: drsUri, fields: ['accessUrl']}}, {forceAccessUrl: true});
 
     await marthaV3(request, response);
 
@@ -300,11 +301,8 @@ test.serial('martha_v3 calls the correct endpoints when access url fetch is forc
     getJsonFromApiStub.withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`)
         .resolves(drsAccessUrlResponse);
     const response = mockResponse();
-    const request = mockRequest(
-        {body: {url: drsUri, fields: ['accessUrl']}},
-        MARTHA_V3_ACCESS_ID_FIELDS,
-        FORCE_ACCESS_URL
-    );
+    const request = mockRequest({ body: { url: drsUri, fields: ['accessUrl']}},
+        {forceAccessUrl: true});
     await marthaV3(request, response);
 
     t.is(response.statusCode, 200);
@@ -326,11 +324,8 @@ test.serial('martha_v3 calls the correct endpoints when access url fetch is forc
     getJsonFromApiStub.withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`)
         .resolves(drsAccessUrlResponse);
     const response = mockResponse();
-    const request = mockRequest(
-        {body: {url: drsUri, fields: ['accessUrl']}},
-        MARTHA_V3_ACCESS_ID_FIELDS,
-        FORCE_ACCESS_URL
-    );
+    const request = mockRequest({ body: { url: drsUri, fields: ['accessUrl']}},
+        {forceAccessUrl: true});
     await marthaV3(request, response);
 
     t.is(response.statusCode, 200);
@@ -352,11 +347,8 @@ test.serial('martha_v3 calls the correct endpoints when access url fetch is forc
     getJsonFromApiStub.withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`)
         .resolves(drsAccessUrlResponse);
     const response = mockResponse();
-    const request = mockRequest(
-        {body: {url: drsUri, fields: ['accessUrl']}},
-        MARTHA_V3_ACCESS_ID_FIELDS,
-        FORCE_ACCESS_URL
-    );
+    const request = mockRequest({ body: { url: drsUri, fields: ['accessUrl']}},
+        {forceAccessUrl: true});
     await marthaV3(request, response);
 
     t.is(response.statusCode, 200);
