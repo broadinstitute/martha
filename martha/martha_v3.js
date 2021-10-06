@@ -14,6 +14,7 @@ const {
 
 const {
     determineDrsProvider,
+    DrsProvider,
 } = require("./drs_providers");
 
 const config = require('../common/config');
@@ -299,9 +300,13 @@ function buildRequestInfo(params) {
 
     validateRequest(url, auth, requestedFields);
     const urlParts = getHttpsUrlParts(url);
-    const drsProvider = determineDrsProvider(url, urlParts);
-    // Force the retrieval of a (signed) access URL for this request if the `martha-force-access-url` header is set.
-    Object.assign(drsProvider, {forceAccessUrl: Boolean(forceAccessUrl)});
+
+    // Force the retrieval of a (signed) access URL for this request if the `martha-force-access-url` header is set
+    // copying the original object with `forceAccessUrl` set appropriately.
+    // Shallow clone a JavaScript ES6 class instance
+    // https://stackoverflow.com/questions/41474986/how-to-clone-a-javascript-es6-class-instance
+    const drsProvider = { ...determineDrsProvider(url, urlParts), forceAccessUrl: Boolean(forceAccessUrl) };
+    Object.setPrototypeOf(drsProvider, DrsProvider.prototype);
 
     Object.assign(params, {
         drsProvider,
