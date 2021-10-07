@@ -213,6 +213,7 @@ class CrdcProvider extends DrsProvider {
  *
  * @param url {String} The full URL to be tested
  * @param urlParts {Object} The URL parts to be tested
+ * @param forceAccessUrl {Boolean} Whether to force Martha to call `access` for a (signed) access URL.
  * @return {DrsProvider}
  */
 function determineDrsProvider(url, urlParts, forceAccessUrl) {

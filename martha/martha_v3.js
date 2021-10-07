@@ -301,10 +301,7 @@ function buildRequestInfo(params) {
     validateRequest(url, auth, requestedFields);
     const urlParts = getHttpsUrlParts(url);
 
-    // Force the retrieval of a (signed) access URL for this request if the `martha-force-access-url` header is set
-    // copying the original object with `forceAccessUrl` set appropriately. Note that for real life headers `Boolean()`
-    // is going to exercise JavaScript's quirks with thuthiness and return true for any String value.
-    const drsProvider = determineDrsProvider(url, urlParts, Boolean(forceAccessUrl));
+    const drsProvider = determineDrsProvider(url, urlParts, forceAccessUrl);
     Object.setPrototypeOf(drsProvider, DrsProvider.prototype);
 
     Object.assign(params, {
@@ -505,9 +502,16 @@ async function marthaV3Handler(req, res) {
         // This function counts on the request posting data as "application/json" content-type.
         // See: https://cloud.google.com/functions/docs/writing/http#parsing_http_requests for more details
         const {url, fields: requestedFields = MARTHA_V3_DEFAULT_FIELDS} = (req && req.body) || {};
-        const {authorization: auth, 'user-agent': userAgent, 'martha-force-access-url': forceAccessUrl} = req.headers;
+        let {authorization: auth, 'user-agent': userAgent, 'martha-force-access-url': forceAccessUrl} = req.headers;
         const ip = req.ip;
         console.log(`Received URL '${url}' from agent '${userAgent}' on IP '${ip}'`);
+
+        // Setting the value of the `martha-force-access-url` header to `false` should actually turn off forcing of
+        // access URLs; don't let truthiness get in the way of that.
+        if (typeof (forceAccessUrl) === 'string') {
+            forceAccessUrl = forceAccessUrl.toLowerCase() === 'true';
+        }
+        forceAccessUrl = Boolean(forceAccessUrl);
 
         const params = {
             url,
