@@ -502,7 +502,8 @@ async function marthaV3Handler(req, res) {
         // This function counts on the request posting data as "application/json" content-type.
         // See: https://cloud.google.com/functions/docs/writing/http#parsing_http_requests for more details
         const {url, fields: requestedFields = MARTHA_V3_DEFAULT_FIELDS} = (req && req.body) || {};
-        let {authorization: auth, 'user-agent': userAgent, 'martha-force-access-url': forceAccessUrl} = req.headers;
+        const {authorization: auth, 'user-agent': userAgent} = req.headers;
+        let {'martha-force-access-url': forceAccessUrl} = req.headers;
         const ip = req.ip;
         console.log(`Received URL '${url}' from agent '${userAgent}' on IP '${ip}'`);
 
