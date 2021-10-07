@@ -302,10 +302,9 @@ function buildRequestInfo(params) {
     const urlParts = getHttpsUrlParts(url);
 
     // Force the retrieval of a (signed) access URL for this request if the `martha-force-access-url` header is set
-    // copying the original object with `forceAccessUrl` set appropriately.
-    // Shallow clone a JavaScript ES6 class instance
-    // https://stackoverflow.com/questions/41474986/how-to-clone-a-javascript-es6-class-instance
-    const drsProvider = { ...determineDrsProvider(url, urlParts), forceAccessUrl: Boolean(forceAccessUrl) };
+    // copying the original object with `forceAccessUrl` set appropriately. Note that for real life headers `Boolean()`
+    // is going to exercise JavaScript's quirks with thuthiness and return true for any String value.
+    const drsProvider = determineDrsProvider(url, urlParts, Boolean(forceAccessUrl));
     Object.setPrototypeOf(drsProvider, DrsProvider.prototype);
 
     Object.assign(params, {

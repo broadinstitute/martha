@@ -48,13 +48,12 @@ class AccessMethod {
 }
 
 class DrsProvider {
-    constructor(providerName, sendMetadataAuth, bondProvider, accessMethods) {
+    constructor(providerName, sendMetadataAuth, bondProvider, accessMethods, forceAccessUrl) {
         this.providerName = providerName;
         this.sendMetadataAuth = sendMetadataAuth;
         this.bondProvider = bondProvider;
         this.accessMethods = accessMethods;
-        // may be overridden in request headers or tests, set it explicitly here to placate eslint.
-        this.forceAccessUrl = false;
+        this.forceAccessUrl = forceAccessUrl;
     }
 
     accessMethodHavingSameTypeAs(accessMethod) {
@@ -143,98 +142,106 @@ class DrsProvider {
     }
 }
 
-// Define the default provider implementations here and insert them as the values in the `DrsProviderInstances` object
-// below. Tests can override the map values to ensure providers work as expected with signed URLs on or off.
-const BioDataCatalystDrsProvider = new DrsProvider(
-    'BioData Catalyst (BDC)',
-    MetadataAuth.NO,
-    BondProvider.FENCE,
-    [
-        //  BT-236 BDC access (signed) URLs temporarily turned off
-        new AccessMethod(AccessMethodType.GCS, AccessUrlAuth.FENCE_TOKEN, FetchAccessUrl.NO)
-    ]
-);
+class BioDataCatalystDrsProvider extends DrsProvider {
+    constructor(forceAccessUrl) {
+        super('BioData Catalyst (BDC)',
+            MetadataAuth.NO,
+            BondProvider.FENCE,
+            [
+                //  BT-236 BDC access (signed) URLs temporarily turned off
+                new AccessMethod(AccessMethodType.GCS, AccessUrlAuth.FENCE_TOKEN, FetchAccessUrl.NO)
+            ],
+            forceAccessUrl);
+    }
+}
 
-const TerraDataRepoDrsProvider = new DrsProvider(
-    'Terra Data Repo (TDR)',
-    MetadataAuth.YES,
-    BondProvider.NONE,
-    [
-        new AccessMethod(AccessMethodType.GCS, AccessUrlAuth.CURRENT_REQUEST, FetchAccessUrl.NO)
-    ]
-);
+class TerraDataRepoDrsProvider extends DrsProvider {
+    constructor(forceAccessUrl) {
+        super('Terra Data Repo (TDR)',
+            MetadataAuth.YES,
+            BondProvider.NONE,
+            [
+                new AccessMethod(AccessMethodType.GCS, AccessUrlAuth.CURRENT_REQUEST, FetchAccessUrl.NO)
+            ],
+            forceAccessUrl
+        );
+    }
+}
 
-const KidsFirstDrsProvider = new DrsProvider(
-    'Gabriella Miller Kids First DRC',
-    MetadataAuth.NO,
-    BondProvider.KIDS_FIRST,
-    [
-        new AccessMethod(AccessMethodType.S3, AccessUrlAuth.FENCE_TOKEN, FetchAccessUrl.YES)
-    ]
-);
+class KidsFirstDrsProvider extends DrsProvider {
+    constructor(forceAccessUrl) {
+        super('Gabriella Miller Kids First DRC',
+            MetadataAuth.NO,
+            BondProvider.KIDS_FIRST,
+            [
+                new AccessMethod(AccessMethodType.S3, AccessUrlAuth.FENCE_TOKEN, FetchAccessUrl.YES)
+            ],
+            forceAccessUrl
+        );
+    }
+}
 
-const AnvilDrsProvider = new DrsProvider(
-    'NHGRI Analysis Visualization and Informatics Lab-space (The AnVIL)',
-    MetadataAuth.NO,
-    BondProvider.ANVIL,
-    [
-        new AccessMethod(AccessMethodType.GCS, AccessUrlAuth.FENCE_TOKEN, FetchAccessUrl.NO)
-    ]
-);
+class AnvilDrsProvider extends DrsProvider {
+    constructor(forceAccessUrl) {
+        super(
+            'NHGRI Analysis Visualization and Informatics Lab-space (The AnVIL)',
+            MetadataAuth.NO,
+            BondProvider.ANVIL,
+            [
+                new AccessMethod(AccessMethodType.GCS, AccessUrlAuth.FENCE_TOKEN, FetchAccessUrl.NO)
+            ],
+            forceAccessUrl
+        );
+    }
+}
 
-const CrdcProvider = new DrsProvider(
-    'NCI Cancer Research / Proteomics Data Commons (CRDC / PDC)',
-    MetadataAuth.NO,
-    BondProvider.DCF_FENCE,
-    [
-        new AccessMethod(AccessMethodType.GCS, AccessUrlAuth.FENCE_TOKEN, FetchAccessUrl.NO),
-        new AccessMethod(AccessMethodType.S3, AccessUrlAuth.FENCE_TOKEN, FetchAccessUrl.YES)
-    ]
-);
-
-const DrsProviderInstances = {
-    BIO_DATA_CATALYST: BioDataCatalystDrsProvider,
-    CRDC_PDC: CrdcProvider,
-    TERRA_DATA_REPO: TerraDataRepoDrsProvider,
-    KIDS_FIRST: KidsFirstDrsProvider,
-    ANVIL: AnvilDrsProvider
-};
+class CrdcProvider extends DrsProvider {
+    constructor(forceAccessUrl) {
+        super('NCI Cancer Research / Proteomics Data Commons (CRDC / PDC)',
+            MetadataAuth.NO,
+            BondProvider.DCF_FENCE,
+            [
+                new AccessMethod(AccessMethodType.GCS, AccessUrlAuth.FENCE_TOKEN, FetchAccessUrl.NO),
+                new AccessMethod(AccessMethodType.S3, AccessUrlAuth.FENCE_TOKEN, FetchAccessUrl.YES)
+            ],
+            forceAccessUrl);
+    }
+}
 
 /** *************************************************************************************************
  * Here is where all the logic lives that pairs a particular kind of URI with its DRS Provider.
  *
  * @param url {String} The full URL to be tested
  * @param urlParts {Object} The URL parts to be tested
- * @param drsProviderInstances {Object} Mapping of DRS provider keys to implementations, useful for testing.
  * @return {DrsProvider}
  */
-function determineDrsProvider(url, urlParts, drsProviderInstances = DrsProviderInstances) {
+function determineDrsProvider(url, urlParts, forceAccessUrl) {
     const host = urlParts.httpsUrlHost;
 
     // BDC, but skip DOS/DRS URIs that might be a fake `martha_v2`-compatible BDC
     if ((host.endsWith('.biodatacatalyst.nhlbi.nih.gov') || (host === config.HOST_MOCK_DRS))
         && !urlParts.httpsUrlMaybeNotBdc) {
-        return drsProviderInstances.BIO_DATA_CATALYST;
+        return new BioDataCatalystDrsProvider(forceAccessUrl);
     }
 
     // The AnVIL
     if (host.endsWith('.theanvil.io')) {
-        return drsProviderInstances.ANVIL;
+        return new AnvilDrsProvider(forceAccessUrl);
     }
 
     // Jade Data Repo
     if (jadeDataRepoHostRegex.test(host)) {
-        return drsProviderInstances.TERRA_DATA_REPO;
+        return new TerraDataRepoDrsProvider(forceAccessUrl);
     }
 
     // CRDC / PDC
     if (host.endsWith('.datacommons.io')) {
-        return drsProviderInstances.CRDC_PDC;
+        return new CrdcProvider(forceAccessUrl);
     }
 
     // Kids First
     if (host.endsWith('.kidsfirstdrc.org')) {
-        return drsProviderInstances.KIDS_FIRST;
+        return new KidsFirstDrsProvider(forceAccessUrl);
     }
 
     // RIP dataguids.org
@@ -248,4 +255,3 @@ function determineDrsProvider(url, urlParts, drsProviderInstances = DrsProviderI
 
 exports.DrsProvider = DrsProvider;
 exports.determineDrsProvider = determineDrsProvider;
-exports.DrsProviderInstances = DrsProviderInstances;

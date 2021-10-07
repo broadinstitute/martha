@@ -47,7 +47,6 @@ const {
 const {
     DrsProvider,
     determineDrsProvider,
-    DrsProviderInstances: DefaultDrsProviderInstances,
 } = require("../../martha/drs_providers");
 
 const {
@@ -1118,7 +1117,7 @@ test.serial('martha_v3 generateAccessUrl should add the query string to the acce
  */
 function determineDrsProviderWrapper(testUrl) {
     const urlParts = getHttpsUrlParts(testUrl);
-    const drsProvider = determineDrsProvider(testUrl, urlParts, DefaultDrsProviderInstances);
+    const drsProvider = determineDrsProvider(testUrl, urlParts);
     return generateMetadataUrl(drsProvider, urlParts);
 }
 
