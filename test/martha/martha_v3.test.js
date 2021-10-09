@@ -62,9 +62,9 @@ const {BondProviders} = require("../../common/bond");
 const terraAuth = 'bearer abc123';
 
 const mockRequest = (req, options = {}) => {
-    const forceAccessUrl = options.forceAccessUrl || false;
+    const forceAccessUrl = Boolean(options.forceAccessUrl || false);
     req.method = 'POST';
-    req.headers = { 'authorization': terraAuth, 'martha-force-access-url': forceAccessUrl };
+    req.headers = { 'authorization': terraAuth, 'martha-force-access-url': forceAccessUrl.toString() };
     if (req.body && typeof req.body.fields === "undefined") {
         req.body.fields = MARTHA_V3_ALL_FIELDS;
     }
