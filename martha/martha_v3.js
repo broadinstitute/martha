@@ -1,5 +1,4 @@
 const {
-    jadeDataRepoHostRegex,
     convertToMarthaV3Response,
     BadRequestError,
     RemoteServerError,
@@ -7,76 +6,21 @@ const {
     logAndSendServerError,
     delay,
 } = require('../common/helpers');
+
+const {
+    MARTHA_V3_DEFAULT_FIELDS,
+    MARTHA_V3_ALL_FIELDS,
+} = require("./martha_fields");
+
+const {
+    determineDrsProvider,
+    DrsProvider,
+} = require("./drs_providers");
+
 const config = require('../common/config');
 const apiAdapter = require('../common/api_adapter');
 const url = require('url');
 const mask = require('json-mask');
-
-// All fields that can be returned in the martha_v3 response.
-const MARTHA_V3_ALL_FIELDS = [
-    'gsUri',
-    'bucket',
-    'name',
-    'fileName',
-    'contentType',
-    'size',
-    'hashes',
-    'timeCreated',
-    'timeUpdated',
-    'googleServiceAccount',
-    'bondProvider',
-    'accessUrl',
-];
-
-const MARTHA_V3_DEFAULT_FIELDS = [
-    'gsUri',
-    'bucket',
-    'name',
-    'fileName',
-    'contentType',
-    'size',
-    'hashes',
-    'timeCreated',
-    'timeUpdated',
-    'googleServiceAccount',
-];
-
-// Response fields dependent on the DOS or DRS servers
-const MARTHA_V3_METADATA_FIELDS = [
-    'gsUri',
-    'bucket',
-    'name',
-    'fileName',
-    'contentType',
-    'size',
-    'hashes',
-    'timeCreated',
-    'timeUpdated',
-    'accessUrl',
-];
-
-// Response fields dependent on the Bond service account
-const MARTHA_V3_BOND_SA_FIELDS = [
-    'googleServiceAccount',
-];
-
-// Response fields dependent on the the access_id
-const MARTHA_V3_ACCESS_ID_FIELDS = [
-    'accessUrl',
-];
-
-const BOND_PROVIDER_NONE = null; // Used for servers that should NOT contact bond
-const BOND_PROVIDER_DCF_FENCE = 'dcf-fence'; // The default when we don't recognize the server
-const BOND_PROVIDER_FENCE = 'fence';
-const BOND_PROVIDER_ANVIL = 'anvil';
-const BOND_PROVIDER_KIDS_FIRST = 'kids-first';
-
-const ACCESS_METHOD_TYPES_NONE = [];
-const ACCESS_METHOD_TYPE_GCS = 'gs';
-const ACCESS_METHOD_TYPE_S3 = 's3';
-
-const AUTH_REQUIRED = true;
-const AUTH_SKIPPED = false;
 
 const PROTOCOL_PREFIX_DRS='/ga4gh/drs/v1/objects';
 
@@ -97,50 +41,20 @@ const overridePencilsDownSeconds = (seconds) => {
     pencilsDownSeconds = seconds;
 };
 
-// noinspection JSUnusedGlobalSymbols
-class DrsType {
-    constructor(urlParts, protocolPrefix, sendAuth, bondProvider, accessMethodTypes) {
-        this.urlParts = urlParts;
-        this.protocolPrefix = protocolPrefix;
-        this.sendAuth = sendAuth;
-        this.bondProvider = bondProvider;
-        this.accessMethodTypes = accessMethodTypes;
-    }
-
-    couldHaveGoogleServiceAccount() {
-        // If no Bond provider or if there isn't a GCS access method type there won't be a `googleServiceAccount`.
-        return this.bondProvider && this.accessMethodTypes.includes(ACCESS_METHOD_TYPE_GCS);
-    }
-}
-
 /**
- * Returns the first access method type listed in accessMethodTypes and the drsResponse, otherwise returns undefined.
+ * Returns the first access method in `drsProvider.accessMethodTypes()` with a type that matches the type of an access
+ * method in `drsResponse`, otherwise `undefined`.
  */
-function getDrsAccessMethodType(drsResponse, accessMethodTypes) {
-    if (!accessMethodTypes || !drsResponse || !drsResponse.access_methods) {
+function getAccessMethod(drsResponse, drsProvider) {
+    if (!drsResponse || !drsResponse.access_methods) {
         return;
     }
 
-    for (const accessMethodType of accessMethodTypes) {
+    for (const accessMethodType of drsProvider.accessMethodTypes()) {
         for (const accessMethod of drsResponse.access_methods) {
             if (accessMethod.type === accessMethodType) {
-                return accessMethod.access_id;
+                return accessMethod;
             }
-        }
-    }
-}
-
-/**
- * Returns undefined if the matching access method does not have an access_id
- * or if the accessMethodType is falsy or if the drsResponse is falsy.
- */
-function getDrsAccessId(drsResponse, accessMethodType) {
-    if (!accessMethodType || !drsResponse || !drsResponse.access_methods) {
-        return;
-    }
-    for (const accessMethod of drsResponse.access_methods) {
-        if (accessMethod.type === accessMethodType) {
-            return accessMethod.access_id;
         }
     }
 }
@@ -232,7 +146,7 @@ function expandCibSuffix(cibHost, cibSuffix, cibSeparator) {
 }
 
 /**
- * Returns the url parts of the DOS or DRS url, minus the protocol prefix as that is dependent on the host.
+ * Returns the url parts of the DOS or DRS url.
  */
 function getHttpsUrlParts(url) {
     /*
@@ -282,7 +196,7 @@ function getHttpsUrlParts(url) {
                     cibMatch.groups.separator,
                 ),
             httpsUrlSearch: cibMatch.groups.query,
-            // See `determineDrsType` for more info on this `martha_v2` backwards compatibility
+            // See `determineDrsProvider` for more info on this `martha_v2` backwards compatibility
             httpsUrlMaybeNotBdc:
                 ![DG_COMPACT_BDC_PROD, DG_COMPACT_BDC_STAGING].includes(cibMatch.groups.host.toLowerCase()),
         };
@@ -306,24 +220,22 @@ function getHttpsUrlParts(url) {
 }
 
 // NOTE: reimplementation of dataObjectUriToHttps in helper.js
-function generateMetadataUrl(drsType) {
-    const { urlParts, protocolPrefix } = drsType;
+function generateMetadataUrl(drsProvider, urlParts) {
     // Construct a WHATWG URL by first only setting the protocol and the hostname: https://github.com/whatwg/url/issues/354
     const generatedUrl = new URL(`https://${urlParts.httpsUrlHost}`);
     generatedUrl.port = urlParts.httpsUrlPort;
-    generatedUrl.pathname = `${protocolPrefix}/${urlParts.protocolSuffix}`;
+    generatedUrl.pathname = `${PROTOCOL_PREFIX_DRS}/${urlParts.protocolSuffix}`;
     if (urlParts.httpsUrlSearch) {
         generatedUrl.search = urlParts.httpsUrlSearch;
     }
     return url.format(generatedUrl);
 }
 
-function generateAccessUrl(drsType, accessId) {
-    const { urlParts, protocolPrefix } = drsType;
+function generateAccessUrl(drsProvider, urlParts, accessId) {
     // Construct a WHATWG URL by first only setting the protocol and the hostname: https://github.com/whatwg/url/issues/354
     const generatedUrl = new URL(`https://${urlParts.httpsUrlHost}`);
     generatedUrl.port = urlParts.httpsUrlPort;
-    generatedUrl.pathname = `${protocolPrefix}/${urlParts.protocolSuffix}/access/${accessId}`;
+    generatedUrl.pathname = `${PROTOCOL_PREFIX_DRS}/${urlParts.protocolSuffix}/access/${accessId}`;
     if (urlParts.httpsUrlSearch) {
         generatedUrl.search = urlParts.httpsUrlSearch;
     }
@@ -356,99 +268,6 @@ function responseParser (response) {
     return { access_methods, checksums, created_time, mime_type, name, size, updated_time };
 }
 
-/** *************************************************************************************************
- * Here is where all the logic lives that pairs a particular kind of URI with its
- * resolving-URL-generating parser, what path to use to make a Bond request for an SA (if any), and
- * a response parser.
- *
- * If you update this function update the README too!
- *
- * @param url {string} The URL to be tested
- * @return {DrsType}
- */
-function determineDrsType(url) {
-    const urlParts = getHttpsUrlParts(url);
-    const host = urlParts.httpsUrlHost;
-
-    // First handle servers that we know about...
-
-    // BDC, but skip DOS/DRS URIs that might be a fake `martha_v2`-compatible BDC
-    if ((host.endsWith(".biodatacatalyst.nhlbi.nih.gov") || (host === config.HOST_MOCK_DRS))
-        && !urlParts.httpsUrlMaybeNotBdc) {
-        return new DrsType(
-            urlParts,
-            PROTOCOL_PREFIX_DRS,
-            AUTH_SKIPPED,
-            BOND_PROVIDER_FENCE,
-            /*
-            BT-236 BDC signed URLs temporarily turned off
-
-            As of Aug 2021 we only return signed urls for S3 hosted data. Eventually we will turn on signed urls for
-            data hosted outside of S3. But today this line could equally work as:
-             - `[ACCESS_METHOD_TYPE_GCS]`
-             - `ACCESS_METHOD_TYPES_NONE`
-
-            Since the code currently returns signed URLs only for S3 either option works and the former option was
-            considered "more correct".
-             */
-            [ACCESS_METHOD_TYPE_GCS],
-        );
-    }
-
-    // The AnVIL
-    if (host.endsWith('.theanvil.io')) {
-        return new DrsType(
-            urlParts,
-            PROTOCOL_PREFIX_DRS,
-            AUTH_SKIPPED,
-            BOND_PROVIDER_ANVIL,
-            // For more info see comment above for BDC's `accessMethodType`
-            [ACCESS_METHOD_TYPE_GCS],
-        );
-    }
-
-    // Jade Data Repo
-    if (jadeDataRepoHostRegex.test(host)) {
-        return new DrsType(
-            urlParts,
-            PROTOCOL_PREFIX_DRS,
-            AUTH_REQUIRED,
-            BOND_PROVIDER_NONE,
-            ACCESS_METHOD_TYPES_NONE,
-        );
-    }
-
-    // CRDC
-    if (host.endsWith('.datacommons.io')) {
-        return new DrsType(
-            urlParts,
-            PROTOCOL_PREFIX_DRS,
-            AUTH_SKIPPED,
-            BOND_PROVIDER_DCF_FENCE,
-            [ACCESS_METHOD_TYPE_GCS, ACCESS_METHOD_TYPE_S3],
-        );
-    }
-
-    // Kids First
-    if (host.endsWith('.kidsfirstdrc.org')) {
-        return new DrsType(
-            urlParts,
-            PROTOCOL_PREFIX_DRS,
-            AUTH_SKIPPED,
-            BOND_PROVIDER_KIDS_FIRST,
-            [ACCESS_METHOD_TYPE_S3],
-        );
-    }
-
-    // RIP dataguids.org
-    if (host.endsWith('dataguids.org')) {
-        throw new BadRequestError('dataguids.org data has moved. See: https://support.terra.bio/hc/en-us/articles/360060681132');
-    }
-
-    // Fail explicitly for DRS ids for which Martha can not determine a provider.
-    throw new BadRequestError(`Could not determine DRS provider for id '${url}'`);
-}
-
 function validateRequest(url, auth, requestedFields) {
     if (!url) {
         throw new BadRequestError(`'url' is missing.`);
@@ -471,30 +290,23 @@ function validateRequest(url, auth, requestedFields) {
     }
 }
 
-/**
- * Used to check if any of the requested fields overlap with fields dependent on an underlying service.
- *
- * @param {string[]} requestedFields
- * @param {string[]} serviceFields
- * @returns {boolean} true if the requested fields overlap
- */
-function overlapFields(requestedFields, serviceFields) {
-    // via https://medium.com/@alvaro.saburido/set-theory-for-arrays-in-es6-eb2f20a61848
-    return requestedFields.filter((field) => serviceFields.includes(field)).length !== 0;
-}
-
 function buildRequestInfo(params) {
     const {
         url,
         requestedFields,
         auth,
+        forceAccessUrl,
     } = params;
 
     validateRequest(url, auth, requestedFields);
-    const drsType = determineDrsType(url);
+    const urlParts = getHttpsUrlParts(url);
+
+    const drsProvider = determineDrsProvider(url, urlParts, forceAccessUrl);
+    Object.setPrototypeOf(drsProvider, DrsProvider.prototype);
 
     Object.assign(params, {
-        drsType,
+        drsProvider,
+        urlParts,
     });
 }
 
@@ -510,14 +322,17 @@ async function retrieveFromServers(params) {
     const {
         requestedFields,
         auth,
-        drsType,
+        drsProvider,
         url,
+        urlParts
     } = params;
 
-    const {sendAuth, bondProvider, accessMethodTypes} = drsType;
+    const {sendMetadataAuth, bondProvider} = drsProvider;
+
+    // TODO: figure out JSON logging for Martha (and Bond), the multiline logging situation is a mess.
+    // e.g. any stack traces for Martha / Bond appear as one log entry per frame
     console.log(
-        `DRS URI '${url}' will use auth required '${sendAuth}', bond provider '${bondProvider}', ` +
-        `and access method types '${accessMethodTypes.toString()}'`
+        `DRS URI '${url}' will use DRS provider:\n${JSON.stringify(drsProvider, null, 2)}`
     );
     console.log(`Requested martha_v3 fields: ${requestedFields.join(", ")}`);
 
@@ -533,14 +348,14 @@ async function retrieveFromServers(params) {
 
     const fetch = async () => {
         let response;
-        if (overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS)) {
+        if (drsProvider.shouldRequestMetadata(requestedFields)) {
             try {
                 hypotheticalErrorMessage = 'Could not fetch DRS metadata.';
-                const httpsMetadataUrl = generateMetadataUrl(drsType);
+                const httpsMetadataUrl = generateMetadataUrl(drsProvider, urlParts);
                 console.log(
-                    `Requesting DRS metadata for '${url}' from '${httpsMetadataUrl}' with auth required '${sendAuth}'`
+                    `Requesting DRS metadata for '${url}' from '${httpsMetadataUrl}' with auth required '${sendMetadataAuth}'`
                 );
-                response = await apiAdapter.getJsonFrom(httpsMetadataUrl, sendAuth ? auth : null);
+                response = await apiAdapter.getJsonFrom(httpsMetadataUrl, sendMetadataAuth ? auth : null);
             } catch (error) {
                 throw new RemoteServerError(error, 'Received error while resolving DRS URL.');
             }
@@ -552,23 +367,9 @@ async function retrieveFromServers(params) {
             throw new RemoteServerError(error, 'Received error while parsing response from DRS URL.');
         }
 
-        const accessMethodType = getDrsAccessMethodType(drsResponse, accessMethodTypes);
+        const accessMethod = getAccessMethod(drsResponse, drsProvider);
 
-        /*
-        As of BT-381, the same DRS server is hosting metadata for CRDC's GCS data and PDC's S3 data.
-
-        So the hostname detection may discover GCS or S3 access_method.types. The royal "we" don't want to download GCS
-        hosted files using signed URLs right now, as the `gsutil` downloader is working ok. Meanwhile, we don't have
-        another option to download S3 hosted files other than signed URLs...
-
-        When BT-161 is completed GCS will also used signed URLs, but that is likely to happen only after switching the
-        Cromwell localizer to `getm`. When appropriate please remove this variable and this comment.
-         */
-        const accessMethodTypeIsS3 = accessMethodType === ACCESS_METHOD_TYPE_S3;
-
-        if (drsType.couldHaveGoogleServiceAccount() &&
-            !accessMethodTypeIsS3 &&
-            overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS)) {
+        if (drsProvider.shouldFetchUserServiceAccount(accessMethod, requestedFields)) {
             try {
                 hypotheticalErrorMessage = 'Could not fetch SA key from Bond.';
                 const bondSAKeyUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/serviceaccount/key`;
@@ -596,20 +397,9 @@ async function retrieveFromServers(params) {
         // while fetching a signed URL.
         hypotheticalErrorMessage = null;
 
-        let accessId;
-
         try {
-            if (accessMethodTypeIsS3 && overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS)) {
-                try {
-                    accessId = getDrsAccessId(drsResponse, accessMethodType);
-                } catch (error) {
-                    throw new RemoteServerError(error, 'Received error while parsing the access id.');
-                }
-            }
-
-            // Retrieve an accessToken from Bond that will be used to later retrieve the accessUrl from the DRS server.
             let accessToken;
-            if (bondProvider && accessId) {
+            if (drsProvider.shouldFetchFenceAccessToken(accessMethod, requestedFields)) {
                 try {
                     const bondAccessTokenUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/accesstoken`;
                     console.log(`Requesting Bond access token for '${url}' from '${bondAccessTokenUrl}'`);
@@ -621,24 +411,24 @@ async function retrieveFromServers(params) {
             }
 
             // Retrieve the accessUrl using the returned accessToken, even if the token was empty.
-            if (bondProvider && accessId) {
+            if (drsProvider.shouldFetchAccessUrl(accessMethod, requestedFields)) {
                 try {
-                    const httpsAccessUrl = generateAccessUrl(drsType, accessId);
-                    const accessTokenAuth = `Bearer ${accessToken}`;
+                    const httpsAccessUrl = generateAccessUrl(drsProvider, urlParts, accessMethod.access_id);
+                    // Use the access token fetched in the call above or the auth submitted to Martha directly by the
+                    // caller as appropriate.
+                    const accessUrlAuth = drsProvider.determineAccessUrlAuth(accessMethod, accessToken, auth);
                     console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}'`);
-                    accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, accessTokenAuth);
+                    accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, accessUrlAuth);
                 } catch (error) {
                     throw new RemoteServerError(error, 'Received error contacting DRS provider.');
                 }
             }
         } catch (error) {
-            if (accessMethodTypeIsS3) {
-                // Throw if this is S3 and we failed to get a signed URL. Martha has no concept of a native S3
-                // path so the caller will not have a fallback means of accessing the object.
+            if (drsProvider.shouldFailOnAccessUrlFail(accessMethod)) {
                 throw error;
             }
-            // For non-S3 just log the error for now. There is still a native GCS path available that the caller
-            // can use to access the object. Eventually, we'll want to remove this outer try.
+            // Just log the error for now, there should be a cloud native way for the user to access the object.
+            // Eventually once signed URLs are on by default for all providers we'll want to remove this outer try.
             console.warn('Ignoring error from fetching signed URL:', error);
         }
     };
@@ -713,13 +503,22 @@ async function marthaV3Handler(req, res) {
         // See: https://cloud.google.com/functions/docs/writing/http#parsing_http_requests for more details
         const {url, fields: requestedFields = MARTHA_V3_DEFAULT_FIELDS} = (req && req.body) || {};
         const {authorization: auth, 'user-agent': userAgent} = req.headers;
+        let {'martha-force-access-url': forceAccessUrl} = req.headers;
         const ip = req.ip;
         console.log(`Received URL '${url}' from agent '${userAgent}' on IP '${ip}'`);
+
+        // Setting the value of the `martha-force-access-url` header to `false` should actually turn off forcing of
+        // access URLs; don't let truthiness get in the way of that.
+        if (typeof (forceAccessUrl) === 'string') {
+            forceAccessUrl = forceAccessUrl.toLowerCase() === 'true';
+        }
+        forceAccessUrl = Boolean(forceAccessUrl);
 
         const params = {
             url,
             requestedFields,
             auth,
+            forceAccessUrl,
         };
 
         buildRequestInfo(params);
@@ -740,11 +539,8 @@ async function marthaV3Handler(req, res) {
 }
 
 exports.marthaV3Handler = marthaV3Handler;
-exports.DrsType = DrsType;
-exports.determineDrsType = determineDrsType;
 exports.generateMetadataUrl = generateMetadataUrl;
 exports.generateAccessUrl = generateAccessUrl;
-exports.getDrsAccessId = getDrsAccessId;
 exports.getHttpsUrlParts = getHttpsUrlParts;
-exports.MARTHA_V3_ALL_FIELDS = MARTHA_V3_ALL_FIELDS;
 exports.overridePencilsDownSeconds = overridePencilsDownSeconds;
+exports.PROTOCOL_PREFIX_DRS = PROTOCOL_PREFIX_DRS;

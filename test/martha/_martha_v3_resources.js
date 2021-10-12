@@ -7,6 +7,8 @@
 
 const config = require('../../common/config');
 
+const fakeToken = 'Definitely not a real token';
+
 const dosObjectWithMissingFields = {
     data_object: {
         id: 'v1_abc-123',
@@ -153,6 +155,55 @@ const jadeDrsMarthaResult = {
         sha256: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44',
         crc32c: '8a366443'
     }
+};
+
+const jadeAccessUrlMetadataResponse = {
+    "id": "v1_0c86170e-312d-4b39-a0a4-2a2bfaa24c7a_c0e40912-8b14-43f6-9a2f-b278144d0060",
+    "name": "hapmap_3.3.hg38.vcf.gz",
+    // 2021-10-04 this is a minor forgery, dev TDR actually had a `null` value for the "self_uri" key
+    "self_uri": "drs://jade.datarepo-dev.broadinstitute.org/v1_0c86170e-312d-4b39-a0a4-2a2bfaa24c7a_c0e40912-8b14-43f6-9a2f-b278144d0060",
+    "size": 62043448,
+    "created_time": "2020-08-04T19:55:22.570Z",
+    "updated_time": "2020-08-04T19:55:22.570Z",
+    "version": "0",
+    "mime_type": "text/plain",
+    "checksums": [
+        {
+            "checksum": "fd528923",
+            "type": "crc32c"
+        },
+        {
+            "checksum": "d05ac6b9a247a21ce0030c7494194da9",
+            "type": "md5"
+        }
+    ],
+    "access_methods": [
+        {
+            "type": "gs",
+            "access_url": {
+                "url": "gs://broad-jade-dev-data-bucket/ca8edd48-e954-4c20-b911-b017fedffb67/c0e40912-8b14-43f6-9a2f-b278144d0060",
+                "headers": null
+            },
+            "access_id": "gcp-us-central1",
+            "region": "us-central1"
+        },
+        {
+            "type": "https",
+            "access_url": {
+                "url": "https://www.googleapis.com/storage/v1/b/broad-jade-dev-data-bucket/o/ca8edd48-e954-4c20-b911-b017fedffb67%2Fc0e40912-8b14-43f6-9a2f-b278144d0060?alt=media",
+                "headers": [
+                    `Authorization: Bearer ${fakeToken}`
+                ]
+            },
+            "access_id": null,
+            "region": "us-central1"
+        }
+    ],
+    "contents": null,
+    "description": "cromwell test file",
+    "aliases": [
+        "/CromwellSimpleWithFilerefs/gs:/broad-jade-dev-data-bucket/ca8edd48-e954-4c20-b911-b017fedffb67/hapmap_3.3.hg38.vcf.gz"
+    ]
 };
 
 // Gen3/CRDC
@@ -495,7 +546,6 @@ const bdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl) => 
 // HCA
 // returned via
 //   `curl https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe`
-const fakeToken = 'Definitely not a real token';
 const hcaDrsResponse = {
     id: 'v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe',
     name: 'E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz',
@@ -579,5 +629,6 @@ module.exports = {
     pdcDrsMarthaResult,
     kidsFirstDrsResponse,
     kidsFirstDrsResponseCustom,
-    kidsFirstDrsMarthaResult
+    kidsFirstDrsMarthaResult,
+    jadeAccessUrlMetadataResponse,
 };
