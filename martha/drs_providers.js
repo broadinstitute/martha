@@ -48,12 +48,14 @@ class AccessMethod {
 }
 
 class DrsProvider {
-    constructor(providerName, sendMetadataAuth, bondProvider, accessMethods, forceAccessUrl) {
+    constructor(providerName, sendMetadataAuth, bondProvider, accessMethods, forceAccessUrl,
+        options = { usesAliasesForLocalizationPath: false}) {
         this.providerName = providerName;
         this.sendMetadataAuth = sendMetadataAuth;
         this.bondProvider = bondProvider;
         this.accessMethods = accessMethods;
         this.forceAccessUrl = forceAccessUrl;
+        this.options = options;
     }
 
     accessMethodHavingSameTypeAs(accessMethod) {
@@ -126,6 +128,10 @@ class DrsProvider {
 
     shouldRequestMetadata(requestedFields) {
         return this && overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS);
+    }
+
+    usesAliasesForLocalizationPath() {
+        return this.options.usesAliasesForLocalizationPath;
     }
 
     determineAccessUrlAuth(accessMethod, accessToken, requestAuth) {

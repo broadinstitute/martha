@@ -3,6 +3,7 @@ const MARTHA_V3_CORE_FIELDS = [
     'bucket',
     'name',
     'fileName',
+    'localizationPath',
     'contentType',
     'size',
     'hashes',
