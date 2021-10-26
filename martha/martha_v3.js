@@ -89,7 +89,7 @@ function getDrsFileName(drsResponse) {
 }
 
 function getLocalizationPath(drsProvider, drsResponse) {
-    if (drsProvider.usesAliasesForLocalizationPath && drsResponse && Array.isArray(drsResponse.aliases)) {
+    if (drsProvider.usesAliasesForLocalizationPath() && drsResponse && Array.isArray(drsResponse.aliases)) {
         return drsResponse.aliases[0];
     }
 }
