@@ -48,14 +48,14 @@ class AccessMethod {
 }
 
 class DrsProvider {
-    constructor(providerName, sendMetadataAuth, bondProvider, accessMethods, forceAccessUrl,
-        options = { usesAliasesForLocalizationPath: false }) {
+    constructor(providerName, sendMetadataAuth, bondProvider, accessMethods, forceAccessUrl, options) {
+        const defaultOptions = { usesAliasesForLocalizationPath: false };
+        this.options = { ...defaultOptions, ...options };
         this.providerName = providerName;
         this.sendMetadataAuth = sendMetadataAuth;
         this.bondProvider = bondProvider;
         this.accessMethods = accessMethods;
         this.forceAccessUrl = forceAccessUrl;
-        this.options = options;
     }
 
     accessMethodHavingSameTypeAs(accessMethod) {
