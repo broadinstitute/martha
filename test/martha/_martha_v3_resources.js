@@ -43,6 +43,7 @@ const expectedObjWithMissingFields = {
     googleServiceAccount: null,
     bondProvider: 'dcf-fence',
     fileName: '123.mapped.abc.bam',
+    localizationPath: null,
     hashes: null
 };
 
@@ -91,6 +92,7 @@ const sampleDosMarthaResult = (expectedGoogleServiceAccount) => {
         googleServiceAccount: expectedGoogleServiceAccount,
         bondProvider: 'dcf-fence',
         fileName: 'my_data',
+        localizationPath: null,
         accessUrl: null,
         hashes: {
             md5: '336ea55913bc261b72875bd259753046',
@@ -150,6 +152,7 @@ const jadeDrsMarthaResult = {
     googleServiceAccount: null,
     bondProvider: null,
     fileName: 'HG00096.mapped.ILLUMINA.bwa.GBR.low_coverage.20120522.bam',
+    localizationPath: null,
     hashes: {
         md5: '336ea55913bc261b72875bd259753046',
         sha256: 'f76877f8e86ec3932fd2ae04239fbabb8c90199dab0019ae55fa42b31c314c44',
@@ -266,6 +269,7 @@ const gen3CrdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl
     googleServiceAccount: expectedGoogleServiceAccount,
     bondProvider: 'dcf-fence',
     fileName: 'UNCID_2210188.c71ca9f7-248f-460c-b5d3-afb2c648fef2.110412_UNC13-SN749_0051_AB0168ABXX_4.tar.gz',
+    localizationPath: null,
     hashes: {
         md5: '2edd5fdb4f1deac4ef2bdf969de9f8ad'
     }
@@ -322,6 +326,7 @@ const pdcDrsMarthaResult = (expectedAccessUrl) => {
         googleServiceAccount: null,
         bondProvider: 'dcf-fence',
         fileName: '01BR001_variant_proteome.fasta',
+        localizationPath: null,
         hashes: {
             md5: '87a588424a5920617c843f22ee662fda'
         }
@@ -380,6 +385,7 @@ const anvilDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl) =
         googleServiceAccount: expectedGoogleServiceAccount,
         bondProvider: 'anvil',
         fileName: 'GTEX-1GZHY-0011-R6a-SM-9OSWL.Aligned.sortedByCoord.out.patched.md.bigWig',
+        localizationPath: null,
         hashes: {
             md5: '18156430a5eea715b9b58fb53d0cef99'
         }
@@ -432,6 +438,7 @@ const kidsFirstDrsMarthaResult = (expectedAccessUrl) => {
         googleServiceAccount: null,
         bondProvider: 'kids-first',
         fileName: 'IMG_2325.jpg',
+        localizationPath: null,
         hashes: {
             etag: '74c88671bb0cd4cdde5ae45e49db6f47'
         }
@@ -536,6 +543,7 @@ const bdcDrsMarthaResult = (expectedGoogleServiceAccount, expectedAccessUrl) => 
         googleServiceAccount: expectedGoogleServiceAccount,
         bondProvider: 'fence',
         fileName: 'HG01131.final.cram.crai',
+        localizationPath: null,
         hashes: {
             md5: '8bec761c8a626356eb34dbdfe20649b4'
         },
@@ -597,6 +605,7 @@ const hcaDrsMarthaResult = {
     name: 'ecb5601e-9026-428c-b49d-3c5f1807ecb7/e37266ba-790d-4641-aa76-854d94be2fbe/E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz',
     accessUrl: null,
     fileName: 'E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz',
+    localizationPath: '/hca_dev_20201217_test4/5acd55ef/E18_20161004_Neurons_Sample_49_S048_L004_R2_005.fastq.gz',
     contentType: null,
     size: 438932948,
     hashes: {

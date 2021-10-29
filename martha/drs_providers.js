@@ -48,7 +48,9 @@ class AccessMethod {
 }
 
 class DrsProvider {
-    constructor(providerName, sendMetadataAuth, bondProvider, accessMethods, forceAccessUrl) {
+    constructor(providerName, sendMetadataAuth, bondProvider, accessMethods, forceAccessUrl, options) {
+        const defaultOptions = { usesAliasesForLocalizationPath: false };
+        this.options = { ...defaultOptions, ...options };
         this.providerName = providerName;
         this.sendMetadataAuth = sendMetadataAuth;
         this.bondProvider = bondProvider;
@@ -128,6 +130,15 @@ class DrsProvider {
         return this && overlapFields(requestedFields, MARTHA_V3_METADATA_FIELDS);
     }
 
+    /**
+     * This is hopefully a temporary measure until we can take the time to either get a new field
+     * added to the DRS spec or implement a temporary spec extension with the Terra Data Repo team.
+     * See BT-417 for more details.
+     */
+    usesAliasesForLocalizationPath() {
+        return this.options.usesAliasesForLocalizationPath;
+    }
+
     determineAccessUrlAuth(accessMethod, accessToken, requestAuth) {
         const providerAccessMethod = this.accessMethodHavingSameTypeAs(accessMethod);
         switch (providerAccessMethod.accessUrlAuth) {
@@ -163,7 +174,8 @@ class TerraDataRepoDrsProvider extends DrsProvider {
             [
                 new AccessMethod(AccessMethodType.GCS, AccessUrlAuth.CURRENT_REQUEST, FetchAccessUrl.NO)
             ],
-            forceAccessUrl
+            forceAccessUrl,
+            { usesAliasesForLocalizationPath: true }
         );
     }
 }

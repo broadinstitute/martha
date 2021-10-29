@@ -88,6 +88,12 @@ function getDrsFileName(drsResponse) {
     }
 }
 
+function getLocalizationPath(drsProvider, drsResponse) {
+    if (drsProvider.usesAliasesForLocalizationPath() && drsResponse && Array.isArray(drsResponse.aliases)) {
+        return drsResponse.aliases[0];
+    }
+}
+
 /** *************************************************************************************************
  * URI parsers
  */
@@ -339,6 +345,7 @@ async function retrieveFromServers(params) {
     let bondSA;
     let drsResponse;
     let fileName;
+    let localizationPath;
     let accessUrl;
 
     // `fetch` below might time out in a way that we want to report as an error. Since the timeout
@@ -396,6 +403,8 @@ async function retrieveFromServers(params) {
         // We've gotten far enough that we don't want to raise an error, even if we run out of time
         // while fetching a signed URL.
         hypotheticalErrorMessage = null;
+
+        localizationPath = getLocalizationPath(drsProvider, drsResponse);
 
         try {
             let accessToken;
@@ -459,6 +468,7 @@ async function retrieveFromServers(params) {
         bondProvider,
         drsResponse,
         fileName,
+        localizationPath,
         accessUrl,
         bondSA,
     });
@@ -470,13 +480,14 @@ function buildResponseInfo(params) {
         bondProvider,
         drsResponse,
         fileName,
+        localizationPath,
         accessUrl,
         bondSA,
     } = params;
 
     const fullResponse =
         requestedFields.length
-            ? convertToMarthaV3Response(drsResponse, fileName, bondProvider, bondSA, accessUrl)
+            ? convertToMarthaV3Response(drsResponse, fileName, bondProvider, bondSA, accessUrl, localizationPath)
             : {};
     const partialResponse = mask(fullResponse, requestedFields.join(","));
 

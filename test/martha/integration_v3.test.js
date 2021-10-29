@@ -235,6 +235,7 @@ test.cb('integration_v3 responds with Data Object for authorized user for jade d
                         '8b07563a-542f-4b5c-9e00-e8fe6b1861de',
                     googleServiceAccount: null,
                     fileName: 'HG00096.mapped.ILLUMINA.bwa.GBR.low_coverage.20120522.bam',
+                    localizationPath: '/1000GenomesDataset/bam_files/HG00096.mapped.ILLUMINA.bwa.GBR.low_coverage.20120522.bam',
                     hashes: {
                         md5: '336ea55913bc261b72875bd259753046',
                         crc32c: 'ecb19226'
