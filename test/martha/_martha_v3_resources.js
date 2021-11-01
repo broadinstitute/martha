@@ -102,7 +102,7 @@ const sampleDosMarthaResult = (expectedGoogleServiceAccount) => {
     };
 };
 
-// Jade
+// Jade AKA TDR
 
 const jadeDrsResponse = {
     id: 'v1_93dc1e76-8f1c-4949-8f9b-07a087f3ce7b_8b07563a-542f-4b5c-9e00-e8fe6b1861de',
@@ -164,7 +164,7 @@ const jadeAccessUrlMetadataResponse = {
     "id": "v1_0c86170e-312d-4b39-a0a4-2a2bfaa24c7a_c0e40912-8b14-43f6-9a2f-b278144d0060",
     "name": "hapmap_3.3.hg38.vcf.gz",
     // 2021-10-04 this is a minor forgery, dev TDR actually had a `null` value for the "self_uri" key
-    "self_uri": "drs://jade.datarepo-dev.broadinstitute.org/v1_0c86170e-312d-4b39-a0a4-2a2bfaa24c7a_c0e40912-8b14-43f6-9a2f-b278144d0060",
+    "self_uri": `drs://${config.HOST_TDR_DEV}/v1_0c86170e-312d-4b39-a0a4-2a2bfaa24c7a_c0e40912-8b14-43f6-9a2f-b278144d0060`,
     "size": 62043448,
     "created_time": "2020-08-04T19:55:22.570Z",
     "updated_time": "2020-08-04T19:55:22.570Z",

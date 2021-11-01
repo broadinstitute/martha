@@ -19,6 +19,7 @@ const HOST_CRDC_PROD = 'nci-crdc.datacommons.io';
 const HOST_CRDC_STAGING = 'nci-crdc-staging.datacommons.io';
 const HOST_KIDS_FIRST_PROD = 'data.kidsfirstdrc.org';
 const HOST_KIDS_FIRST_STAGING = 'gen3staging.kidsfirstdrc.org';
+const HOST_TDR_DEV = 'jade.datarepo-dev.broadinstitute.org'
 
 /**
  * Return the DSDE environment for the specified Martha environment.
@@ -190,6 +191,7 @@ const configExport = Object.freeze({
     HOST_CRDC_STAGING,
     HOST_KIDS_FIRST_PROD,
     HOST_KIDS_FIRST_STAGING,
+    HOST_TDR_DEV,
     ENV_PROD,
     ENV_DEV,
     ENV_MOCK,

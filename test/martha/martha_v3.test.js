@@ -270,7 +270,7 @@ test.serial('martha_v3 calls the correct endpoints when access url fetch is forc
         id: objectId, self_uri: drsUri,
         access_methods: { 0: { access_id: accessId, access_url: { url: gsUrl } } }
     } = jadeAccessUrlMetadataResponse;
-    const drs = drsUrls('jade.datarepo-dev.broadinstitute.org', objectId, accessId);
+    const drs = drsUrls(config.HOST_TDR_DEV, objectId, accessId);
     // 2021-10-04 Jade returns `"headers": null` if there are no headers, while the Gen3 repos we have worked with to
     // date omit the "headers" kv completely.
     const drsAccessUrlResponse = {...mockGcsAccessUrl(gsUrl), 'headers': null};
@@ -631,11 +631,11 @@ test.serial('martha_v3 does call Bond and return SA key when the host url is for
 });
 
 test.serial('martha_v3 does not call Bond or return SA key when the host url is for jade data repo', async (t) => {
-    const drs = drsUrls('jade.datarepo-dev.broadinstitute.org', 'abc');
+    const drs = drsUrls(config.HOST_TDR_DEV, 'abc');
     getJsonFromApiStub.withArgs(drs.objectsUrl, terraAuth).resolves(jadeDrsResponse);
     const response = mockResponse();
 
-    await marthaV3(mockRequest({ body: { 'url': 'drs://jade.datarepo-dev.broadinstitute.org/abc' } }), response);
+    await marthaV3(mockRequest({ body: { 'url': `drs://${config.HOST_TDR_DEV}/abc` } }), response);
 
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
@@ -860,7 +860,7 @@ test.serial('martha_v3 parses a Kids First CIB URI response correctly', async (t
 });
 
 test.serial('martha_v3 parses HCA response correctly', async (t) => {
-    const drs = drsUrls('jade.datarepo-dev.broadinstitute.org', 'v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe');
+    const drs = drsUrls(config.HOST_TDR_DEV, 'v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe');
     getJsonFromApiStub.withArgs(drs.objectsUrl, terraAuth).resolves(hcaDrsResponse);
     const response = mockResponse();
 
@@ -869,7 +869,7 @@ test.serial('martha_v3 parses HCA response correctly', async (t) => {
             {
                 body: {
                     'url':
-                        'drs://jade.datarepo-dev.broadinstitute.org/v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe'
+                        `drs://${config.HOST_TDR_DEV}/v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe`
                 }
             }
         ),
@@ -1199,15 +1199,15 @@ test.serial('martha_v3 determineDrsProvider should parse "drs://" Data Object ur
  */
 test.serial('martha_v3 should parse Data Object uri with jade data repo DEV as host', (t) => {
     t.is(
-        determineDrsProviderWrapper('drs://jade.datarepo-dev.broadinstitute.org/973b5e79-6433-40ce-bf38-686ab7f17820'),
-        'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/973b5e79-6433-40ce-bf38-686ab7f17820'
+        determineDrsProviderWrapper(`drs://${config.HOST_TDR_DEV}/973b5e79-6433-40ce-bf38-686ab7f17820`),
+        `https://${config.HOST_TDR_DEV}/ga4gh/drs/v1/objects/973b5e79-6433-40ce-bf38-686ab7f17820`
     );
 });
 
 test.serial('martha_v3 should parse Data Object uri with jade data repo DEV as host and path with snapshot id', (t) => {
     t.is(
-        determineDrsProviderWrapper('drs://jade.datarepo-dev.broadinstitute.org/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820'),
-        'https://jade.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820'
+        determineDrsProviderWrapper(`drs://${config.HOST_TDR_DEV}/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820`),
+        `https://${config.HOST_TDR_DEV}/ga4gh/drs/v1/objects/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820`
     );
 });
 
@@ -1220,8 +1220,8 @@ test.serial('martha_v3 should parse Data Object uri with jade data repo PROD as 
 
 test.serial('martha_v3 should parse Data Object uri with host that looks like jade data repo host', (t) => {
     t.is(
-        determineDrsProviderWrapper('drs://jade-data-repo.datarepo-dev.broadinstitute.org/v1_anything'),
-        'https://jade-data-repo.datarepo-dev.broadinstitute.org/ga4gh/drs/v1/objects/v1_anything'
+        determineDrsProviderWrapper(`drs://${config.HOST_TDR_DEV}/v1_anything`),
+        `https://${config.HOST_TDR_DEV}/ga4gh/drs/v1/objects/v1_anything`
     );
 });
 /**
