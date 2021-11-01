@@ -10,3 +10,4 @@ config.json
 coverage.lcov
 *~
 .DS_Store
+*.sublime-*
