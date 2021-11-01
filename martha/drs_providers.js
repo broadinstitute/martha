@@ -14,7 +14,7 @@ const {
 const AccessMethodType = {
     GCS: 'gs',
     S3: 's3',
-    HTTPS: 'https' 
+    HTTPS: 'https'
 };
 
 const AccessUrlAuth = {
