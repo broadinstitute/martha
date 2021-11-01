@@ -654,17 +654,15 @@ test.serial('martha_v3 parses response and generates signed URL correctly for an
     } = jadeDrsResponseForAzure;
     const drs = drsUrls(config.HOST_TDR_DEV, objectId, accessId);
     getJsonFromApiStub.withArgs(drs.objectsUrl, terraAuth).resolves(jadeDrsResponseForAzure);
-    getJsonFromApiStub.withArgs(drs.accessUrl, terraAuth)
-        .resolves({ url: `${accessUrl}?sig=aFakeOne` });
-
+    getJsonFromApiStub.withArgs(drs.accessUrl, terraAuth).resolves({ url: `${accessUrl}?sig=aFakeOne` });
     const response = mockResponse();
+    
     await marthaV3(mockRequest({ body: { 'url': `drs://${config.HOST_TDR_DEV}/${objectId}` } }), response);
 
     t.is(response.statusCode, 200);
     const result = response.send.lastCall.args[0];
     t.deepEqual(response.body, jadeDrsMarthaResultForAzure);
-    t.falsy(result.googleServiceAccount);
-
+    
     sinon.assert.callCount(getJsonFromApiStub, 2);
 });
 
