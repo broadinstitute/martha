@@ -209,6 +209,56 @@ const jadeAccessUrlMetadataResponse = {
     ]
 };
 
+const jadeDrsResponseForAzure = {
+    id: "v1_73b",
+    description: 'A VCF file',
+    name: 'NA12878_PLUMBING_wgs.g.vcf.gz',
+    size: 2718207,
+    created_time: '2021-02-23T16:45:56.044Z', // eslint-disable-line camelcase
+    updated_time: '2021-02-23T16:45:56.044Z', // eslint-disable-line camelcase
+    version: '0',
+    mime_type: 'application/octet-stream', // eslint-disable-line camelcase
+    checksums: [
+        {
+            checksum: '336ea55913bc261b72875bd259753046',
+            type: 'md5'
+        }
+    ],
+    access_methods: [ // eslint-disable-line camelcase
+        {
+            type: 'https',
+            access_url: {
+                url: 'https://omg.blob.core.windows.net/data/xyz/NA12878_PLUMBING_wgs.g.vcf.gz',
+                headers: null
+            },
+            access_id: 'azure-centralus',
+            region: 'centralus'
+        }
+    ],
+    aliases: [
+        '/vcf-data/NA12878_PLUMBING_wgs.g.vcf.gz'
+    ]
+};
+
+const jadeDrsMarthaResultForAzure = {
+    contentType: 'application/octet-stream',
+    size: 2718207,
+    timeCreated: '2021-02-23T16:45:56.044Z',
+    timeUpdated: '2021-02-23T16:45:56.044Z',
+    bucket: null, // expected, uses Azure
+    name: null, // there is definitely a name in the server response, why isn't Martha using it?
+    accessUrl: {
+        url: "https://omg.blob.core.windows.net/data/xyz/NA12878_PLUMBING_wgs.g.vcf.gz?sig=aFakeOne"
+    },
+    gsUri: null, // expected, uses Azure
+    googleServiceAccount: null,
+    bondProvider: null,
+    fileName: 'NA12878_PLUMBING_wgs.g.vcf.gz',
+    hashes: {
+        md5: '336ea55913bc261b72875bd259753046'
+    }
+};
+
 // Gen3/CRDC
 
 const gen3CrdcResponse = {
@@ -625,6 +675,8 @@ module.exports = {
     sampleDosMarthaResult,
     jadeDrsResponse,
     jadeDrsMarthaResult,
+    jadeDrsResponseForAzure,
+    jadeDrsMarthaResultForAzure,
     hcaDrsResponse,
     hcaDrsMarthaResult,
     bdcDrsResponse,
