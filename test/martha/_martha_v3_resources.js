@@ -256,7 +256,8 @@ const jadeDrsMarthaResultForAzure = {
     fileName: 'NA12878_PLUMBING_wgs.g.vcf.gz',
     hashes: {
         md5: '336ea55913bc261b72875bd259753046'
-    }
+    },
+    localizationPath: '/vcf-data/NA12878_PLUMBING_wgs.g.vcf.gz'
 };
 
 // Gen3/CRDC
