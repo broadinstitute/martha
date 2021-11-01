@@ -245,12 +245,12 @@ const jadeDrsMarthaResultForAzure = {
     size: 2718207,
     timeCreated: '2021-02-23T16:45:56.044Z',
     timeUpdated: '2021-02-23T16:45:56.044Z',
-    bucket: null, // expected, uses Azure
-    name: null, // there is definitely a name in the server response, why isn't Martha using it?
+    bucket: null,
+    name: null, // expected, 'name' is only set for GS files
     accessUrl: {
         url: "https://omg.blob.core.windows.net/data/xyz/NA12878_PLUMBING_wgs.g.vcf.gz?sig=aFakeOne"
     },
-    gsUri: null, // expected, uses Azure
+    gsUri: null,
     googleServiceAccount: null,
     bondProvider: null,
     fileName: 'NA12878_PLUMBING_wgs.g.vcf.gz',
@@ -482,7 +482,7 @@ const kidsFirstDrsMarthaResult = (expectedAccessUrl) => {
         timeCreated: '2021-03-19T18:49:45.920Z',
         timeUpdated: '2021-03-19T18:49:45.920Z',
         bucket: null, // expected, uses S3
-        name: null, // there is definitely a name in the server response, why isn't Martha using it?
+        name: null, // expected, uses S3 ('name' only set for GS)
         accessUrl: expectedAccessUrl,
         gsUri: null, // expected, uses S3
         googleServiceAccount: null,
