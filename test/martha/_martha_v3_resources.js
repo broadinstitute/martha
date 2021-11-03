@@ -102,7 +102,7 @@ const sampleDosMarthaResult = (expectedGoogleServiceAccount) => {
     };
 };
 
-// Jade
+// Jade AKA TDR
 
 const jadeDrsResponse = {
     id: 'v1_93dc1e76-8f1c-4949-8f9b-07a087f3ce7b_8b07563a-542f-4b5c-9e00-e8fe6b1861de',
@@ -164,7 +164,7 @@ const jadeAccessUrlMetadataResponse = {
     "id": "v1_0c86170e-312d-4b39-a0a4-2a2bfaa24c7a_c0e40912-8b14-43f6-9a2f-b278144d0060",
     "name": "hapmap_3.3.hg38.vcf.gz",
     // 2021-10-04 this is a minor forgery, dev TDR actually had a `null` value for the "self_uri" key
-    "self_uri": "drs://jade.datarepo-dev.broadinstitute.org/v1_0c86170e-312d-4b39-a0a4-2a2bfaa24c7a_c0e40912-8b14-43f6-9a2f-b278144d0060",
+    "self_uri": `drs://${config.HOST_TDR_DEV}/v1_0c86170e-312d-4b39-a0a4-2a2bfaa24c7a_c0e40912-8b14-43f6-9a2f-b278144d0060`,
     "size": 62043448,
     "created_time": "2020-08-04T19:55:22.570Z",
     "updated_time": "2020-08-04T19:55:22.570Z",
@@ -207,6 +207,57 @@ const jadeAccessUrlMetadataResponse = {
     "aliases": [
         "/CromwellSimpleWithFilerefs/gs:/broad-jade-dev-data-bucket/ca8edd48-e954-4c20-b911-b017fedffb67/hapmap_3.3.hg38.vcf.gz"
     ]
+};
+
+const jadeDrsResponseForAzure = {
+    id: "v1_73b",
+    description: 'A VCF file',
+    name: 'NA12878_PLUMBING_wgs.g.vcf.gz',
+    size: 2718207,
+    created_time: '2021-02-23T16:45:56.044Z', // eslint-disable-line camelcase
+    updated_time: '2021-02-23T16:45:56.044Z', // eslint-disable-line camelcase
+    version: '0',
+    mime_type: 'application/octet-stream', // eslint-disable-line camelcase
+    checksums: [
+        {
+            checksum: '336ea55913bc261b72875bd259753046',
+            type: 'md5'
+        }
+    ],
+    access_methods: [ // eslint-disable-line camelcase
+        {
+            type: 'https',
+            access_url: {
+                url: 'https://omg.blob.core.windows.net/data/xyz/NA12878_PLUMBING_wgs.g.vcf.gz',
+                headers: null
+            },
+            access_id: 'azure-centralus',
+            region: 'centralus'
+        }
+    ],
+    aliases: [
+        '/vcf-data/NA12878_PLUMBING_wgs.g.vcf.gz'
+    ]
+};
+
+const jadeDrsMarthaResultForAzure = {
+    contentType: 'application/octet-stream',
+    size: 2718207,
+    timeCreated: '2021-02-23T16:45:56.044Z',
+    timeUpdated: '2021-02-23T16:45:56.044Z',
+    bucket: null,
+    name: null, // expected, 'name' is only set for GS files
+    accessUrl: {
+        url: "https://omg.blob.core.windows.net/data/xyz/NA12878_PLUMBING_wgs.g.vcf.gz?sig=aFakeOne"
+    },
+    gsUri: null,
+    googleServiceAccount: null,
+    bondProvider: null,
+    fileName: 'NA12878_PLUMBING_wgs.g.vcf.gz',
+    hashes: {
+        md5: '336ea55913bc261b72875bd259753046'
+    },
+    localizationPath: '/vcf-data/NA12878_PLUMBING_wgs.g.vcf.gz'
 };
 
 // Gen3/CRDC
@@ -432,7 +483,7 @@ const kidsFirstDrsMarthaResult = (expectedAccessUrl) => {
         timeCreated: '2021-03-19T18:49:45.920Z',
         timeUpdated: '2021-03-19T18:49:45.920Z',
         bucket: null, // expected, uses S3
-        name: null, // there is definitely a name in the server response, why isn't Martha using it?
+        name: null, // expected, uses S3 ('name' only set for GS)
         accessUrl: expectedAccessUrl,
         gsUri: null, // expected, uses S3
         googleServiceAccount: null,
@@ -625,6 +676,8 @@ module.exports = {
     sampleDosMarthaResult,
     jadeDrsResponse,
     jadeDrsMarthaResult,
+    jadeDrsResponseForAzure,
+    jadeDrsMarthaResultForAzure,
     hcaDrsResponse,
     hcaDrsMarthaResult,
     bdcDrsResponse,
