@@ -21,7 +21,7 @@ Martha Release Checklist
 - [ ] Deploy and run manual test on **DEV**
     1. Go to the [Jenkins manual deploy project](https://fc-jenkins.dsp-techops.broadinstitute.org/job/martha-manual-deploy/) and click on the "Build with Parameters" link.  For the parameters, you want to select the tag you just created and "dev" as the TARGET.  Do not proceed until the job ends successfully.
         - You will need to be on the Broad network in order to have access.
-    1. [Run the full manual test on the dev environment](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng). The linked document instructs you to log into external servers via your profile page. For all dev and other non-prod instances:
+    1. [Run the full manual test on the dev environment](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng). The linked document instructs you to log into external servers via your profile page. For dev and other non-prod instances:
         * For NIH Account, enter any username you want in the fake login page, then click on the generated link to return to your profile.
         * For the other sites, log in with RAS account `Broadtestuser115`. Get the password from someone on the team if you're doing this for the first time.
 - [ ] Deploy and run manual test on **ALPHA**
