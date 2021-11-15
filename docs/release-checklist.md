@@ -4,7 +4,7 @@ Martha Release Checklist
 ## Prerequisites
 1. Write access to the [Martha github repo](https://github.com/broadinstitute/martha)
 1. The ability to run jobs on [this Jenkins server](https://fc-jenkins.dsp-techops.broadinstitute.org)
-1. Valid [eRA Commons credentials](https://public.era.nih.gov/commons/public/login.do?TARGET=https%3A%2F%2Fpublic.era.nih.gov%2Fcommons%2FcommonsInit.do)
+1. Valid [eRA Commons credentials](https://public.era.nih.gov/commons/public/login.do?TARGET=https%3A%2F%2Fpublic.era.nih.gov%2Fcommons%2FcommonsInit.do). You will run dev, alpha, and staging tests with test credentials, and prod tests with your personal real credentials. If you don't yet have eRA Commons credentials, contact sponsoredresearch@broadinstitute.org to obtain them.
 
 ## Steps
 
@@ -30,7 +30,7 @@ Martha Release Checklist
 - [ ] Deploy and run manual test on **STAGING**
     1. Build on [Jenkins](https://fc-jenkins.dsp-techops.broadinstitute.org/job/martha-manual-deploy/) as described in dev section above, setting TARGET to "staging". 
     1. [Run the full manual test on the alpha environment](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng) (see notes on account linking in dev environment above).
-- [ ] Deploy and run manual test on **PROD**
+- [ ] Deploy and run manual test on **PROD**. For this test, you will be using **your own real eRA Commons account** to link with external data sources.
      1. Go to the [Jenkins prod manual deploy project](https://fcprod-jenkins.dsp-techops.broadinstitute.org/job/martha-manual-deploy/) and click on the "Build with Parameters" link.  For the parameters, you want to select the tag you just created (you shouldn't have a choice for TARGET).  Do not proceed until the job ends successfully.
          - You will need to be on the Broad network in order to have access.
-     1. [Run the full manual test on the prod environment](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng). Use your real eRA Commons account to link with external services on your profile page.
+     1. [Run the full manual test on the prod environment](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng). Use your real eRA Commons account to link with external services on your profile page. 
