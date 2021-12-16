@@ -15,7 +15,7 @@ vault write secret/dsde/martha/prod/deploy-account.json @[key .json file]
 ```
 5. Disable or delete the existing key.
 ```
-5. gcloud iam service-accounts keys disable [key_id] --iam-account=cloud-functions-account@broad-dsde-prod.iam.gserviceaccount.com
+gcloud iam service-accounts keys disable [key_id] --iam-account=cloud-functions-account@broad-dsde-prod.iam.gserviceaccount.com
 ```
 6. Go to the [Jenkins prod manual deploy project](https://fcprod-jenkins.dsp-techops.broadinstitute.org/job/martha-manual-deploy/) and re-run the last Martha prod job. This will re-deploy the current version of Martha, verifying that the new service account key works.
 7. Again, [run the full manual test on the prod environment](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng) to make sure Martha still works.
