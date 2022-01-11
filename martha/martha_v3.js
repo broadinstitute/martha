@@ -15,6 +15,7 @@ const {
 const {
     determineDrsProvider,
     DrsProvider,
+    AccessUrlAuth
 } = require("./drs_providers");
 
 const config = require('../common/config');
@@ -30,6 +31,7 @@ const DG_COMPACT_BDC_STAGING = 'dg.712c';
 const DG_COMPACT_THE_ANVIL = 'dg.anv0';
 const DG_COMPACT_CRDC = 'dg.4dfc';
 const DG_COMPACT_KIDS_FIRST = 'dg.f82a1a';
+const DG_COMPACT_PASSPORT_TEST = 'dg.test0';
 
 // Google Cloud Functions gives us 60 seconds to respond. We'll use most of it to fetch what we can,
 // but not fail if we happen to time out when fetching a signed URL takes too long.
@@ -108,8 +110,9 @@ function expandCibHost(cibHost) {
         case DG_COMPACT_THE_ANVIL: return config.theAnvilHost;
         case DG_COMPACT_CRDC: return config.crdcHost;
         case DG_COMPACT_KIDS_FIRST: return config.kidsFirstHost;
+        case DG_COMPACT_PASSPORT_TEST: return config.passportTestHost;
         default:
-            throw new BadRequestError(`Unrecognized Compact Identifier Based host '${cibHost}.'`);
+            throw new BadRequestError(`Unrecognized Compact Identifier Based host '${cibHost}'.`);
     }
 }
 
@@ -347,6 +350,7 @@ async function retrieveFromServers(params) {
     let fileName;
     let localizationPath;
     let accessUrl;
+    let passports;
 
     // `fetch` below might time out in a way that we want to report as an error. Since the timeout
     // interrupts us while we're waiting for a response, we need to capture what we were about to
@@ -384,6 +388,18 @@ async function retrieveFromServers(params) {
                 bondSA = await apiAdapter.getJsonFrom(bondSAKeyUrl, auth);
             } catch (error) {
                 throw new RemoteServerError(error, 'Received error contacting Bond.');
+            }
+        }
+
+        if (drsProvider.shouldFetchPassports(accessMethod, requestedFields)) {
+            try {
+                // For now, we are only getting a RAS passport. In the future it may also fetch from other providers.
+                hypotheticalErrorMessage = 'Could not fetch passport from ECM.';
+                const externalcredsGetPassportUrl = `${config.externalcredsBaseUrl}/api/oidc/v1/ras/passport`;
+                console.log(`Requesting RAS passport for ${url} from externalcreds ${externalcredsGetPassportUrl}`);
+                passports = [await apiAdapter.getJsonFrom(externalcredsGetPassportUrl, auth)];
+            } catch (error) {
+                throw new RemoteServerError(error, 'Received error contacting externalcreds.');
             }
         }
 
@@ -425,9 +441,20 @@ async function retrieveFromServers(params) {
                     const httpsAccessUrl = generateAccessUrl(drsProvider, urlParts, accessMethod.access_id);
                     // Use the access token fetched in the call above or the auth submitted to Martha directly by the
                     // caller as appropriate.
-                    const accessUrlAuth = drsProvider.determineAccessUrlAuth(accessMethod, accessToken, auth);
+                    const providerAccessMethod = drsProvider.accessMethodHavingSameTypeAs(accessMethod);
                     console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}'`);
-                    accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, accessUrlAuth);
+                    switch (providerAccessMethod.accessUrlAuth) {
+                        case AccessUrlAuth.FENCE_TOKEN:
+                            accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, `Bearer ${accessToken}`);
+                        case AccessUrlAuth.CURRENT_REQUEST:
+                            accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, auth);
+                        case AccessUrlAuth.PASSPORT:
+                            accessUrl = await apiAdapter.postJsonTo(httpsAccessUrl, null,
+                                {"passports": passports});
+                        default:
+                            throw new BadRequestError(
+                                `Programmer error: 'determineAccessUrlAuth' called with AccessUrlAuth.${providerAccessMethod.accessUrlAuth} for provider ${this.providerName}`);
+                    }
                 } catch (error) {
                     throw new RemoteServerError(error, 'Received error contacting DRS provider.');
                 }

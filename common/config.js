@@ -20,6 +20,7 @@ const HOST_CRDC_STAGING = 'nci-crdc-staging.datacommons.io';
 const HOST_KIDS_FIRST_PROD = 'data.kidsfirstdrc.org';
 const HOST_KIDS_FIRST_STAGING = 'gen3staging.kidsfirstdrc.org';
 const HOST_TDR_DEV = 'jade.datarepo-dev.broadinstitute.org';
+const HOST_PASSPORT_TEST = 'ctds-test-env.planx-pla.net';
 
 /**
  * Return the DSDE environment for the specified Martha environment.
@@ -57,6 +58,8 @@ function configDefaultsForEnv({marthaEnv, dsdeEnv = dsdeEnvFrom(marthaEnv)}) {
                         return `https://broad-bond-${dsdeEnv}.appspot.com`;
                 }
             })(),
+        externalcredsBaseUrl:
+            `https://externalcreds.dsde-${dsdeEnv}.broadinstitute.org`,
         bioDataCatalystHost:
             (() => {
                 switch (marthaEnv) {
@@ -99,6 +102,15 @@ function configDefaultsForEnv({marthaEnv, dsdeEnv = dsdeEnvFrom(marthaEnv)}) {
                         return HOST_KIDS_FIRST_PROD;
                     default:
                         return HOST_KIDS_FIRST_STAGING;
+                }
+            })(),
+        passportTestHost:
+            (() => {
+                switch (marthaEnv) {
+                    case ENV_MOCK:
+                        return HOST_MOCK_DRS;
+                    default:
+                        return HOST_PASSPORT_TEST;
                 }
             })(),
         itMarthaBaseUrl:
@@ -168,6 +180,8 @@ function removeUndefined(orig) {
  *      Default: Sam in dsde-dev.
  * @property {string} bondBaseUrl - Base URL for calling Bond.
  *      Default: Bond in dsde-dev.
+ * @property {string} externalcredsBaseUrl - Base URL for calling External Credentials Manager.
+ *      Default: Externalcreds in dsde-dev.
  * @property {string} bioDataCatalystHost Host (hostname + port) for calling DRS resolvers (production or staging)
  *      or mock DRS for BioData Catalyst.
  * @property {string} theAnvilHost (hostname + port) for calling DRS resolvers (production or staging)
@@ -176,6 +190,8 @@ function removeUndefined(orig) {
  *      or mock DRS for CRDC.
  * @property {string} kidsFirstHost (hostname + port) for calling DRS resolvers (production or staging)
  *      or mock DRS for Kids First.
+ * @property {string} passportTestHost (hostname + port) for calling DRS resolvers (production or staging)
+ *      or mock DRS for Passport testing.
  * @property {string} itMarthaBaseUrl - Base URL for calling Martha from integration-test code.
  *      Default: Martha in FiaB.
  * @property {string} itBondBaseUrl - Base URL for calling Bond from integration-test code.
@@ -192,6 +208,7 @@ const configExport = Object.freeze({
     HOST_KIDS_FIRST_PROD,
     HOST_KIDS_FIRST_STAGING,
     HOST_TDR_DEV,
+    HOST_PASSPORT_TEST,
     ENV_PROD,
     ENV_DEV,
     ENV_MOCK,

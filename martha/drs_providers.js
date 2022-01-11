@@ -19,7 +19,8 @@ const AccessMethodType = {
 
 const AccessUrlAuth = {
     FENCE_TOKEN: "FENCE_TOKEN",
-    CURRENT_REQUEST: "CURRENT_REQUEST"
+    CURRENT_REQUEST: "CURRENT_REQUEST",
+    PASSPORT: "PASSPORT"
 };
 
 const FetchAccessUrl = {
@@ -114,6 +115,13 @@ class DrsProvider {
             overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS);
     }
 
+    shouldFetchPassports(accessMethod, requestedFields) {
+        return overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&
+            accessMethod &&
+            this.accessMethods.find((m) => m.accessMethodType === accessMethod.type &&
+                m.accessUrlAuth === AccessUrlAuth.PASSPORT);
+    }
+
     shouldFailOnAccessUrlFail(accessMethod) {
         // Fail this request if Martha was unable to get an access/signed URL and the access method is truthy but its
         // type is not GCS. Martha clients currently can't deal with cloud paths other than GCS so there isn't a
@@ -138,19 +146,6 @@ class DrsProvider {
      */
     usesAliasesForLocalizationPath() {
         return this.options.usesAliasesForLocalizationPath;
-    }
-
-    determineAccessUrlAuth(accessMethod, accessToken, requestAuth) {
-        const providerAccessMethod = this.accessMethodHavingSameTypeAs(accessMethod);
-        switch (providerAccessMethod.accessUrlAuth) {
-            case AccessUrlAuth.FENCE_TOKEN:
-                return `Bearer ${accessToken}`;
-            case AccessUrlAuth.CURRENT_REQUEST:
-                return requestAuth;
-            default:
-                throw new BadRequestError(
-                    `Programmer error: 'determineAccessUrlAuth' called with AccessUrlAuth.${providerAccessMethod.accessUrlAuth} for provider ${this.providerName}`);
-        }
     }
 }
 
@@ -222,6 +217,20 @@ class CrdcProvider extends DrsProvider {
     }
 }
 
+class PassportTestDrsProvider extends DrsProvider {
+    constructor(forceAccessUrl) {
+        super(
+            'Passport Test Provider',
+            MetadataAuth.NO,
+            BondProvider.NONE,
+            [
+                new AccessMethod(AccessMethodType.GCS, AccessUrlAuth.PASSPORT, FetchAccessUrl.YES)
+            ],
+            forceAccessUrl
+        );
+    }
+}
+
 /** *************************************************************************************************
  * Here is where all the logic lives that pairs a particular kind of URI with its DRS Provider.
  *
@@ -264,9 +273,14 @@ function determineDrsProvider(url, urlParts, forceAccessUrl) {
         throw new BadRequestError('dataguids.org data has moved. See: https://support.terra.bio/hc/en-us/articles/360060681132');
     }
 
+    if (host === config.HOST_PASSPORT_TEST) {
+        return new PassportTestDrsProvider(forceAccessUrl);
+    }
+
     // Fail explicitly for DRS ids for which Martha can not determine a provider.
     throw new BadRequestError(`Could not determine DRS provider for id '${url}'`);
 }
 
 exports.DrsProvider = DrsProvider;
 exports.determineDrsProvider = determineDrsProvider;
+exports.AccessUrlAuth = AccessUrlAuth;
