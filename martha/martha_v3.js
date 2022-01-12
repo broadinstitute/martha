@@ -357,6 +357,26 @@ async function retrieveFromServers(params) {
     // try doing just before we do it so that we can provide that detail in the error report.
     let hypotheticalErrorMessage;
 
+    const getAccessUrl = async (args) => {
+        const { providerAccessMethod: {accessUrlAuth, fallbackAccessUrlAuth}, httpsAccessUrl, accessToken, auth } = args;
+
+        if (accessUrlAuth === AccessUrlAuth.PASSPORT) {
+            try {
+                return await apiAdapter.postJsonTo(httpsAccessUrl, null, {"passports": passports});
+            } catch {
+                // retry with fallbackAccessUrlAuth
+                return getAccessUrl({ ...args, providerAccessMethod: { accessUrlAuth: fallbackAccessUrlAuth }});
+            }
+        } else if (accessUrlAuth === AccessUrlAuth.CURRENT_REQUEST) {
+            return apiAdapter.getJsonFrom(httpsAccessUrl, auth);
+        } else if (accessUrlAuth === AccessUrlAuth.FENCE_TOKEN) {
+            return apiAdapter.getJsonFrom(httpsAccessUrl, `Bearer ${accessToken}`);
+        } else {
+            throw new BadRequestError(
+                `Programmer error: 'determineAccessUrlAuth' called with AccessUrlAuth.${accessUrlAuth} for provider ${this.providerName}`);
+        }
+    };
+
     const fetch = async () => {
         let response;
         if (drsProvider.shouldRequestMetadata(requestedFields)) {
@@ -399,7 +419,12 @@ async function retrieveFromServers(params) {
                 console.log(`Requesting RAS passport for ${url} from externalcreds ${externalcredsGetPassportUrl}`);
                 passports = [await apiAdapter.getJsonFrom(externalcredsGetPassportUrl, auth)];
             } catch (error) {
-                throw new RemoteServerError(error, 'Received error contacting externalcreds.');
+                if (error.status === 404) {
+                    console.log("User does not have a passport.");
+                } else {
+                    throw new RemoteServerError(error,
+                        'Received error contacting externalcreds.');
+                }
             }
         }
 
@@ -443,21 +468,8 @@ async function retrieveFromServers(params) {
                     // caller as appropriate.
                     const providerAccessMethod = drsProvider.accessMethodHavingSameTypeAs(accessMethod);
                     console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}'`);
-                    switch (providerAccessMethod.accessUrlAuth) {
-                        case AccessUrlAuth.FENCE_TOKEN:
-                            accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, `Bearer ${accessToken}`);
-                            break;
-                        case AccessUrlAuth.CURRENT_REQUEST:
-                            accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, auth);
-                            break;
-                        case AccessUrlAuth.PASSPORT:
-                            accessUrl = await apiAdapter.postJsonTo(httpsAccessUrl, null,
-                                {"passports": passports});
-                            break;
-                        default:
-                            throw new BadRequestError(
-                                `Programmer error: 'determineAccessUrlAuth' called with AccessUrlAuth.${providerAccessMethod.accessUrlAuth} for provider ${this.providerName}`);
-                    }
+
+                    accessUrl = await getAccessUrl({ providerAccessMethod, httpsAccessUrl, accessToken, auth});
                 } catch (error) {
                     throw new RemoteServerError(error, 'Received error contacting DRS provider.');
                 }

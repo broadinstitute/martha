@@ -42,10 +42,11 @@ const MetadataAuth = {
 };
 
 class AccessMethod {
-    constructor(accessMethodType, accessUrlAuth, fetchAccessUrl) {
+    constructor(accessMethodType, accessUrlAuth, fetchAccessUrl, fallbackAccessUrlAuth) {
         this.accessMethodType = accessMethodType;
         this.accessUrlAuth = accessUrlAuth;
         this.fetchAccessUrl = fetchAccessUrl;
+        this.fallbackAccessUrlAuth = fallbackAccessUrlAuth;
     }
 }
 
@@ -224,8 +225,8 @@ class PassportTestDrsProvider extends DrsProvider {
             MetadataAuth.NO,
             BondProvider.NONE,
             [
-                new AccessMethod(AccessMethodType.GCS, AccessUrlAuth.PASSPORT, FetchAccessUrl.YES),
-                new AccessMethod(AccessMethodType.S3, AccessUrlAuth.PASSPORT, FetchAccessUrl.YES)
+                new AccessMethod(AccessMethodType.GCS, AccessUrlAuth.PASSPORT, FetchAccessUrl.YES, AccessUrlAuth.FENCE_TOKEN),
+                new AccessMethod(AccessMethodType.S3, AccessUrlAuth.PASSPORT, FetchAccessUrl.YES, AccessUrlAuth.FENCE_TOKEN)
             ],
             forceAccessUrl
         );
