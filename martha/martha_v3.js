@@ -446,11 +446,14 @@ async function retrieveFromServers(params) {
                     switch (providerAccessMethod.accessUrlAuth) {
                         case AccessUrlAuth.FENCE_TOKEN:
                             accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, `Bearer ${accessToken}`);
+                            break;
                         case AccessUrlAuth.CURRENT_REQUEST:
                             accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, auth);
+                            break;
                         case AccessUrlAuth.PASSPORT:
                             accessUrl = await apiAdapter.postJsonTo(httpsAccessUrl, null,
                                 {"passports": passports});
+                            break;
                         default:
                             throw new BadRequestError(
                                 `Programmer error: 'determineAccessUrlAuth' called with AccessUrlAuth.${providerAccessMethod.accessUrlAuth} for provider ${this.providerName}`);
