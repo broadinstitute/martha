@@ -224,7 +224,8 @@ class PassportTestDrsProvider extends DrsProvider {
             MetadataAuth.NO,
             BondProvider.NONE,
             [
-                new AccessMethod(AccessMethodType.GCS, AccessUrlAuth.PASSPORT, FetchAccessUrl.YES)
+                new AccessMethod(AccessMethodType.GCS, AccessUrlAuth.PASSPORT, FetchAccessUrl.YES),
+                new AccessMethod(AccessMethodType.S3, AccessUrlAuth.PASSPORT, FetchAccessUrl.YES)
             ],
             forceAccessUrl
         );
