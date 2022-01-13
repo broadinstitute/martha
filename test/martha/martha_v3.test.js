@@ -1379,7 +1379,7 @@ test.serial('martha_v3 should return 4xx with an unrecognized CIB hostname', asy
         {
             response: {
                 status: 400,
-                text: `Request is invalid. Unrecognized Compact Identifier Based host 'dg.CAFE.'`,
+                text: `Request is invalid. Unrecognized Compact Identifier Based host 'dg.CAFE'.`,
             },
             status: 400,
         },
