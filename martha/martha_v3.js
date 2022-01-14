@@ -364,7 +364,7 @@ async function retrieveFromServers(params) {
             try {
                 return await apiAdapter.postJsonTo(httpsAccessUrl, null, {"passports": passports});
             } catch (error) {
-                console.log(`Passport authorized request failed for ${httpsAccessUrl} with error ${error}, falling back to ${fallbackAccessUrlAuth} authorization`)
+                console.log(`Passport authorized request failed for ${httpsAccessUrl} with error ${error}, falling back to ${fallbackAccessUrlAuth} authorization`);
                 // retry with fallbackAccessUrlAuth
                 return getAccessUrl({ ...args, providerAccessMethod: { accessUrlAuth: fallbackAccessUrlAuth }});
             }
@@ -374,7 +374,7 @@ async function retrieveFromServers(params) {
             if (accessToken) {
                 return apiAdapter.getJsonFrom(httpsAccessUrl, `Bearer ${accessToken}`);
             } else {
-                throw new BadRequestError(`Fence access token required for ${httpsAccessUrl} but is missing. Does use have an account linked in Bond?`)
+                throw new BadRequestError(`Fence access token required for ${httpsAccessUrl} but is missing. Does use have an account linked in Bond?`);
             }
 
         } else {

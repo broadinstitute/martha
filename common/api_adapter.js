@@ -29,22 +29,6 @@ async function getHeaders(url, authorization) {
     }
 }
 
-async function getJsonFrom(url, authorization) {
-    return httpCallWithRetry(url, async () => get('get', url, authorization))
-}
-
-async function postJsonTo(url, authorization, payload) {
-    return httpCallWithRetry(url, async () => {
-        const postReq = request.post(url, payload);
-        postReq.set('Content-Type', 'application/json');
-        if (authorization) {
-            postReq.set('authorization', authorization);
-        }
-
-        return postReq.then((response) => response.body);
-    })
-}
-
 async function httpCallWithRetry(url, httpCall, retryAttempt = 1, delay = INITIAL_BACKOFF_DELAY) {
     try {
         const {body} = await httpCall();
@@ -87,6 +71,22 @@ async function httpCallWithRetry(url, httpCall, retryAttempt = 1, delay = INITIA
         }
         else { throw error; }
     }
+}
+
+function getJsonFrom(url, authorization) {
+    return httpCallWithRetry(url, () => get('get', url, authorization));
+}
+
+function postJsonTo(url, authorization, payload) {
+    return httpCallWithRetry(url, () => {
+        const postReq = request.post(url, payload);
+        postReq.set('Content-Type', 'application/json');
+        if (authorization) {
+            postReq.set('authorization', authorization);
+        }
+
+        return postReq.then((response) => response.body);
+    });
 }
 
 exports.get = get;
