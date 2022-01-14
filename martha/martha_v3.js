@@ -363,14 +363,20 @@ async function retrieveFromServers(params) {
         if (accessUrlAuth === AccessUrlAuth.PASSPORT) {
             try {
                 return await apiAdapter.postJsonTo(httpsAccessUrl, null, {"passports": passports});
-            } catch {
+            } catch (error) {
+                console.log(`Passport authorized request failed for ${httpsAccessUrl} with error ${error}, falling back to ${fallbackAccessUrlAuth} authorization`)
                 // retry with fallbackAccessUrlAuth
                 return getAccessUrl({ ...args, providerAccessMethod: { accessUrlAuth: fallbackAccessUrlAuth }});
             }
         } else if (accessUrlAuth === AccessUrlAuth.CURRENT_REQUEST) {
             return apiAdapter.getJsonFrom(httpsAccessUrl, auth);
         } else if (accessUrlAuth === AccessUrlAuth.FENCE_TOKEN) {
-            return apiAdapter.getJsonFrom(httpsAccessUrl, `Bearer ${accessToken}`);
+            if (accessToken) {
+                return apiAdapter.getJsonFrom(httpsAccessUrl, `Bearer ${accessToken}`);
+            } else {
+                throw new BadRequestError(`Fence access token required for ${httpsAccessUrl} but is missing. Does use have an account linked in Bond?`)
+            }
+
         } else {
             throw new BadRequestError(
                 `Programmer error: 'determineAccessUrlAuth' called with AccessUrlAuth.${accessUrlAuth} for provider ${this.providerName}`);
@@ -456,7 +462,11 @@ async function retrieveFromServers(params) {
                     const accessTokenResponse = await apiAdapter.getJsonFrom(bondAccessTokenUrl, auth);
                     accessToken = accessTokenResponse.token;
                 } catch (error) {
-                    throw new RemoteServerError(error, 'Received error contacting Bond.');
+                    if (error.status === 404) {
+                        console.log("User does not have a Bond account linked.");
+                    } else {
+                        throw new RemoteServerError(error, 'Received error contacting Bond.');
+                    }
                 }
             }
 

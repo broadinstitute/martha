@@ -29,9 +29,25 @@ async function getHeaders(url, authorization) {
     }
 }
 
-async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL_BACKOFF_DELAY) {
+async function getJsonFrom(url, authorization) {
+    return httpCallWithRetry(url, async () => get('get', url, authorization))
+}
+
+async function postJsonTo(url, authorization, payload) {
+    return httpCallWithRetry(url, async () => {
+        const postReq = request.post(url, payload);
+        postReq.set('Content-Type', 'application/json');
+        if (authorization) {
+            postReq.set('authorization', authorization);
+        }
+
+        return postReq.then((response) => response.body);
+    })
+}
+
+async function httpCallWithRetry(url, httpCall, retryAttempt = 1, delay = INITIAL_BACKOFF_DELAY) {
     try {
-        const {body} = await get('get', url, authorization);
+        const {body} = await httpCall();
 
         /*
          handle the case when Martha receives empty JSON body. The reason behind forming a response with status 500
@@ -61,7 +77,7 @@ async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL
 
                 return new Promise((resolve, reject) => {
                     setTimeout(() => {
-                        getJsonFrom(url, authorization, retryAttempt + 1, backOffDelay)
+                        httpCallWithRetry(url, httpCall, retryAttempt + 1, backOffDelay)
                             .then(resolve)
                             .catch((error) => { reject(error); });
                     }, delay);
@@ -71,16 +87,6 @@ async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL
         }
         else { throw error; }
     }
-}
-
-function postJsonTo(url, authorization, payload) {
-    const postReq = request.post(url, payload);
-    postReq.set('Content-Type', 'application/json');
-    if (authorization) {
-        postReq.set('authorization', authorization);
-    }
-
-    return postReq.then((response) => response.body);
 }
 
 exports.get = get;

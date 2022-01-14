@@ -82,7 +82,7 @@ class DrsProvider {
             overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&
             (this.forceAccessUrl || (accessMethod &&
                 this.accessMethods.find((m) => m.accessMethodType === accessMethod.type &&
-                    m.accessUrlAuth === AccessUrlAuth.FENCE_TOKEN &&
+                    (m.accessUrlAuth === AccessUrlAuth.FENCE_TOKEN || m.fallbackAccessUrlAuth === AccessUrlAuth.FENCE_TOKEN) &&
                     m.fetchAccessUrl === FetchAccessUrl.YES)));
     }
 
@@ -223,7 +223,7 @@ class PassportTestDrsProvider extends DrsProvider {
         super(
             'Passport Test Provider',
             MetadataAuth.NO,
-            BondProvider.NONE,
+            BondProvider.DCF_FENCE,
             [
                 new AccessMethod(AccessMethodType.GCS, AccessUrlAuth.PASSPORT, FetchAccessUrl.YES, AccessUrlAuth.FENCE_TOKEN),
                 new AccessMethod(AccessMethodType.S3, AccessUrlAuth.PASSPORT, FetchAccessUrl.YES, AccessUrlAuth.FENCE_TOKEN)
