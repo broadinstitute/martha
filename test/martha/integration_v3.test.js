@@ -29,7 +29,8 @@ const authorizedEmail = `hermione.owner@${emailDomain}`;
 const publicFenceUrl = 'dos://dg.4503/preview_dos.json';
 const protectedFenceUrl = 'dos://dg.4503/65e4cd14-f549-4a7f-ad0c-d29212ff6e46';
 const fenceAuthLink =
-    `${myBondBaseUrl}/api/link/v1/fence/oauthcode` +
+    `${myBondBaseUrl}/api/link/v1/fence/
+    oauthcode` +
     '?oauthcode=IgnoredByMockProvider' +
     '&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback';
 

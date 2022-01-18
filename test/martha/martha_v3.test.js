@@ -22,6 +22,7 @@ const {
     kidsFirstDrsResponse,
     kidsFirstDrsResponseCustom,
     kidsFirstDrsMarthaResult,
+    passportTestResponse,
     anvilDrsMarthaResult,
     anvilDrsResponse,
     gen3CrdcDrsMarthaResult,
@@ -100,6 +101,13 @@ const bondAccessTokenResponse = {
     expires_at: 'NEVER'
 };
 
+const ecmUrls = (provider) => {
+    const baseUrl = `https://externalcreds.dsde-dev.broadinstitute.org`;
+    return {
+        passportUrl: `${baseUrl}/api/oidc/v1/${provider}/passport`
+    };
+};
+
 const bondUrls = (provider) => {
     const baseUrl = `https://broad-bond-dev.appspot.com/api/link/v1/${provider}`;
     return {
@@ -132,7 +140,8 @@ const bdc = config.HOST_BIODATA_CATALYST_STAGING;
 const crdc = config.HOST_CRDC_STAGING;
 const kidsFirst = config.HOST_KIDS_FIRST_STAGING;
 
-// TODO: add postJsonToApiStub (used to get access url with passport)
+let postJsonToApiStub;
+const postJsonToApiStubMethodName = 'postJsonTo';
 
 let getJsonFromApiStub;
 const getJsonFromApiMethodName = 'getJsonFrom';
@@ -140,6 +149,7 @@ const getJsonFromApiMethodName = 'getJsonFrom';
 test.serial.beforeEach(() => {
     sinon.restore(); // If one test fails, the .afterEach() block will not execute, so always clean the slate here
     getJsonFromApiStub = sinon.stub(apiAdapter, getJsonFromApiMethodName);
+    postJsonToApiStub = sinon.stub(apiAdapter, postJsonToApiStubMethodName);
 });
 
 test.serial.afterEach(() => {
@@ -158,6 +168,29 @@ test.serial('martha_v3 uses the default error handler for unexpected errors', as
 // TODO: add ecm related tests here
 // TODO: test that if (accessUrlAuth === AccessUrlAuth.PASSPORT), then it should use postJsonToApiStub with a "passport" payload, and if it errors use the fallbackAccessUrlAuth
 // TODO: test that if (drsProvider.shouldFetchPassports(accessMethod, requestedFields)), it fetches a passport correctly from ecm, and fails correctly if a passport is not present
+
+test.serial('martha_v3 calls the correct endpoints when only the accessUrl is requested with passports', async (t) => {
+    const {
+        id: objectId, self_uri: drsUri,
+        access_methods: { 0: { access_id: accessId, access_url: { url: gcsUrl } } }
+    } = passportTestResponse;
+    const passport = '"I am a passport"';
+    const drs = drsUrls(config.HOST_PASSPORT_TEST, objectId, accessId);
+    const drsAccessUrlResponse = mockGcsAccessUrl(gcsUrl);
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(passportTestResponse);
+    getJsonFromApiStub.withArgs(bondUrls(BondProviders.DCF_FENCE), terraAuth).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.withArgs(ecmUrls('ras'), terraAuth).resolves(passport);
+    postJsonToApiStub.withArgs(drs.accessUrl, null, {"passports": [passport]}).resolves(drsAccessUrlResponse);
+    const response = mockResponse();
+    const request = mockRequest({body: {url: drsUri, fields: ['accessUrl']}});
+
+    await marthaV3(request, response);
+
+    t.is(response.statusCode, 200);
+    t.deepEqual(response.body, { accessUrl: drsAccessUrlResponse });
+
+    sinon.assert.callCount(getJsonFromApiStub, 3);
+});
 
 // According to the DRS specification authors [0] it's OK for a client to call Martha with a `drs://` URI and get
 // back a DOS object. Martha should just "do the right thing" and return whichever format the server supports,
