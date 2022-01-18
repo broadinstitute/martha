@@ -1,0 +1,2 @@
+martha.hosts: {"bioDataCatalystHost": "staging.gen3.biodatacatalyst.nhlbi.nih.gov","theAnvilHost": "staging.theanvil.io","crdcHost": "nci-crdc-staging.datacommons.io","kidsFirstHost": "gen3staging.kidsfirstdrc.org","bondBaseUrl": "https://broad-bond-dev.appspot.com","samBaseUrl": "https://sam.dsde-dev.broadinstitute.org"}
+
