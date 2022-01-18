@@ -31,7 +31,9 @@ async function getHeaders(url, authorization) {
 
 async function httpCallWithRetry(url, httpCall, retryAttempt = 1, delay = INITIAL_BACKOFF_DELAY) {
     try {
-        return await httpCall();
+        const response = await httpCall();
+        console.log(`Successfully received response from url '${url}'.`);
+        return response;
     } catch (error) {
         console.log(`Received error for url '${url}'. Attempt ${retryAttempt}.`);
         console.error(error);
@@ -59,20 +61,16 @@ async function httpCallWithRetry(url, httpCall, retryAttempt = 1, delay = INITIA
 
 function getJsonFrom(url, authorization) {
     return httpCallWithRetry(url, async () => {
-        const {body} = await get('get', url, authorization)
+        const {body} = await get('get', url, authorization);
         /*
          handle the case when Martha receives empty JSON body. The reason behind forming a response with status 500
          and throwing it in `try` is so that it can be caught locally and be retried.
          */
         if (Object.keys(body).length === 0) {
-            console.log(`Received an empty JSON body while trying to resolve url '${url}'. Attempt ${retryAttempt}. ` +
-                'Creating a response with status 500.');
-
-            const errorMsg = `Something went wrong while trying to resolve url '${url}'. It came back with empty JSON body!`;
+            const errorMsg = `Received an empty JSON body while trying to resolve url '${url}'`;
             throw new FailureResponse(500, errorMsg);
         }
         else {
-            console.log(`Successfully received response from url '${url}'.`);
             return body;
         }
     });
