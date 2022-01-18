@@ -357,6 +357,8 @@ async function retrieveFromServers(params) {
     // try doing just before we do it so that we can provide that detail in the error report.
     let hypotheticalErrorMessage;
 
+    // TODO: test that ecm is called when it should be
+    //  test that if (accessUrlAuth === AccessUrlAuth.PASSPORT), then it should use postJsonToApiStub with a "passport" payload, and if it errors use the fallbackAccessUrlAuth
     const getAccessUrl = async (args) => {
         const { providerAccessMethod: {accessUrlAuth, fallbackAccessUrlAuth}, httpsAccessUrl, accessToken, auth } = args;
 
@@ -417,6 +419,7 @@ async function retrieveFromServers(params) {
             }
         }
 
+        // TODO: test this to make sure that when it hits this it fetches a passport correctly, and fails correctly
         if (drsProvider.shouldFetchPassports(accessMethod, requestedFields)) {
             try {
                 // For now, we are only getting a RAS passport. In the future it may also fetch from other providers.
@@ -470,6 +473,7 @@ async function retrieveFromServers(params) {
                 }
             }
 
+            // TODO: maybe check here too
             // Retrieve the accessUrl using the returned accessToken, even if the token was empty.
             if (drsProvider.shouldFetchAccessUrl(accessMethod, requestedFields)) {
                 try {

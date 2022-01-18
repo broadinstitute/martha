@@ -132,6 +132,8 @@ const bdc = config.HOST_BIODATA_CATALYST_STAGING;
 const crdc = config.HOST_CRDC_STAGING;
 const kidsFirst = config.HOST_KIDS_FIRST_STAGING;
 
+// TODO: add postJsonToApiStub (used to get access url with passport)
+
 let getJsonFromApiStub;
 const getJsonFromApiMethodName = 'getJsonFrom';
 
@@ -152,6 +154,10 @@ test.serial('martha_v3 uses the default error handler for unexpected errors', as
     t.is(actualError, expectedError);
     sinon.assert.callCount(response.send, 0);
 });
+
+// TODO: add ecm related tests here
+// TODO: test that if (accessUrlAuth === AccessUrlAuth.PASSPORT), then it should use postJsonToApiStub with a "passport" payload, and if it errors use the fallbackAccessUrlAuth
+// TODO: test that if (drsProvider.shouldFetchPassports(accessMethod, requestedFields)), it fetches a passport correctly from ecm, and fails correctly if a passport is not present
 
 // According to the DRS specification authors [0] it's OK for a client to call Martha with a `drs://` URI and get
 // back a DOS object. Martha should just "do the right thing" and return whichever format the server supports,
