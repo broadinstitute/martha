@@ -165,10 +165,6 @@ test.serial('martha_v3 uses the default error handler for unexpected errors', as
     sinon.assert.callCount(response.send, 0);
 });
 
-// TODO: add ecm related tests here
-// TODO: test that if (accessUrlAuth === AccessUrlAuth.PASSPORT), then it should use postJsonToApiStub with a "passport" payload, and if it errors use the fallbackAccessUrlAuth
-// TODO: test that if (drsProvider.shouldFetchPassports(accessMethod, requestedFields)), it fetches a passport correctly from ecm, and fails correctly if a passport is not present
-
 test.serial('martha_v3 calls the correct endpoints when only the accessUrl is requested with passports', async (t) => {
     const {
         id: objectId, self_uri: drsUri,
