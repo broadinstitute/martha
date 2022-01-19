@@ -373,7 +373,7 @@ async function retrieveFromServers(params) {
                 // didn't get an access url using passport, try with fallback
                 accessUrl = getAccessUrl({ ...args, providerAccessMethod: { accessUrlAuth: fallbackAccessUrlAuth }});
             }
-            return accessUrl
+            return accessUrl;
         } else if (accessUrlAuth === AccessUrlAuth.CURRENT_REQUEST) {
             return apiAdapter.getJsonFrom(httpsAccessUrl, auth);
         } else if (accessUrlAuth === AccessUrlAuth.FENCE_TOKEN) {
