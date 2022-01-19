@@ -357,19 +357,23 @@ async function retrieveFromServers(params) {
     // try doing just before we do it so that we can provide that detail in the error report.
     let hypotheticalErrorMessage;
 
-    // TODO: test that ecm is called when it should be
-    //  test that if (accessUrlAuth === AccessUrlAuth.PASSPORT), then it should use postJsonToApiStub with a "passport" payload, and if it errors use the fallbackAccessUrlAuth
     const getAccessUrl = async (args) => {
         const { providerAccessMethod: {accessUrlAuth, fallbackAccessUrlAuth}, httpsAccessUrl, accessToken, auth } = args;
 
         if (accessUrlAuth === AccessUrlAuth.PASSPORT) {
+            let accessUrl;
             try {
-                return await apiAdapter.postJsonTo(httpsAccessUrl, null, {"passports": passports});
+                if (passports) {
+                    accessUrl = await apiAdapter.postJsonTo(httpsAccessUrl, null, {"passports": passports});
+                }
             } catch (error) {
                 console.log(`Passport authorized request failed for ${httpsAccessUrl} with error ${error}, falling back to ${fallbackAccessUrlAuth} authorization`);
-                // retry with fallbackAccessUrlAuth
-                return getAccessUrl({ ...args, providerAccessMethod: { accessUrlAuth: fallbackAccessUrlAuth }});
             }
+            if (!accessUrl && fallbackAccessUrlAuth) {
+                // didn't get an access url using passport, try with fallback
+                accessUrl = getAccessUrl({ ...args, providerAccessMethod: { accessUrlAuth: fallbackAccessUrlAuth }});
+            }
+            return accessUrl
         } else if (accessUrlAuth === AccessUrlAuth.CURRENT_REQUEST) {
             return apiAdapter.getJsonFrom(httpsAccessUrl, auth);
         } else if (accessUrlAuth === AccessUrlAuth.FENCE_TOKEN) {
@@ -419,7 +423,6 @@ async function retrieveFromServers(params) {
             }
         }
 
-        // TODO: test this to make sure that when it hits this it fetches a passport correctly, and fails correctly
         if (drsProvider.shouldFetchPassports(accessMethod, requestedFields)) {
             try {
                 // For now, we are only getting a RAS passport. In the future it may also fetch from other providers.
@@ -473,7 +476,6 @@ async function retrieveFromServers(params) {
                 }
             }
 
-            // TODO: maybe check here too
             // Retrieve the accessUrl using the returned accessToken, even if the token was empty.
             if (drsProvider.shouldFetchAccessUrl(accessMethod, requestedFields)) {
                 try {

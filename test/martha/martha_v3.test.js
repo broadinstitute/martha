@@ -193,6 +193,28 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
     sinon.assert.callCount(postJsonToApiStub, 1);
 });
 
+test.serial('martha_v3 calls the correct endpoints when only the accessUrl is requested with passports but using fallback', async (t) => {
+    const {
+        id: objectId, self_uri: drsUri,
+        access_methods: { 0: { access_id: accessId, access_url: { url: gcsUrl } } }
+    } = passportTestResponse;
+    const drs = drsUrls(config.HOST_PASSPORT_TEST, objectId, accessId);
+    const drsAccessUrlResponse = mockGcsAccessUrl(gcsUrl);
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(passportTestResponse);
+    getJsonFromApiStub.withArgs(bondUrls(BondProviders.DCF_FENCE).accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.withArgs(ecmUrls('ras').passportUrl, terraAuth).throwsException({status: 404}, "no passport found");
+    getJsonFromApiStub.withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`).resolves(drsAccessUrlResponse);
+    const response = mockResponse();
+    const request = mockRequest({body: {url: drsUri, fields: ['accessUrl']}});
+
+    await marthaV3(request, response);
+
+    t.is(response.statusCode, 200);
+    t.deepEqual(response.body, { accessUrl: drsAccessUrlResponse });
+
+    sinon.assert.callCount(getJsonFromApiStub, 4);
+});
+
 // According to the DRS specification authors [0] it's OK for a client to call Martha with a `drs://` URI and get
 // back a DOS object. Martha should just "do the right thing" and return whichever format the server supports,
 // instead of erroring out with a 404 due the URI not being found [1].
