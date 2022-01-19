@@ -178,8 +178,8 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
     const drs = drsUrls(config.HOST_PASSPORT_TEST, objectId, accessId);
     const drsAccessUrlResponse = mockGcsAccessUrl(gcsUrl);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(passportTestResponse);
-    getJsonFromApiStub.withArgs(bondUrls(BondProviders.DCF_FENCE), terraAuth).resolves(bondAccessTokenResponse);
-    getJsonFromApiStub.withArgs(ecmUrls('ras'), terraAuth).resolves(passport);
+    getJsonFromApiStub.withArgs(bondUrls(BondProviders.DCF_FENCE).accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.withArgs(ecmUrls('ras').passportUrl, terraAuth).resolves(passport);
     postJsonToApiStub.withArgs(drs.accessUrl, null, {"passports": [passport]}).resolves(drsAccessUrlResponse);
     const response = mockResponse();
     const request = mockRequest({body: {url: drsUri, fields: ['accessUrl']}});
@@ -190,6 +190,7 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
     t.deepEqual(response.body, { accessUrl: drsAccessUrlResponse });
 
     sinon.assert.callCount(getJsonFromApiStub, 3);
+    sinon.assert.callCount(postJsonToApiStub, 1);
 });
 
 // According to the DRS specification authors [0] it's OK for a client to call Martha with a `drs://` URI and get
