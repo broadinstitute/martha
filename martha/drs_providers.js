@@ -75,14 +75,16 @@ class DrsProvider {
      * URL flows (TDR uses the same auth supplied to the current Martha request for calling `access`).
      * @param accessMethod
      * @param requestedFields
+     * @param useFallbackAuth if false (default) check accessUrlAuth in accessMethods, otherwise check fallbackAccessUrlAuth
      * @return {boolean}
      */
-    shouldFetchFenceAccessToken(accessMethod, requestedFields) {
+    shouldFetchFenceAccessToken(accessMethod, requestedFields, useFallbackAuth) {
         return this.bondProvider &&
             overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&
             (this.forceAccessUrl || (accessMethod &&
                 this.accessMethods.find((m) => m.accessMethodType === accessMethod.type &&
-                    [m.accessUrlAuth, m.fallbackAccessUrlAuth].includes(AccessUrlAuth.FENCE_TOKEN) &&
+                    (!useFallbackAuth || m.fallbackAccessUrlAuth === AccessUrlAuth.FENCE_TOKEN) &&
+                    (useFallbackAuth || m.accessUrlAuth === AccessUrlAuth.FENCE_TOKEN) &&
                     m.fetchAccessUrl === FetchAccessUrl.YES)));
     }
 

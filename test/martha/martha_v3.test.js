@@ -174,7 +174,6 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
     const drs = drsUrls(config.HOST_PASSPORT_TEST, objectId, accessId);
     const drsAccessUrlResponse = mockGcsAccessUrl(gcsUrl);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(passportTestResponse);
-    getJsonFromApiStub.withArgs(bondUrls(BondProviders.DCF_FENCE).accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
     getJsonFromApiStub.withArgs(ecmUrls('ras').passportUrl, terraAuth).resolves(passport);
     postJsonToApiStub.withArgs(drs.accessUrl, null, {"passports": [passport]}).resolves(drsAccessUrlResponse);
     const response = mockResponse();
@@ -185,7 +184,7 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
     t.is(response.statusCode, 200);
     t.deepEqual(response.body, { accessUrl: drsAccessUrlResponse });
 
-    sinon.assert.callCount(getJsonFromApiStub, 3);
+    sinon.assert.callCount(getJsonFromApiStub, 2);
     sinon.assert.callCount(postJsonToApiStub, 1);
 });
 

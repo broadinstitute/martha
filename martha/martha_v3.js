@@ -357,23 +357,15 @@ async function retrieveFromServers(params) {
     // try doing just before we do it so that we can provide that detail in the error report.
     let hypotheticalErrorMessage;
 
-    const getAccessUrl = async (args) => {
-        const { providerAccessMethod: {accessUrlAuth, fallbackAccessUrlAuth}, httpsAccessUrl, accessToken, auth } = args;
-
+    const getAccessUrl = async (accessUrlAuth, httpsAccessUrl, accessToken, auth) => {
         if (accessUrlAuth === AccessUrlAuth.PASSPORT) {
-            let accessUrl;
-            try {
-                if (passports) {
-                    accessUrl = await apiAdapter.postJsonTo(httpsAccessUrl, null, {passports});
+            if (passports) {
+                try {
+                    return await apiAdapter.postJsonTo(httpsAccessUrl, null, {passports});
+                } catch (error) {
+                    console.log(`Passport authorized request failed for ${httpsAccessUrl} with error ${error}`);
                 }
-            } catch (error) {
-                console.log(`Passport authorized request failed for ${httpsAccessUrl} with error ${error}, falling back to ${fallbackAccessUrlAuth} authorization`);
             }
-            if (!accessUrl && fallbackAccessUrlAuth) {
-                // didn't get an access url using passport, try with fallback
-                accessUrl = getAccessUrl({ ...args, providerAccessMethod: { accessUrlAuth: fallbackAccessUrlAuth }});
-            }
-            return accessUrl;
         } else if (accessUrlAuth === AccessUrlAuth.CURRENT_REQUEST) {
             return apiAdapter.getJsonFrom(httpsAccessUrl, auth);
         } else if (accessUrlAuth === AccessUrlAuth.FENCE_TOKEN) {
@@ -386,6 +378,23 @@ async function retrieveFromServers(params) {
         } else {
             throw new BadRequestError(
                 `Programmer error: 'determineAccessUrlAuth' called with AccessUrlAuth.${accessUrlAuth} for provider ${this.providerName}`);
+        }
+    };
+
+    const maybeFetchFenceAccessToken = async (accessMethod, useFallbackAuth) => {
+        if (drsProvider.shouldFetchFenceAccessToken(accessMethod, requestedFields, useFallbackAuth)) {
+            try {
+                const bondAccessTokenUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/accesstoken`;
+                console.log(`Requesting Bond access token for '${url}' from '${bondAccessTokenUrl}'`);
+                const accessTokenResponse = await apiAdapter.getJsonFrom(bondAccessTokenUrl, auth);
+                return accessTokenResponse.token;
+            } catch (error) {
+                if (error.status === 404) {
+                    console.log("User does not have a Bond account linked.");
+                } else {
+                    throw new RemoteServerError(error, 'Received error contacting Bond.');
+                }
+            }
         }
     };
 
@@ -460,35 +469,31 @@ async function retrieveFromServers(params) {
         localizationPath = getLocalizationPath(drsProvider, drsResponse);
 
         try {
-            let accessToken;
-            if (drsProvider.shouldFetchFenceAccessToken(accessMethod, requestedFields)) {
-                try {
-                    const bondAccessTokenUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/accesstoken`;
-                    console.log(`Requesting Bond access token for '${url}' from '${bondAccessTokenUrl}'`);
-                    const accessTokenResponse = await apiAdapter.getJsonFrom(bondAccessTokenUrl, auth);
-                    accessToken = accessTokenResponse.token;
-                } catch (error) {
-                    if (error.status === 404) {
-                        console.log("User does not have a Bond account linked.");
-                    } else {
-                        throw new RemoteServerError(error, 'Received error contacting Bond.');
-                    }
-                }
-            }
+            const accessToken = await maybeFetchFenceAccessToken(accessMethod);
 
             // Retrieve the accessUrl using the returned accessToken, even if the token was empty.
             if (drsProvider.shouldFetchAccessUrl(accessMethod, requestedFields)) {
-                try {
-                    const httpsAccessUrl = generateAccessUrl(drsProvider, urlParts, accessMethod.access_id);
-                    // Use the access token fetched in the call above or the auth submitted to Martha directly by the
-                    // caller as appropriate.
-                    const providerAccessMethod = drsProvider.accessMethodHavingSameTypeAs(accessMethod);
-                    console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}'`);
+                const fetchAccessUrl = async () => {
+                    try {
+                        const httpsAccessUrl = generateAccessUrl(drsProvider, urlParts, accessMethod.access_id);
+                        // Use the access token fetched in the call above or the auth submitted to Martha directly by the
+                        // caller as appropriate.
+                        const providerAccessMethod = drsProvider.accessMethodHavingSameTypeAs(accessMethod);
+                        console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}'`);
 
-                    accessUrl = await getAccessUrl({ providerAccessMethod, httpsAccessUrl, accessToken, auth});
-                } catch (error) {
-                    throw new RemoteServerError(error, 'Received error contacting DRS provider.');
+                        let accessUrlFirstTry = await getAccessUrl(providerAccessMethod.accessUrlAuth, httpsAccessUrl, accessToken, auth);
+                        if (!accessUrlFirstTry && providerAccessMethod.fallbackAccessUrlAuth) {
+                            console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}' with fallback auth`);
+                            const fallbackAccessToken = await maybeFetchFenceAccessToken(accessMethod, true);
+                            return await getAccessUrl(providerAccessMethod.fallbackAccessUrlAuth, httpsAccessUrl, fallbackAccessToken, auth);
+                        } else {
+                            return accessUrlFirstTry;
+                        }
+                    } catch (error) {
+                        throw new RemoteServerError(error, 'Received error contacting DRS provider.');
+                    }
                 }
+                accessUrl = await fetchAccessUrl();
             }
         } catch (error) {
             if (drsProvider.shouldFailOnAccessUrlFail(accessMethod)) {
