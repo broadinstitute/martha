@@ -15,7 +15,7 @@ function get(method, url, authorization) {
         req.set('authorization', authorization);
     }
 
-    console.log(`Making Request: ${JSON.stringify(req)}`);
+    console.log(`Making Request: ${JSON.stringify({ method: req.method, url: req.url })}`);
     return req;
 }
 
