@@ -481,7 +481,7 @@ async function retrieveFromServers(params) {
                         const providerAccessMethod = drsProvider.accessMethodHavingSameTypeAs(accessMethod);
                         console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}'`);
 
-                        let accessUrlFirstTry = await getAccessUrl(providerAccessMethod.accessUrlAuth, httpsAccessUrl, accessToken, auth);
+                        const accessUrlFirstTry = await getAccessUrl(providerAccessMethod.accessUrlAuth, httpsAccessUrl, accessToken, auth);
                         if (!accessUrlFirstTry && providerAccessMethod.fallbackAccessUrlAuth) {
                             console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}' with fallback auth`);
                             const fallbackAccessToken = await maybeFetchFenceAccessToken(accessMethod, true);
@@ -492,7 +492,7 @@ async function retrieveFromServers(params) {
                     } catch (error) {
                         throw new RemoteServerError(error, 'Received error contacting DRS provider.');
                     }
-                }
+                };
                 accessUrl = await fetchAccessUrl();
             }
         } catch (error) {
