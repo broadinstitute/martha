@@ -364,7 +364,7 @@ async function retrieveFromServers(params) {
             let accessUrl;
             try {
                 if (passports) {
-                    accessUrl = await apiAdapter.postJsonTo(httpsAccessUrl, null, {"passports": passports});
+                    accessUrl = await apiAdapter.postJsonTo(httpsAccessUrl, null, {passports});
                 }
             } catch (error) {
                 console.log(`Passport authorized request failed for ${httpsAccessUrl} with error ${error}, falling back to ${fallbackAccessUrlAuth} authorization`);

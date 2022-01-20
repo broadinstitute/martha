@@ -168,7 +168,7 @@ test.serial('martha_v3 uses the default error handler for unexpected errors', as
 test.serial('martha_v3 calls the correct endpoints when only the accessUrl is requested with passports', async (t) => {
     const {
         id: objectId, self_uri: drsUri,
-        access_methods: { 0: { access_id: accessId, access_url: { url: gcsUrl } } }
+        access_methods: [{ access_id: accessId, access_url: { url: gcsUrl } }]
     } = passportTestResponse;
     const passport = '"I am a passport"';
     const drs = drsUrls(config.HOST_PASSPORT_TEST, objectId, accessId);
@@ -192,7 +192,7 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
 test.serial('martha_v3 calls the correct endpoints when only the accessUrl is requested with passports but using fallback', async (t) => {
     const {
         id: objectId, self_uri: drsUri,
-        access_methods: { 0: { access_id: accessId, access_url: { url: gcsUrl } } }
+        access_methods: [{ access_id: accessId, access_url: { url: gcsUrl } }]
     } = passportTestResponse;
     const drs = drsUrls(config.HOST_PASSPORT_TEST, objectId, accessId);
     const drsAccessUrlResponse = mockGcsAccessUrl(gcsUrl);
