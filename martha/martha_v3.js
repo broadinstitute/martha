@@ -473,27 +473,25 @@ async function retrieveFromServers(params) {
 
             // Retrieve the accessUrl using the returned accessToken, even if the token was empty.
             if (drsProvider.shouldFetchAccessUrl(accessMethod, requestedFields)) {
-                const fetchAccessUrl = async () => {
-                    try {
-                        const httpsAccessUrl = generateAccessUrl(drsProvider, urlParts, accessMethod.access_id);
-                        // Use the access token fetched in the call above or the auth submitted to Martha directly by the
-                        // caller as appropriate.
-                        const providerAccessMethod = drsProvider.accessMethodHavingSameTypeAs(accessMethod);
-                        console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}'`);
+                try {
+                    const httpsAccessUrl = generateAccessUrl(drsProvider, urlParts, accessMethod.access_id);
+                    // Use the access token fetched in the call above or the auth submitted to Martha directly by the
+                    // caller as appropriate.
+                    const providerAccessMethod = drsProvider.accessMethodHavingSameTypeAs(accessMethod);
+                    console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}'`);
 
-                        const accessUrlFirstTry = await getAccessUrl(providerAccessMethod.accessUrlAuth, httpsAccessUrl, accessToken, auth);
+                    accessUrl = await getAccessUrl(providerAccessMethod.accessUrlAuth, httpsAccessUrl, accessToken, auth).then(async (accessUrlFirstTry) => {
                         if (!accessUrlFirstTry && providerAccessMethod.fallbackAccessUrlAuth) {
                             console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}' with fallback auth`);
                             const fallbackAccessToken = await maybeFetchFenceAccessToken(accessMethod, true);
-                            return await getAccessUrl(providerAccessMethod.fallbackAccessUrlAuth, httpsAccessUrl, fallbackAccessToken, auth);
+                            return getAccessUrl(providerAccessMethod.fallbackAccessUrlAuth, httpsAccessUrl, fallbackAccessToken, auth);
                         } else {
                             return accessUrlFirstTry;
                         }
-                    } catch (error) {
-                        throw new RemoteServerError(error, 'Received error contacting DRS provider.');
-                    }
-                };
-                accessUrl = await fetchAccessUrl();
+                    });
+                } catch (error) {
+                    throw new RemoteServerError(error, 'Received error contacting DRS provider.');
+                }
             }
         } catch (error) {
             if (drsProvider.shouldFailOnAccessUrlFail(accessMethod)) {
