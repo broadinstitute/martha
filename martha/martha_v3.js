@@ -358,26 +358,31 @@ async function retrieveFromServers(params) {
     let hypotheticalErrorMessage;
 
     const getAccessUrl = async (accessUrlAuth, httpsAccessUrl, accessToken, auth) => {
-        if (accessUrlAuth === AccessUrlAuth.PASSPORT) {
-            if (passports) {
-                try {
-                    return await apiAdapter.postJsonTo(httpsAccessUrl, null, {passports});
-                } catch (error) {
-                    console.log(`Passport authorized request failed for ${httpsAccessUrl} with error ${error}`);
+        switch (accessUrlAuth) {
+            case AccessUrlAuth.PASSPORT:
+                if (passports) {
+                    try {
+                        return await apiAdapter.postJsonTo(httpsAccessUrl, null, {passports});
+                    } catch (error) {
+                        console.log(`Passport authorized request failed for ${httpsAccessUrl} with error ${error}`);
+                    }
                 }
-            }
-        } else if (accessUrlAuth === AccessUrlAuth.CURRENT_REQUEST) {
-            return apiAdapter.getJsonFrom(httpsAccessUrl, auth);
-        } else if (accessUrlAuth === AccessUrlAuth.FENCE_TOKEN) {
-            if (accessToken) {
-                return apiAdapter.getJsonFrom(httpsAccessUrl, `Bearer ${accessToken}`);
-            } else {
-                throw new BadRequestError(`Fence access token required for ${httpsAccessUrl} but is missing. Does use have an account linked in Bond?`);
-            }
+                // if we made it this far, there are no passports or there was an error using them so return nothing.
+                return;
 
-        } else {
-            throw new BadRequestError(
-                `Programmer error: 'determineAccessUrlAuth' called with AccessUrlAuth.${accessUrlAuth} for provider ${this.providerName}`);
+            case AccessUrlAuth.CURRENT_REQUEST:
+                return apiAdapter.getJsonFrom(httpsAccessUrl, auth);
+
+            case AccessUrlAuth.FENCE_TOKEN:
+                if (accessToken) {
+                    return apiAdapter.getJsonFrom(httpsAccessUrl, `Bearer ${accessToken}`);
+                } else {
+                    throw new BadRequestError(`Fence access token required for ${httpsAccessUrl} but is missing. Does use have an account linked in Bond?`);
+                }
+
+            default:
+                throw new BadRequestError(
+                    `Programmer error: 'determineAccessUrlAuth' called with AccessUrlAuth.${accessUrlAuth} for provider ${this.providerName}`);
         }
     };
 
