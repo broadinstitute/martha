@@ -453,7 +453,7 @@ class RemoteServerError extends Error {
  * @param error an Error thrown from SuperAgent; behavior is undefined if not an Error object
  */
 function makeLogSafeRequestError(error) {
-    if (error?.response && typeof error?.response === 'object') { // looks like an Error from SuperAgent (or maybe any request-like API?)
+    if (error && error.response && typeof error.response === 'object') { // looks like an Error from SuperAgent (or maybe any request-like API?)
         // Even though the new error will have a new stacktrace, error.response.error still has the
         // original stacktrace. In fact, this new Error's stacktrace might be more useful anyway.
         const newError = new Error(error.message);
