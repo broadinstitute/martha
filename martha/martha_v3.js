@@ -1,5 +1,6 @@
 const {
     convertToMarthaV3Response,
+    makeLogSafeRequestError,
     BadRequestError,
     RemoteServerError,
     logAndSendBadRequest,
@@ -438,7 +439,7 @@ async function retrieveFromServers(params) {
             }
             // Just log the error for now, there should be a cloud native way for the user to access the object.
             // Eventually once signed URLs are on by default for all providers we'll want to remove this outer try.
-            console.warn('Ignoring error from fetching signed URL:', error);
+            console.warn('Ignoring error from fetching signed URL:', makeLogSafeRequestError(error));
         }
     };
 

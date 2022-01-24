@@ -437,15 +437,34 @@ class RemoteServerError extends Error {
     }
 }
 
+/**
+ * A SuperAgent exception contains...
+ *      the Response object which contains...
+ *      the ClientRequest object which contains...
+ *      the request headers which may contain...
+ *      authorization tokens!
+ * We don't want to log authorization tokens.
+ * Therefore, whenever we log an error, we need to either:
+ *      * filter out the pieces that we suspect could contain tokens
+ *      * pick specific pieces that are safe to log
+ * To avoid the risk of authorization tokens slipping through a filter, we choose to log specific
+ * pieces at this time.
+ * through a filter.
+ * @param error
+ */
+function makeLogSafeRequestError(error) {
+    return error.response.error;
+}
+
 function logAndSendBadRequest(res, error) {
-    console.error(error);
+    console.error(makeLogSafeRequestError(error));
     const failureResponse = new FailureResponse(BAD_REQUEST_ERROR_CODE, `Request is invalid. ${error.message}`);
     res.status(BAD_REQUEST_ERROR_CODE).send(failureResponse);
 }
 
 function logAndSendServerError(res, error, description) {
     console.error(description);
-    console.error(error);
+    console.error(makeLogSafeRequestError(error));
 
     let message = error.message;
 
@@ -495,6 +514,7 @@ module.exports = {
     FailureResponse,
     BadRequestError,
     RemoteServerError,
+    makeLogSafeRequestError,
     logAndSendBadRequest,
     logAndSendServerError,
     delay,

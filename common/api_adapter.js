@@ -1,5 +1,5 @@
 const request = require('superagent');
-const { FailureResponse } = require('../common/helpers');
+const { FailureResponse, makeLogSafeRequestError } = require('../common/helpers');
 
 const MAX_RETRY_ATTEMPTS = 5;
 const INITIAL_BACKOFF_DELAY = 1000;
@@ -24,7 +24,7 @@ async function getHeaders(url, authorization) {
         const {headers} = await get('head', url, authorization);
         return headers;
     } catch (error) {
-        console.error(error);
+        console.error(makeLogSafeRequestError(error));
         throw error;
     }
 }
@@ -50,7 +50,7 @@ async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL
         }
     } catch (error) {
         console.log(`Received error for url '${url}'. Attempt ${retryAttempt}.`);
-        console.error(error);
+        console.error(makeLogSafeRequestError(error));
 
         if ((error.status >= SERVER_ERROR_CODE && error.status <= NETWORK_AUTH_REQ_CODE) ||
             error.status === TOO_MANY_REQUESTS_CODE) {
