@@ -8,6 +8,7 @@ const {
     convertToMarthaV3Response,
     MarthaV3Response,
     FailureResponse,
+    makeLogSafeRequestError,
     logAndSendBadRequest,
     logAndSendServerError,
 } = require('../../common/helpers');
@@ -364,6 +365,45 @@ test('convertToMarthaV3Response should return null for googleServiceAccount if b
     );
 
     t.deepEqual(convertToMarthaV3Response(mockDrsResponse, '123.mapped.abc.bam'), expectedResponse);
+});
+
+test('makeLogSafeRequestError should leave non-SuperAgent Errors alone', (t) => {
+    const error = new Error('boom');
+    const newError = makeLogSafeRequestError(error);
+    t.is(newError, error);
+});
+
+test("makeLogSafeRequestError should leave non-SuperAgent Errors alone even if they kinda look like SuperAgent Errors", (t) => {
+    const error = new Error('boom');
+    error.response = 'surprise!';
+    const newError = makeLogSafeRequestError(error);
+    t.is(newError, error);
+});
+
+test('makeLogSafeRequestError should copy some details from a SuperAgent Error into a new Error', (t) => {
+    const error = new Error('boom');
+    error.status = 400;
+    error.response = {
+        error: {
+            path: '/boom',
+            method: 'GET',
+            status: '400',
+            text: '400 error'
+        },
+        secret: "it's a secret!"
+    };
+    error.secret = "don't tell!";
+
+    const newError = makeLogSafeRequestError(error);
+
+    t.is(newError.message, error.message);
+    t.is(newError.status, error.status);
+    t.deepEqual(newError.response.error, error.response.error);
+    // eslint-disable-next-line no-undefined
+    t.is(newError.secret, undefined);
+    // eslint-disable-next-line no-undefined
+    t.is(newError.response.secret, undefined);
+    t.not(newError.stack, error.stack); // new Error, new stacktrace
 });
 
 function testFailureResponse(t, res, expectedStatus, expectedText) {

@@ -447,13 +447,22 @@ class RemoteServerError extends Error {
  * Therefore, whenever we log an error, we need to either:
  *      * filter out the pieces that we suspect could contain tokens
  *      * pick specific pieces that are safe to log
- * To avoid the risk of authorization tokens slipping through a filter, we choose to log specific
- * pieces at this time.
- * through a filter.
- * @param error
+ * To avoid the risk of authorization tokens slipping through a filter, we instead select specific
+ * properties to include in the Error being logged.
+ *
+ * @param error an Error thrown from SuperAgent; behavior is undefined if not an Error object
  */
 function makeLogSafeRequestError(error) {
-    return error.response.error;
+    if (error?.response && typeof error?.response === 'object') { // looks like an Error from SuperAgent (or maybe any request-like API?)
+        // Even though the new error will have a new stacktrace, error.response.error still has the
+        // original stacktrace. In fact, this new Error's stacktrace might be more useful anyway.
+        const newError = new Error(error.message);
+        newError.status = error.status;
+        newError.response = { error: error.response.error };
+        return newError;
+    } else { // some other kind of error; let's return the original error to preserve the stacktrace
+        return error;
+    }
 }
 
 function logAndSendBadRequest(res, error) {
