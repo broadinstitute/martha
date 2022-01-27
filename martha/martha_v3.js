@@ -1,5 +1,6 @@
 const {
     convertToMarthaV3Response,
+    makeLogSafeRequestError,
     BadRequestError,
     RemoteServerError,
     logAndSendBadRequest,
@@ -15,6 +16,7 @@ const {
 const {
     determineDrsProvider,
     DrsProvider,
+    AccessUrlAuth
 } = require("./drs_providers");
 
 const config = require('../common/config');
@@ -30,6 +32,7 @@ const DG_COMPACT_BDC_STAGING = 'dg.712c';
 const DG_COMPACT_THE_ANVIL = 'dg.anv0';
 const DG_COMPACT_CRDC = 'dg.4dfc';
 const DG_COMPACT_KIDS_FIRST = 'dg.f82a1a';
+const DG_COMPACT_PASSPORT_TEST = 'dg.test0';
 
 // Google Cloud Functions gives us 60 seconds to respond. We'll use most of it to fetch what we can,
 // but not fail if we happen to time out when fetching a signed URL takes too long.
@@ -108,8 +111,9 @@ function expandCibHost(cibHost) {
         case DG_COMPACT_THE_ANVIL: return config.theAnvilHost;
         case DG_COMPACT_CRDC: return config.crdcHost;
         case DG_COMPACT_KIDS_FIRST: return config.kidsFirstHost;
+        case DG_COMPACT_PASSPORT_TEST: return config.passportTestHost;
         default:
-            throw new BadRequestError(`Unrecognized Compact Identifier Based host '${cibHost}.'`);
+            throw new BadRequestError(`Unrecognized Compact Identifier Based host '${cibHost}'.`);
     }
 }
 
@@ -347,11 +351,58 @@ async function retrieveFromServers(params) {
     let fileName;
     let localizationPath;
     let accessUrl;
+    let passports;
 
     // `fetch` below might time out in a way that we want to report as an error. Since the timeout
     // interrupts us while we're waiting for a response, we need to capture what we were about to
     // try doing just before we do it so that we can provide that detail in the error report.
     let hypotheticalErrorMessage;
+
+    const getAccessUrl = async (accessUrlAuth, httpsAccessUrl, accessToken, auth) => {
+        switch (accessUrlAuth) {
+            case AccessUrlAuth.PASSPORT:
+                if (passports) {
+                    try {
+                        return await apiAdapter.postJsonTo(httpsAccessUrl, null, {passports});
+                    } catch (error) {
+                        console.log(`Passport authorized request failed for ${httpsAccessUrl} with error ${error}`);
+                    }
+                }
+                // if we made it this far, there are no passports or there was an error using them so return nothing.
+                return;
+
+            case AccessUrlAuth.CURRENT_REQUEST:
+                return apiAdapter.getJsonFrom(httpsAccessUrl, auth);
+
+            case AccessUrlAuth.FENCE_TOKEN:
+                if (accessToken) {
+                    return apiAdapter.getJsonFrom(httpsAccessUrl, `Bearer ${accessToken}`);
+                } else {
+                    throw new BadRequestError(`Fence access token required for ${httpsAccessUrl} but is missing. Does use have an account linked in Bond?`);
+                }
+
+            default:
+                throw new BadRequestError(
+                    `Programmer error: 'determineAccessUrlAuth' called with AccessUrlAuth.${accessUrlAuth} for provider ${this.providerName}`);
+        }
+    };
+
+    const maybeFetchFenceAccessToken = async (accessMethod, useFallbackAuth) => {
+        if (drsProvider.shouldFetchFenceAccessToken(accessMethod, requestedFields, useFallbackAuth)) {
+            try {
+                const bondAccessTokenUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/accesstoken`;
+                console.log(`Requesting Bond access token for '${url}' from '${bondAccessTokenUrl}'`);
+                const accessTokenResponse = await apiAdapter.getJsonFrom(bondAccessTokenUrl, auth);
+                return accessTokenResponse.token;
+            } catch (error) {
+                if (error.status === 404) {
+                    console.log("User does not have a Bond account linked.");
+                } else {
+                    throw new RemoteServerError(error, 'Received error contacting Bond.');
+                }
+            }
+        }
+    };
 
     const fetch = async () => {
         let response;
@@ -387,6 +438,23 @@ async function retrieveFromServers(params) {
             }
         }
 
+        if (drsProvider.shouldFetchPassports(accessMethod, requestedFields)) {
+            try {
+                // For now, we are only getting a RAS passport. In the future it may also fetch from other providers.
+                hypotheticalErrorMessage = 'Could not fetch passport from ECM.';
+                const externalcredsGetPassportUrl = `${config.externalcredsBaseUrl}/api/oidc/v1/ras/passport`;
+                console.log(`Requesting RAS passport for ${url} from externalcreds ${externalcredsGetPassportUrl}`);
+                passports = [await apiAdapter.getJsonFrom(externalcredsGetPassportUrl, auth)];
+            } catch (error) {
+                if (error.status === 404) {
+                    console.log("User does not have a passport.");
+                } else {
+                    throw new RemoteServerError(error,
+                        'Received error contacting externalcreds.');
+                }
+            }
+        }
+
         /*
          Try to retrieve the file name from the initial DRS response.
 
@@ -407,17 +475,7 @@ async function retrieveFromServers(params) {
         localizationPath = getLocalizationPath(drsProvider, drsResponse);
 
         try {
-            let accessToken;
-            if (drsProvider.shouldFetchFenceAccessToken(accessMethod, requestedFields)) {
-                try {
-                    const bondAccessTokenUrl = `${config.bondBaseUrl}/api/link/v1/${bondProvider}/accesstoken`;
-                    console.log(`Requesting Bond access token for '${url}' from '${bondAccessTokenUrl}'`);
-                    const accessTokenResponse = await apiAdapter.getJsonFrom(bondAccessTokenUrl, auth);
-                    accessToken = accessTokenResponse.token;
-                } catch (error) {
-                    throw new RemoteServerError(error, 'Received error contacting Bond.');
-                }
-            }
+            const accessToken = await maybeFetchFenceAccessToken(accessMethod);
 
             // Retrieve the accessUrl using the returned accessToken, even if the token was empty.
             if (drsProvider.shouldFetchAccessUrl(accessMethod, requestedFields)) {
@@ -425,9 +483,18 @@ async function retrieveFromServers(params) {
                     const httpsAccessUrl = generateAccessUrl(drsProvider, urlParts, accessMethod.access_id);
                     // Use the access token fetched in the call above or the auth submitted to Martha directly by the
                     // caller as appropriate.
-                    const accessUrlAuth = drsProvider.determineAccessUrlAuth(accessMethod, accessToken, auth);
+                    const providerAccessMethod = drsProvider.accessMethodHavingSameTypeAs(accessMethod);
                     console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}'`);
-                    accessUrl = await apiAdapter.getJsonFrom(httpsAccessUrl, accessUrlAuth);
+
+                    accessUrl = await getAccessUrl(providerAccessMethod.accessUrlAuth, httpsAccessUrl, accessToken, auth).then(async (accessUrlFirstTry) => {
+                        if (!accessUrlFirstTry && providerAccessMethod.fallbackAccessUrlAuth) {
+                            console.log(`Requesting DRS access URL for '${url}' from '${httpsAccessUrl}' with fallback auth`);
+                            const fallbackAccessToken = await maybeFetchFenceAccessToken(accessMethod, true);
+                            return getAccessUrl(providerAccessMethod.fallbackAccessUrlAuth, httpsAccessUrl, fallbackAccessToken, auth);
+                        } else {
+                            return accessUrlFirstTry;
+                        }
+                    });
                 } catch (error) {
                     throw new RemoteServerError(error, 'Received error contacting DRS provider.');
                 }
@@ -438,7 +505,7 @@ async function retrieveFromServers(params) {
             }
             // Just log the error for now, there should be a cloud native way for the user to access the object.
             // Eventually once signed URLs are on by default for all providers we'll want to remove this outer try.
-            console.warn('Ignoring error from fetching signed URL:', error);
+            console.warn('Ignoring error from fetching signed URL:', makeLogSafeRequestError(error));
         }
     };
 

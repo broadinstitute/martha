@@ -22,6 +22,7 @@ const {
     kidsFirstDrsResponse,
     kidsFirstDrsResponseCustom,
     kidsFirstDrsMarthaResult,
+    passportTestResponse,
     anvilDrsMarthaResult,
     anvilDrsResponse,
     gen3CrdcDrsMarthaResult,
@@ -100,6 +101,13 @@ const bondAccessTokenResponse = {
     expires_at: 'NEVER'
 };
 
+const ecmUrls = (provider) => {
+    const baseUrl = `https://externalcreds.dsde-dev.broadinstitute.org`;
+    return {
+        passportUrl: `${baseUrl}/api/oidc/v1/${provider}/passport`
+    };
+};
+
 const bondUrls = (provider) => {
     const baseUrl = `https://broad-bond-dev.appspot.com/api/link/v1/${provider}`;
     return {
@@ -132,12 +140,16 @@ const bdc = config.HOST_BIODATA_CATALYST_STAGING;
 const crdc = config.HOST_CRDC_STAGING;
 const kidsFirst = config.HOST_KIDS_FIRST_STAGING;
 
+let postJsonToApiStub;
+const postJsonToApiStubMethodName = 'postJsonTo';
+
 let getJsonFromApiStub;
 const getJsonFromApiMethodName = 'getJsonFrom';
 
 test.serial.beforeEach(() => {
     sinon.restore(); // If one test fails, the .afterEach() block will not execute, so always clean the slate here
     getJsonFromApiStub = sinon.stub(apiAdapter, getJsonFromApiMethodName);
+    postJsonToApiStub = sinon.stub(apiAdapter, postJsonToApiStubMethodName);
 });
 
 test.serial.afterEach(() => {
@@ -151,6 +163,51 @@ test.serial('martha_v3 uses the default error handler for unexpected errors', as
     const actualError = await t.throwsAsync(marthaV3(badReq, response));
     t.is(actualError, expectedError);
     sinon.assert.callCount(response.send, 0);
+});
+
+test.serial('martha_v3 calls the correct endpoints when only the accessUrl is requested with passports', async (t) => {
+    const {
+        id: objectId, self_uri: drsUri,
+        access_methods: [{ access_id: accessId, access_url: { url: gcsUrl } }]
+    } = passportTestResponse;
+    const passport = '"I am a passport"';
+    const drs = drsUrls(config.HOST_PASSPORT_TEST, objectId, accessId);
+    const drsAccessUrlResponse = mockGcsAccessUrl(gcsUrl);
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(passportTestResponse);
+    getJsonFromApiStub.withArgs(ecmUrls('ras').passportUrl, terraAuth).resolves(passport);
+    postJsonToApiStub.withArgs(drs.accessUrl, null, {"passports": [passport]}).resolves(drsAccessUrlResponse);
+    const response = mockResponse();
+    const request = mockRequest({body: {url: drsUri, fields: ['accessUrl']}});
+
+    await marthaV3(request, response);
+
+    t.is(response.statusCode, 200);
+    t.deepEqual(response.body, { accessUrl: drsAccessUrlResponse });
+
+    sinon.assert.callCount(getJsonFromApiStub, 2);
+    sinon.assert.callCount(postJsonToApiStub, 1);
+});
+
+test.serial('martha_v3 calls the correct endpoints when only the accessUrl is requested with passports but using fallback', async (t) => {
+    const {
+        id: objectId, self_uri: drsUri,
+        access_methods: [{ access_id: accessId, access_url: { url: gcsUrl } }]
+    } = passportTestResponse;
+    const drs = drsUrls(config.HOST_PASSPORT_TEST, objectId, accessId);
+    const drsAccessUrlResponse = mockGcsAccessUrl(gcsUrl);
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(passportTestResponse);
+    getJsonFromApiStub.withArgs(bondUrls(BondProviders.DCF_FENCE).accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.withArgs(ecmUrls('ras').passportUrl, terraAuth).throwsException({status: 404}, "no passport found");
+    getJsonFromApiStub.withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`).resolves(drsAccessUrlResponse);
+    const response = mockResponse();
+    const request = mockRequest({body: {url: drsUri, fields: ['accessUrl']}});
+
+    await marthaV3(request, response);
+
+    t.is(response.statusCode, 200);
+    t.deepEqual(response.body, { accessUrl: drsAccessUrlResponse });
+
+    sinon.assert.callCount(getJsonFromApiStub, 4);
 });
 
 // According to the DRS specification authors [0] it's OK for a client to call Martha with a `drs://` URI and get
@@ -1379,7 +1436,7 @@ test.serial('martha_v3 should return 4xx with an unrecognized CIB hostname', asy
         {
             response: {
                 status: 400,
-                text: `Request is invalid. Unrecognized Compact Identifier Based host 'dg.CAFE.'`,
+                text: `Request is invalid. Unrecognized Compact Identifier Based host 'dg.CAFE'.`,
             },
             status: 400,
         },

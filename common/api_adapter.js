@@ -1,5 +1,5 @@
 const request = require('superagent');
-const { FailureResponse } = require('../common/helpers');
+const { FailureResponse, makeLogSafeRequestError } = require('../common/helpers');
 
 const MAX_RETRY_ATTEMPTS = 5;
 const INITIAL_BACKOFF_DELAY = 1000;
@@ -15,7 +15,7 @@ function get(method, url, authorization) {
         req.set('authorization', authorization);
     }
 
-    console.log(`Making Request: ${JSON.stringify(req)}`);
+    console.log(`Making Request: ${JSON.stringify({ method: req.method, url: req.url })}`);
     return req;
 }
 
@@ -24,33 +24,19 @@ async function getHeaders(url, authorization) {
         const {headers} = await get('head', url, authorization);
         return headers;
     } catch (error) {
-        console.error(error);
+        console.error(makeLogSafeRequestError(error));
         throw error;
     }
 }
 
-async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL_BACKOFF_DELAY) {
+async function httpCallWithRetry(url, httpCall, retryAttempt = 1, delay = INITIAL_BACKOFF_DELAY) {
     try {
-        const {body} = await get('get', url, authorization);
-
-        /*
-         handle the case when Martha receives empty JSON body. The reason behind forming a response with status 500
-         and throwing it in `try` is so that it can be caught locally and be retried.
-         */
-        if (Object.keys(body).length === 0) {
-            console.log(`Received an empty JSON body while trying to resolve url '${url}'. Attempt ${retryAttempt}. ` +
-                'Creating a response with status 500.');
-
-            const errorMsg = `Something went wrong while trying to resolve url '${url}'. It came back with empty JSON body!`;
-            throw new FailureResponse(500, errorMsg);
-        }
-        else {
-            console.log(`Successfully received response from url '${url}'.`);
-            return body;
-        }
+        const response = await httpCall();
+        console.log(`Successfully received response from url '${url}'.`);
+        return response;
     } catch (error) {
         console.log(`Received error for url '${url}'. Attempt ${retryAttempt}.`);
-        console.error(error);
+        console.error(makeLogSafeRequestError(error));
 
         if ((error.status >= SERVER_ERROR_CODE && error.status <= NETWORK_AUTH_REQ_CODE) ||
             error.status === TOO_MANY_REQUESTS_CODE) {
@@ -61,7 +47,7 @@ async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL
 
                 return new Promise((resolve, reject) => {
                     setTimeout(() => {
-                        getJsonFrom(url, authorization, retryAttempt + 1, backOffDelay)
+                        httpCallWithRetry(url, httpCall, retryAttempt + 1, backOffDelay)
                             .then(resolve)
                             .catch((error) => { reject(error); });
                     }, delay);
@@ -73,14 +59,33 @@ async function getJsonFrom(url, authorization, retryAttempt = 1, delay = INITIAL
     }
 }
 
-function postJsonTo(url, authorization, payload) {
-    const postReq = request.post(url, payload);
-    postReq.set('Content-Type', 'application/json');
-    if (authorization) {
-        postReq.set('authorization', authorization);
-    }
+function getJsonFrom(url, authorization) {
+    return httpCallWithRetry(url, async () => {
+        const {body} = await get('get', url, authorization);
+        /*
+         handle the case when Martha receives empty JSON body. The reason behind forming a response with status 500
+         and throwing it in `try` is so that it can be caught locally and be retried.
+         */
+        if (Object.keys(body).length === 0) {
+            const errorMsg = `Received an empty JSON body while trying to resolve url '${url}'`;
+            throw new FailureResponse(500, errorMsg);
+        }
+        else {
+            return body;
+        }
+    });
+}
 
-    return postReq.then((response) => response.body);
+function postJsonTo(url, authorization, payload) {
+    return httpCallWithRetry(url, () => {
+        const postReq = request.post(url, payload);
+        postReq.set('Content-Type', 'application/json');
+        if (authorization) {
+            postReq.set('authorization', authorization);
+        }
+
+        return postReq.then((response) => response.body);
+    });
 }
 
 exports.get = get;

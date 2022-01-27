@@ -496,6 +496,38 @@ const kidsFirstDrsMarthaResult = (expectedAccessUrl) => {
     };
 };
 
+// passport test response
+
+const passportTestResponse = {
+    "access_methods": [{
+        "access_id": "gs",
+        "access_url": {"url": "gs://ctds-test-controlled-a/testdata.txt"},
+        "region": "",
+        "type": "gs",
+    }, {
+        "access_id": "s3",
+        "access_url": {"url": "s3://cdis-presigned-url-test/testdata"},
+        "region": "",
+        "type": "s3",
+    }],
+    "aliases": [],
+    "checksums": [{
+        "checksum": "f8a0ddfc5202e67c8c98583c0acfbbdc",
+        "type": "md5",
+    }],
+    "contents": [],
+    "created_time": "2021-11-22T18:01:37.150334",
+    "description": null,
+    "form": "object",
+    "id": "000311ea-64e4-4462-9582-00562eb757aa",
+    "mime_type": "application/json",
+    "name": "",
+    "self_uri": "drs://dg.TEST0/000311ea-64e4-4462-9582-00562eb757aa",
+    "size": 42,
+    "updated_time": "2021-11-23T16:30:44.463962",
+    "version": "64bbb8c7",
+};
+
 // BDC
 
 const bdcDrsResponse = {
@@ -692,5 +724,6 @@ module.exports = {
     kidsFirstDrsResponse,
     kidsFirstDrsResponseCustom,
     kidsFirstDrsMarthaResult,
+    passportTestResponse,
     jadeAccessUrlMetadataResponse,
 };
