@@ -137,6 +137,11 @@ function mockS3AccessUrl(s3UrlString) {
     return { url: `https://${s3Url.hostname}.s3-website.us-west-2.amazonaws.com${s3Url.pathname}?sig=ABC` };
 }
 
+function mockGSAccessUrl(gsUrlString) {
+    const gsUrl = new URL(gsUrlString);
+    return { url: `https://storage.googleapis.com/${gsUrl.hostname}/${gsUrl.pathname}?sig=DEF` };
+}
+
 const bdc = config.HOST_BIODATA_CATALYST_STAGING;
 const crdc = config.HOST_CRDC_STAGING;
 const kidsFirst = config.HOST_KIDS_FIRST_STAGING;
@@ -238,7 +243,7 @@ test.serial('martha_v3 resolves a valid DRS-style url', async (t) => {
     t.is(response.statusCode, 200);
     t.deepEqual(response.body, sampleDosMarthaResult(googleSAKeyObject));
 
-    sinon.assert.callCount(getJsonFromApiStub, 2);
+    sinon.assert.callCount(getJsonFromApiStub, 3);
 });
 
 test.serial("martha_v3 doesn't fail when extra data submitted besides a 'url'", async (t) => {
@@ -746,42 +751,69 @@ test.serial('martha_v3 parses response and generates signed URL correctly for an
 });
 
 test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
+    const {
+        id: objectId,
+        access_methods: { 
+            0: {
+                access_id: accessId,
+                access_url: {
+                    url: gsUrl
+                }
+            }
+        }
+    } = gen3CrdcResponse;
+    const drsAccessUrlResponse = mockGSAccessUrl(gsUrl);
     const bond = bondUrls('dcf-fence');
-    const drs = drsUrls(config.HOST_CRDC_STAGING, '206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc');
+    const drs = drsUrls(config.HOST_CRDC_STAGING, objectId, accessId);
     getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
+    getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`)
+         .resolves(drsAccessUrlResponse);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(gen3CrdcResponse);
     const response = mockResponse();
 
     await marthaV3(
-        mockRequest({ body: { 'url': `dos://${config.HOST_CRDC_STAGING}/206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc` } }),
+        mockRequest({ body: { 'url': `dos://${config.HOST_CRDC_STAGING}/${objectId}` } }),
         response,
     );
 
     t.is(response.statusCode, 200);
-    t.deepEqual(response.body, gen3CrdcDrsMarthaResult(googleSAKeyObject, null));
+    t.deepEqual(response.body, gen3CrdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse));
 
-    sinon.assert.callCount(getJsonFromApiStub, 2);
+    sinon.assert.callCount(getJsonFromApiStub, 4);
 });
 
 test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t) => {
+    const {
+        id: objectId,
+        access_methods: { 
+            0: {
+                access_id: accessId,
+                access_url: {
+                    url: gsUrl
+                }
+            }
+        }
+    } = gen3CrdcResponse;
+    const drsAccessUrlResponse = mockGSAccessUrl(gsUrl);
     const bond = bondUrls('dcf-fence');
-    // TODO: This object ID is inconsistent with gen3CrdcResponse but, for now, it doesn't break
-    // anything. Eventually, when we turn on signed URLs for CRDC, we may want to reconcile the
-    // difference so that we can avoid duplication of these IDs between the tests and test data.
-    const drs = drsUrls(config.HOST_CRDC_STAGING, '206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc');
+    const drs = drsUrls(config.HOST_CRDC_STAGING, objectId, accessId);
     getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
+    getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
+    getJsonFromApiStub.withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`)
+         .resolves(drsAccessUrlResponse);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(gen3CrdcResponse);
     const response = mockResponse();
 
     await marthaV3(
-        mockRequest({ body: { 'url': 'dos://dg.4DFC:206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc' } }),
+        mockRequest({ body: { 'url': `dos://dg.4DFC:${objectId}` } }),
         response,
     );
 
     t.is(response.statusCode, 200);
-    t.deepEqual(response.body, gen3CrdcDrsMarthaResult(googleSAKeyObject, null));
+    t.deepEqual(response.body, gen3CrdcDrsMarthaResult(googleSAKeyObject, drsAccessUrlResponse));
 
-    sinon.assert.callCount(getJsonFromApiStub, 2);
+    sinon.assert.callCount(getJsonFromApiStub, 4);
 });
 
 test.serial('martha_v3 parses PDC response correctly', async (t) => {
