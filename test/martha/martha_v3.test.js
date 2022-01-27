@@ -764,7 +764,7 @@ test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
     } = gen3CrdcResponse;
     const drsAccessUrlResponse = mockGSAccessUrl(gsUrl);
     const bond = bondUrls('dcf-fence');
-    const drs = drsUrls(config.HOST_CRDC_STAGING, objectId, accessId);
+    const drs = drsUrls(crdc, objectId, accessId);
     getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
     getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
     getJsonFromApiStub.withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`)
@@ -773,7 +773,7 @@ test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
     const response = mockResponse();
 
     await marthaV3(
-        mockRequest({ body: { 'url': `dos://${config.HOST_CRDC_STAGING}/${objectId}` } }),
+        mockRequest({ body: { 'url': `dos://${crdc}/${objectId}` } }),
         response,
     );
 
@@ -797,7 +797,7 @@ test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t)
     } = gen3CrdcResponse;
     const drsAccessUrlResponse = mockGSAccessUrl(gsUrl);
     const bond = bondUrls('dcf-fence');
-    const drs = drsUrls(config.HOST_CRDC_STAGING, objectId, accessId);
+    const drs = drsUrls(crdc, objectId, accessId);
     getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
     getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
     getJsonFromApiStub.withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`)
@@ -818,12 +818,12 @@ test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t)
 
 test.serial('martha_v3 parses PDC response correctly', async (t) => {
     const objectId = 'dg.4DFC/f2ffba75-5197-11e9-9a07-0a80fada099c';
-    const drsUri = `drs://${config.HOST_CRDC_STAGING}/${objectId}`;
+    const drsUri = `drs://${crdc}/${objectId}`;
     const {
         access_methods: { 0: { access_id: accessId, access_url: { url: s3Url } } },
     } = pdcResponse;
     const bond = bondUrls('dcf-fence');
-    const drs = drsUrls(config.HOST_CRDC_STAGING, objectId, accessId);
+    const drs = drsUrls(crdc, objectId, accessId);
     const drsAccessUrlResponse = mockS3AccessUrl(s3Url);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(pdcResponse);
     getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
@@ -849,7 +849,7 @@ test.serial('martha_v3 parses a PDC CIB URI response correctly', async (t) => {
         access_methods: { 0: { access_id: accessId, access_url: { url: s3Url } } },
     } = pdcResponse;
     const bond = bondUrls('dcf-fence');
-    const drs = drsUrls(config.HOST_CRDC_STAGING, objectId, accessId);
+    const drs = drsUrls(crdc, objectId, accessId);
     const drsAccessUrlResponse = mockS3AccessUrl(s3Url);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(pdcResponse);
     getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
@@ -1428,7 +1428,7 @@ test.serial('martha_v3 should parse Data Object uri with the Kids First staging 
 test.serial('martha_v3 should parse Data Object uri with CRDC prefix dg.4DFC', (t) => {
     t.is(
         determineDrsProviderWrapper('drs://dg.4DFC/ed6be7ab-068e-46c8-824a-f39cfbb885cc'),
-        `https://${config.HOST_CRDC_STAGING}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
+        `https://${crdc}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
     );
 });
 
@@ -1441,8 +1441,8 @@ test.serial('martha_v3 should parse Data Object uri with CRDC prod repo as host'
 
 test.serial('martha_v3 should parse Data Object uri with CRDC staging repo as host', (t) => {
     t.is(
-        determineDrsProviderWrapper(`drs://${config.HOST_CRDC_STAGING}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
-        `https://${config.HOST_CRDC_STAGING}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
+        determineDrsProviderWrapper(`drs://${crdc}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
+        `https://${crdc}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
     );
 });
 
