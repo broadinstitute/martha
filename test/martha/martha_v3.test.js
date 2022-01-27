@@ -753,7 +753,7 @@ test.serial('martha_v3 parses response and generates signed URL correctly for an
 test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
     const {
         id: objectId,
-        access_methods: { 
+        access_methods: {
             0: {
                 access_id: accessId,
                 access_url: {
@@ -768,7 +768,7 @@ test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
     getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
     getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
     getJsonFromApiStub.withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`)
-         .resolves(drsAccessUrlResponse);
+        .resolves(drsAccessUrlResponse);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(gen3CrdcResponse);
     const response = mockResponse();
 
@@ -786,7 +786,7 @@ test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
 test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t) => {
     const {
         id: objectId,
-        access_methods: { 
+        access_methods: {
             0: {
                 access_id: accessId,
                 access_url: {
@@ -801,7 +801,7 @@ test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t)
     getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
     getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
     getJsonFromApiStub.withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`)
-         .resolves(drsAccessUrlResponse);
+        .resolves(drsAccessUrlResponse);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(gen3CrdcResponse);
     const response = mockResponse();
 
