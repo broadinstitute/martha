@@ -1,3 +1,17 @@
+deploy_env: ${DEPLOY_ENV:dev}
+
+martha:
+  bondUrl: https://broad-bond-${deploy_env}.appspot.com
+  samUrl: https://sam.dsde-${deploy_env}.broadinstitute.org
+  externalcredsUrl: https://externalcreds.dsde-${deploy_env}.broadinstitute.org
+
+  hosts:
+    bioDataCatalyst: staging.gen3.biodatacatalyst.nhlbi.nih.gov
+    crdc: nci-crdc-staging.datacommons.io
+    kidsFirst: gen3staging.kidsfirstdrc.org
+    theAnvil: staging.theanvil.io
+
+
 server:
   compression:
     enabled: true
@@ -7,11 +21,12 @@ server:
 spring:
   application.name: martha
 
-  config.import: optional:classpath:rendered/hosts.yaml
-
   jackson.serialization.indent_output: true
 
   main.banner-mode: off
+
+  profiles.include:
+    - ${deploy-env}
 
   web:
     resources:
@@ -20,3 +35,12 @@ spring:
           max-age: 0
           must-revalidate: true
         use-last-modified: false
+
+---
+spring.config.activate.on-profile: prod
+martha:
+  hosts:
+    bioDataCatalyst: gen3.biodatacatalyst.nhlbi.nih.gov
+    crdc: nci-crdc.datacommons.io
+    kidsFirst: data.kidsfirstdrc.org
+    theAnvil: gen3.theanvil.io

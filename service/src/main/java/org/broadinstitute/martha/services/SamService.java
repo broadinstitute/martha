@@ -16,6 +16,6 @@ public class SamService {
   public UsersApi samUsersApi(String accessToken) {
     var client = new ApiClient();
     client.setAccessToken(accessToken);
-    return new UsersApi(client.setBasePath(this.marthaConfig.getHosts().get("samBaseUrl")));
+    return new UsersApi(client.setBasePath(this.marthaConfig.getSamUrl()));
   }
 }

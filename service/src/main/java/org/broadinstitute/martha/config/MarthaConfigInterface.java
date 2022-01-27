@@ -7,5 +7,11 @@ import org.immutables.value.Value;
 @PropertiesInterfaceStyle
 public interface MarthaConfigInterface {
 
+  String getBondUrl();
+
+  String getSamUrl();
+
+  String getExternalcredsUrl();
+
   Map<String, String> getHosts();
 }
