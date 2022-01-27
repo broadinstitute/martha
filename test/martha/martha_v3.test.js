@@ -322,7 +322,7 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
         access_methods: { 0: { access_id: accessId, access_url: { url: s3Url } } }
     } = kidsFirstDrsResponse;
     const bond = bondUrls('kids-first');
-    const drs = drsUrls(config.HOST_KIDS_FIRST_STAGING, objectId, accessId);
+    const drs = drsUrls(kidsFirst, objectId, accessId);
     const drsAccessUrlResponse = mockS3AccessUrl(s3Url);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(kidsFirstDrsResponse);
     getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
@@ -367,7 +367,7 @@ test.serial('martha_v3 calls the correct endpoints when access url fetch is forc
         access_methods: { 0: { access_id: accessId, access_url: { url: gsUrl } } }
     } = bdcDrsResponse;
     const bond = bondUrls(BondProviders.FENCE);
-    const drs = drsUrls(config.HOST_BIODATA_CATALYST_STAGING, objectId, accessId);
+    const drs = drsUrls(bdc, objectId, accessId);
     const drsAccessUrlResponse = mockGcsAccessUrl(gsUrl);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(bdcDrsResponse);
     getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
@@ -438,7 +438,7 @@ test.serial('martha_v3 calls the correct endpoints when only the fileName is req
         access_id: bdcDrsResponse.access_methods[0].access_id,
     });
     const { id: objectId, self_uri: drsUri } = drsResponse;
-    const drs = drsUrls(config.HOST_BIODATA_CATALYST_STAGING, objectId);
+    const drs = drsUrls(bdc, objectId);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(drsResponse);
     const response = mockResponse();
 
@@ -458,7 +458,7 @@ test.serial('martha_v3 calls the correct endpoints when only the fileName is req
         id: objectId, self_uri: drsUri,
         access_methods: { 0: { access_id: accessId } }
     } = kidsFirstDrsResponse;
-    const drs = drsUrls(config.HOST_KIDS_FIRST_STAGING, objectId, accessId);
+    const drs = drsUrls(kidsFirst, objectId, accessId);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null)
         .resolves(kidsFirstDrsResponseCustom({ name: null, access_url: { url: null } }));
     const response = mockResponse();
@@ -480,7 +480,7 @@ test.serial('martha_v3 calls return the DRS name field for a file name even when
         access_methods: { 0: { access_id: accessId, access_url: { url: s3Url } } },
     } = kidsFirstDrsResponse;
     const bond = bondUrls('kids-first');
-    const drs = drsUrls(config.HOST_KIDS_FIRST_STAGING, objectId, accessId);
+    const drs = drsUrls(kidsFirst, objectId, accessId);
     const drsAccessUrlResponse = mockS3AccessUrl(s3Url);
     const fileName = 'from_name_field.txt';
     getJsonFromApiStub.withArgs(drs.objectsUrl, null)
@@ -677,7 +677,7 @@ test.serial('martha_v3 should return 500 if key retrieval from Bond fails', asyn
 
 test.serial('martha_v3 calls Bond with the "fence" provider when the Data Object URL host is "dg.4503"', async (t) => {
     const bond = bondUrls('fence');
-    const drs = drsUrls(config.HOST_BIODATA_CATALYST_PROD);
+    const drs = drsUrls(bdc);
     getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(bdcDrsResponse);
     const response = mockResponse();
@@ -870,7 +870,7 @@ test.serial('martha_v3 parses a PDC CIB URI response correctly', async (t) => {
 
 // BT-236 temporarily cut access token and access endpoint out of the flow
 test.serial('martha_v3 parses BDC response correctly', async (t) => {
-    const drsHost = config.HOST_BIODATA_CATALYST_STAGING;
+    const drsHost = bdc;
     const {
         id: objectId, self_uri: drsUri,
         // access_methods: { 0: { access_id: accessId, access_url: { url: gsUrl } } }
@@ -897,7 +897,7 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
 test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
     const bond = bondUrls('fence');
     const { id: objectId, self_uri: drsUri } = bdcDrsResponse;
-    const drs = drsUrls(config.HOST_BIODATA_CATALYST_STAGING, objectId);
+    const drs = drsUrls(bdc, objectId);
     getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(bdcDrsResponse);
     const response = mockResponse();
@@ -953,7 +953,7 @@ test.serial('martha_v3 parses Kids First response correctly', async (t) => {
     } = kidsFirstDrsResponse;
     const drsAccessUrlResponse = mockS3AccessUrl(s3Url);
     const bond = bondUrls('kids-first');
-    const drs = drsUrls(config.HOST_KIDS_FIRST_STAGING, objectId, accessId);
+    const drs = drsUrls(kidsFirst, objectId, accessId);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(kidsFirstDrsResponse);
     getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
     getJsonFromApiStub.withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`)
@@ -973,7 +973,7 @@ test.serial('martha_v3 parses a Kids First CIB URI response correctly', async (t
         access_methods: { 0: { access_id: accessId, access_url: { url: s3Url } } }
     } = kidsFirstDrsResponse;
     const bond = bondUrls('kids-first');
-    const drs = drsUrls(config.HOST_KIDS_FIRST_STAGING, objectId, accessId);
+    const drs = drsUrls(kidsFirst, objectId, accessId);
     const drsAccessUrlResponse = mockS3AccessUrl(s3Url);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(kidsFirstDrsResponse);
     getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
@@ -1033,7 +1033,7 @@ test.serial('martha_v3 succeeds even if fetching a signed URL never returns', te
         access_methods: { 0: { access_id: accessId } }
     } = kidsFirstDrsResponse;
     const bond = bondUrls('kids-first');
-    const drs = drsUrls(config.HOST_KIDS_FIRST_STAGING, objectId, accessId);
+    const drs = drsUrls(kidsFirst, objectId, accessId);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(kidsFirstDrsResponse);
     getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
     getJsonFromApiStub.withArgs(drs.accessUrl, `Bearer ${bondAccessTokenResponse.token}`).callsFake(async () => {
@@ -1052,7 +1052,7 @@ test.serial('martha_v3 succeeds even if fetching a signed URL never returns', te
 test.serial('martha_v3 fails if something times out before trying to fetch a signed URL', testWithTimeout(5 * 1000, async (t) => {
     overridePencilsDownSeconds(3);
     const { id: objectId, self_uri: drsUri } = kidsFirstDrsResponse;
-    const drs = drsUrls(config.HOST_KIDS_FIRST_STAGING, objectId);
+    const drs = drsUrls(kidsFirst, objectId);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).callsFake(async () => {
         await delay(90 * 1000);
         return 'Boom!';
@@ -1080,7 +1080,7 @@ test.serial('martha_v3 passes through the HTTP status if an error is encountered
         access_methods: { 0: { access_id: accessId } }
     } = kidsFirstDrsResponse;
     const bond = bondUrls('kids-first');
-    const drs = drsUrls(config.HOST_KIDS_FIRST_STAGING, objectId, accessId);
+    const drs = drsUrls(kidsFirst, objectId, accessId);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(kidsFirstDrsResponse);
     getJsonFromApiStub.withArgs(bond.accessTokenUrl, terraAuth).resolves(bondAccessTokenResponse);
 
@@ -1288,28 +1288,28 @@ test.serial('martha_v3 determineDrsProvider should parse drs:// Data Object uri 
 test.serial('martha_v3 determineDrsProvider should parse "dos://" Data Object uri with a host and path', (t) => {
     t.is(
         determineDrsProviderWrapper('dos://dg.712C/bar'),
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.712C/bar`
+        `https://${bdc}/ga4gh/drs/v1/objects/dg.712C/bar`
     );
 });
 
 test.serial('martha_v3 determineDrsProvider should parse "drs://" Data Object uri with a host and path', (t) => {
     t.is(
         determineDrsProviderWrapper('drs://dg.712C/bar'),
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.712C/bar`
+        `https://${bdc}/ga4gh/drs/v1/objects/dg.712C/bar`
     );
 });
 
 test.serial('martha_v3 determineDrsProvider should parse "drs://dg." Data Object uri with query part', (t) => {
     t.is(
         determineDrsProviderWrapper('drs://dg.712C/bar?version=1&bananas=yummy'),
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.712C/bar?version=1&bananas=yummy`
+        `https://${bdc}/ga4gh/drs/v1/objects/dg.712C/bar?version=1&bananas=yummy`
     );
 });
 
 test.serial('martha_v3 determineDrsProvider should parse "drs://" Data Object uri with an expanded host and path', (t) => {
     t.is(
-        determineDrsProviderWrapper(`dos://${config.HOST_BIODATA_CATALYST_STAGING}/dg.2345/bar`),
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.2345/bar`
+        determineDrsProviderWrapper(`dos://${bdc}/dg.2345/bar`),
+        `https://${bdc}/ga4gh/drs/v1/objects/dg.2345/bar`
     );
 });
 /**
@@ -1398,7 +1398,7 @@ test.serial('martha_v3 should parse Data Object uri with the AnVIL staging host'
 test.serial('martha_v3 should parse Data Object uri with the Kids First prefix dg.F82A1A', (t) => {
     t.is(
         determineDrsProviderWrapper('drs://dg.F82A1A/ed6be7ab-068e-46c8-824a-f39cfbb885cc'),
-        `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
+        `https://${kidsFirst}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
     );
 });
 
@@ -1411,8 +1411,8 @@ test.serial('martha_v3 should parse Data Object uri with the Kids First prod rep
 
 test.serial('martha_v3 should parse Data Object uri with the Kids First staging repo as host', (t) => {
     t.is(
-        determineDrsProviderWrapper(`drs://${config.HOST_KIDS_FIRST_STAGING}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
-        `https://${config.HOST_KIDS_FIRST_STAGING}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
+        determineDrsProviderWrapper(`drs://${kidsFirst}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
+        `https://${kidsFirst}/ga4gh/drs/v1/objects/ed6be7ab-068e-46c8-824a-f39cfbb885cc`,
     );
 });
 
@@ -1458,7 +1458,7 @@ test.serial('martha_v3 should parse Data Object uri with CRDC staging repo as ho
 test.serial('martha_v3 should parse Data Object uri with BDC prefix dg.712C', (t) => {
     t.is(
         determineDrsProviderWrapper('drs://dg.712C/fc046e84-6cf9-43a3-99cc-ffa2964b88cb'),
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/dg.712C/fc046e84-6cf9-43a3-99cc-ffa2964b88cb`,
+        `https://${bdc}/ga4gh/drs/v1/objects/dg.712C/fc046e84-6cf9-43a3-99cc-ffa2964b88cb`,
     );
 });
 
@@ -1471,8 +1471,8 @@ test.serial('martha_v3 should parse Data Object uri with BDC prod repo as host',
 
 test.serial('martha_v3 should parse Data Object uri with BDC staging repo as host', (t) => {
     t.is(
-        determineDrsProviderWrapper(`drs://${config.HOST_BIODATA_CATALYST_STAGING}/fc046e84-6cf9-43a3-99cc-ffa2964b88cb`),
-        `https://${config.HOST_BIODATA_CATALYST_STAGING}/ga4gh/drs/v1/objects/fc046e84-6cf9-43a3-99cc-ffa2964b88cb`,
+        determineDrsProviderWrapper(`drs://${bdc}/fc046e84-6cf9-43a3-99cc-ffa2964b88cb`),
+        `https://${bdc}/ga4gh/drs/v1/objects/fc046e84-6cf9-43a3-99cc-ffa2964b88cb`,
     );
 });
 
