@@ -215,7 +215,7 @@ class CrdcProvider extends DrsProvider {
             MetadataAuth.NO,
             BondProvider.DCF_FENCE,
             [
-                new AccessMethod(AccessMethodType.GCS, AccessUrlAuth.FENCE_TOKEN, FetchAccessUrl.NO),
+                new AccessMethod(AccessMethodType.GCS, AccessUrlAuth.FENCE_TOKEN, FetchAccessUrl.YES),
                 new AccessMethod(AccessMethodType.S3, AccessUrlAuth.FENCE_TOKEN, FetchAccessUrl.YES)
             ],
             forceAccessUrl);
