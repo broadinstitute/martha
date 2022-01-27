@@ -9,8 +9,6 @@ spring:
 
   config.import: optional:classpath:rendered/hosts.yaml
 
-  datasource: {}
-
   jackson.serialization.indent_output: true
 
   main.banner-mode: off
