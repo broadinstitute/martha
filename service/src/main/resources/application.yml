@@ -1,4 +1,4 @@
-deploy_env: ${DEPLOY_ENV:dev}
+deploy_env: ${DEPLOY_ENV:dev} # since there's a default, define this once
 
 martha:
   bondUrl: https://broad-bond-${deploy_env}.appspot.com
