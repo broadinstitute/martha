@@ -1,8 +1,15 @@
 package org.broadinstitute.martha.services;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import bio.terra.common.exception.BadRequestException;
 import org.broadinstitute.martha.config.MarthaConfig;
 import org.broadinstitute.martha.generated.model.ResourceMetadata;
 import org.springframework.stereotype.Service;
@@ -20,7 +27,7 @@ public class MetadataService {
     return null;
   }
 
-  private void getHttpsUrlParts(String url) {
+  private UrlParts getHttpsUrlParts(String url) {
     /*
     DOS or DRS schemes are allowed as of AZUL-702
     https://ucsc-cgl.atlassian.net/browse/AZUL-702
@@ -47,61 +54,66 @@ public class MetadataService {
      */
 
     // The many different ways a DOS/DRS may be "compact", in the order that the should be tried
-    var cibRegExps = List.of(
-    // Non-W3C CIB DOS/DRS URIs, where the `dg.abcd` appears more than once
-        // drs://dg.1234:dg.1234/object_id?query_string
-        Pattern.compile("(?:dos|drs)://(?<host>dg\\.[0-9a-z-]+)(?<separator>:)\\k<host>/(?<suffix>[^?]*)(?<query>\\?(.*))?", Pattern.CASE_INSENSITIVE),
-    // Non-W3C CIB DOS/DRS URIs, where the `dg.abcd` is only mentioned once
-            // drs://dg.1234:object_id?query_string
-        Pattern.compile("(?:dos|drs)://(?<host>dg\\.[0-9a-z-]+)(?<separator>:)(?<suffix>[^?]*)(?<query>\\?(.*))?", Pattern.CASE_INSENSITIVE),
-    // W3C compatible using a slash separator
-    // drs://dg.1234/object_id?query_string
-        Pattern.compile("(?:dos|drs)://(?<host>dg\\.[0-9a-z-]+)(?<separator>/)(?<suffix>[^?]*)(?<query>\\?(.*))?", Pattern.CASE_INSENSITIVE)
-    );
+//    var cibRegExps = List.of(
+//        // Non-W3C CIB DOS/DRS URIs, where the `dg.abcd` appears more than once
+//        // ex. drs://dg.1234:dg.1234/object_id?query_string
+//        Pattern.compile("(?:dos|drs)://(?<host>dg\\.[0-9a-z-]+)(?<separator>:)\\k<host>/(?<suffix>[^?]*)(?<query>\\?(.*))?", Pattern.CASE_INSENSITIVE),
+//        // Non-W3C CIB DOS/DRS URIs, where the `dg.abcd` is only mentioned once
+//        // ex. drs://dg.1234:object_id?query_string
+//        Pattern.compile("(?:dos|drs)://(?<host>dg\\.[0-9a-z-]+)(?<separator>:)(?<suffix>[^?]*)(?<query>\\?(.*))?", Pattern.CASE_INSENSITIVE),
+//        // W3C compatible using a slash separator
+//        // ex. drs://dg.1234/object_id?query_string
+//        Pattern.compile("(?:dos|drs)://(?<host>dg\\.[0-9a-z-]+)(?<separator>/)(?<suffix>[^?]*)(?<query>\\?(.*))?", Pattern.CASE_INSENSITIVE)
+//    );
 
-    var cibRegExp = cibRegExps.stream().filter(pattern -> pattern.matcher(url).matches()).findFirst();
+    var cibRegExp = Pattern.compile("(?:dos|drs)://(?<host>dg\\.[0-9a-z-]+)(?<separator>:|/)(?<suffix>[^?]*)(?<query>\\?(.*))?", Pattern.CASE_INSENSITIVE);
 
-    class UrlParts {
-      String httpsUrlHost;
-      String protocolSuffix;
-      String httpsUrlSearch;
 
-      public UrlParts(String httpsUrlHost, String protocolSuffix, String httpsUrlSearch) {
-        this.httpsUrlHost = httpsUrlHost;
-        this.protocolSuffix = protocolSuffix;
-        this.httpsUrlSearch = httpsUrlSearch;
-      }
-    }
+    //var cibRegExp = cibRegExps.stream().filter(pattern -> pattern.matcher(url).matches()).findFirst();
 
-    if (cibRegExp.isPresent()) {
-        var cibMatch = cibRegExp.get().matcher(url);
+    var cibMatch = cibRegExp.matcher(url);
+
+    if (cibMatch.matches()) {
       String cibHost = cibMatch.group("host");
       return new UrlParts(
           Objects.requireNonNull(marthaConfig.getHosts().get(cibHost), String.format("Unrecognized Compact Identifier Based host [%s]", cibHost)),
-          expandCibSuffix(
-              cibHost,
-          cibMatch.group("suffix"),
-          cibMatch.group("separator")
-          ),
+          URLEncoder.encode(cibMatch.group("suffix"), StandardCharsets.UTF_8),
           cibMatch.group("query")
         );
+    } else {
+      // TODO: someone check my logic from here down (we ran out of time for mobbing)
+      URL parsedUrl;
+      try {
+        parsedUrl = new URL(url);
+      } catch (MalformedURLException e) {
+        throw new BadRequestException(e.getMessage());
+      }
+      if (parsedUrl.getHost().isEmpty() || parsedUrl.getPath().isEmpty()) {
+        throw new BadRequestException(String.format("[%s] is missing a host and/or a path.", url));
+      }
+      // TODO: update this return value
+      //  (in doing so we may need to add an optional "port" value to the UrlParts class)
+      return new UrlParts(parsedUrl.getHost(), "", "");
     }
 
-    let parsedUrl;
-    try {
-      parsedUrl = new URL(url);
-    } catch (error) {
-      throw new BadRequestError(error.message);
-    }
-    if (!parsedUrl.hostname || !parsedUrl.pathname) {
-      throw new BadRequestError(`"${url}" is missing a host and/or a path.`);
-    }
-    return {
-        httpsUrlHost: parsedUrl.hostname,
-        httpsUrlPort: parsedUrl.port,
-        protocolSuffix: parsedUrl.pathname.slice(1),
-        httpsUrlSearch: parsedUrl.search,
-    };
+//    return {
+//        httpsUrlHost: parsedUrl.hostname,
+//        httpsUrlPort: parsedUrl.port,
+//        protocolSuffix: parsedUrl.pathname.slice(1),
+//        httpsUrlSearch: parsedUrl.search,
+//    };
   }
 
+
+  class UrlParts {
+    String httpsUrlHost;
+    String protocolSuffix;
+    String httpsUrlSearch;
+
+    public UrlParts(String httpsUrlHost, String protocolSuffix, String httpsUrlSearch) {
+      this.httpsUrlHost = httpsUrlHost;
+      this.protocolSuffix = protocolSuffix;
+      this.httpsUrlSearch = httpsUrlSearch;
+    }
+  }
 }
