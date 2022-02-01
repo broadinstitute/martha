@@ -161,7 +161,7 @@ class BioDataCatalystDrsProvider extends DrsProvider {
             BondProvider.FENCE,
             [
                 //  BT-236 BDC access (signed) URLs temporarily turned off
-                new AccessMethod(AccessMethodType.GCS, AccessUrlAuth.FENCE_TOKEN, FetchAccessUrl.NO)
+                new AccessMethod(AccessMethodType.GCS, AccessUrlAuth.FENCE_TOKEN, FetchAccessUrl.YES)
             ],
             forceAccessUrl);
     }
