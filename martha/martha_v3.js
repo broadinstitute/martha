@@ -361,6 +361,7 @@ async function retrieveFromServers(params) {
 
     let bondSA;
     let drsResponse;
+    let accessMethod;
     let fileName;
     let localizationPath;
     let accessUrl;
@@ -443,7 +444,11 @@ async function retrieveFromServers(params) {
             throw new RemoteServerError(error, 'Received error while parsing response from DRS URL.');
         }
 
-        const accessMethod = getAccessMethod(drsResponse, drsProvider);
+        try {
+            accessMethod = getAccessMethod(drsResponse, drsProvider);
+        } catch (error) {
+            throw new RemoteServerError(error, 'Received error while selecting access id.');
+        }
 
         if (drsProvider.shouldFetchUserServiceAccount(accessMethod, requestedFields)) {
             try {

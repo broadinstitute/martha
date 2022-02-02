@@ -836,7 +836,6 @@ test.serial('martha_v3 parses a PDC CIB URI response correctly', async (t) => {
     sinon.assert.callCount(getJsonFromApiStub, 3);
 });
 
-// BT-236 temporarily cut access token and access endpoint out of the flow
 test.serial('martha_v3 parses BDC response correctly', async (t) => {
     const drsHost = config.HOST_BIODATA_CATALYST_STAGING;
     const {
@@ -1092,13 +1091,13 @@ test.serial('martha_v3 should return 500 if Data Object parsing fails', async (t
     );
 });
 
-/* BT-236 Skip this as it fails in weird ways (not in 'access method parsing') with signed URLs turned off. */
-test.skip('martha_v3 should return 500 if access method parsing fails', async (t) => {
-    getJsonFromApiStub.onCall(0).resolves(drsObjectWithInvalidFields);
+test('martha_v3 should return 500 if access method parsing fails', async (t) => {
+    const drs = drsUrls(bdc, '123');
+    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(drsObjectWithInvalidFields);
 
     const response = mockResponse();
     await marthaV3(
-        mockRequest({ body: { 'url': 'drs://dg.712C/fa640b0e-9779-452f-99a6-16d833d15bd0' } }),
+        mockRequest({ body: { 'url': `drs://${bdc}/123` } }),
         response,
     );
     t.is(response.statusCode, 500);
@@ -1108,7 +1107,7 @@ test.skip('martha_v3 should return 500 if access method parsing fails', async (t
         {
             response: {
                 status: 500,
-                text: 'Received error while parsing the access id. drsResponse.access_methods is not iterable',
+                text: 'Received error while selecting access id. drsResponse.access_methods is not iterable',
             },
             status: 500,
         },
@@ -1117,6 +1116,8 @@ test.skip('martha_v3 should return 500 if access method parsing fails', async (t
 
 /* BT-236 Skip testing access token fetch failure since that is not something this code even attempts with BDC
  * signed URLs turned off. */
+/* BT-267 Update: continue skipping this test until we remove the code that successfully returns GCS
+ * references even if fetching an accessURL fails. */
 test.skip('martha_v3 should return 500 on exception trying to get access token from Bond', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(null);
@@ -1142,6 +1143,8 @@ test.skip('martha_v3 should return 500 on exception trying to get access token f
 
 /* BT-236 Skip testing access URL fetch failure since that is not something this code even attempts with BDC
  * signed URLs turned off. */
+/* BT-267 Update: continue skipping this test until we remove the code that successfully returns GCS
+ * references even if fetching an accessURL fails. */
 test.skip('martha_v3 should return 500 on exception trying to get signed URL from DRS provider', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(bdcDrsResponse);
     getJsonFromApiStub.onCall(1).resolves(bondAccessTokenResponse);
