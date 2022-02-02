@@ -76,4 +76,6 @@ public class MetadataService {
       return parsedUri;
     }
   }
+
+  private void determineDrsProvider(UriComponents uriComponents, boolean forceAccessUrl) {}
 }
