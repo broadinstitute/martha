@@ -7,7 +7,7 @@ public enum AccessMethodTypeEnum {
 
   public final String label;
 
-  private AccessMethodTypeEnum(String label) {
+  AccessMethodTypeEnum(String label) {
     this.label = label;
   }
 }

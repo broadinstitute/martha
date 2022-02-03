@@ -52,7 +52,7 @@ public class Fields {
 
   public static final List<String> ACCESS_ID_FIELDS = List.of("accessUrl");
 
-  public static Boolean overlapFields(List<String> requestedFields, List<String> serviceFields) {
+  public static Boolean overlap(List<String> requestedFields, List<String> serviceFields) {
     return serviceFields.containsAll(requestedFields);
   }
 }
