@@ -37,13 +37,15 @@ public abstract class DrsProvider {
     this(providerName, sendMetadataAuth, bondProvider, accessMethods, forceAccessUrl, false);
   }
 
-  public Optional<AccessMethod> getAccessMethodByType(String accessMethodType) {
-    return accessMethods.stream().filter((o) -> o.getAccessMethodType().equals(accessMethodType))
+  public Optional<AccessMethod> getAccessMethodByType(AccessMethodTypeEnum accessMethodType) {
+    return accessMethods.stream()
+        .filter((o) -> o.getAccessMethodType().equals(accessMethodType))
         .findFirst();
   }
 
-  public List<String> getAccessMethodTypes() {
-    return accessMethods.stream().map(AccessMethod::getAccessMethodType)
+  public List<AccessMethodTypeEnum> getAccessMethodTypes() {
+    return accessMethods.stream()
+        .map(AccessMethod::getAccessMethodType)
         .collect(Collectors.toList());
   }
 
@@ -54,57 +56,66 @@ public abstract class DrsProvider {
    * Martha request for calling `access`).
    *
    * @param useFallbackAuth if false (default) check accessUrlAuth in accessMethods, otherwise check
-   *                        fallbackAccessUrlAuth
+   *     fallbackAccessUrlAuth
    */
-  public boolean shouldFetchFenceAccessToken(String accessMethodType, List<String> requestedFields,
+  public boolean shouldFetchFenceAccessToken(
+      AccessMethodTypeEnum accessMethodType,
+      List<String> requestedFields,
       boolean useFallbackAuth) {
-    return bondProvider != null &&
-        Fields.overlapFields(requestedFields, Fields.ACCESS_ID_FIELDS) &&
-        (forceAccessUrl || (accessMethodType != null &&
-            accessMethods.stream()
-                .anyMatch(m -> {
-                  var accessMethodTypeMatches = m.getAccessMethodType().equals(accessMethodType);
-                  var validFallbackAuth = !useFallbackAuth || m.getFallbackAccessUrlAuth().equals("FENCE_TOKEN");
-                  var validAccessAuth = useFallbackAuth || m.getAccessUrlAuth().equals("FENCE_TOKEN");
+    return bondProvider != null
+        && Fields.overlapFields(requestedFields, Fields.ACCESS_ID_FIELDS)
+        && (forceAccessUrl
+            || (accessMethodType != null
+                && accessMethods.stream()
+                    .anyMatch(
+                        m -> {
+                          var accessMethodTypeMatches =
+                              m.getAccessMethodType().equals(accessMethodType);
+                          var validFallbackAuth =
+                              !useFallbackAuth
+                                  || m.getFallbackAccessUrlAuth().orElse(null)
+                                      == AccessUrlAuthEnum.FENCE_TOKEN;
+                          var validAccessAuth =
+                              useFallbackAuth
+                                  || m.getAccessUrlAuth() == AccessUrlAuthEnum.FENCE_TOKEN;
 
-                  return accessMethodTypeMatches &&
-                      validFallbackAuth &&
-                      validAccessAuth &&
-                      m.isFetchAccessUrl();
-                })));
+                          return accessMethodTypeMatches
+                              && validFallbackAuth
+                              && validAccessAuth
+                              && m.isFetchAccessUrl();
+                        })));
   }
 
-  /**
-   * Should Martha call the DRS provider's `access` endpoint to get a signed URL.
-   *
-   * @param accessMethod
-   * @param requestedFields
-   * @return {boolean}
-   */
-  shouldFetchAccessUrl(accessMethod, requestedFields) {
-    return overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&
-        (this.forceAccessUrl || (accessMethod &&
-            this.accessMethods.find((m) = > m.accessMethodType == = accessMethod.type &&
-            m.fetchAccessUrl == = FetchAccessUrl.YES)));
+  /** Should Martha call the DRS provider's `access` endpoint to get a signed URL. */
+  public boolean shouldFetchAccessUrl(
+      AccessMethodTypeEnum accessMethodType, List<String> requestedFields) {
+    return Fields.overlapFields(requestedFields, Fields.ACCESS_ID_FIELDS)
+        && (forceAccessUrl
+            || (accessMethodType != null
+                && accessMethods.stream()
+                    .anyMatch(
+                        m ->
+                            m.getAccessMethodType().equals(accessMethodType)
+                                && m.isFetchAccessUrl())));
   }
 
   /**
    * Should Martha fetch the Google user service account from Bond. Because this account is
    * Google-specific it should not be fetched if we know the underlying data is not GCS-based.
-   *
-   * @param accessMethod
-   * @param requestedFields
-   * @return {boolean}
    */
-  shouldFetchUserServiceAccount(accessMethod, requestedFields) {
+  public boolean shouldFetchUserServiceAccount(
+      AccessMethodTypeEnum accessMethodType, List<String> requestedFields) {
     // This account would be stored in Bond so no Bond means no account.
-    return this.bondProvider != = BondProvider.NONE &&
-        // "Not definitely not GCS". A falsy accessMethod is okay because there may not have been a preceding
+    return bondProvider != null
+        &&
+        // "Not definitely not GCS". A falsy accessMethod is okay because there may not have been a
+        // preceding
         // metadata request to determine the accessMethod.
-        (!accessMethod || accessMethod.type == = AccessMethodType.GCS) &&
-        this.accessMethodTypes().includes(AccessMethodType.GCS) &&
-        overlapFields(requestedFields, MARTHA_V3_BOND_SA_FIELDS);
+        (accessMethodType == null || accessMethodType == AccessMethodTypeEnum.GCS)
+        && getAccessMethodTypes().contains(AccessMethodTypeEnum.GCS)
+        && Fields.overlapFields(requestedFields, Fields.BOND_SA_FIELDS);
   }
+
 
   shouldFetchPassports(accessMethod, requestedFields) {
     return overlapFields(requestedFields, MARTHA_V3_ACCESS_ID_FIELDS) &&

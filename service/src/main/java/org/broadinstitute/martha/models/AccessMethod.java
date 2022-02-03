@@ -1,37 +1,17 @@
 package org.broadinstitute.martha.models;
 
-public class AccessMethod {
+import java.util.Optional;
+import org.immutables.value.Value;
 
-  private final String accessMethodType;
-  private final String accessUrlAuth;
-  private final boolean fetchAccessUrl;
-  private final String fallbackAccessUrlAuth;
+@Value.Immutable
+public interface AccessMethod extends WithAccessMethod {
+  AccessMethodTypeEnum getAccessMethodType();
 
-  AccessMethod(String accessMethodType, String accessUrlAuth, boolean fetchAccessUrl,
-      String fallbackAccessUrlAuth) {
-    this.accessMethodType = accessMethodType;
-    this.accessUrlAuth = accessUrlAuth;
-    this.fetchAccessUrl = fetchAccessUrl;
-    this.fallbackAccessUrlAuth = fallbackAccessUrlAuth;
-  }
-  AccessMethod(String accessMethodType, String accessUrlAuth, boolean fetchAccessUrl) {
-    this(accessMethodType, accessUrlAuth, fetchAccessUrl, null);
-  }
+  AccessUrlAuthEnum getAccessUrlAuth();
 
-  public String getAccessMethodType() {
-    return accessMethodType;
-  }
+  boolean isFetchAccessUrl();
 
-  public String getAccessUrlAuth() {
-    return accessUrlAuth;
-  }
+  Optional<AccessUrlAuthEnum> getFallbackAccessUrlAuth();
 
-  public boolean isFetchAccessUrl() {
-    return fetchAccessUrl;
-  }
-
-  public String getFallbackAccessUrlAuth() {
-    return fallbackAccessUrlAuth;
-  }
-
+  class Builder extends ImmutableAccessMethod.Builder {}
 }
