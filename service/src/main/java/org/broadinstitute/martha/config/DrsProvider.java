@@ -14,6 +14,8 @@ public interface DrsProvider {
 
   String getName();
 
+  String getHostRegex();
+
   boolean isMetadataAuth();
 
   BondProviderEnum getBondProvider();

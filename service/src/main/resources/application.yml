@@ -14,6 +14,7 @@ martha:
   drsProviders:
     bioDataCatalyst:
       name: BioData Catalyst (BDC)
+      hostRegex: ".*\.biodatacatalyst\.nhlbi\.nih\.gov|wb-mock-drs-dev\.storage\.googleapis\.com"
       metadataAuth: false
       bondProvider: fence
       accessMethods:
@@ -22,6 +23,7 @@ martha:
           fetchAccessUrl: false
     terraDataRepo:
       name: Terra Data Repo (TDR)
+      hostRegex: ".*data.*[-.](?:broadinstitute\.org|terra\.bio)"
       metadataAuth: true
       bondProvider: null
       accessMethods:
@@ -33,6 +35,7 @@ martha:
           fetchAccessUrl: true # Used for Azure
     kidsFirst:
       name: Gabriella Miller Kids First DRC
+      hostRegex: ".*\.kidsfirstdrc\.org"
       metadataAuth: false
       bondProvider: kids_first
       accessMethods:
@@ -41,6 +44,7 @@ martha:
           fetchAccessUrl: true
     anvil:
       name: NHGRI Analysis Visualization and Informatics Lab-space (The AnVIL)
+      hostRegex: ".*\.theanvil\.io"
       metadataAuth: false
       bondProvider: anvil
       accessMethods:
@@ -49,6 +53,7 @@ martha:
           fetchAccessUrl: false
     crdc:
       name: NCI Cancer Research / Proteomics Data Commons (CRDC / PDC)
+      hostRegex: ".*\.datacommons\.io"
       metadataAuth: false
       bondProvider: dcf_fence
       accessMethods:
@@ -60,6 +65,7 @@ martha:
           fetchAccessUrl: true
     passport:
       name: Passport Test Provider
+      hostRegex: "ctds-test-env\.planx-pla\.net"
       metadataAuth: false
       bondProvider: dcf_fence
       accessMethods:
