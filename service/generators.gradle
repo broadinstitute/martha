@@ -3,29 +3,63 @@ dependencies {
 	runtimeOnly 'org.webjars.npm:swagger-ui-dist:4.4.0'
 	swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.32'
 
+	implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
 	// Versioned by Spring:
 	implementation 'javax.validation:validation-api'
 	implementation 'org.webjars:webjars-locator-core'
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+	implementation 'org.glassfish.jersey.core:jersey-client'
+	implementation 'org.glassfish.jersey.media:jersey-media-json-jackson'
+	implementation 'org.glassfish.jersey.media:jersey-media-multipart'
 }
 
-generateSwaggerCode {
-	inputFile = file('src/main/resources/static/openapi.yml')
-	language = 'spring'
-	components = ['models', 'apis']
-	additionalProperties = [
-			modelPackage     : "${artifactGroup}.generated.model",
-			apiPackage       : "${artifactGroup}.generated.api",
-			dateLibrary      : 'java11',
-			interfaceOnly    : 'true',
-			useTags          : 'true',
-			springBootVersion: dependencyManagement.managedVersions['org.springframework.boot:spring-boot']
-	]
+swaggerSources {
+	server {
+		inputFile = file('src/main/resources/static/openapi.yml')
+		code {
+			language = 'spring'
+			components = ['models', 'apis']
+			additionalProperties = [
+					modelPackage     : "${artifactGroup}.generated.model",
+					apiPackage       : "${artifactGroup}.generated.api",
+					dateLibrary      : 'java11',
+					interfaceOnly    : 'true',
+					useTags          : 'true',
+					springBootVersion: dependencyManagement.managedVersions['org.springframework.boot:spring-boot']
+			]
+		}
+	}
+
+	ga4gh {
+		inputFile = file('src/main/resources/vendor/data-repository-service-1.2.0.yaml')
+		code {
+			language = 'java'
+			library = 'jersey2'
+
+			components = [
+					apiDocs  : false, apiTests: false,
+					modelDocs: false, modelTests: false
+			]
+
+			additionalProperties = [
+					modelPackage  : 'io.github.ga4gh.drs.model',
+					apiPackage    : 'io.github.ga4gh.drs.api',
+					invokerPackage: 'io.github.ga4gh.drs.client',
+					dateLibrary   : 'java11',
+					java8         : true
+					// this is needed because everything outside of the generated date library still checks this flag to decide
+					// whether or not to use native libraries (search for 'java11' in swagger-codegen-generators)
+			]
+		}
+	}
 }
 
-String swaggerOutputSrc = "${generateSwaggerCode.outputDir}/src/main/java"
+String swaggerOutputSrc1 = "${swaggerSources.server.code.outputDir}/src/main/java"
+String swaggerOutputSrc2 = "${swaggerSources.ga4gh.code.outputDir}/src/main/java"
 
-idea.module.generatedSourceDirs = [file(swaggerOutputSrc)]
-sourceSets.main.java.srcDir swaggerOutputSrc
+idea.module.generatedSourceDirs = [file(swaggerOutputSrc1), file(swaggerOutputSrc2)]
+sourceSets.main.java.srcDir swaggerOutputSrc1
+sourceSets.main.java.srcDir swaggerOutputSrc2
 compileJava.dependsOn generateSwaggerCode
 
 // The lombok plugin adds an analysis step for each srcDir, but doesn't know to register
@@ -34,7 +68,7 @@ afterEvaluate {
 	tasks.each {
 		if (it.name.startsWith('generateMainEffectiveLombokConfig') &&
 				it.hasProperty('paths') &&
-				it.paths.contains(file(swaggerOutputSrc))) {
+				(it.paths.contains(file(swaggerOutputSrc1)) || it.paths.contains(file(swaggerOutputSrc2)))) {
 			it.dependsOn(generateSwaggerCode)
 		}
 	}

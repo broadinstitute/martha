@@ -1,19 +1,29 @@
 package org.broadinstitute.martha.services;
 
 import bio.terra.common.exception.BadRequestException;
+import io.github.ga4gh.drs.api.ObjectsApi;
+import io.github.ga4gh.drs.client.ApiClient;
+import io.github.ga4gh.drs.client.ApiException;
+import io.github.ga4gh.drs.model.AccessURL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
+import lombok.extern.slf4j.Slf4j;
+import org.broadinstitute.martha.MarthaException;
 import org.broadinstitute.martha.config.DrsProvider;
 import org.broadinstitute.martha.config.MarthaConfig;
 import org.broadinstitute.martha.generated.model.ResourceMetadata;
+import org.broadinstitute.martha.models.AccessUrlAuthEnum;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
+@Slf4j
 public class MetadataService {
 
   /**
@@ -59,14 +69,22 @@ public class MetadataService {
   }
 
   public ResourceMetadata fetchResourceMetadata(
-      String url, List<String> requestedFields, String auth, Boolean forceAccessUrl) {
+      String drsUri, List<String> requestedFields, String auth, Boolean forceAccessUrl) {
 
+    var uriComponents = getUriComponents(drsUri);
+    var provider = determineDrsProvider(uriComponents);
+
+    log.info(
+        "Drs URI '{}' will use provider {}, requested fields {}",
+        drsUri,
+        provider.getName(),
+        String.join(", ", requestedFields));
     return null;
   }
 
-  private UriComponents getHttpsUrlParts(String url) {
+  private UriComponents getUriComponents(String drsUri) {
 
-    var compactIdMatch = compactIdRegex.matcher(url);
+    var compactIdMatch = compactIdRegex.matcher(drsUri);
 
     if (compactIdMatch.matches()) {
       String cibHost = compactIdMatch.group("host");
@@ -80,9 +98,10 @@ public class MetadataService {
           .query(compactIdMatch.group("query"))
           .build();
     } else {
-      var parsedUri = UriComponentsBuilder.fromUriString(url).build();
+      var parsedUri = UriComponentsBuilder.fromUriString(drsUri).build();
       if (parsedUri.getHost() == null || parsedUri.getPath() == null) {
-        throw new BadRequestException(String.format("[%s] is missing a host and/or a path.", url));
+        throw new BadRequestException(
+            String.format("[%s] is missing a host and/or a path.", drsUri));
       }
       return parsedUri;
     }
@@ -108,5 +127,54 @@ public class MetadataService {
                     String.format(
                         "Could not determine DRS provider for id '%s'",
                         uriComponents.toUriString())));
+  }
+
+  private Optional<AccessURL> getAccessUrl(
+      AccessUrlAuthEnum accessUrlAuth,
+      String host,
+      UriComponents uriComponents,
+      String accessId,
+      String accessToken,
+      String auth,
+      List<String> passports)
+      throws ApiException {
+
+    var objectId =
+        uriComponents.getPath()
+            + Optional.ofNullable(uriComponents.getQuery()).map(s -> "?" + s).orElse("");
+    var api = new ObjectsApi(new ApiClient().setBasePath(host));
+
+    switch (accessUrlAuth) {
+      case passport:
+        if (passports != null && !passports.isEmpty()) {
+          try {
+            return Optional.ofNullable(
+                api.postAccessURL(Map.of("passports", passports), objectId, accessId));
+          } catch (ApiException e) {
+            log.error(
+                "Passport authorized request failed for {} with error {}",
+                uriComponents.toUriString(),
+                e.getResponseBody());
+          }
+        }
+        // if we made it this far, there are no passports or there was an error using them so return
+        // nothing.
+        return Optional.empty();
+      case current_request:
+        api.getApiClient().addDefaultHeader("authorization", auth);
+        return Optional.ofNullable(api.getAccessURL(objectId, accessId));
+      case fence_token:
+        if (accessToken != null) {
+          api.getApiClient().addDefaultHeader("authorization", "Bearer " + accessToken);
+          return Optional.ofNullable(api.getAccessURL(objectId, accessId));
+        } else {
+          throw new BadRequestException(
+              String.format(
+                  "Fence access token required for %s but is missing. Does user have an account linked in Bond?",
+                  uriComponents.toUriString()));
+        }
+      default:
+        throw new MarthaException("This should be impossible, unknown auth type");
+    }
   }
 }
