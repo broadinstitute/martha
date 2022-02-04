@@ -14,4 +14,6 @@ public interface MarthaConfigInterface {
   String getExternalcredsUrl();
 
   Map<String, String> getHosts();
+
+  Map<String, DrsProvider> getDrsProviders();
 }

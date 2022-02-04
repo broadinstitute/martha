@@ -11,6 +11,66 @@ martha:
     kidsFirst: gen3staging.kidsfirstdrc.org
     theAnvil: staging.theanvil.io
 
+  drsProviders:
+    bioDataCatalyst:
+      name: BioData Catalyst (BDC)
+      metadataAuth: false
+      bondProvider: fence
+      accessMethods:
+        - type: gcs
+          auth: fence_token
+          fetchAccessUrl: false
+    terraDataRepo:
+      name: Terra Data Repo (TDR)
+      metadataAuth: true
+      bondProvider: null
+      accessMethods:
+        - type: gcs
+          auth: current_request
+          fetchAccessUrl: false
+        - type: https
+          auth: current_request
+          fetchAccessUrl: true # Used for Azure
+    kidsFirst:
+      name: Gabriella Miller Kids First DRC
+      metadataAuth: false
+      bondProvider: kids_first
+      accessMethods:
+        - type: s3
+          auth: fence_token
+          fetchAccessUrl: true
+    anvil:
+      name: NHGRI Analysis Visualization and Informatics Lab-space (The AnVIL)
+      metadataAuth: false
+      bondProvider: anvil
+      accessMethods:
+        - type: gcs
+          auth: fence_token
+          fetchAccessUrl: false
+    crdc:
+      name: NCI Cancer Research / Proteomics Data Commons (CRDC / PDC)
+      metadataAuth: false
+      bondProvider: dcf_fence
+      accessMethods:
+        - type: gcs
+          auth: fence_token
+          fetchAccessUrl: false
+        - type: s3
+          auth: fence_token
+          fetchAccessUrl: true
+    passport:
+      name: Passport Test Provider
+      metadataAuth: false
+      bondProvider: dcf_fence
+      accessMethods:
+        - type: gcs
+          auth: passport
+          fetchAccessUrl: false
+          fallbackAuth: fence_token
+        - type: s3
+          auth: passport
+          fetchAccessUrl: true
+          fallbackAuth: fence_token
 
 server:
   compression:

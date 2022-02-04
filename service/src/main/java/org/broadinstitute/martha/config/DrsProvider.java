@@ -1,52 +1,43 @@
-package org.broadinstitute.martha.models;
+package org.broadinstitute.martha.config;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.broadinstitute.martha.models.AccessMethodTypeEnum;
+import org.broadinstitute.martha.models.AccessUrlAuthEnum;
+import org.broadinstitute.martha.models.BondProviderEnum;
+import org.broadinstitute.martha.models.Fields;
+import org.immutables.value.Value;
 
-public abstract class DrsProvider {
+@Value.Modifiable
+@PropertiesInterfaceStyle
+public interface DrsProvider {
 
-  protected final String providerName;
-  protected final boolean sendMetadataAuth;
-  protected final BondProviderEnum bondProvider;
-  protected final List<AccessMethod> accessMethods;
-  protected final boolean forceAccessUrl;
-  protected final boolean useAliasesForLocalizationPath;
+  String getName();
 
-  public DrsProvider(
-      String providerName,
-      boolean sendMetadataAuth,
-      BondProviderEnum bondProvider,
-      List<AccessMethod> accessMethods,
-      boolean forceAccessUrl,
-      boolean useAliasesForLocalizationPath) {
-    this.providerName = providerName;
-    this.sendMetadataAuth = sendMetadataAuth;
-    this.bondProvider = bondProvider;
-    this.accessMethods = accessMethods;
-    this.forceAccessUrl = forceAccessUrl;
-    this.useAliasesForLocalizationPath = useAliasesForLocalizationPath;
+  boolean isMetadataAuth();
+
+  BondProviderEnum getBondProvider();
+
+  List<AccessMethod> getAccessMethods();
+
+  /**
+   * This is hopefully a temporary measure until we can take the time to either get a new field
+   * added to the DRS spec or implement a temporary spec extension with the Terra Data Repo team.
+   * See BT-417 for more details.
+   */
+  default boolean useAliasesForLocalizationPath() {
+    return false;
   }
 
-  public DrsProvider(
-      String providerName,
-      boolean sendMetadataAuth,
-      BondProviderEnum bondProvider,
-      List<AccessMethod> accessMethods,
-      boolean forceAccessUrl) {
-    this(providerName, sendMetadataAuth, bondProvider, accessMethods, forceAccessUrl, false);
-  }
-
-  public AccessMethod getAccessMethodByType(AccessMethodTypeEnum accessMethodType) {
-    return accessMethods.stream()
-        .filter(o -> o.getAccessMethodType() == accessMethodType)
+  default AccessMethod getAccessMethodByType(AccessMethodTypeEnum accessMethodType) {
+    return getAccessMethods().stream()
+        .filter(o -> o.getType() == accessMethodType)
         .findFirst()
         .orElse(null);
   }
 
-  public List<AccessMethodTypeEnum> getAccessMethodTypes() {
-    return accessMethods.stream()
-        .map(AccessMethod::getAccessMethodType)
-        .collect(Collectors.toList());
+  default List<AccessMethodTypeEnum> getAccessMethodTypes() {
+    return getAccessMethods().stream().map(AccessMethod::getType).collect(Collectors.toList());
   }
 
   /**
@@ -58,24 +49,23 @@ public abstract class DrsProvider {
    * @param useFallbackAuth if false (default) check accessUrlAuth in accessMethods, otherwise check
    *     fallbackAccessUrlAuth
    */
-  public boolean shouldFetchFenceAccessToken(
+  default boolean shouldFetchFenceAccessToken(
       AccessMethodTypeEnum accessMethodType,
       List<String> requestedFields,
-      boolean useFallbackAuth) {
-    return bondProvider != null
+      boolean useFallbackAuth,
+      boolean forceAccessUrl) {
+    return getBondProvider() != null
         && Fields.overlap(requestedFields, Fields.ACCESS_ID_FIELDS)
         && (forceAccessUrl
-            || accessMethods.stream()
+            || getAccessMethods().stream()
                 .anyMatch(
                     m -> {
-                      var accessMethodTypeMatches =
-                          m.getAccessMethodType().equals(accessMethodType);
+                      var accessMethodTypeMatches = m.getType().equals(accessMethodType);
                       var validFallbackAuth =
                           !useFallbackAuth
-                              || m.getFallbackAccessUrlAuth().orElse(null)
-                                  == AccessUrlAuthEnum.FENCE_TOKEN;
+                              || m.getFallbackAuth().orElse(null) == AccessUrlAuthEnum.FENCE_TOKEN;
                       var validAccessAuth =
-                          useFallbackAuth || m.getAccessUrlAuth() == AccessUrlAuthEnum.FENCE_TOKEN;
+                          useFallbackAuth || m.getAuth() == AccessUrlAuthEnum.FENCE_TOKEN;
 
                       return accessMethodTypeMatches
                           && validFallbackAuth
@@ -85,23 +75,22 @@ public abstract class DrsProvider {
   }
 
   /** Should Martha call the DRS provider's `access` endpoint to get a signed URL. */
-  public boolean shouldFetchAccessUrl(
-      AccessMethodTypeEnum accessMethodType, List<String> requestedFields) {
+  default boolean shouldFetchAccessUrl(
+      AccessMethodTypeEnum accessMethodType, List<String> requestedFields, boolean forceAccessUrl) {
     return Fields.overlap(requestedFields, Fields.ACCESS_ID_FIELDS)
         && (forceAccessUrl
-            || accessMethods.stream()
-                .anyMatch(
-                    m -> m.getAccessMethodType().equals(accessMethodType) && m.isFetchAccessUrl()));
+            || getAccessMethods().stream()
+                .anyMatch(m -> m.getType().equals(accessMethodType) && m.isFetchAccessUrl()));
   }
 
   /**
    * Should Martha fetch the Google user service account from Bond. Because this account is
    * Google-specific it should not be fetched if we know the underlying data is not GCS-based.
    */
-  public boolean shouldFetchUserServiceAccount(
+  default boolean shouldFetchUserServiceAccount(
       AccessMethodTypeEnum accessMethodType, List<String> requestedFields) {
     // This account would be stored in Bond so no Bond means no account.
-    return bondProvider != null
+    return getBondProvider() != null
         // "Not definitely not GCS". A falsy accessMethod is okay because there may not have been a
         // preceding metadata request to determine the accessMethod.
         && (accessMethodType == null || accessMethodType == AccessMethodTypeEnum.GCS)
@@ -109,14 +98,12 @@ public abstract class DrsProvider {
         && Fields.overlap(requestedFields, Fields.BOND_SA_FIELDS);
   }
 
-  public boolean shouldFetchPassports(
+  default boolean shouldFetchPassports(
       AccessMethodTypeEnum accessMethodType, List<String> requestedFields) {
     return Fields.overlap(requestedFields, Fields.ACCESS_ID_FIELDS)
-        && accessMethods.stream()
+        && getAccessMethods().stream()
             .anyMatch(
-                m ->
-                    m.getAccessMethodType() == accessMethodType
-                        && m.getAccessUrlAuth() == AccessUrlAuthEnum.PASSPORT);
+                m -> m.getType() == accessMethodType && m.getAuth() == AccessUrlAuthEnum.PASSPORT);
   }
 
   /**
@@ -131,20 +118,11 @@ public abstract class DrsProvider {
    * back to a different access method than the GCS/Azure one for which Martha tried and failed to
    * get a signed URL. The current code does not support this.
    */
-  public boolean shouldFailOnAccessUrlFail(AccessMethodTypeEnum accessMethodType) {
+  default boolean shouldFailOnAccessUrlFail(AccessMethodTypeEnum accessMethodType) {
     return accessMethodType != AccessMethodTypeEnum.GCS;
   }
 
-  public boolean shouldRequestMetadata(List<String> requestedFields) {
+  default boolean shouldRequestMetadata(List<String> requestedFields) {
     return Fields.overlap(requestedFields, Fields.METADATA_FIELDS);
-  }
-
-  /**
-   * This is hopefully a temporary measure until we can take the time to either get a new field
-   * added to the DRS spec or implement a temporary spec extension with the Terra Data Repo team.
-   * See BT-417 for more details.
-   */
-  public boolean useAliasesForLocalizationPath() {
-    return useAliasesForLocalizationPath;
   }
 }
