@@ -63,9 +63,9 @@ public interface DrsProvider {
                       var accessMethodTypeMatches = m.getType().equals(accessMethodType);
                       var validFallbackAuth =
                           !useFallbackAuth
-                              || m.getFallbackAuth().orElse(null) == AccessUrlAuthEnum.FENCE_TOKEN;
+                              || m.getFallbackAuth().orElse(null) == AccessUrlAuthEnum.fence_token;
                       var validAccessAuth =
-                          useFallbackAuth || m.getAuth() == AccessUrlAuthEnum.FENCE_TOKEN;
+                          useFallbackAuth || m.getAuth() == AccessUrlAuthEnum.fence_token;
 
                       return accessMethodTypeMatches
                           && validFallbackAuth
@@ -93,8 +93,8 @@ public interface DrsProvider {
     return getBondProvider() != null
         // "Not definitely not GCS". A falsy accessMethod is okay because there may not have been a
         // preceding metadata request to determine the accessMethod.
-        && (accessMethodType == null || accessMethodType == AccessMethodTypeEnum.GCS)
-        && getAccessMethodTypes().contains(AccessMethodTypeEnum.GCS)
+        && (accessMethodType == null || accessMethodType == AccessMethodTypeEnum.gcs)
+        && getAccessMethodTypes().contains(AccessMethodTypeEnum.gcs)
         && Fields.overlap(requestedFields, Fields.BOND_SA_FIELDS);
   }
 
@@ -103,7 +103,7 @@ public interface DrsProvider {
     return Fields.overlap(requestedFields, Fields.ACCESS_ID_FIELDS)
         && getAccessMethods().stream()
             .anyMatch(
-                m -> m.getType() == accessMethodType && m.getAuth() == AccessUrlAuthEnum.PASSPORT);
+                m -> m.getType() == accessMethodType && m.getAuth() == AccessUrlAuthEnum.passport);
   }
 
   /**
@@ -119,7 +119,7 @@ public interface DrsProvider {
    * get a signed URL. The current code does not support this.
    */
   default boolean shouldFailOnAccessUrlFail(AccessMethodTypeEnum accessMethodType) {
-    return accessMethodType != AccessMethodTypeEnum.GCS;
+    return accessMethodType != AccessMethodTypeEnum.gcs;
   }
 
   default boolean shouldRequestMetadata(List<String> requestedFields) {
