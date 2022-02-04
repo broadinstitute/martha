@@ -3,7 +3,6 @@ package org.broadinstitute.martha.services;
 import bio.terra.common.exception.BadRequestException;
 import io.github.ga4gh.drs.api.ObjectsApi;
 import io.github.ga4gh.drs.client.ApiClient;
-import io.github.ga4gh.drs.client.ApiException;
 import io.github.ga4gh.drs.model.AccessURL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -19,6 +18,7 @@ import org.broadinstitute.martha.config.MarthaConfig;
 import org.broadinstitute.martha.generated.model.ResourceMetadata;
 import org.broadinstitute.martha.models.AccessUrlAuthEnum;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -137,7 +137,7 @@ public class MetadataService {
       String accessToken,
       String auth,
       List<String> passports)
-      throws ApiException {
+      throws RestClientException {
 
     var objectId =
         uriComponents.getPath()
@@ -150,11 +150,11 @@ public class MetadataService {
           try {
             return Optional.ofNullable(
                 api.postAccessURL(Map.of("passports", passports), objectId, accessId));
-          } catch (ApiException e) {
+          } catch (RestClientException e) {
             log.error(
                 "Passport authorized request failed for {} with error {}",
                 uriComponents.toUriString(),
-                e.getResponseBody());
+                e.getMessage());
           }
         }
         // if we made it this far, there are no passports or there was an error using them so return
