@@ -1,5 +1,7 @@
 package org.broadinstitute.martha.controllers;
 
-public class MarthaApiControllerTest {
+import org.broadinstitute.martha.BaseTest;
+
+public class MarthaApiControllerTest extends BaseTest {
 
 }
