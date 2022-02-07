@@ -1,0 +1,230 @@
+openapi: 3.0.2
+info:
+  title: Bond API
+  description: Service for linking Sam User accounts with registered 3rd party providers via Oauth2. See [Bond Github](https://github.com/DataBiosphere/bond).
+  version: "1.0"
+
+servers:
+  - url: /
+    # '/' is a relative path to this host.
+    description: The server hosting this Swagger UI
+  - url: https://broad-bond-prod.appspot.com/
+    description: Production
+  - url: https://broad-bond-dev.appspot.com/
+    description: Development
+
+components:
+  parameters:
+    providerParam:
+      in: path
+      name: provider
+      required: true
+      description: The provider to link with.
+      schema:
+        type: string
+        example: dcf-fence
+
+  responses:
+    LinkInfoResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              issued_at:
+                type: string
+              username:
+                type: string
+
+    LinkNotFound:
+      description: Unable to find a link for the user to the provider. Consider re-linking with an oauthcode.
+
+  securitySchemes:
+    googleAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: GCloud access token
+      description: Use your GCP auth token, i.e. `gcloud auth print-access-token`
+
+paths:
+  /api/link/v1/{provider}:
+    get:
+      summary: Returns info about the linked account for the provider, if an account has been linked.
+      parameters:
+        - $ref: '#/components/parameters/providerParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/LinkInfoResponse'
+        '404':
+          $ref: '#/components/responses/LinkNotFound'
+      security:
+        - googleAuth: []
+    delete:
+      summary: Delete the account link for the provider, if an account has been linked.
+      parameters:
+        - $ref: '#/components/parameters/providerParam'
+      responses:
+        '204':
+          description: OK
+        '404':
+          $ref: '#/components/responses/LinkNotFound'
+      security:
+        - googleAuth: []
+
+  /api/link/v1/providers:
+    get:
+      summary: Lists the available 3rd party providers for linking accounts.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  providers:
+                    type: array
+                    items:
+                      type: string
+                      example: dcf-fence
+
+  /api/link/v1/{provider}/accesstoken:
+    get:
+      summary: Gets a new access token from the provider if the account has been linked.
+      parameters:
+        - $ref: '#/components/parameters/providerParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  expires_at:
+                    type: string
+        '404':
+          $ref: '#/components/responses/LinkNotFound'
+      security:
+        - googleAuth: []
+
+  /api/link/v1/{provider}/authorization-url:
+    get:
+      summary: Builds an OAuth authorization URL that a user must use to initiate the OAuth dance.
+      parameters:
+        - $ref: '#/components/parameters/providerParam'
+        - name: redirect_uri
+          in: query
+          required: true
+          description:  The URI that the Authorizing Service will redirect the user to after the user successfully authorizes this client. If calling API via Swagger UI, you can enter the raw string and the Swagger will encode the string for you.  Note that the redirect_uri must be registered with the provider.
+          schema:
+            type: string
+          example: http://local.broadinstitute.org/#fence-callback
+        - name: state
+          in: query
+          required: false
+          description: A URL encoded Base64 string representing a JSON object of state information that the requester requires back with the redirect.
+          schema:
+            type: string
+        - name: scopes
+          in: query
+          required: false
+          description: Technically can be left empty, but if you authorize with no scopes you will not be able to do anything.  Recommended values are "openid" and "google_credentials"
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+          example:
+            - openid
+            - google_credentials
+
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    description: A plain (not URL encoded) String
+
+  /api/link/v1/{provider}/oauthcode:
+    post:
+      summary: Link the user's account with the provider.
+      parameters:
+        - $ref: '#/components/parameters/providerParam'
+        - name: oauthcode
+          in: query
+          required: true
+          description: The authorization code from the provider.
+          schema:
+            type: string
+        - name: redirect_uri
+          in: query
+          required: true
+          description: The redirect url that was used when generating the authorization code.  Swagger UI will properly encode this string for you.
+          schema:
+            type: string
+            example: http://local.broadinstitute.org/#fence-callback
+      responses:
+        '200':
+          $ref: '#/components/responses/LinkInfoResponse'
+      security:
+        - googleAuth: []
+
+  /api/link/v1/{provider}/serviceaccount/key:
+    get:
+      summary: Returns a service account json key to use to access objects for the provider as the linked account.
+      parameters:
+        - $ref: '#/components/parameters/providerParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+        '404':
+          $ref: '#/components/responses/LinkNotFound'
+      security:
+        - googleAuth: []
+
+  /api/link/v1/{provider}/serviceaccount/accesstoken:
+    get:
+      summary: Get a service account access token to access objects protected by fence.
+      parameters:
+        - $ref: '#/components/parameters/providerParam'
+        - name: scopes
+          in: query
+          required: false
+          description: scopes to request for token. Defaults to ["email", "profile"].
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+      responses:
+        '404':
+          $ref: '#/components/responses/LinkNotFound'
+      security:
+        - googleAuth: []
+
+  /api/status/v1/status:
+    get:
+      summary: Returns the status of the Bond server.
+      responses:
+        '200':
+          description: A JSON description of the ok subsystems.
+        '503':
+          description: A JSON description of the subsystems and any issues they might have.

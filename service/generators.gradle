@@ -25,6 +25,8 @@ swaggerSources {
 		}
 	}
 
+
+	// TODO: dedupe
 	ga4gh {
 		inputFile = file('src/main/resources/vendor/data-repository-service-1.2.0.yaml')
 		code {
@@ -44,14 +46,58 @@ swaggerSources {
 			]
 		}
 	}
+
+	bond {
+		inputFile = file('src/main/resources/vendor/bond.yaml')
+		code {
+			language = 'java'
+			library = 'resttemplate'
+
+			components = [
+					apiDocs  : false, apiTests: false,
+					modelDocs: false, modelTests: false
+			]
+
+			additionalProperties = [
+					modelPackage  : 'bio.terra.bond.model',
+					apiPackage    : 'bio.terra.bond.api',
+					invokerPackage: 'bio.terra.bond.client',
+					dateLibrary   : 'java11'
+			]
+		}
+	}
+
+	externalcreds {
+		inputFile = file('src/main/resources/vendor/externalcreds.yml')
+		code {
+			language = 'java'
+			library = 'resttemplate'
+
+			components = [
+					apiDocs  : false, apiTests: false,
+					modelDocs: false, modelTests: false
+			]
+
+			additionalProperties = [
+					modelPackage  : 'bio.terra.externalcreds.model',
+					apiPackage    : 'bio.terra.externalcreds.api',
+					invokerPackage: 'bio.terra.externalcreds.client',
+					dateLibrary   : 'java11'
+			]
+		}
+	}
 }
 
-String swaggerOutputSrc1 = "${swaggerSources.server.code.outputDir}/src/main/java"
-String swaggerOutputSrc2 = "${swaggerSources.ga4gh.code.outputDir}/src/main/java"
+Set<String> swaggerSources = [
+		"${swaggerSources.server.code.outputDir}/src/main/java",
+		"${swaggerSources.ga4gh.code.outputDir}/src/main/java",
+		"${swaggerSources.bond.code.outputDir}/src/main/java",
+		"${swaggerSources.externalcreds.code.outputDir}/src/main/java"
+]
 
-idea.module.generatedSourceDirs = [file(swaggerOutputSrc1), file(swaggerOutputSrc2)]
-sourceSets.main.java.srcDir swaggerOutputSrc1
-sourceSets.main.java.srcDir swaggerOutputSrc2
+
+idea.module.generatedSourceDirs = swaggerSources.collect({ file(it) })
+swaggerSources.each { sourceSets.main.java.srcDir(it) }
 compileJava.dependsOn generateSwaggerCode
 
 // The lombok plugin adds an analysis step for each srcDir, but doesn't know to register
@@ -60,7 +106,7 @@ afterEvaluate {
 	tasks.each {
 		if (it.name.startsWith('generateMainEffectiveLombokConfig') &&
 				it.hasProperty('paths') &&
-				(it.paths.contains(file(swaggerOutputSrc1)) || it.paths.contains(file(swaggerOutputSrc2)))) {
+				it.paths.intersect(swaggerSources.collect({ file(it) }))) {
 			it.dependsOn(generateSwaggerCode)
 		}
 	}

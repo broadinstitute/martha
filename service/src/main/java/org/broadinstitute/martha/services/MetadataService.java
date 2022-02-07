@@ -1,9 +1,12 @@
 package org.broadinstitute.martha.services;
 
 import bio.terra.common.exception.BadRequestException;
+import bio.terra.externalcreds.api.OidcApi;
 import io.github.ga4gh.drs.api.ObjectsApi;
 import io.github.ga4gh.drs.client.ApiClient;
 import io.github.ga4gh.drs.model.AccessURL;
+import io.github.ga4gh.drs.model.DrsObject;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -11,13 +14,17 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.broadinstitute.martha.MarthaException;
+import org.broadinstitute.martha.config.AccessMethod;
 import org.broadinstitute.martha.config.DrsProvider;
 import org.broadinstitute.martha.config.MarthaConfig;
 import org.broadinstitute.martha.generated.model.ResourceMetadata;
 import org.broadinstitute.martha.models.AccessUrlAuthEnum;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -57,10 +64,14 @@ public class MetadataService {
    * <p>If you update *any* of the below be sure to link to the supporting docs and update the
    * comments above!
    */
-  private final Pattern compactIdRegex =
+  private static final Pattern compactIdRegex =
       Pattern.compile(
-          "(?:dos|drs)://(?<host>dg\\.[0-9a-z-]+)(?<separator>[:/])(?<suffix>[^?]*)(?<query>\\?(.*))?",
+          "(?:dos|drs)://(?<host>dg\\.[0-9a-z-],)(?<separator>[:/])(?<suffix>[^?]*)(?<query>\\?(.*))?",
           Pattern.CASE_INSENSITIVE);
+
+  private static final String PROTOCOL_PREFIX_DRS = "/ga4gh/drs/v1";
+  private static final Pattern accessTokenRegex =
+      Pattern.compile("Bearer (?<token>.+)", Pattern.CASE_INSENSITIVE);
 
   private final MarthaConfig marthaConfig;
 
@@ -71,6 +82,7 @@ public class MetadataService {
   public ResourceMetadata fetchResourceMetadata(
       String drsUri, List<String> requestedFields, String auth, Boolean forceAccessUrl) {
 
+    var accessToken = accessTokenRegex.matcher(auth).group("token");
     var uriComponents = getUriComponents(drsUri);
     var provider = determineDrsProvider(uriComponents);
 
@@ -129,6 +141,11 @@ public class MetadataService {
                         uriComponents.toUriString())));
   }
 
+  private String getObjectId(UriComponents uriComponents) {
+    return uriComponents.getPath()
+        + Optional.ofNullable(uriComponents.getQuery()).map(s -> "?" + s).orElse("");
+  }
+
   private Optional<AccessURL> getAccessUrl(
       AccessUrlAuthEnum accessUrlAuth,
       String host,
@@ -139,17 +156,15 @@ public class MetadataService {
       List<String> passports)
       throws RestClientException {
 
-    var objectId =
-        uriComponents.getPath()
-            + Optional.ofNullable(uriComponents.getQuery()).map(s -> "?" + s).orElse("");
-    var api = new ObjectsApi(new ApiClient().setBasePath(host));
+    var drsApi = new ObjectsApi(new ApiClient().setBasePath(host + PROTOCOL_PREFIX_DRS));
+    var objectId = getObjectId(uriComponents);
 
     switch (accessUrlAuth) {
       case passport:
         if (passports != null && !passports.isEmpty()) {
           try {
             return Optional.ofNullable(
-                api.postAccessURL(Map.of("passports", passports), objectId, accessId));
+                drsApi.postAccessURL(Map.of("passports", passports), objectId, accessId));
           } catch (RestClientException e) {
             log.error(
                 "Passport authorized request failed for {} with error {}",
@@ -161,12 +176,12 @@ public class MetadataService {
         // nothing.
         return Optional.empty();
       case current_request:
-        api.getApiClient().addDefaultHeader("authorization", auth);
-        return Optional.ofNullable(api.getAccessURL(objectId, accessId));
+        drsApi.getApiClient().addDefaultHeader("authorization", auth);
+        return Optional.ofNullable(drsApi.getAccessURL(objectId, accessId));
       case fence_token:
         if (accessToken != null) {
-          api.getApiClient().addDefaultHeader("authorization", "Bearer " + accessToken);
-          return Optional.ofNullable(api.getAccessURL(objectId, accessId));
+          drsApi.getApiClient().addDefaultHeader("authorization", "Bearer " + accessToken);
+          return Optional.ofNullable(drsApi.getAccessURL(objectId, accessId));
         } else {
           throw new BadRequestException(
               String.format(
@@ -176,5 +191,185 @@ public class MetadataService {
       default:
         throw new MarthaException("This should be impossible, unknown auth type");
     }
+  }
+
+  private Optional<String> getFenceAccessToken(
+      String drsUri,
+      Optional<AccessMethod> accessMethod,
+      boolean useFallbackAuth,
+      DrsProvider drsProvider,
+      List<String> requestedFields,
+      boolean forceAccessUrl,
+      String bearerToken) {
+    if (drsProvider.shouldFetchFenceAccessToken(
+        accessMethod.map(AccessMethod::getType).orElse(null),
+        requestedFields,
+        useFallbackAuth,
+        forceAccessUrl)) {
+
+      log.info(
+          "Requesting Bond access token for '{}' from '{}'", drsUri, drsProvider.getBondProvider());
+
+      var bondApi = new bio.terra.bond.api.DefaultApi();
+      bondApi.getApiClient().setBasePath(marthaConfig.getBondUrl());
+      bondApi.getApiClient().setAccessToken(bearerToken);
+
+      var response =
+          bondApi.apiLinkV1ProviderAccesstokenGet(drsProvider.getBondProvider().toString());
+
+      return Optional.ofNullable(response.getToken());
+    } else {
+      return Optional.empty();
+    }
+  }
+
+  private String fetchMetadata(
+      DrsProvider drsProvider,
+      List<String> requestedFields,
+      UriComponents uriComponents,
+      String drsUri,
+      boolean sendMetadataAuth,
+      String bearerToken,
+      boolean useFallbackAuth,
+      boolean forceAccessField) {
+    DrsObject drsResponse = null;
+    if (drsProvider.shouldRequestMetadata(requestedFields)) {
+
+      var objectId = getObjectId(uriComponents);
+      log.info(
+          "Requesting DRS metadata for '{}' with auth required '{}'", drsUri, sendMetadataAuth);
+
+      var drsApi = buildDrsApi(uriComponents);
+      if (sendMetadataAuth) {
+        drsApi.getApiClient().setAccessToken(bearerToken);
+      }
+
+      drsResponse = drsApi.getObject(objectId, false);
+    }
+
+    var accessMethod = getAccessMethod(drsResponse, drsProvider);
+    // TODO: make this optional instead of icky null
+    var accessMethodType = accessMethod.map(AccessMethod::getType).orElse(null);
+
+    String bondSaKey = null;
+    if (drsProvider.shouldFetchUserServiceAccount(accessMethodType, requestedFields)) {
+      var bondApi = new bio.terra.bond.api.DefaultApi();
+      bondApi.getApiClient().setBasePath(marthaConfig.getBondUrl());
+      bondApi.getApiClient().setAccessToken(bearerToken);
+
+      bondSaKey =
+          bondApi
+              .apiLinkV1ProviderServiceaccountKeyGet(drsProvider.getBondProvider().toString())
+              .getData()
+              .toString();
+    }
+
+    List<String> passports = null;
+    // TODO: is this an else-if?
+    if (drsProvider.shouldFetchPassports(accessMethodType, requestedFields)) {
+
+      var ecmApi = new OidcApi();
+      ecmApi.getApiClient().setBasePath(marthaConfig.getExternalcredsUrl());
+      ecmApi.getApiClient().setAccessToken(bearerToken);
+
+      try {
+        // For now, we are only getting a RAS passport. In the future it may also fetch from other
+        // providers.
+        passports = List.of(ecmApi.getProviderPassport("ras"));
+      } catch (HttpStatusCodeException e) {
+        if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+          log.info("User does not have a passport.");
+        } else {
+          throw e;
+        }
+      }
+    }
+
+    var fileName = getDrsFileName(drsResponse);
+    var localizationPath = getLocalizationPath(drsProvider, drsResponse);
+
+    try {
+      var accessToken =
+          getFenceAccessToken(
+              drsUri,
+              accessMethod,
+              useFallbackAuth,
+              drsProvider,
+              requestedFields,
+              forceAccessField,
+              bearerToken);
+
+      if (drsProvider.shouldFetchAccessUrl(accessMethodType, requestedFields, forceAccessField)) {
+        // TODO: leaving off here. there are more fields in the generated accessMethod class than in
+        // ours, maybe we should just use it.
+        // var accessUrl = generateAccessUrl(drsProvider, uriComponents, accessMethod.get().)
+      }
+    } catch (RestClientException e) {
+      e.printStackTrace();
+    }
+
+    return null;
+  }
+
+  private ObjectsApi buildDrsApi(UriComponents uriComponents) {
+    var basePathComponents =
+        UriComponentsBuilder.newInstance()
+            .scheme("https")
+            .host(uriComponents.getHost())
+            .port(uriComponents.getPort())
+            .path(PROTOCOL_PREFIX_DRS)
+            .build();
+
+    return new ObjectsApi(new ApiClient().setBasePath(basePathComponents.toUriString()));
+  }
+
+  private Optional<AccessMethod> getAccessMethod(DrsObject drsResponse, DrsProvider drsProvider) {
+    if (drsResponse == null || drsResponse.getAccessMethods().isEmpty()) {
+      return Optional.empty();
+    } else {
+      var responseAccessMethods =
+          drsResponse.getAccessMethods().stream()
+              .map(m -> m.getType().getValue())
+              .collect(Collectors.toSet());
+
+      return drsProvider.getAccessMethods().stream()
+          .filter(m -> responseAccessMethods.contains(m.getType().toString()))
+          .findFirst();
+    }
+  }
+
+  /**
+   * Attempts to return the file name using only the drsResponse.
+   *
+   * <p>It is possible the name may need to be retrieved from the signed url.
+   */
+  private Optional<String> getDrsFileName(DrsObject drsResponse) {
+    if (drsResponse == null) {
+      return Optional.empty();
+    }
+
+    if (drsResponse.getName() != null) {
+      return Optional.of(drsResponse.getName());
+    }
+
+    var accessURL = drsResponse.getAccessMethods().get(0).getAccessUrl();
+
+    if (accessURL != null) {
+      var path = URI.create(accessURL.getUrl()).getPath();
+      return Optional.ofNullable(path).map(s -> s.replaceAll("^.*[\\\\/]", ""));
+    }
+
+    return Optional.empty();
+  }
+
+  private Optional<String> getLocalizationPath(DrsProvider drsProvider, DrsObject drsResponse) {
+    if (drsProvider.useAliasesForLocalizationPath()
+        && drsResponse != null
+        && drsResponse.getAliases() != null
+        && !drsResponse.getAliases().isEmpty()) {
+      return Optional.of(drsResponse.getAliases().get(0));
+    }
+
+    return Optional.empty();
   }
 }
