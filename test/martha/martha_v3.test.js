@@ -231,6 +231,7 @@ test.serial('martha_v3 resolves a valid DRS-style url', async (t) => {
     sinon.assert.callCount(getJsonFromApiStub, 2);
 });
 
+// TODO: porting this test to MarthaApiControllerTest
 test.serial("martha_v3 doesn't fail when extra data submitted besides a 'url'", async (t) => {
     const response = mockResponse();
     await marthaV3(
