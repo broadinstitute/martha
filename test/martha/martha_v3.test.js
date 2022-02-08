@@ -231,7 +231,7 @@ test.serial('martha_v3 resolves a valid DRS-style url', async (t) => {
     sinon.assert.callCount(getJsonFromApiStub, 2);
 });
 
-// TODO: porting this test to MarthaApiControllerTest
+// TODO: porting this test to MarthaApiControllerTest as testExtraDataDoesNotExplodeMartha()
 test.serial("martha_v3 doesn't fail when extra data submitted besides a 'url'", async (t) => {
     const response = mockResponse();
     await marthaV3(
@@ -487,6 +487,7 @@ test.serial('martha_v3 calls return the DRS name field for a file name even when
     sinon.assert.callCount(getJsonFromApiStub, 3);
 });
 
+// TODO: porting this to MarthaApiControllerTest as testMarthaCallsNoEndpointsWithNoFieldsRequested()
 test.serial('martha_v3 calls no endpoints when no fields are requested', async (t) => {
     const response = mockResponse();
 
