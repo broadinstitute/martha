@@ -1,6 +1,6 @@
 name: Publish branch image
 on: 
-  workflow_dispatch
+  workflow_dispatch:
   push: # TODO: change back to only workflow_dispatch once github notices this action exists
     branches: [ iz-java ]
 
