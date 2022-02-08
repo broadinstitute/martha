@@ -68,7 +68,7 @@ public interface DrsProviderInterface {
                 .anyMatch(
                     m -> {
                       var accessMethodTypeMatches =
-                          accessMethodsMatch(m.getType(), accessMethodType);
+                          m.getType().matchesReturnedMethodType(accessMethodType);
                       var validFallbackAuth =
                           !useFallbackAuth
                               || m.getFallbackAuth().orElse(null) == AccessUrlAuthEnum.fence_token;
@@ -92,7 +92,8 @@ public interface DrsProviderInterface {
             || getAccessMethodConfigs().stream()
                 .anyMatch(
                     m ->
-                        accessMethodsMatch(m.getType(), accessMethodType) && m.isFetchAccessUrl()));
+                        m.getType().matchesReturnedMethodType(accessMethodType)
+                            && m.isFetchAccessUrl()));
   }
 
   /**
@@ -106,7 +107,7 @@ public interface DrsProviderInterface {
         // "Not definitely not GCS". A falsy accessMethod is okay because there may not have been a
         // preceding metadata request to determine the accessMethod.
         && (accessMethodType == null
-            || accessMethodsMatch(AccessMethodTypeEnum.gcs, accessMethodType))
+            || AccessMethodTypeEnum.gcs.matchesReturnedMethodType(accessMethodType))
         && getAccessMethodConfigTypes().contains(AccessMethodTypeEnum.gcs)
         && Fields.overlap(requestedFields, Fields.BOND_SA_FIELDS);
   }
@@ -117,7 +118,7 @@ public interface DrsProviderInterface {
         && getAccessMethodConfigs().stream()
             .anyMatch(
                 m ->
-                    accessMethodsMatch(m.getType(), accessMethodType)
+                    m.getType().matchesReturnedMethodType(accessMethodType)
                         && m.getAuth() == AccessUrlAuthEnum.passport);
   }
 
@@ -133,15 +134,7 @@ public interface DrsProviderInterface {
    * back to a different access method than the GCS/Azure one for which Martha tried and failed to
    * get a signed URL. The current code does not support this.
    */
-  default boolean shouldFailOnAccessUrlFail(AccessMethodTypeEnum accessMethodType) {
+  static boolean shouldFailOnAccessUrlFail(AccessMethodTypeEnum accessMethodType) {
     return accessMethodType != AccessMethodTypeEnum.gcs;
-  }
-
-  default boolean shouldRequestMetadata(List<String> requestedFields) {
-    return Fields.overlap(requestedFields, Fields.METADATA_FIELDS);
-  }
-
-  default boolean accessMethodsMatch(AccessMethodTypeEnum m1, AccessMethod.TypeEnum m2) {
-    return m1.toString().equals(m2.getValue());
   }
 }

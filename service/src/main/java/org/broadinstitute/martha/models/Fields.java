@@ -55,4 +55,8 @@ public class Fields {
   public static Boolean overlap(List<String> requestedFields, List<String> serviceFields) {
     return serviceFields.containsAll(requestedFields);
   }
+
+  public static Boolean shouldRequestMetadata(List<String> requestedFields) {
+    return overlap(requestedFields, METADATA_FIELDS);
+  }
 }

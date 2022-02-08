@@ -22,6 +22,7 @@ import org.broadinstitute.martha.config.DrsProvider;
 import org.broadinstitute.martha.config.MarthaConfig;
 import org.broadinstitute.martha.generated.model.ResourceMetadata;
 import org.broadinstitute.martha.models.AccessUrlAuthEnum;
+import org.broadinstitute.martha.models.Fields;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -214,7 +215,8 @@ public class MetadataService {
       bondApi.getApiClient().setBasePath(marthaConfig.getBondUrl());
       bondApi.getApiClient().setAccessToken(bearerToken);
 
-      var response = bondApi.getLinkAccessToken(drsProvider.getBondProvider().toString());
+      var response =
+          bondApi.getLinkAccessToken(drsProvider.getBondProvider().orElseThrow().toString());
 
       return Optional.ofNullable(response.getToken());
     } else {
@@ -232,7 +234,7 @@ public class MetadataService {
       boolean useFallbackAuth,
       boolean forceAccessField) {
     DrsObject drsResponse = null;
-    if (drsProvider.shouldRequestMetadata(requestedFields)) {
+    if (Fields.shouldRequestMetadata(requestedFields)) {
 
       var objectId = getObjectId(uriComponents);
       log.info(
@@ -258,7 +260,10 @@ public class MetadataService {
 
       // TODO: are we getting the key in a usable format?
       bondSaKey =
-          bondApi.getLinkSaKey(drsProvider.getBondProvider().toString()).getData().toString();
+          bondApi
+              .getLinkSaKey(drsProvider.getBondProvider().orElseThrow().toString())
+              .getData()
+              .toString();
     }
 
     List<String> passports = null;
@@ -297,10 +302,8 @@ public class MetadataService {
               bearerToken);
 
       if (drsProvider.shouldFetchAccessUrl(accessMethodType, requestedFields, forceAccessField)) {
-        // TODO: leaving off here. there are more fields in the generated accessMethod class than in
-        // ours, maybe we should just use it.
-        //        var accessUrl = generateAccessUrl(drsProvider, uriComponents,
-        //            drsResponse.getAccessMethods().get())
+        var accessUrl =
+            generateAccessUrl(uriComponents, accessMethod.map(AccessMethod::getAccessId));
       }
     } catch (RestClientException e) {
       e.printStackTrace();
@@ -326,7 +329,7 @@ public class MetadataService {
       for (var methodConfig : drsProvider.getAccessMethodConfigs()) {
         var matchingMethod =
             drsResponse.getAccessMethods().stream()
-                .filter(m -> m.getType().getValue().equals(methodConfig.getType().toString()))
+                .filter(m -> methodConfig.getType().matchesReturnedMethodType(m.getType()))
                 .findFirst();
         if (matchingMethod.isPresent()) {
           return matchingMethod;
@@ -369,5 +372,20 @@ public class MetadataService {
     }
 
     return Optional.empty();
+  }
+
+  private String generateAccessUrl(UriComponents uriComponents, Optional<String> accessId) {
+
+    var generatedUrl =
+        UriComponentsBuilder.newInstance()
+            .scheme("https")
+            .host(uriComponents.getHost())
+            .port(uriComponents.getPort())
+            .pathSegment(
+                PROTOCOL_PREFIX_DRS, uriComponents.getPath(), "access", accessId.orElse(""))
+            .query(uriComponents.getQuery())
+            .build();
+
+    return generatedUrl.toUriString();
   }
 }
