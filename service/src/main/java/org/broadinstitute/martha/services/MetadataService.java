@@ -1,9 +1,11 @@
 package org.broadinstitute.martha.services;
 
+import bio.terra.bond.api.BondApi;
 import bio.terra.common.exception.BadRequestException;
 import bio.terra.externalcreds.api.OidcApi;
 import io.github.ga4gh.drs.api.ObjectsApi;
 import io.github.ga4gh.drs.client.ApiClient;
+import io.github.ga4gh.drs.model.AccessMethod;
 import io.github.ga4gh.drs.model.AccessURL;
 import io.github.ga4gh.drs.model.DrsObject;
 import java.net.URI;
@@ -14,10 +16,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.broadinstitute.martha.MarthaException;
-import org.broadinstitute.martha.config.AccessMethod;
 import org.broadinstitute.martha.config.DrsProvider;
 import org.broadinstitute.martha.config.MarthaConfig;
 import org.broadinstitute.martha.generated.model.ResourceMetadata;
@@ -210,12 +210,11 @@ public class MetadataService {
       log.info(
           "Requesting Bond access token for '{}' from '{}'", drsUri, drsProvider.getBondProvider());
 
-      var bondApi = new bio.terra.bond.api.DefaultApi();
+      var bondApi = new BondApi();
       bondApi.getApiClient().setBasePath(marthaConfig.getBondUrl());
       bondApi.getApiClient().setAccessToken(bearerToken);
 
-      var response =
-          bondApi.apiLinkV1ProviderAccesstokenGet(drsProvider.getBondProvider().toString());
+      var response = bondApi.getLinkAccessToken(drsProvider.getBondProvider().toString());
 
       return Optional.ofNullable(response.getToken());
     } else {
@@ -253,15 +252,13 @@ public class MetadataService {
 
     String bondSaKey = null;
     if (drsProvider.shouldFetchUserServiceAccount(accessMethodType, requestedFields)) {
-      var bondApi = new bio.terra.bond.api.DefaultApi();
+      var bondApi = new BondApi();
       bondApi.getApiClient().setBasePath(marthaConfig.getBondUrl());
       bondApi.getApiClient().setAccessToken(bearerToken);
 
+      // TODO: are we getting the key in a usable format?
       bondSaKey =
-          bondApi
-              .apiLinkV1ProviderServiceaccountKeyGet(drsProvider.getBondProvider().toString())
-              .getData()
-              .toString();
+          bondApi.getLinkSaKey(drsProvider.getBondProvider().toString()).getData().toString();
     }
 
     List<String> passports = null;
@@ -302,7 +299,8 @@ public class MetadataService {
       if (drsProvider.shouldFetchAccessUrl(accessMethodType, requestedFields, forceAccessField)) {
         // TODO: leaving off here. there are more fields in the generated accessMethod class than in
         // ours, maybe we should just use it.
-        // var accessUrl = generateAccessUrl(drsProvider, uriComponents, accessMethod.get().)
+        //        var accessUrl = generateAccessUrl(drsProvider, uriComponents,
+        //            drsResponse.getAccessMethods().get())
       }
     } catch (RestClientException e) {
       e.printStackTrace();
@@ -324,18 +322,18 @@ public class MetadataService {
   }
 
   private Optional<AccessMethod> getAccessMethod(DrsObject drsResponse, DrsProvider drsProvider) {
-    if (drsResponse == null || drsResponse.getAccessMethods().isEmpty()) {
-      return Optional.empty();
-    } else {
-      var responseAccessMethods =
-          drsResponse.getAccessMethods().stream()
-              .map(m -> m.getType().getValue())
-              .collect(Collectors.toSet());
-
-      return drsProvider.getAccessMethods().stream()
-          .filter(m -> responseAccessMethods.contains(m.getType().toString()))
-          .findFirst();
+    if (drsResponse != null && !drsResponse.getAccessMethods().isEmpty()) {
+      for (var methodConfig : drsProvider.getAccessMethodConfigs()) {
+        var matchingMethod =
+            drsResponse.getAccessMethods().stream()
+                .filter(m -> m.getType().getValue().equals(methodConfig.getType().toString()))
+                .findFirst();
+        if (matchingMethod.isPresent()) {
+          return matchingMethod;
+        }
+      }
     }
+    return Optional.empty();
   }
 
   /**

@@ -7,7 +7,7 @@ import org.immutables.value.Value;
 
 @Value.Modifiable
 @PropertiesInterfaceStyle
-public interface AccessMethod {
+public interface ProviderAccessMethodConfigInterface {
   AccessMethodTypeEnum getType();
 
   AccessUrlAuthEnum getAuth();

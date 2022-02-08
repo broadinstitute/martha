@@ -1,6 +1,9 @@
 package org.broadinstitute.martha.config;
 
+import io.github.ga4gh.drs.model.AccessMethod;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.broadinstitute.martha.models.AccessMethodTypeEnum;
 import org.broadinstitute.martha.models.AccessUrlAuthEnum;
@@ -10,7 +13,7 @@ import org.immutables.value.Value;
 
 @Value.Modifiable
 @PropertiesInterfaceStyle
-public interface DrsProvider {
+public interface DrsProviderInterface {
 
   String getName();
 
@@ -18,9 +21,9 @@ public interface DrsProvider {
 
   boolean isMetadataAuth();
 
-  BondProviderEnum getBondProvider();
+  Optional<BondProviderEnum> getBondProvider();
 
-  List<AccessMethod> getAccessMethods();
+  ArrayList<ProviderAccessMethodConfig> getAccessMethodConfigs();
 
   /**
    * This is hopefully a temporary measure until we can take the time to either get a new field
@@ -31,15 +34,17 @@ public interface DrsProvider {
     return false;
   }
 
-  default AccessMethod getAccessMethodByType(AccessMethodTypeEnum accessMethodType) {
-    return getAccessMethods().stream()
+  default ProviderAccessMethodConfig getAccessMethodByType(AccessMethodTypeEnum accessMethodType) {
+    return getAccessMethodConfigs().stream()
         .filter(o -> o.getType() == accessMethodType)
         .findFirst()
         .orElse(null);
   }
 
-  default List<AccessMethodTypeEnum> getAccessMethodTypes() {
-    return getAccessMethods().stream().map(AccessMethod::getType).collect(Collectors.toList());
+  default List<AccessMethodTypeEnum> getAccessMethodConfigTypes() {
+    return getAccessMethodConfigs().stream()
+        .map(ProviderAccessMethodConfig::getType)
+        .collect(Collectors.toList());
   }
 
   /**
@@ -52,17 +57,18 @@ public interface DrsProvider {
    *     fallbackAccessUrlAuth
    */
   default boolean shouldFetchFenceAccessToken(
-      AccessMethodTypeEnum accessMethodType,
+      AccessMethod.TypeEnum accessMethodType,
       List<String> requestedFields,
       boolean useFallbackAuth,
       boolean forceAccessUrl) {
-    return getBondProvider() != null
+    return getBondProvider().isPresent()
         && Fields.overlap(requestedFields, Fields.ACCESS_ID_FIELDS)
         && (forceAccessUrl
-            || getAccessMethods().stream()
+            || getAccessMethodConfigs().stream()
                 .anyMatch(
                     m -> {
-                      var accessMethodTypeMatches = m.getType().equals(accessMethodType);
+                      var accessMethodTypeMatches =
+                          accessMethodsMatch(m.getType(), accessMethodType);
                       var validFallbackAuth =
                           !useFallbackAuth
                               || m.getFallbackAuth().orElse(null) == AccessUrlAuthEnum.fence_token;
@@ -78,11 +84,15 @@ public interface DrsProvider {
 
   /** Should Martha call the DRS provider's `access` endpoint to get a signed URL. */
   default boolean shouldFetchAccessUrl(
-      AccessMethodTypeEnum accessMethodType, List<String> requestedFields, boolean forceAccessUrl) {
+      AccessMethod.TypeEnum accessMethodType,
+      List<String> requestedFields,
+      boolean forceAccessUrl) {
     return Fields.overlap(requestedFields, Fields.ACCESS_ID_FIELDS)
         && (forceAccessUrl
-            || getAccessMethods().stream()
-                .anyMatch(m -> m.getType().equals(accessMethodType) && m.isFetchAccessUrl()));
+            || getAccessMethodConfigs().stream()
+                .anyMatch(
+                    m ->
+                        accessMethodsMatch(m.getType(), accessMethodType) && m.isFetchAccessUrl()));
   }
 
   /**
@@ -90,22 +100,25 @@ public interface DrsProvider {
    * Google-specific it should not be fetched if we know the underlying data is not GCS-based.
    */
   default boolean shouldFetchUserServiceAccount(
-      AccessMethodTypeEnum accessMethodType, List<String> requestedFields) {
+      AccessMethod.TypeEnum accessMethodType, List<String> requestedFields) {
     // This account would be stored in Bond so no Bond means no account.
-    return getBondProvider() != null
+    return getBondProvider().isPresent()
         // "Not definitely not GCS". A falsy accessMethod is okay because there may not have been a
         // preceding metadata request to determine the accessMethod.
-        && (accessMethodType == null || accessMethodType == AccessMethodTypeEnum.gcs)
-        && getAccessMethodTypes().contains(AccessMethodTypeEnum.gcs)
+        && (accessMethodType == null
+            || accessMethodsMatch(AccessMethodTypeEnum.gcs, accessMethodType))
+        && getAccessMethodConfigTypes().contains(AccessMethodTypeEnum.gcs)
         && Fields.overlap(requestedFields, Fields.BOND_SA_FIELDS);
   }
 
   default boolean shouldFetchPassports(
-      AccessMethodTypeEnum accessMethodType, List<String> requestedFields) {
+      AccessMethod.TypeEnum accessMethodType, List<String> requestedFields) {
     return Fields.overlap(requestedFields, Fields.ACCESS_ID_FIELDS)
-        && getAccessMethods().stream()
+        && getAccessMethodConfigs().stream()
             .anyMatch(
-                m -> m.getType() == accessMethodType && m.getAuth() == AccessUrlAuthEnum.passport);
+                m ->
+                    accessMethodsMatch(m.getType(), accessMethodType)
+                        && m.getAuth() == AccessUrlAuthEnum.passport);
   }
 
   /**
@@ -126,5 +139,9 @@ public interface DrsProvider {
 
   default boolean shouldRequestMetadata(List<String> requestedFields) {
     return Fields.overlap(requestedFields, Fields.METADATA_FIELDS);
+  }
+
+  default boolean accessMethodsMatch(AccessMethodTypeEnum m1, AccessMethod.TypeEnum m2) {
+    return m1.toString().equals(m2.getValue());
   }
 }

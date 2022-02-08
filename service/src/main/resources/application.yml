@@ -14,19 +14,18 @@ martha:
   drsProviders:
     bioDataCatalyst:
       name: BioData Catalyst (BDC)
-      hostRegex: ".*\.biodatacatalyst\.nhlbi\.nih\.gov|wb-mock-drs-dev\.storage\.googleapis\.com"
+      hostRegex: '.*\.biodatacatalyst\.nhlbi\.nih\.gov|wb-mock-drs-dev\.storage\.googleapis\.com'
       metadataAuth: false
       bondProvider: fence
-      accessMethods:
+      accessMethodConfigs:
         - type: gcs
           auth: fence_token
           fetchAccessUrl: false
     terraDataRepo:
       name: Terra Data Repo (TDR)
-      hostRegex: ".*data.*[-.](?:broadinstitute\.org|terra\.bio)"
+      hostRegex: '.*data.*[-.](?:broadinstitute\.org|terra\.bio)'
       metadataAuth: true
-      bondProvider: null
-      accessMethods:
+      accessMethodConfigs:
         - type: gcs
           auth: current_request
           fetchAccessUrl: false
@@ -35,28 +34,28 @@ martha:
           fetchAccessUrl: true # Used for Azure
     kidsFirst:
       name: Gabriella Miller Kids First DRC
-      hostRegex: ".*\.kidsfirstdrc\.org"
+      hostRegex: '.*\.kidsfirstdrc\.org'
       metadataAuth: false
       bondProvider: kids_first
-      accessMethods:
+      accessMethodConfigs:
         - type: s3
           auth: fence_token
           fetchAccessUrl: true
     anvil:
       name: NHGRI Analysis Visualization and Informatics Lab-space (The AnVIL)
-      hostRegex: ".*\.theanvil\.io"
+      hostRegex: '.*\.theanvil\.io'
       metadataAuth: false
       bondProvider: anvil
-      accessMethods:
+      accessMethodConfigs:
         - type: gcs
           auth: fence_token
           fetchAccessUrl: false
     crdc:
       name: NCI Cancer Research / Proteomics Data Commons (CRDC / PDC)
-      hostRegex: ".*\.datacommons\.io"
+      hostRegex: '.*\.datacommons\.io'
       metadataAuth: false
       bondProvider: dcf_fence
-      accessMethods:
+      accessMethodConfigs:
         - type: gcs
           auth: fence_token
           fetchAccessUrl: false
@@ -65,10 +64,10 @@ martha:
           fetchAccessUrl: true
     passport:
       name: Passport Test Provider
-      hostRegex: "ctds-test-env\.planx-pla\.net"
+      hostRegex: 'ctds-test-env\.planx-pla\.net'
       metadataAuth: false
       bondProvider: dcf_fence
-      accessMethods:
+      accessMethodConfigs:
         - type: gcs
           auth: passport
           fetchAccessUrl: false

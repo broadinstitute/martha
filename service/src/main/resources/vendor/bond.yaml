@@ -1,4 +1,4 @@
-openapi: 3.0.2
+openapi: 3.0.3
 info:
   title: Bond API
   description: Service for linking Sam User accounts with registered 3rd party providers via Oauth2. See [Bond Github](https://github.com/DataBiosphere/bond).
@@ -13,85 +13,50 @@ servers:
   - url: https://broad-bond-dev.appspot.com/
     description: Development
 
-components:
-  parameters:
-    providerParam:
-      in: path
-      name: provider
-      required: true
-      description: The provider to link with.
-      schema:
-        type: string
-        example: dcf-fence
-
-  responses:
-    LinkInfoResponse:
-      description: OK
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              issued_at:
-                type: string
-              username:
-                type: string
-
-    LinkNotFound:
-      description: Unable to find a link for the user to the provider. Consider re-linking with an oauthcode.
-
-  securitySchemes:
-    googleAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: GCloud access token
-      description: Use your GCP auth token, i.e. `gcloud auth print-access-token`
-
 paths:
   /api/link/v1/{provider}:
     get:
       summary: Returns info about the linked account for the provider, if an account has been linked.
+      tags: [ bond ]
+      operationId: getLinkInfo
       parameters:
         - $ref: '#/components/parameters/providerParam'
       responses:
         '200':
           $ref: '#/components/responses/LinkInfoResponse'
         '404':
-          $ref: '#/components/responses/LinkNotFound'
-      security:
-        - googleAuth: []
+          $ref: '#/components/responses/LinkNotFoundResponse'
     delete:
       summary: Delete the account link for the provider, if an account has been linked.
+      tags: [ bond ]
+      operationId: deleteLink
       parameters:
         - $ref: '#/components/parameters/providerParam'
       responses:
         '204':
           description: OK
         '404':
-          $ref: '#/components/responses/LinkNotFound'
-      security:
-        - googleAuth: []
+          $ref: '#/components/responses/LinkNotFoundResponse'
 
   /api/link/v1/providers:
     get:
       summary: Lists the available 3rd party providers for linking accounts.
+      tags: [ bond ]
+      security: [ ]
+      operationId: getProviders
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  providers:
-                    type: array
-                    items:
-                      type: string
-                      example: dcf-fence
+                $ref: '#/components/schemas/ProvidersList'
 
   /api/link/v1/{provider}/accesstoken:
     get:
       summary: Gets a new access token from the provider if the account has been linked.
+      tags: [ bond ]
+      operationId: getLinkAccessToken
       parameters:
         - $ref: '#/components/parameters/providerParam'
       responses:
@@ -100,26 +65,22 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-                  expires_at:
-                    type: string
+                $ref: '#/components/schemas/AccessTokenObject'
         '404':
-          $ref: '#/components/responses/LinkNotFound'
-      security:
-        - googleAuth: []
+          $ref: '#/components/responses/LinkNotFoundResponse'
 
   /api/link/v1/{provider}/authorization-url:
     get:
       summary: Builds an OAuth authorization URL that a user must use to initiate the OAuth dance.
+      tags: [ bond ]
+      operationId: getProviderAuthUrl
+      security: [ ]
       parameters:
         - $ref: '#/components/parameters/providerParam'
         - name: redirect_uri
           in: query
           required: true
-          description:  The URI that the Authorizing Service will redirect the user to after the user successfully authorizes this client. If calling API via Swagger UI, you can enter the raw string and the Swagger will encode the string for you.  Note that the redirect_uri must be registered with the provider.
+          description: The URI that the Authorizing Service will redirect the user to after the user successfully authorizes this client. If calling API via Swagger UI, you can enter the raw string and the Swagger will encode the string for you.  Note that the redirect_uri must be registered with the provider.
           schema:
             type: string
           example: http://local.broadinstitute.org/#fence-callback
@@ -149,15 +110,13 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  url:
-                    type: string
-                    description: A plain (not URL encoded) String
+                $ref: '#/components/schemas/AuthUrlObject'
 
   /api/link/v1/{provider}/oauthcode:
     post:
       summary: Link the user's account with the provider.
+      tags: [ bond ]
+      operationId: postLinkOauthcode
       parameters:
         - $ref: '#/components/parameters/providerParam'
         - name: oauthcode
@@ -176,12 +135,12 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/LinkInfoResponse'
-      security:
-        - googleAuth: []
 
   /api/link/v1/{provider}/serviceaccount/key:
     get:
       summary: Returns a service account json key to use to access objects for the provider as the linked account.
+      tags: [ bond ]
+      operationId: getLinkSaKey
       parameters:
         - $ref: '#/components/parameters/providerParam'
       responses:
@@ -190,18 +149,15 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  data:
-                    type: object
+                $ref: '#/components/schemas/SaKeyObject'
         '404':
-          $ref: '#/components/responses/LinkNotFound'
-      security:
-        - googleAuth: []
+          $ref: '#/components/responses/LinkNotFoundResponse'
 
   /api/link/v1/{provider}/serviceaccount/accesstoken:
     get:
       summary: Get a service account access token to access objects protected by fence.
+      tags: [ bond ]
+      operationId: getLinkSaToken
       parameters:
         - $ref: '#/components/parameters/providerParam'
         - name: scopes
@@ -209,22 +165,126 @@ paths:
           required: false
           description: scopes to request for token. Defaults to ["email", "profile"].
           schema:
+            default: [ email, profile ]
             type: array
             items:
               type: string
           style: form
           explode: true
       responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaTokenObject'
         '404':
-          $ref: '#/components/responses/LinkNotFound'
-      security:
-        - googleAuth: []
+          $ref: '#/components/responses/LinkNotFoundResponse'
 
   /api/status/v1/status:
     get:
       summary: Returns the status of the Bond server.
+      tags: [ bond ]
+      operationId: getStatus
+      security: [ ]
       responses:
         '200':
           description: A JSON description of the ok subsystems.
         '503':
           description: A JSON description of the subsystems and any issues they might have.
+
+components:
+  parameters:
+    providerParam:
+      in: path
+      name: provider
+      required: true
+      description: The provider to link with.
+      schema:
+        type: string
+        example: dcf-fence
+
+  responses:
+    LinkInfoResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/LinkInfo'
+
+    LinkNotFoundResponse:
+      description: Unable to find a link for the user to the provider. Consider re-linking with an oauthcode.
+
+  schemas:
+    LinkInfo:
+      required: [ issued_at, username ]
+      type: object
+      properties:
+        issued_at:
+          type: string
+          format: date-time
+        username:
+          type: string
+
+    ProvidersList:
+      required: [ providers ]
+      type: object
+      properties:
+        providers:
+          type: array
+          example: [ fence, dcf-fence, anvil, kids-first ]
+          items:
+            type: string
+
+    AccessTokenObject:
+      required: [ token, expires_at ]
+      type: object
+      properties:
+        token:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+
+    AuthUrlObject:
+      required: [ url ]
+      type: object
+      properties:
+        url:
+          type: string
+          description: A plain (not URL encoded) String
+
+    SaKeyObject:
+      required: [ data ]
+      type: object
+      properties:
+        data:
+          description: The actual SA key.
+          type: object
+
+    SaTokenObject:
+      required: [ token ]
+      type: object
+      properties:
+        token:
+          type: string
+
+  securitySchemes:
+    authorization:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://accounts.google.com/o/oauth2/auth
+          scopes:
+            openid: open id authorization
+            email: email authorization
+            profile: profile authorization
+    googleAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: GCloud access token
+      description: Use your GCP auth token, i.e. `gcloud auth print-access-token`
+
+security:
+  - authorization: [ openid, email, profile ]
+  - googleAuth: [ ]
