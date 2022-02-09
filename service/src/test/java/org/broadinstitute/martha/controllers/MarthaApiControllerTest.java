@@ -1,13 +1,17 @@
 package org.broadinstitute.martha.controllers;
 
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
 import org.broadinstitute.martha.BaseTest;
+import org.broadinstitute.martha.generated.model.RequestObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @AutoConfigureMockMvc
@@ -16,13 +20,18 @@ public class MarthaApiControllerTest extends BaseTest {
   @Autowired private MockMvc mvc;
 
   // TODO I think we need this as a mock bean but it doesn't exist yet
-  // @MockBean private ApiAdapter apiAdapterMock;
+   @MockBean
+  MarthaApiController marthaApiControllerMock;
+   //@MockBean private ApiAdapter apiAdapterMock;
 
   // martha_v3 doesn't fail when extra data submitted besides a 'url'
   @Test
   void testExtraDataDoesNotExplodeMartha() throws Exception {
-    var body = "{ url: `dos://${bdc}/123`, pattern: 'gs://', foo: 'bar' }";
+    //var responseBody = "{ url: \"dos://${bdc}/123\", pattern: \"gs://\", foo: \"bar\" }";
+    var responseBody = new RequestObject().setFields(List.of("pattern: \"gs://\"")).setUrl("dos://${bdc}/123");
     var authHeader = "bearer abc123";
+
+    when(marthaApiControllerMock.getFile()).thenReturn("");
     // var marthaForceAccessUrl = "martha-force-access-url";
     // var forceAccessUrl = false;
     mvc.perform(post("/api/v4", body).header("authorization", authHeader))
