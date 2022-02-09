@@ -11,8 +11,6 @@ const {
     overlapFields, MARTHA_V3_METADATA_FIELDS
 } = require("./martha_fields");
 
-const {SecretManagerServiceClient} = require('@google-cloud/secret-manager');
-
 const AccessMethodType = {
     GCS: 'gs',
     S3: 's3',
@@ -235,7 +233,7 @@ class PassportTestDrsProvider extends DrsProvider {
                 new AccessMethod(AccessMethodType.S3, AccessUrlAuth.PASSPORT, FetchAccessUrl.YES, AccessUrlAuth.FENCE_TOKEN)
             ],
             forceAccessUrl,
-            undefined,
+            null,
             config.rasClientMTLSKeySecretName,
             config.rasClientMTLSCertSecretName
         );

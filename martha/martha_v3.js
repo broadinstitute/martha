@@ -376,7 +376,7 @@ async function retrieveFromServers(params) {
             case AccessUrlAuth.PASSPORT:
                 if (passports) {
                     try {
-                        let clientPrivateKey, clientCert;
+                        let clientCert, clientPrivateKey;
                         if (drsProvider.clientCertSecretName && drsProvider.clientPrivateKeySecretName) {
                             clientPrivateKey = await getSecret(drsProvider.clientPrivateKeySecretName);
                             clientCert = await getSecret(drsProvider.clientCertSecretName);
