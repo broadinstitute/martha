@@ -1,17 +1,14 @@
 package org.broadinstitute.martha.controllers;
 
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.List;
 import org.broadinstitute.martha.BaseTest;
-import org.broadinstitute.martha.generated.model.RequestObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @AutoConfigureMockMvc
@@ -19,112 +16,73 @@ public class MarthaApiControllerTest extends BaseTest {
 
   @Autowired private MockMvc mvc;
 
-  // TODO I think we need this as a mock bean but it doesn't exist yet
-   @MockBean
-  MarthaApiController marthaApiControllerMock;
-   //@MockBean private ApiAdapter apiAdapterMock;
+  // TODO I think we need this as a mock bean but it doesn't exist yet, or maybe won't exist?
+  // @MockBean private ApiAdapter apiAdapterMock;
+  @MockBean MarthaApiController marthaApiControllerMock;
 
   // martha_v3 doesn't fail when extra data submitted besides a 'url'
   @Test
   void testExtraDataDoesNotExplodeMartha() throws Exception {
-    //var responseBody = "{ url: \"dos://${bdc}/123\", pattern: \"gs://\", foo: \"bar\" }";
-    var responseBody = new RequestObject().setFields(List.of("pattern: \"gs://\"")).setUrl("dos://${bdc}/123");
+    var requestBody = "{ \"url\": \"dos://${bdc}/123\", \"pattern\": \"gs://\", \"foo\": \"bar\" }";
     var authHeader = "bearer abc123";
 
-    when(marthaApiControllerMock.getFile()).thenReturn("");
-    // var marthaForceAccessUrl = "martha-force-access-url";
-    // var forceAccessUrl = false;
-    mvc.perform(post("/api/v4", body).header("authorization", authHeader))
+    mvc.perform(
+            post("/api/v4")
+                .header("authorization", authHeader)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
         .andExpect(status().isOk());
   }
 
   // martha_v3 calls no endpoints when no fields are requested
   @Test
   void testMarthaCallsNoEndpointsWithNoFieldsRequested() throws Exception {
-    var body = "{ url: `dos://${bdc}/123`, fields: [] }";
-    // TODO: should the second be some kind of isEmpty instead of looking for the empty object?
-    mvc.perform(post("/api/v4", body)).andExpect(status().isOk()).andExpect(content().json("{}"));
+    // var requestBody = "{ \"url\": \"dos://${bdc}/123\", \"pattern\": \"gs://\", \"foo\": \"bar\"
+    // }";
+    // TODO: giving up on this for now because I think it's not necessary now that "fields" is a
+    // list of strings
+    var requestBody = "{ \"url\": \"dos://${bdc}/123\", \"fields\": [] }";
+    var authHeader = "bearer abc123";
+    mvc.perform(
+            post("/api/v4")
+                .header("authorization", authHeader)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+        .andExpect(status().isOk());
+    // .andExpect(content().json("{}"));
     // verify(apiAdapterMock, never());
   }
 
-  //  test.serial('martha_v3 calls no endpoints when no fields are requested', async (t) => {
-  //    const response = mockResponse();
-  //
-  //    await marthaV3(mockRequest({
-  //        body: {
-  //      url: `dos://${bdc}/123`,
-  //      fields: [],
-  //    }
-  //    }), response);
-  //
-  //    t.is(response.statusCode, 200);
-  //    t.deepEqual(response.body, {});
-  //
-  //    sinon.assert.callCount(getJsonFromApiStub, 0);
-  //  });
+  // martha_v3 returns an error when fields is not an array
+  @Test
+  void marthaReturnsErrorIfFieldsIsNotArray() throws Exception {
+    var requestBody = "{ \"url\": \"dos://abc/123\", \"fields\": \"gs://\" }";
+    var authHeader = "bearer abc123";
 
-  //  const mockResponse = () => {
-  //    return {
-  //        status(s) {
-  //        this.statusCode = s;
-  //    return this;
-  //        },
-  //    send: sinon.mock('send').once().callsFake(function setBody(body) {
-  //      // Express will effectively JSON.stringify objects passed to send, which is perfect for
-  //      // sending over the wire and deserializing into a simple object on the other end.
-  //      // We want a similar effect here, where all we get are the object properties (and
-  //      // specifically no class instance details) so that we can make comparisons against
-  //      // simple objects. Specifically, this takes care of cases where we "send" a
-  //      // FailureResponse.
-  //      this.body = { ...body };
-  //      return this;
-  //    }),
-  //    setHeader: sinon.stub()
-  //    };
-  //  };
+    mvc.perform(
+            post("/api/v4")
+                .header("authorization", authHeader)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+        .andExpect(status().isBadRequest());
+    // TODO: in the original test they are testing the error message, but now it gets caught as a
+    // json parse error first
+  }
 
-  // example old martha post request setup
-  //  const mockRequest = (req, options = {}) => {
-  //    const forceAccessUrl = Boolean(options.forceAccessUrl || false);
-  //    req.method = 'POST';
-  //    req.headers = { 'authorization': terraAuth, 'martha-force-access-url':
-  // forceAccessUrl.toString() };
-  //    if (req.body && typeof req.body.fields === "undefined") {
-  //      req.body.fields = MARTHA_V3_ALL_FIELDS;
-  //    }
-  //    return req;
-  //  };
+  // martha_v3 returns an error when an invalid field is requested
+  @Test
+  void marthaReturnsErrorWhenInvalidFieldIsRequested() throws Exception {
+    var requestBody =
+        "{ \"url\": \"dos://abc/123\", \"fields\" : [{ \"pattern\": \"gs://\", \"size\": \"blah\" ]} }";
+    System.out.println("__________" + requestBody);
+    var authHeader = "bearer abc123";
 
-  // ECM test
-  //  @Test
-  //  void testGetStatus() throws Exception {
-  //    mvc.perform(get("/status"))
-  //        .andExpect(content().json("{\"ok\": true,\"systems\": { \"postgres\": true}}"));
-  //  }
-
-  // example of mvc.perform(post)
-  //        mvc.perform(
-  //  post("/api/oidc/v1/{provider}/oauthcode", inputLinkedAccount.getProviderName())
-  //      .header("authorization", "Bearer " + accessToken)
-  //                  .param("scopes", scopes)
-  //                  .param("redirectUri", redirectUri)
-  //                  .param("state", state)
-  //                  .param("oauthcode", oauthcode))
-  //      .andExpect(status().isOk())
-  //      .andExpect(
-  //      content()
-  //                  .json(
-  //      mapper.writeValueAsString(
-  //      oidcApiController.getLinkInfoFromLinkedAccount(inputLinkedAccount))));
-
-  // old Martha test
-  //  test.serial("martha_v3 doesn't fail when extra data submitted besides a 'url'", async (t) => {
-  //    const response = mockResponse();
-  //    await marthaV3(
-  //        mockRequest({ body: { url: `dos://${bdc}/123`, pattern: 'gs://', foo: 'bar' } }),
-  //    response,
-  //    );
-  //      t.is(response.statusCode, 200);
-  //    });
-
+    mvc.perform(
+            post("/api/v4")
+                .header("authorization", authHeader)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+        .andExpect(status().isBadRequest());
+    // TODO probably need to check this more deeply 
+  }
 }

@@ -504,6 +504,7 @@ test.serial('martha_v3 calls no endpoints when no fields are requested', async (
     sinon.assert.callCount(getJsonFromApiStub, 0);
 });
 
+// TODO porting this as marthaReturnsErrorIfFieldsIsNotArray()
 test.serial('martha_v3 returns an error when fields is not an array', async (t) => {
     const response = mockResponse();
 
@@ -529,6 +530,7 @@ test.serial('martha_v3 returns an error when fields is not an array', async (t) 
     sinon.assert.callCount(getJsonFromApiStub, 0);
 });
 
+// TODO porting this as marthaReturnsErrorWhenInvalidFieldIsRequested()
 test.serial('martha_v3 returns an error when an invalid field is requested', async (t) => {
     const response = mockResponse();
 
