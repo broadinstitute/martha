@@ -640,3 +640,4 @@ exports.generateAccessUrl = generateAccessUrl;
 exports.getHttpsUrlParts = getHttpsUrlParts;
 exports.overridePencilsDownSeconds = overridePencilsDownSeconds;
 exports.PROTOCOL_PREFIX_DRS = PROTOCOL_PREFIX_DRS;
+exports.secretManagerServiceClient = secretManagerServiceClient;
