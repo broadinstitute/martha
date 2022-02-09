@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.broadinstitute.martha.models.AccessMethodTypeEnum;
+import org.broadinstitute.martha.models.AccessMethodConfigTypeEnum;
 import org.broadinstitute.martha.models.AccessUrlAuthEnum;
 import org.broadinstitute.martha.models.BondProviderEnum;
 import org.broadinstitute.martha.models.Fields;
@@ -34,14 +34,14 @@ public interface DrsProviderInterface {
     return false;
   }
 
-  default ProviderAccessMethodConfig getAccessMethodByType(AccessMethodTypeEnum accessMethodType) {
+  default ProviderAccessMethodConfig getAccessMethodByType(AccessMethod.TypeEnum accessMethodType) {
     return getAccessMethodConfigs().stream()
-        .filter(o -> o.getType() == accessMethodType)
+        .filter(o -> o.getType().getReturnedEquivalent() == accessMethodType)
         .findFirst()
         .orElse(null);
   }
 
-  default List<AccessMethodTypeEnum> getAccessMethodConfigTypes() {
+  default List<AccessMethodConfigTypeEnum> getAccessMethodConfigTypes() {
     return getAccessMethodConfigs().stream()
         .map(ProviderAccessMethodConfig::getType)
         .collect(Collectors.toList());
@@ -68,7 +68,7 @@ public interface DrsProviderInterface {
                 .anyMatch(
                     m -> {
                       var accessMethodTypeMatches =
-                          m.getType().matchesReturnedMethodType(accessMethodType);
+                          m.getType().getReturnedEquivalent() == accessMethodType;
                       var validFallbackAuth =
                           !useFallbackAuth
                               || m.getFallbackAuth().orElse(null) == AccessUrlAuthEnum.fence_token;
@@ -92,7 +92,7 @@ public interface DrsProviderInterface {
             || getAccessMethodConfigs().stream()
                 .anyMatch(
                     m ->
-                        m.getType().matchesReturnedMethodType(accessMethodType)
+                        m.getType().getReturnedEquivalent() == accessMethodType
                             && m.isFetchAccessUrl()));
   }
 
@@ -107,8 +107,8 @@ public interface DrsProviderInterface {
         // "Not definitely not GCS". A falsy accessMethod is okay because there may not have been a
         // preceding metadata request to determine the accessMethod.
         && (accessMethodType == null
-            || AccessMethodTypeEnum.gcs.matchesReturnedMethodType(accessMethodType))
-        && getAccessMethodConfigTypes().contains(AccessMethodTypeEnum.gcs)
+            || AccessMethodConfigTypeEnum.gcs.getReturnedEquivalent() == accessMethodType)
+        && getAccessMethodConfigTypes().contains(AccessMethodConfigTypeEnum.gcs)
         && Fields.overlap(requestedFields, Fields.BOND_SA_FIELDS);
   }
 
@@ -118,7 +118,7 @@ public interface DrsProviderInterface {
         && getAccessMethodConfigs().stream()
             .anyMatch(
                 m ->
-                    m.getType().matchesReturnedMethodType(accessMethodType)
+                    m.getType().getReturnedEquivalent() == accessMethodType
                         && m.getAuth() == AccessUrlAuthEnum.passport);
   }
 
@@ -134,7 +134,8 @@ public interface DrsProviderInterface {
    * back to a different access method than the GCS/Azure one for which Martha tried and failed to
    * get a signed URL. The current code does not support this.
    */
-  static boolean shouldFailOnAccessUrlFail(AccessMethodTypeEnum accessMethodType) {
-    return accessMethodType != AccessMethodTypeEnum.gcs;
+  static boolean shouldFailOnAccessUrlFail(AccessMethod.TypeEnum accessMethodType) {
+    // TODO: get rid of this
+    return AccessMethodConfigTypeEnum.gcs.getReturnedEquivalent() != accessMethodType;
   }
 }

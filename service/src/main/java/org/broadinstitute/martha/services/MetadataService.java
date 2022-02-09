@@ -7,6 +7,7 @@ import io.github.ga4gh.drs.api.ObjectsApi;
 import io.github.ga4gh.drs.client.ApiClient;
 import io.github.ga4gh.drs.model.AccessMethod;
 import io.github.ga4gh.drs.model.AccessURL;
+import io.github.ga4gh.drs.model.Checksum;
 import io.github.ga4gh.drs.model.DrsObject;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -16,12 +17,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.broadinstitute.martha.MarthaException;
 import org.broadinstitute.martha.config.DrsProvider;
+import org.broadinstitute.martha.config.DrsProviderInterface;
 import org.broadinstitute.martha.config.MarthaConfig;
 import org.broadinstitute.martha.generated.model.ResourceMetadata;
 import org.broadinstitute.martha.models.AccessUrlAuthEnum;
+import org.broadinstitute.martha.models.DrsMetadata;
 import org.broadinstitute.martha.models.Fields;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -73,6 +77,8 @@ public class MetadataService {
   private static final String PROTOCOL_PREFIX_DRS = "/ga4gh/drs/v1";
   private static final Pattern accessTokenRegex =
       Pattern.compile("Bearer (?<token>.+)", Pattern.CASE_INSENSITIVE);
+  private static final Pattern gsUriParseRegex =
+      Pattern.compile("gs://(?<bucket>[^/]+)/(?<name>.+)", Pattern.CASE_INSENSITIVE);
 
   private final MarthaConfig marthaConfig;
 
@@ -83,6 +89,9 @@ public class MetadataService {
   public ResourceMetadata fetchResourceMetadata(
       String drsUri, List<String> requestedFields, String auth, Boolean forceAccessUrl) {
 
+    log.info(auth);
+    log.info(accessTokenRegex.matcher(auth).group());
+
     var accessToken = accessTokenRegex.matcher(auth).group("token");
     var uriComponents = getUriComponents(drsUri);
     var provider = determineDrsProvider(uriComponents);
@@ -92,7 +101,12 @@ public class MetadataService {
         drsUri,
         provider.getName(),
         String.join(", ", requestedFields));
-    return null;
+
+    var metadata =
+        fetchMetadata(
+            provider, requestedFields, uriComponents, drsUri, accessToken, forceAccessUrl);
+
+    return buildResponseObject(requestedFields, metadata, provider);
   }
 
   private UriComponents getUriComponents(String drsUri) {
@@ -143,21 +157,19 @@ public class MetadataService {
   }
 
   private String getObjectId(UriComponents uriComponents) {
-    return uriComponents.getPath()
-        + Optional.ofNullable(uriComponents.getQuery()).map(s -> "?" + s).orElse("");
+    // TODO: is there a reason we need query params? it breaks getAccessUrl.
+    return uriComponents.getPath();
   }
 
   private Optional<AccessURL> getAccessUrl(
       AccessUrlAuthEnum accessUrlAuth,
-      String host,
       UriComponents uriComponents,
       String accessId,
-      String accessToken,
-      String auth,
+      Optional<String> accessToken,
       List<String> passports)
       throws RestClientException {
 
-    var drsApi = new ObjectsApi(new ApiClient().setBasePath(host + PROTOCOL_PREFIX_DRS));
+    var drsApi = makeDrsApiFromDrsUriComponents(uriComponents);
     var objectId = getObjectId(uriComponents);
 
     switch (accessUrlAuth) {
@@ -177,11 +189,11 @@ public class MetadataService {
         // nothing.
         return Optional.empty();
       case current_request:
-        drsApi.getApiClient().addDefaultHeader("authorization", auth);
+        drsApi.getApiClient().setAccessToken(accessToken.orElse(null));
         return Optional.ofNullable(drsApi.getAccessURL(objectId, accessId));
       case fence_token:
-        if (accessToken != null) {
-          drsApi.getApiClient().addDefaultHeader("authorization", "Bearer " + accessToken);
+        if (accessToken.isPresent()) {
+          drsApi.getApiClient().setAccessToken(accessToken.get());
           return Optional.ofNullable(drsApi.getAccessURL(objectId, accessId));
         } else {
           throw new BadRequestException(
@@ -224,28 +236,27 @@ public class MetadataService {
     }
   }
 
-  private String fetchMetadata(
+  private DrsMetadata fetchMetadata(
       DrsProvider drsProvider,
       List<String> requestedFields,
       UriComponents uriComponents,
       String drsUri,
-      boolean sendMetadataAuth,
       String bearerToken,
-      boolean useFallbackAuth,
       boolean forceAccessField) {
     DrsObject drsResponse = null;
     if (Fields.shouldRequestMetadata(requestedFields)) {
 
       var objectId = getObjectId(uriComponents);
+      var sendMetadataAuth = drsProvider.isMetadataAuth();
       log.info(
           "Requesting DRS metadata for '{}' with auth required '{}'", drsUri, sendMetadataAuth);
 
-      var drsApi = buildDrsApi(uriComponents);
+      var drsApi = makeDrsApiFromDrsUriComponents(uriComponents);
       if (sendMetadataAuth) {
         drsApi.getApiClient().setAccessToken(bearerToken);
       }
 
-      drsResponse = drsApi.getObject(objectId, false);
+      drsResponse = drsApi.getObject(objectId, null);
     }
 
     var accessMethod = getAccessMethod(drsResponse, drsProvider);
@@ -266,6 +277,7 @@ public class MetadataService {
               .toString();
     }
 
+    Optional<AccessURL> accessUrl = Optional.empty();
     List<String> passports = null;
     // TODO: is this an else-if?
     if (drsProvider.shouldFetchPassports(accessMethodType, requestedFields)) {
@@ -295,24 +307,63 @@ public class MetadataService {
           getFenceAccessToken(
               drsUri,
               accessMethod,
-              useFallbackAuth,
+              false,
               drsProvider,
               requestedFields,
               forceAccessField,
               bearerToken);
 
       if (drsProvider.shouldFetchAccessUrl(accessMethodType, requestedFields, forceAccessField)) {
-        var accessUrl =
-            generateAccessUrl(uriComponents, accessMethod.map(AccessMethod::getAccessId));
+        var providerAccessMethod = drsProvider.getAccessMethodByType(accessMethodType);
+
+        log.info("Requesting URL for {}", uriComponents.toUriString());
+
+        accessUrl =
+            getAccessUrl(
+                providerAccessMethod.getAuth(),
+                uriComponents,
+                accessMethod.map(AccessMethod::getAccessId).orElseThrow(),
+                accessToken,
+                passports);
+
+        if (accessUrl.isEmpty() && providerAccessMethod.getFallbackAuth().isPresent()) {
+          var fallbackToken =
+              getFenceAccessToken(
+                  drsUri,
+                  accessMethod,
+                  true,
+                  drsProvider,
+                  requestedFields,
+                  forceAccessField,
+                  bearerToken);
+
+          accessUrl =
+              getAccessUrl(
+                  providerAccessMethod.getFallbackAuth().get(),
+                  uriComponents,
+                  accessMethod.map(AccessMethod::getAccessId).orElseThrow(),
+                  fallbackToken,
+                  passports);
+        }
       }
-    } catch (RestClientException e) {
-      e.printStackTrace();
+    } catch (RuntimeException e) {
+      if (DrsProviderInterface.shouldFailOnAccessUrlFail(accessMethodType)) {
+        throw e;
+      } else {
+        log.warn("Ignoring error from fetching signed URL", e);
+      }
     }
 
-    return null;
+    return new DrsMetadata.Builder()
+        .drsResponse(Optional.ofNullable(drsResponse))
+        .fileName(fileName)
+        .localizationPath(localizationPath)
+        .accessUrl(accessUrl)
+        .bondSaKey(Optional.ofNullable(bondSaKey))
+        .build();
   }
 
-  private ObjectsApi buildDrsApi(UriComponents uriComponents) {
+  private ObjectsApi makeDrsApiFromDrsUriComponents(UriComponents uriComponents) {
     var basePathComponents =
         UriComponentsBuilder.newInstance()
             .scheme("https")
@@ -329,7 +380,7 @@ public class MetadataService {
       for (var methodConfig : drsProvider.getAccessMethodConfigs()) {
         var matchingMethod =
             drsResponse.getAccessMethods().stream()
-                .filter(m -> methodConfig.getType().matchesReturnedMethodType(m.getType()))
+                .filter(m -> methodConfig.getType().getReturnedEquivalent() == m.getType())
                 .findFirst();
         if (matchingMethod.isPresent()) {
           return matchingMethod;
@@ -374,18 +425,73 @@ public class MetadataService {
     return Optional.empty();
   }
 
-  private String generateAccessUrl(UriComponents uriComponents, Optional<String> accessId) {
+  private ResourceMetadata buildResponseObject(
+      List<String> requestedFields, DrsMetadata drsMetadata, DrsProvider drsProvider) {
 
-    var generatedUrl =
-        UriComponentsBuilder.newInstance()
-            .scheme("https")
-            .host(uriComponents.getHost())
-            .port(uriComponents.getPort())
-            .pathSegment(
-                PROTOCOL_PREFIX_DRS, uriComponents.getPath(), "access", accessId.orElse(""))
-            .query(uriComponents.getQuery())
-            .build();
+    var eventualResponse = new ResourceMetadata();
 
-    return generatedUrl.toUriString();
+    if (requestedFields.contains(Fields.BOND_PROVIDER)) {
+      drsProvider.getBondProvider().ifPresent(p -> eventualResponse.setBondProvider(p.toString()));
+    }
+
+    if (requestedFields.contains(Fields.FILE_NAME)) {
+      drsMetadata.getFileName().ifPresent(eventualResponse::setFileName);
+    }
+    if (requestedFields.contains(Fields.LOCALIZATION_PATH)) {
+      drsMetadata.getLocalizationPath().ifPresent(eventualResponse::setLocalizationPath);
+    }
+    if (requestedFields.contains(Fields.ACCESS_URL)) {
+      drsMetadata.getAccessUrl().ifPresent(eventualResponse::setAccessUrl);
+    }
+    if (requestedFields.contains(Fields.GOOGLE_SERVICE_ACCOUNT)) {
+      drsMetadata.getBondSaKey().ifPresent(eventualResponse::setGoogleServiceAccount);
+    }
+
+    drsMetadata
+        .getDrsResponse()
+        .ifPresent(
+            r -> {
+              if (requestedFields.contains(Fields.TIME_CREATED)) {
+                eventualResponse.setTimeCreated(r.getCreatedTime());
+              }
+              if (requestedFields.contains(Fields.TIME_UPDATED)) {
+                eventualResponse.setTimeUpdated(r.getUpdatedTime());
+              }
+              if (requestedFields.contains(Fields.HASHES)) {
+                eventualResponse.setHashes(getHashesMap(r.getChecksums()));
+              }
+              if (requestedFields.contains(Fields.SIZE)) {
+                eventualResponse.setSize(r.getSize());
+              }
+              if (requestedFields.contains(Fields.CONTENT_TYPE)) {
+                eventualResponse.setContentType(r.getMimeType());
+              }
+
+              var gsUrl = MetadataService.getGcsAccessURL(r).map(AccessURL::getUrl);
+              if (requestedFields.contains(Fields.GS_URI)) {
+                gsUrl.ifPresent(eventualResponse::setGsUri);
+              }
+
+              var gsFileInfo = gsUrl.map(gsUriParseRegex::matcher);
+              if (requestedFields.contains(Fields.BUCKET)) {
+                gsFileInfo.map(i -> i.group("bucket")).ifPresent(eventualResponse::setBucket);
+              }
+              if (requestedFields.contains(Fields.NAME)) {
+                gsFileInfo.map(i -> i.group("name")).ifPresent(eventualResponse::setName);
+              }
+            });
+
+    return eventualResponse;
+  }
+
+  private static Optional<AccessURL> getGcsAccessURL(DrsObject drsObject) {
+    return drsObject.getAccessMethods().stream()
+        .filter(m -> m.getType() == AccessMethod.TypeEnum.GS)
+        .findFirst()
+        .map(AccessMethod::getAccessUrl);
+  }
+
+  private Map<String, String> getHashesMap(List<Checksum> checksums) {
+    return checksums.stream().collect(Collectors.toMap(Checksum::getType, Checksum::getChecksum));
   }
 }

@@ -65,6 +65,7 @@ components:
           type: string
         size:
           type: integer
+          format: int64
         timeCreated:
           type: string
           format: date-time
@@ -85,6 +86,10 @@ components:
           type: object
         hashes:
           type: object
+        localizationPath:
+          type: string
+        bondProvider:
+          type: string
 
     RequestObject:
       type: object
