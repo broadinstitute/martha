@@ -171,6 +171,24 @@ function configDefaultsForEnv({marthaEnv, dsdeEnv = dsdeEnvFrom(marthaEnv)}) {
                         return `https://bond-fiab.dsde-${dsdeEnv}.broadinstitute.org:31443`;
                 }
             })(),
+        rasClientMTLSKeySecretName:
+            (() => {
+                switch (marthaEnv) {
+                    case ENV_MOCK:
+                        return 'projects/broad-dsde-dev/secrets/ras-mtls-client-key/versions/latest';
+                    default:
+                        return `projects/broad-dsde-${dsdeEnv}/secrets/ras-mtls-client-key/versions/latest`;
+                }
+            })(),
+        rasClientMTLSCertSecretName:
+            (() => {
+                switch (marthaEnv) {
+                    case ENV_MOCK:
+                        return 'projects/broad-dsde-dev/secrets/ras-mtls-client-cert/versions/latest';
+                    default:
+                        return `projects/broad-dsde-${dsdeEnv}/secrets/ras-mtls-client-cert/versions/latest`;
+                }
+            })(),
     };
 }
 
@@ -240,6 +258,10 @@ function removeUndefined(orig) {
  *      Default: Martha in FiaB.
  * @property {string} itBondBaseUrl - Base URL for calling Bond from integration-test code.
  *      Default: Bond in FiaB.
+ * @property {string} rasClientMTLSKeySecretName - name of secret in google secret manager for mTLS client key
+ *      when using RAS passports
+ * @property {string} rasClientMTLSCertSecretName - name of secret in google secret manager for mTLS client certificate
+ *      when using RAS passports
  */
 const configExport = Object.freeze({
     HOST_MOCK_DRS,

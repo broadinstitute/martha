@@ -76,9 +76,11 @@ function getJsonFrom(url, authorization) {
     });
 }
 
-function postJsonTo(url, authorization, payload) {
+function postJsonTo(url, authorization, payload, clientPrivateKey, clientCert) {
     return httpCallWithRetry(url, () => {
         const postReq = request.post(url, payload);
+        if (clientPrivateKey) postReq.key(clientPrivateKey);
+        if (clientCert) postReq.cert(clientCert);
         postReq.set('Content-Type', 'application/json');
         if (authorization) {
             postReq.set('authorization', authorization);
