@@ -1,8 +1,5 @@
 name: Publish branch image
-on: 
-  workflow_dispatch:
-  push: # TODO: change back to only workflow_dispatch once this action is run once successfully
-    branches: [ iz-java ]
+on: workflow_dispatch
 
 env:
   SERVICE_NAME: ${{ github.event.repository.name }}
