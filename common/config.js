@@ -177,7 +177,7 @@ function configDefaultsForEnv({marthaEnv, dsdeEnv = dsdeEnvFrom(marthaEnv)}) {
                     case ENV_MOCK:
                         return 'projects/broad-dsde-dev/secrets/ras-mtls-client-key/versions/latest';
                     default:
-                        return `projects/broad-dsde-${dsdeEnv}/secrets/ras-mtls-client-key/versions/latest`;
+                        return `projects/broad-dsde-${marthaEnv}/secrets/ras-mtls-client-key/versions/latest`;
                 }
             })(),
         rasClientMTLSCertSecretName:
