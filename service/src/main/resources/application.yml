@@ -91,7 +91,7 @@ spring:
   main.banner-mode: off
 
   profiles.include:
-    - ${deploy-env}
+    - ${DEPLOY_ENV:dev}
 
   web:
     resources:

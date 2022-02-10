@@ -40,7 +40,7 @@ public class MarthaApiController implements MarthaApi {
 
     var resourceMetadata =
         metadataService.fetchResourceMetadata(
-            body.getUrl(), body.getFields(), auth, forceAccessUrl);
+            body.getUrl(), body.getFields(), auth.substring(7), forceAccessUrl);
 
     return ResponseEntity.ok(resourceMetadata);
   }

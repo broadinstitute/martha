@@ -4,7 +4,7 @@ import bio.terra.bond.api.BondApi;
 import bio.terra.common.exception.BadRequestException;
 import bio.terra.externalcreds.api.OidcApi;
 import io.github.ga4gh.drs.api.ObjectsApi;
-import io.github.ga4gh.drs.client.ApiClient;
+import io.github.ga4gh.drs.client.auth.OAuth;
 import io.github.ga4gh.drs.model.AccessMethod;
 import io.github.ga4gh.drs.model.AccessURL;
 import io.github.ga4gh.drs.model.Checksum;
@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -74,9 +75,6 @@ public class MetadataService {
           "(?:dos|drs)://(?<host>dg\\.[0-9a-z-],)(?<separator>[:/])(?<suffix>[^?]*)(?<query>\\?(.*))?",
           Pattern.CASE_INSENSITIVE);
 
-  private static final String PROTOCOL_PREFIX_DRS = "/ga4gh/drs/v1";
-  private static final Pattern accessTokenRegex =
-      Pattern.compile("Bearer (?<token>.+)", Pattern.CASE_INSENSITIVE);
   private static final Pattern gsUriParseRegex =
       Pattern.compile("gs://(?<bucket>[^/]+)/(?<name>.+)", Pattern.CASE_INSENSITIVE);
 
@@ -87,12 +85,13 @@ public class MetadataService {
   }
 
   public ResourceMetadata fetchResourceMetadata(
-      String drsUri, List<String> requestedFields, String auth, Boolean forceAccessUrl) {
+      String drsUri, List<String> rawRequestedFields, String accessToken, Boolean forceAccessUrl) {
 
-    log.info(auth);
-    log.info(accessTokenRegex.matcher(auth).group());
+    var requestedFields =
+        (rawRequestedFields == null || rawRequestedFields.isEmpty())
+            ? Fields.DEFAULT_FIELDS
+            : rawRequestedFields;
 
-    var accessToken = accessTokenRegex.matcher(auth).group("token");
     var uriComponents = getUriComponents(drsUri);
     var provider = determineDrsProvider(uriComponents);
 
@@ -152,7 +151,7 @@ public class MetadataService {
             () ->
                 new BadRequestException(
                     String.format(
-                        "Could not determine DRS provider for id '%s'",
+                        "Could not determine DRS provider for id `%s`",
                         uriComponents.toUriString())));
   }
 
@@ -253,7 +252,7 @@ public class MetadataService {
 
       var drsApi = makeDrsApiFromDrsUriComponents(uriComponents);
       if (sendMetadataAuth) {
-        drsApi.getApiClient().setAccessToken(bearerToken);
+        ((OAuth) drsApi.getApiClient().getAuthentication("BearerAuth")).setAccessToken(bearerToken);
       }
 
       drsResponse = drsApi.getObject(objectId, null);
@@ -364,15 +363,14 @@ public class MetadataService {
   }
 
   private ObjectsApi makeDrsApiFromDrsUriComponents(UriComponents uriComponents) {
-    var basePathComponents =
-        UriComponentsBuilder.newInstance()
-            .scheme("https")
-            .host(uriComponents.getHost())
-            .port(uriComponents.getPort())
-            .path(PROTOCOL_PREFIX_DRS)
-            .build();
+    var drsApi = new ObjectsApi();
+    var drsClient = drsApi.getApiClient();
+    drsClient.setBasePath(
+        drsClient
+            .getBasePath()
+            .replace("{serverURL}", Objects.requireNonNull(uriComponents.getHost())));
 
-    return new ObjectsApi(new ApiClient().setBasePath(basePathComponents.toUriString()));
+    return drsApi;
   }
 
   private Optional<AccessMethod> getAccessMethod(DrsObject drsResponse, DrsProvider drsProvider) {
@@ -430,56 +428,62 @@ public class MetadataService {
 
     var eventualResponse = new ResourceMetadata();
 
-    if (requestedFields.contains(Fields.BOND_PROVIDER)) {
-      drsProvider.getBondProvider().ifPresent(p -> eventualResponse.setBondProvider(p.toString()));
-    }
+    for (var f : requestedFields) {
+      if (f.equals(Fields.BOND_PROVIDER)) {
+        drsProvider
+            .getBondProvider()
+            .ifPresent(p -> eventualResponse.setBondProvider(p.toString()));
+      }
 
-    if (requestedFields.contains(Fields.FILE_NAME)) {
-      drsMetadata.getFileName().ifPresent(eventualResponse::setFileName);
-    }
-    if (requestedFields.contains(Fields.LOCALIZATION_PATH)) {
-      drsMetadata.getLocalizationPath().ifPresent(eventualResponse::setLocalizationPath);
-    }
-    if (requestedFields.contains(Fields.ACCESS_URL)) {
-      drsMetadata.getAccessUrl().ifPresent(eventualResponse::setAccessUrl);
-    }
-    if (requestedFields.contains(Fields.GOOGLE_SERVICE_ACCOUNT)) {
-      drsMetadata.getBondSaKey().ifPresent(eventualResponse::setGoogleServiceAccount);
-    }
+      if (f.equals(Fields.FILE_NAME)) {
+        drsMetadata.getFileName().ifPresent(eventualResponse::setFileName);
+      }
+      if (f.equals(Fields.LOCALIZATION_PATH)) {
+        drsMetadata.getLocalizationPath().ifPresent(eventualResponse::setLocalizationPath);
+      }
+      if (f.equals(Fields.ACCESS_URL)) {
+        drsMetadata.getAccessUrl().ifPresent(eventualResponse::setAccessUrl);
+      }
+      if (f.equals(Fields.GOOGLE_SERVICE_ACCOUNT)) {
+        drsMetadata.getBondSaKey().ifPresent(eventualResponse::setGoogleServiceAccount);
+      }
 
-    drsMetadata
-        .getDrsResponse()
-        .ifPresent(
-            r -> {
-              if (requestedFields.contains(Fields.TIME_CREATED)) {
-                eventualResponse.setTimeCreated(r.getCreatedTime());
-              }
-              if (requestedFields.contains(Fields.TIME_UPDATED)) {
-                eventualResponse.setTimeUpdated(r.getUpdatedTime());
-              }
-              if (requestedFields.contains(Fields.HASHES)) {
-                eventualResponse.setHashes(getHashesMap(r.getChecksums()));
-              }
-              if (requestedFields.contains(Fields.SIZE)) {
-                eventualResponse.setSize(r.getSize());
-              }
-              if (requestedFields.contains(Fields.CONTENT_TYPE)) {
-                eventualResponse.setContentType(r.getMimeType());
-              }
+      drsMetadata
+          .getDrsResponse()
+          .ifPresent(
+              r -> {
+                if (f.equals(Fields.TIME_CREATED)) {
+                  eventualResponse.setTimeCreated(r.getCreatedTime());
+                }
+                if (f.equals(Fields.TIME_UPDATED)) {
+                  eventualResponse.setTimeUpdated(r.getUpdatedTime());
+                }
+                if (f.equals(Fields.HASHES)) {
+                  eventualResponse.setHashes(getHashesMap(r.getChecksums()));
+                }
+                if (f.equals(Fields.SIZE)) {
+                  eventualResponse.setSize(r.getSize());
+                }
+                if (f.equals(Fields.CONTENT_TYPE)) {
+                  eventualResponse.setContentType(r.getMimeType());
+                }
 
-              var gsUrl = MetadataService.getGcsAccessURL(r).map(AccessURL::getUrl);
-              if (requestedFields.contains(Fields.GS_URI)) {
-                gsUrl.ifPresent(eventualResponse::setGsUri);
-              }
+                var gsUrl = MetadataService.getGcsAccessURL(r).map(AccessURL::getUrl);
+                if (f.equals(Fields.GS_URI)) {
+                  gsUrl.ifPresent(eventualResponse::setGsUri);
+                }
 
-              var gsFileInfo = gsUrl.map(gsUriParseRegex::matcher);
-              if (requestedFields.contains(Fields.BUCKET)) {
-                gsFileInfo.map(i -> i.group("bucket")).ifPresent(eventualResponse::setBucket);
-              }
-              if (requestedFields.contains(Fields.NAME)) {
-                gsFileInfo.map(i -> i.group("name")).ifPresent(eventualResponse::setName);
-              }
-            });
+                var gsFileInfo = gsUrl.map(gsUriParseRegex::matcher);
+                if (gsFileInfo.map(Matcher::matches).orElse(false)) {
+                  if (f.equals(Fields.BUCKET)) {
+                    gsFileInfo.map(i -> i.group("bucket")).ifPresent(eventualResponse::setBucket);
+                  }
+                  if (f.equals(Fields.NAME)) {
+                    gsFileInfo.map(i -> i.group("name")).ifPresent(eventualResponse::setName);
+                  }
+                }
+              });
+    }
 
     return eventualResponse;
   }
