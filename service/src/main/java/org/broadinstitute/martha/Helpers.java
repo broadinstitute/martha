@@ -2,6 +2,7 @@ package org.broadinstitute.martha;
 
 import java.net.URL;
 import java.util.regex.Pattern;
+import org.broadinstitute.martha.models.BondProviderEnum;
 
 public class Helpers {
 
@@ -11,6 +12,12 @@ public class Helpers {
   private static final Pattern jadeDataRepoHostRegex =
       Pattern.compile(".*data.*[-.](broadinstitute\\.org|terra\\.bio)$");
   private static final Pattern pathSlashRegex = Pattern.compile("^/?([^/]+.*?)/?$");
+
+  private static final String PROD_DATASTAGE_NAMESPACE = "dg.4503";
+  private static final String STAGING_DATASTAGE_NAMESPACE = "dg.712c";
+  private static final String ANVIL_NAMESPACE = "dg.anv0";
+  private static final String CRDC_NAMESPACE = "dg.4dfc";
+  private static final String KIDS_FIRST_NAMESPACE = "dg.f82a1a";
 
   public static Boolean hasDataGuidsHost(URL someUrl) {
     return someUrl.getHost().startsWith(dataGuidsHostPrefix);
@@ -32,6 +39,21 @@ public class Helpers {
           String.format(
               "Data Object URIs with either '%s' or '%s' as host are required to have a path: '%s'",
               dataGuidsHostPrefix, jadeDataRepoHostRegex, someUrl));
+    }
+  }
+
+  public static BondProviderEnum determineCibBondProvider(String cib) {
+    switch (cib) {
+      case ANVIL_NAMESPACE:
+        return BondProviderEnum.anvil;
+      case CRDC_NAMESPACE:
+        return BondProviderEnum.dcf_fence;
+      case KIDS_FIRST_NAMESPACE:
+        return BondProviderEnum.kids_first;
+      case PROD_DATASTAGE_NAMESPACE:
+      case STAGING_DATASTAGE_NAMESPACE:
+      default:
+        return BondProviderEnum.fence;
     }
   }
 

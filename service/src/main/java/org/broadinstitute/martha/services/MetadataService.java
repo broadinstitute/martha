@@ -72,7 +72,7 @@ public class MetadataService {
    */
   private static final Pattern compactIdRegex =
       Pattern.compile(
-          "(?:dos|drs)://(?<host>dg\\.[0-9a-z-],)(?<separator>[:/])(?<suffix>[^?]*)(?<query>\\?(.*))?",
+          "(?:dos|drs)://(?<host>dg\\.[0-9a-z-]+)[:/](?<suffix>[^?]*)(?<query>\\?(.*))?",
           Pattern.CASE_INSENSITIVE);
 
   private static final Pattern gsUriParseRegex =
@@ -113,13 +113,14 @@ public class MetadataService {
     var compactIdMatch = compactIdRegex.matcher(drsUri);
 
     if (compactIdMatch.matches()) {
-      String cibHost = compactIdMatch.group("host");
 
       return UriComponentsBuilder.newInstance()
-          .host(
-              Objects.requireNonNull(
-                  marthaConfig.getHosts().get(cibHost),
-                  String.format("Unrecognized Compact Identifier Based host [%s]", cibHost)))
+          .host(marthaConfig.expandCibHost(compactIdMatch.group("host")))
+          //              Objects.requireNonNull(
+          //
+          // marthaConfig.getHosts().get(Helpers.determineCibBondProvider(cibHost)),
+          //                  String.format("Unrecognized Compact Identifier Based host [%s]",
+          // cibHost)))
           .path(URLEncoder.encode(compactIdMatch.group("suffix"), StandardCharsets.UTF_8))
           .query(compactIdMatch.group("query"))
           .build();

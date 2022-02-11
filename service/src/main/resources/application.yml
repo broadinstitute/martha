@@ -10,6 +10,7 @@ martha:
     crdc: nci-crdc-staging.datacommons.io
     kidsFirst: gen3staging.kidsfirstdrc.org
     theAnvil: staging.theanvil.io
+    passportTest: ctds-test-env.planx-pla.net
 
   drsProviders:
     bioDataCatalyst:
