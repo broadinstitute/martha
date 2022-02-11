@@ -57,8 +57,8 @@ test('configDefaultsFrom should get the right answer for the Cromwell dev enviro
         passportTestHost: config.HOST_PASSPORT_TEST,
         itMarthaBaseUrl: 'https://martha-fiab.dsde-dev.broadinstitute.org:32443',
         itBondBaseUrl: 'https://bond-fiab.dsde-dev.broadinstitute.org:31443',
-        rasClientMTLSKeySecretName: 'projects/broad-dsde-dev/secrets/ras-mtls-client-key/versions/latest',
-        rasClientMTLSCertSecretName: 'projects/broad-dsde-dev/secrets/ras-mtls-client-cert/versions/latest'
+        rasClientMTLSKeySecretName: 'projects/broad-dsde-cromwell-dev/secrets/ras-mtls-client-key/versions/latest',
+        rasClientMTLSCertSecretName: 'projects/broad-dsde-cromwell-dev/secrets/ras-mtls-client-cert/versions/latest'
     };
     t.deepEqual(config.configDefaultsForEnv({ marthaEnv: config.ENV_CROMWELL_DEV }), expectedForCromwellDev);
 });
@@ -99,7 +99,7 @@ test('config parseConfigJson should return an empty json in ENV_MOCK', (t) => {
     t.deepEqual(configJson, {});
 });
 
-test('config parseConfigJson should return an empty json for a missing temp file in ENV_DEV', (t) => {
+test('config parseConfigJson should return an empty json for aanswer for the Cromwell dev environment missing temp file in ENV_DEV', (t) => {
     const configPathTmp = tmp.fileSync();
     fs.writeSync(configPathTmp.fd, '{"hello": "world"}');
     configPathTmp.removeCallback(); // Delete the file before calling parseConfigJson
