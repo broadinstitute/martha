@@ -30,10 +30,12 @@ public interface DrsProviderInterface {
    * added to the DRS spec or implement a temporary spec extension with the Terra Data Repo team.
    * See BT-417 for more details.
    */
+
   default boolean useAliasesForLocalizationPath() {
     return false;
   }
 
+  // TODO test this
   default ProviderAccessMethodConfig getAccessMethodByType(AccessMethod.TypeEnum accessMethodType) {
     return getAccessMethodConfigs().stream()
         .filter(o -> o.getType().getReturnedEquivalent() == accessMethodType)
