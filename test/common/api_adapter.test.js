@@ -11,7 +11,7 @@ function mockResponseToGet(textValue) {
         set: sinon.stub()
     };
 }
-
+// TODO someone should make sure we don't need this test file in dr shub
 let getRequest;
 
 test.before(() => {

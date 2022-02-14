@@ -30,7 +30,6 @@ public interface DrsProviderInterface {
    * added to the DRS spec or implement a temporary spec extension with the Terra Data Repo team.
    * See BT-417 for more details.
    */
-
   default boolean useAliasesForLocalizationPath() {
     return false;
   }

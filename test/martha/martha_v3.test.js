@@ -156,6 +156,7 @@ test.serial.afterEach(() => {
     sinon.restore();
 });
 
+// TODO: test 1
 test.serial('martha_v3 uses the default error handler for unexpected errors', async (t) => {
     const expectedError = new Error('Expected test error');
     const badReq = { get headers() { throw expectedError; } };
@@ -165,6 +166,7 @@ test.serial('martha_v3 uses the default error handler for unexpected errors', as
     sinon.assert.callCount(response.send, 0);
 });
 
+// TODO: test 2
 test.serial('martha_v3 calls the correct endpoints when only the accessUrl is requested with passports', async (t) => {
     const {
         id: objectId, self_uri: drsUri,
@@ -188,6 +190,7 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
     sinon.assert.callCount(postJsonToApiStub, 1);
 });
 
+// TODO: test 3
 test.serial('martha_v3 calls the correct endpoints when only the accessUrl is requested with passports but using fallback', async (t) => {
     const {
         id: objectId, self_uri: drsUri,
@@ -216,6 +219,8 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
 //
 // [0] https://ucsc-cgl.atlassian.net/browse/AZUL-702
 // [1] https://broadinstitute.slack.com/archives/G011ZUKHCUX/p1597694952108600
+
+// TODO: test 4
 test.serial('martha_v3 resolves a valid DRS-style url', async (t) => {
     const bond = bondUrls('dcf-fence');
     const drs = drsUrls(crdc, '123');
@@ -231,7 +236,7 @@ test.serial('martha_v3 resolves a valid DRS-style url', async (t) => {
     sinon.assert.callCount(getJsonFromApiStub, 2);
 });
 
-// TODO: porting this test to MarthaApiControllerTest as testExtraDataDoesNotExplodeMartha()
+// TODO: test 5: porting this test to MarthaApiControllerTest as testExtraDataDoesNotExplodeMartha()
 test.serial("martha_v3 doesn't fail when extra data submitted besides a 'url'", async (t) => {
     const response = mockResponse();
     await marthaV3(
@@ -241,6 +246,7 @@ test.serial("martha_v3 doesn't fail when extra data submitted besides a 'url'", 
     t.is(response.statusCode, 200);
 });
 
+// TODO: test 6
 test.serial('martha_v3 does not call Bond when only DRS fields are requested', async (t) => {
     const drs = drsUrls(bdc, '123');
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(sampleDosResponse);
@@ -262,6 +268,7 @@ test.serial('martha_v3 does not call Bond when only DRS fields are requested', a
     sinon.assert.callCount(getJsonFromApiStub, 1);
 });
 
+// TODO: test 7
 test.serial('martha_v3 does not call anything when only a `googleServiceAccount` is requested for Kids First', async (t) => {
     const response = mockResponse();
 
@@ -281,6 +288,7 @@ test.serial('martha_v3 does not call anything when only a `googleServiceAccount`
     sinon.assert.callCount(getJsonFromApiStub, 0);
 });
 
+// TODO: test 8
 test.serial('martha_v3 calls the correct endpoints if the googleServiceAccount is requested', async (t) => {
     const bond = bondUrls('dcf-fence');
     getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
@@ -302,6 +310,7 @@ test.serial('martha_v3 calls the correct endpoints if the googleServiceAccount i
     sinon.assert.callCount(getJsonFromApiStub, 1);
 });
 
+// TODO: test 8
 test.serial('martha_v3 calls the correct endpoints when only the accessUrl is requested', async (t) => {
     const {
         id: objectId, self_uri: drsUri,
@@ -325,6 +334,7 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
     sinon.assert.callCount(getJsonFromApiStub, 3);
 });
 
+// TODO: test 9
 test.serial('martha_v3 calls the correct endpoints when access url fetch is forced for TDR', async (t) => {
     const {
         id: objectId, self_uri: drsUri,
@@ -347,6 +357,7 @@ test.serial('martha_v3 calls the correct endpoints when access url fetch is forc
     sinon.assert.callCount(getJsonFromApiStub, 2);
 });
 
+// TODO: test 10
 test.serial('martha_v3 calls the correct endpoints when access url fetch is forced for BDC', async (t) => {
     const {
         id: objectId, self_uri: drsUri,
@@ -370,6 +381,7 @@ test.serial('martha_v3 calls the correct endpoints when access url fetch is forc
     sinon.assert.callCount(getJsonFromApiStub, 3);
 });
 
+// TODO: test 11
 test.serial('martha_v3 calls the correct endpoints when access url fetch is forced for CRDC', async (t) => {
     const {
         id: objectId, self_uri: drsUri,
@@ -393,6 +405,7 @@ test.serial('martha_v3 calls the correct endpoints when access url fetch is forc
     sinon.assert.callCount(getJsonFromApiStub, 3);
 });
 
+// TODO: test 12
 test.serial('martha_v3 calls the correct endpoints when access url fetch is forced for The AnVIL', async (t) => {
     const {
         id: objectId, self_uri: drsUri,
@@ -416,6 +429,7 @@ test.serial('martha_v3 calls the correct endpoints when access url fetch is forc
     sinon.assert.callCount(getJsonFromApiStub, 3);
 });
 
+// TODO: test 13
 test.serial('martha_v3 calls the correct endpoints when only the fileName is requested and the metadata contains a name', async (t) => {
     const fileName = 'HG01131.final.cram.crai';
     const drsResponse = bdcDrsResponseCustom({
@@ -439,6 +453,7 @@ test.serial('martha_v3 calls the correct endpoints when only the fileName is req
     sinon.assert.callCount(getJsonFromApiStub, 1);
 });
 
+// TODO: test 14
 test.serial('martha_v3 calls the correct endpoints when only the fileName is requested and the metadata contains only an access id', async (t) => {
     const {
         id: objectId, self_uri: drsUri,
@@ -460,6 +475,7 @@ test.serial('martha_v3 calls the correct endpoints when only the fileName is req
     sinon.assert.callCount(getJsonFromApiStub, 1);
 });
 
+// TODO: test 15
 test.serial('martha_v3 calls return the DRS name field for a file name even when it differs from the access url', async (t) => {
     const {
         id: objectId, self_uri: drsUri,
@@ -487,7 +503,7 @@ test.serial('martha_v3 calls return the DRS name field for a file name even when
     sinon.assert.callCount(getJsonFromApiStub, 3);
 });
 
-// TODO: porting this to MarthaApiControllerTest as testMarthaCallsNoEndpointsWithNoFieldsRequested()
+// TODO: test 16: porting this to MarthaApiControllerTest as testMarthaCallsNoEndpointsWithNoFieldsRequested()
 test.serial('martha_v3 calls no endpoints when no fields are requested', async (t) => {
     const response = mockResponse();
 
@@ -504,7 +520,7 @@ test.serial('martha_v3 calls no endpoints when no fields are requested', async (
     sinon.assert.callCount(getJsonFromApiStub, 0);
 });
 
-// TODO porting this as marthaReturnsErrorIfFieldsIsNotArray()
+// TODO: test 17: porting this as marthaReturnsErrorIfFieldsIsNotArray()
 test.serial('martha_v3 returns an error when fields is not an array', async (t) => {
     const response = mockResponse();
 
@@ -530,7 +546,7 @@ test.serial('martha_v3 returns an error when fields is not an array', async (t) 
     sinon.assert.callCount(getJsonFromApiStub, 0);
 });
 
-// TODO porting this as marthaReturnsErrorWhenInvalidFieldIsRequested()
+// TODO test 18: porting this as marthaReturnsErrorWhenInvalidFieldIsRequested()
 test.serial('martha_v3 returns an error when an invalid field is requested', async (t) => {
     const response = mockResponse();
 
@@ -559,6 +575,7 @@ test.serial('martha_v3 returns an error when an invalid field is requested', asy
     sinon.assert.callCount(getJsonFromApiStub, 0);
 });
 
+// TODO: test 19
 test.serial('martha_v3 should return 400 if a Data Object without authorization header is provided', async (t) => {
     const response = mockResponse();
     const mockReq = mockRequest({ body: { 'url': 'dos://abc/123' } });
@@ -571,6 +588,7 @@ test.serial('martha_v3 should return 400 if a Data Object without authorization 
     t.is(response.body.response.text, 'Request is invalid. Authorization header is missing.');
 });
 
+// TODO: test 20
 test.serial('martha_v3 should return 400 if not given a url', async (t) => {
     const response = mockResponse();
 
@@ -581,6 +599,7 @@ test.serial('martha_v3 should return 400 if not given a url', async (t) => {
     t.is(response.body.response.text, "Request is invalid. 'url' is missing.");
 });
 
+// TODO: test 21
 test.serial('martha_v3 should return 400 if given a dg URL without a path', async (t) => {
     const response = mockResponse();
 
@@ -591,6 +610,7 @@ test.serial('martha_v3 should return 400 if given a dg URL without a path', asyn
     t.is(response.body.response.text, 'Request is invalid. "dos://dg.abc" is missing a host and/or a path.');
 });
 
+// TODO: test 22
 test.serial('martha_v3 should return 400 if given a dg URL with only a path', async (t) => {
     const response = mockResponse();
 
@@ -601,6 +621,7 @@ test.serial('martha_v3 should return 400 if given a dg URL with only a path', as
     t.is(response.body.response.text, 'Request is invalid. "dos:///dg.abc" is missing a host and/or a path.');
 });
 
+// TODO: test 23
 test.serial('martha_v3 should return 400 if no data is posted with the request', async (t) => {
     const response = mockResponse();
 
@@ -611,6 +632,7 @@ test.serial('martha_v3 should return 400 if no data is posted with the request',
     t.is(response.body.response.text, "Request is invalid. 'url' is missing.");
 });
 
+// TODO: test 24
 test.serial('martha_v3 should return 400 if given a \'url\' with an invalid value', async (t) => {
     const response = mockResponse();
 
@@ -621,6 +643,7 @@ test.serial('martha_v3 should return 400 if given a \'url\' with an invalid valu
     t.is(response.body.response.text, 'Request is invalid. Invalid URL: Not a valid URI');
 });
 
+// TODO: test 25
 test.serial('martha_v3 should return 500 if Data Object resolution fails', async (t) => {
     const drs = drsUrls(bdc, '123');
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).rejects(new Error('Data Object Resolution forced to fail by testing stub'));
@@ -633,6 +656,7 @@ test.serial('martha_v3 should return 500 if Data Object resolution fails', async
     t.is(response.body.response.text, 'Received error while resolving DRS URL. Data Object Resolution forced to fail by testing stub');
 });
 
+// TODO: test 26
 test.serial('martha_v3 should return the underlying status if Data Object resolution fails', async (t) => {
     const drs = drsUrls(bdc, '123');
     const error = new Error('Data Object Resolution forced to fail by testing stub');
@@ -650,6 +674,7 @@ test.serial('martha_v3 should return the underlying status if Data Object resolu
     );
 });
 
+// TODO: test 27
 test.serial('martha_v3 should return 500 if key retrieval from Bond fails', async (t) => {
     const bond = bondUrls('dcf-fence');
     const drs = drsUrls(crdc, '123');
@@ -664,6 +689,7 @@ test.serial('martha_v3 should return 500 if key retrieval from Bond fails', asyn
     t.is(response.body.response.text, 'Received error contacting Bond. Bond key lookup forced to fail by testing stub');
 });
 
+// TODO: test 28
 test.serial('martha_v3 calls Bond with the "fence" provider when the Data Object URL host is "dg.4503"', async (t) => {
     const bond = bondUrls('fence');
     const drs = drsUrls(config.HOST_BIODATA_CATALYST_STAGING);
@@ -677,6 +703,7 @@ test.serial('martha_v3 calls Bond with the "fence" provider when the Data Object
     sinon.assert.callCount(getJsonFromApiStub, 2);
 });
 
+// TODO: test 29
 test.serial('martha_v3 does call Bond and return SA key when the host url is for dataguids.org', async (t) => {
     const response = mockResponse();
 
@@ -693,6 +720,7 @@ test.serial('martha_v3 does call Bond and return SA key when the host url is for
     sinon.assert.callCount(getJsonFromApiStub, 0);
 });
 
+// TODO: test 30
 test.serial('martha_v3 does not call Bond or return SA key when the host url is for jade data repo', async (t) => {
     const drs = drsUrls(config.HOST_TDR_DEV, 'abc');
     getJsonFromApiStub.withArgs(drs.objectsUrl, terraAuth).resolves(jadeDrsResponse);
@@ -708,6 +736,7 @@ test.serial('martha_v3 does not call Bond or return SA key when the host url is 
     sinon.assert.callCount(getJsonFromApiStub, 1);
 });
 
+// TODO: test 31
 test.serial('martha_v3 parses response and generates signed URL correctly for an Azure-hosted TDR file', async (t) => {
     const {
         id: objectId,
@@ -726,6 +755,7 @@ test.serial('martha_v3 parses response and generates signed URL correctly for an
     sinon.assert.callCount(getJsonFromApiStub, 2);
 });
 
+// TODO: test 32
 test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
     const bond = bondUrls('dcf-fence');
     const drs = drsUrls(config.HOST_CRDC_STAGING, '206dfaa6-bcf1-4bc9-b2d0-77179f0f48fc');
@@ -744,6 +774,7 @@ test.serial('martha_v3 parses Gen3 CRDC response correctly', async (t) => {
     sinon.assert.callCount(getJsonFromApiStub, 2);
 });
 
+// TODO: test 33
 test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t) => {
     const bond = bondUrls('dcf-fence');
     // TODO: This object ID is inconsistent with gen3CrdcResponse but, for now, it doesn't break
@@ -765,6 +796,7 @@ test.serial('martha_v3 parses a Gen3 CRDC CIB URI response correctly', async (t)
     sinon.assert.callCount(getJsonFromApiStub, 2);
 });
 
+// TODO: test 34
 test.serial('martha_v3 parses PDC response correctly', async (t) => {
     const objectId = 'dg.4DFC/f2ffba75-5197-11e9-9a07-0a80fada099c';
     const drsUri = `drs://${config.HOST_CRDC_STAGING}/${objectId}`;
@@ -791,6 +823,7 @@ test.serial('martha_v3 parses PDC response correctly', async (t) => {
     sinon.assert.callCount(getJsonFromApiStub, 3);
 });
 
+// TODO: test 35
 test.serial('martha_v3 parses a PDC CIB URI response correctly', async (t) => {
     const objectId = 'f2ffba75-5197-11e9-9a07-0a80fada099c';
     const drsUri = `drs://dg.4DFC:dg.4DFC/${objectId}`;
@@ -817,6 +850,7 @@ test.serial('martha_v3 parses a PDC CIB URI response correctly', async (t) => {
     sinon.assert.callCount(getJsonFromApiStub, 3);
 });
 
+// TODO: test 36
 // BT-236 temporarily cut access token and access endpoint out of the flow
 test.serial('martha_v3 parses BDC response correctly', async (t) => {
     const drsHost = config.HOST_BIODATA_CATALYST_STAGING;
@@ -842,6 +876,7 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
     sinon.assert.callCount(getJsonFromApiStub, 2);
 });
 
+// TODO: test 37
 // BT-236 temporarily cut access token and access endpoint out of the flow
 test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
     const bond = bondUrls('fence');
@@ -859,6 +894,7 @@ test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
     sinon.assert.callCount(getJsonFromApiStub, 2);
 });
 
+// TODO: test 38
 test.serial('martha_v3 parses Anvil response correctly', async (t) => {
     const bond = bondUrls('anvil');
     const { id: objectId, self_uri: drsUri } = anvilDrsResponse;
@@ -875,6 +911,7 @@ test.serial('martha_v3 parses Anvil response correctly', async (t) => {
     sinon.assert.callCount(getJsonFromApiStub, 2);
 });
 
+// TODO: test 39
 test.serial('martha_v3 parses a The AnVIL CIB URI response correctly', async (t) => {
     const bond = bondUrls('anvil');
     const objectId = 'dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0';
@@ -895,6 +932,7 @@ test.serial('martha_v3 parses a The AnVIL CIB URI response correctly', async (t)
     sinon.assert.callCount(getJsonFromApiStub, 2);
 });
 
+// TODO: test 40
 test.serial('martha_v3 parses Kids First response correctly', async (t) => {
     const {
         id: objectId, self_uri: drsUri,
@@ -916,6 +954,7 @@ test.serial('martha_v3 parses Kids First response correctly', async (t) => {
     sinon.assert.callCount(getJsonFromApiStub, 3);
 });
 
+// TODO: test 41
 test.serial('martha_v3 parses a Kids First CIB URI response correctly', async (t) => {
     const {
         id: objectId,
@@ -940,6 +979,7 @@ test.serial('martha_v3 parses a Kids First CIB URI response correctly', async (t
     sinon.assert.callCount(getJsonFromApiStub, 3);
 });
 
+// TODO: test 42
 test.serial('martha_v3 parses HCA response correctly', async (t) => {
     const drs = drsUrls(config.HOST_TDR_DEV, 'v1_4641bafb-5190-425b-aea9-9c7b125515c8_e37266ba-790d-4641-aa76-854d94be2fbe');
     getJsonFromApiStub.withArgs(drs.objectsUrl, terraAuth).resolves(hcaDrsResponse);
@@ -971,6 +1011,7 @@ const testWithTimeout = (ms, asyncTestFn) => (t) => {
     return Promise.race([asyncTestFn(t), waitThenFail()]);
 };
 
+// TODO: test 43
 test.serial('martha_v3 succeeds even if fetching a signed URL never returns', testWithTimeout(5 * 1000, async (t) => {
     // martha_v3 should return the native access URL instead of letting the Google Cloud Function
     // infrastructure time out after 60 seconds. For the purposes of this test, `testWithTimeout`
@@ -998,6 +1039,7 @@ test.serial('martha_v3 succeeds even if fetching a signed URL never returns', te
     sinon.assert.callCount(getJsonFromApiStub, 3);
 }));
 
+// TODO: test 44
 test.serial('martha_v3 fails if something times out before trying to fetch a signed URL', testWithTimeout(5 * 1000, async (t) => {
     overridePencilsDownSeconds(3);
     const { id: objectId, self_uri: drsUri } = kidsFirstDrsResponse;
@@ -1023,6 +1065,7 @@ test.serial('martha_v3 fails if something times out before trying to fetch a sig
     );
 }));
 
+// TODO: test 45
 test.serial('martha_v3 passes through the HTTP status if an error is encountered while fetching a signed URL for an S3 object', async (t) => {
     const {
         id: objectId, self_uri: drsUri,
@@ -1059,6 +1102,7 @@ test.serial('martha_v3 passes through the HTTP status if an error is encountered
     sinon.assert.callCount(getJsonFromApiStub, 3);
 });
 
+// TODO: test 46
 test.serial('martha_v3 returns null for fields missing in drs and bond response', async (t) => {
     const drs = drsUrls(crdc, '123');
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(dosObjectWithMissingFields);
@@ -1070,6 +1114,7 @@ test.serial('martha_v3 returns null for fields missing in drs and bond response'
     t.deepEqual(response.body, expectedObjWithMissingFields);
 });
 
+// TODO: test 47
 test.serial('martha_v3 should return 500 if Data Object parsing fails', async (t) => {
     const drs = drsUrls(bdc, '123');
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(dosObjectWithInvalidFields);
@@ -1090,6 +1135,7 @@ test.serial('martha_v3 should return 500 if Data Object parsing fails', async (t
     );
 });
 
+// TODO: test 48
 /* BT-236 Skip this as it fails in weird ways (not in 'access method parsing') with signed URLs turned off. */
 test.skip('martha_v3 should return 500 if access method parsing fails', async (t) => {
     getJsonFromApiStub.onCall(0).resolves(drsObjectWithInvalidFields);
@@ -1113,6 +1159,7 @@ test.skip('martha_v3 should return 500 if access method parsing fails', async (t
     );
 });
 
+// TODO: test 49
 /* BT-236 Skip testing access token fetch failure since that is not something this code even attempts with BDC
  * signed URLs turned off. */
 test.skip('martha_v3 should return 500 on exception trying to get access token from Bond', async (t) => {
@@ -1138,6 +1185,7 @@ test.skip('martha_v3 should return 500 on exception trying to get access token f
     );
 });
 
+// TODO: test 50
 /* BT-236 Skip testing access URL fetch failure since that is not something this code even attempts with BDC
  * signed URLs turned off. */
 test.skip('martha_v3 should return 500 on exception trying to get signed URL from DRS provider', async (t) => {
@@ -1164,6 +1212,7 @@ test.skip('martha_v3 should return 500 on exception trying to get signed URL fro
     );
 });
 
+// TODO: test 51
 test.serial('martha_v3 generateAccessUrl should generate an access url', (t) => {
     const urlParts = getHttpsUrlParts('drs://some.host.example.com/some_id');
     const drsProvider = new DrsProvider('Test Dummy Provider (TDP)', false, null, null);
@@ -1171,6 +1220,7 @@ test.serial('martha_v3 generateAccessUrl should generate an access url', (t) => 
     t.is(result, `https://some.host.example.com${PROTOCOL_PREFIX_DRS}/some_id/access/some_access_id`);
 });
 
+// TODO: test 52
 test.serial('martha_v3 generateAccessUrl should generate an access url with a different port', (t) => {
     const urlParts = getHttpsUrlParts('drs://some.host.example.com:8000/some_id');
     const drsProvider = new DrsProvider('Test Dummy Provider (TDP)', '/some_prefix', false, null, null);
@@ -1184,6 +1234,7 @@ This is hypothetical scenario based on a combination of:
 - HCA used to server DOS URIs with query strings
 - access_id values are used to retrieve HTTPS signed URLs
  */
+// TODO: test 53
 test.serial('martha_v3 generateAccessUrl should add the query string to the access url', (t) => {
     const urlParts = getHttpsUrlParts(`drs://${bdc}/some_id?query=value`);
     const drsProvider = new DrsProvider('Test Dummy Provider (TDP)', '/some_prefix', false, null, null);
@@ -1205,14 +1256,17 @@ function determineDrsProviderWrapper(testUrl) {
 /**
  * determineDrsProvider(uri) -> drsUrl Scenario 1: data objects uri with non-dg host and path
  */
+// TODO: test 54
 test.serial('martha_v3 determineDrsProvider should parse dos:// Data Object uri', (t) => {
     t.is(determineDrsProviderWrapper(`dos://${bdc}/bar`), `https://${bdc}/ga4gh/drs/v1/objects/bar`);
 });
 
+// TODO: test 55
 test.serial('martha_v3 determineDrsProvider should parse drs:// Data Object uri', (t) => {
     t.is(determineDrsProviderWrapper(`drs://${bdc}/bar`), `https://${bdc}/ga4gh/drs/v1/objects/bar`);
 });
 
+// TODO: test 56
 test.serial('martha_v3 determineDrsProvider should parse drs:// Data Object uri with query part', (t) => {
     t.is(
         determineDrsProviderWrapper(`drs://${bdc}/bar?version=1&bananas=yummy`),
@@ -1220,6 +1274,7 @@ test.serial('martha_v3 determineDrsProvider should parse drs:// Data Object uri 
     );
 });
 
+// TODO: test 57
 test.serial('martha_v3 determineDrsProvider should parse drs:// Data Object uri when host includes a port number', (t) => {
     // CIB hosts apparently don't handle ports correctly, e.g. using `dg.4503` here doesn't build a "correct" URL.
     t.is(
@@ -1234,6 +1289,7 @@ test.serial('martha_v3 determineDrsProvider should parse drs:// Data Object uri 
 /**
  * determineDrsProvider(uri) -> drsUrl Scenario 2: data objects uri with dg host
  */
+// TODO: test 58
 test.serial('martha_v3 determineDrsProvider should parse "dos://" Data Object uri with a host and path', (t) => {
     t.is(
         determineDrsProviderWrapper('dos://dg.4503/bar'),
@@ -1241,6 +1297,7 @@ test.serial('martha_v3 determineDrsProvider should parse "dos://" Data Object ur
     );
 });
 
+// TODO: test 59
 test.serial('martha_v3 determineDrsProvider should parse "drs://" Data Object uri with a host and path', (t) => {
     t.is(
         determineDrsProviderWrapper('drs://dg.4503/bar'),
@@ -1248,6 +1305,7 @@ test.serial('martha_v3 determineDrsProvider should parse "drs://" Data Object ur
     );
 });
 
+// TODO: test 60
 test.serial('martha_v3 determineDrsProvider should parse "drs://dg." Data Object uri with query part', (t) => {
     t.is(
         determineDrsProviderWrapper('drs://dg.4503/bar?version=1&bananas=yummy'),
@@ -1255,6 +1313,7 @@ test.serial('martha_v3 determineDrsProvider should parse "drs://dg." Data Object
     );
 });
 
+// TODO: test 61
 test.serial('martha_v3 determineDrsProvider should parse "drs://" Data Object uri with an expanded host and path', (t) => {
     t.is(
         determineDrsProviderWrapper(`dos://${config.HOST_BIODATA_CATALYST_STAGING}/dg.2345/bar`),
@@ -1278,6 +1337,7 @@ test.serial('martha_v3 determineDrsProvider should parse "drs://" Data Object ur
 /**
  * determineDrsProvider(uri) -> drsUrl Scenario 4: data objects uri with jade data repo host
  */
+// TODO: test 62
 test.serial('martha_v3 should parse Data Object uri with jade data repo DEV as host', (t) => {
     t.is(
         determineDrsProviderWrapper(`drs://${config.HOST_TDR_DEV}/973b5e79-6433-40ce-bf38-686ab7f17820`),
@@ -1285,6 +1345,7 @@ test.serial('martha_v3 should parse Data Object uri with jade data repo DEV as h
     );
 });
 
+// TODO: test 63
 test.serial('martha_v3 should parse Data Object uri with jade data repo DEV as host and path with snapshot id', (t) => {
     t.is(
         determineDrsProviderWrapper(`drs://${config.HOST_TDR_DEV}/v1_c78919df-5d71-414b-ad29-7c3c0d810657_973b5e79-6433-40ce-bf38-686ab7f17820`),
@@ -1292,6 +1353,7 @@ test.serial('martha_v3 should parse Data Object uri with jade data repo DEV as h
     );
 });
 
+// TODO: test 64
 test.serial('martha_v3 should parse Data Object uri with jade data repo PROD as host', (t) => {
     t.is(
         determineDrsProviderWrapper('drs://data.terra.bio/anything'),
@@ -1299,6 +1361,7 @@ test.serial('martha_v3 should parse Data Object uri with jade data repo PROD as 
     );
 });
 
+// TODO: test 65
 test.serial('martha_v3 should parse Data Object uri with host that looks like jade data repo host', (t) => {
     t.is(
         determineDrsProviderWrapper(`drs://${config.HOST_TDR_DEV}/v1_anything`),
@@ -1314,6 +1377,7 @@ test.serial('martha_v3 should parse Data Object uri with host that looks like ja
  *
  * TODO: Test prod expansion of compact identifiers
  */
+// TODO: test 66
 test.serial('martha_v3 should parse Data Object uri with the AnVIL prefix dg.ANV0', (t) => {
     t.is(
         determineDrsProviderWrapper('drs://dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0'),
@@ -1321,6 +1385,7 @@ test.serial('martha_v3 should parse Data Object uri with the AnVIL prefix dg.ANV
     );
 });
 
+// TODO: test 67
 test.serial('martha_v3 should parse Data Object uri with the AnVIL prod host', (t) => {
     t.is(
         determineDrsProviderWrapper(`drs://${config.HOST_THE_ANVIL_PROD}/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`),
@@ -1328,6 +1393,7 @@ test.serial('martha_v3 should parse Data Object uri with the AnVIL prod host', (
     );
 });
 
+// TODO: test 68
 test.serial('martha_v3 should parse Data Object uri with the AnVIL staging host', (t) => {
     t.is(
         determineDrsProviderWrapper(`drs://${config.HOST_THE_ANVIL_STAGING}/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`),
@@ -1344,6 +1410,7 @@ test.serial('martha_v3 should parse Data Object uri with the AnVIL staging host'
  *
  * TODO: Test prod expansion of compact identifiers
  */
+// TODO: test 69
 test.serial('martha_v3 should parse Data Object uri with the Kids First prefix dg.F82A1A', (t) => {
     t.is(
         determineDrsProviderWrapper('drs://dg.F82A1A/ed6be7ab-068e-46c8-824a-f39cfbb885cc'),
@@ -1351,6 +1418,7 @@ test.serial('martha_v3 should parse Data Object uri with the Kids First prefix d
     );
 });
 
+// TODO: test 70
 test.serial('martha_v3 should parse Data Object uri with the Kids First prod repo as host', (t) => {
     t.is(
         determineDrsProviderWrapper(`drs://${config.HOST_KIDS_FIRST_PROD}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
@@ -1358,6 +1426,7 @@ test.serial('martha_v3 should parse Data Object uri with the Kids First prod rep
     );
 });
 
+// TODO: test 71
 test.serial('martha_v3 should parse Data Object uri with the Kids First staging repo as host', (t) => {
     t.is(
         determineDrsProviderWrapper(`drs://${config.HOST_KIDS_FIRST_STAGING}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
@@ -1374,6 +1443,7 @@ test.serial('martha_v3 should parse Data Object uri with the Kids First staging 
  *
  * TODO: Test prod expansion of compact identifiers
  */
+// TODO: test 72
 test.serial('martha_v3 should parse Data Object uri with CRDC prefix dg.4DFC', (t) => {
     t.is(
         determineDrsProviderWrapper('drs://dg.4DFC/ed6be7ab-068e-46c8-824a-f39cfbb885cc'),
@@ -1381,6 +1451,7 @@ test.serial('martha_v3 should parse Data Object uri with CRDC prefix dg.4DFC', (
     );
 });
 
+// TODO: test 73
 test.serial('martha_v3 should parse Data Object uri with CRDC prod repo as host', (t) => {
     t.is(
         determineDrsProviderWrapper(`drs://${config.HOST_CRDC_PROD}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
@@ -1388,6 +1459,7 @@ test.serial('martha_v3 should parse Data Object uri with CRDC prod repo as host'
     );
 });
 
+// TODO: test 74
 test.serial('martha_v3 should parse Data Object uri with CRDC staging repo as host', (t) => {
     t.is(
         determineDrsProviderWrapper(`drs://${config.HOST_CRDC_STAGING}/ed6be7ab-068e-46c8-824a-f39cfbb885cc`),
@@ -1404,6 +1476,7 @@ test.serial('martha_v3 should parse Data Object uri with CRDC staging repo as ho
  *
  * TODO: Test prod expansion of compact identifiers
  */
+// TODO: test 75
 test.serial('martha_v3 should parse Data Object uri with BDC prefix dg.712C', (t) => {
     t.is(
         determineDrsProviderWrapper('drs://dg.712C/fc046e84-6cf9-43a3-99cc-ffa2964b88cb'),
@@ -1411,6 +1484,7 @@ test.serial('martha_v3 should parse Data Object uri with BDC prefix dg.712C', (t
     );
 });
 
+// TODO: test 76
 test.serial('martha_v3 should parse Data Object uri with BDC prod repo as host', (t) => {
     t.is(
         determineDrsProviderWrapper(`drs://${config.HOST_BIODATA_CATALYST_PROD}/fc046e84-6cf9-43a3-99cc-ffa2964b88cb`),
@@ -1418,6 +1492,7 @@ test.serial('martha_v3 should parse Data Object uri with BDC prod repo as host',
     );
 });
 
+// TODO: test 77
 test.serial('martha_v3 should parse Data Object uri with BDC staging repo as host', (t) => {
     t.is(
         determineDrsProviderWrapper(`drs://${config.HOST_BIODATA_CATALYST_STAGING}/fc046e84-6cf9-43a3-99cc-ffa2964b88cb`),
@@ -1428,7 +1503,7 @@ test.serial('martha_v3 should parse Data Object uri with BDC staging repo as hos
 /**
  * End Scenario 8
  */
-
+// TODO: test 78
 test.serial('martha_v3 should return 4xx with an unrecognized CIB hostname', async (t) => {
     const response = mockResponse();
 
@@ -1447,6 +1522,7 @@ test.serial('martha_v3 should return 4xx with an unrecognized CIB hostname', asy
     );
 });
 
+// TODO: test 79
 test.serial('martha_v3 should return 400 with an unrecognized hostname (failed attempt at CIB hostname)', async (t) => {
     const response = mockResponse();
 
