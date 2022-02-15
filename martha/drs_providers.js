@@ -51,7 +51,7 @@ class AccessMethod {
 }
 
 class DrsProvider {
-    constructor(providerName, sendMetadataAuth, bondProvider, accessMethods, forceAccessUrl, options) {
+    constructor(providerName, sendMetadataAuth, bondProvider, accessMethods, forceAccessUrl, options, clientPrivateKeySecretName, clientCertSecretName) {
         const defaultOptions = { usesAliasesForLocalizationPath: false };
         this.options = { ...defaultOptions, ...options };
         this.providerName = providerName;
@@ -59,6 +59,8 @@ class DrsProvider {
         this.bondProvider = bondProvider;
         this.accessMethods = accessMethods;
         this.forceAccessUrl = forceAccessUrl;
+        this.clientPrivateKeySecretName = clientPrivateKeySecretName;
+        this.clientCertSecretName = clientCertSecretName;
     }
 
     accessMethodHavingSameTypeAs(accessMethod) {
@@ -230,7 +232,10 @@ class PassportTestDrsProvider extends DrsProvider {
                 new AccessMethod(AccessMethodType.GCS, AccessUrlAuth.PASSPORT, FetchAccessUrl.YES, AccessUrlAuth.FENCE_TOKEN),
                 new AccessMethod(AccessMethodType.S3, AccessUrlAuth.PASSPORT, FetchAccessUrl.YES, AccessUrlAuth.FENCE_TOKEN)
             ],
-            forceAccessUrl
+            forceAccessUrl,
+            null,
+            config.rasClientMTLSKeySecretName,
+            config.rasClientMTLSCertSecretName
         );
     }
 }

@@ -292,6 +292,7 @@ Run the `npx` command using `--fix` flag: `npx eslint <file_name/directory_name>
         --data '{"url": "dos://foo/bar"}'
     ```
 * To stop the functions-framework press `Control-C` in the terminal running `npm start`.
+* Google application credentials are required to test any DRS URI that uses passports and mTLS. Download a service account key and set the environment variable `GOOGLE_APPLICATION_CREDENTIALS` to the path to that key. The service account must have the role `secretmanager.secretAccessor` on the Google project `broad-dsde-dev`.
 
 ## Run Tests
 

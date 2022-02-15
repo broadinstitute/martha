@@ -19,6 +19,8 @@ const {
     AccessUrlAuth
 } = require("./drs_providers");
 
+const {SecretManagerServiceClient} = require('@google-cloud/secret-manager');
+
 const config = require('../common/config');
 const apiAdapter = require('../common/api_adapter');
 const url = require('url');
@@ -43,6 +45,17 @@ let pencilsDownSeconds = 58;
 const overridePencilsDownSeconds = (seconds) => {
     pencilsDownSeconds = seconds;
 };
+
+const secretManagerServiceClient = new SecretManagerServiceClient();
+
+async function getSecret(name) {
+    const [version] = await secretManagerServiceClient.accessSecretVersion({
+        name: name,
+    });
+
+    // Extract the payload as a string.
+    return version.payload.data.toString();
+}
 
 /**
  * Returns the first access method in `drsProvider.accessMethodTypes()` with a type that matches the type of an access
@@ -363,7 +376,12 @@ async function retrieveFromServers(params) {
             case AccessUrlAuth.PASSPORT:
                 if (passports) {
                     try {
-                        return await apiAdapter.postJsonTo(httpsAccessUrl, null, {passports});
+                        let clientCert, clientPrivateKey;
+                        if (drsProvider.clientCertSecretName && drsProvider.clientPrivateKeySecretName) {
+                            clientPrivateKey = await getSecret(drsProvider.clientPrivateKeySecretName);
+                            clientCert = await getSecret(drsProvider.clientCertSecretName);
+                        }
+                        return await apiAdapter.postJsonTo(httpsAccessUrl, null, {passports}, clientPrivateKey, clientCert);
                     } catch (error) {
                         console.log(`Passport authorized request failed for ${httpsAccessUrl} with error ${error}`);
                     }
@@ -622,3 +640,4 @@ exports.generateAccessUrl = generateAccessUrl;
 exports.getHttpsUrlParts = getHttpsUrlParts;
 exports.overridePencilsDownSeconds = overridePencilsDownSeconds;
 exports.PROTOCOL_PREFIX_DRS = PROTOCOL_PREFIX_DRS;
+exports.secretManagerServiceClient = secretManagerServiceClient;

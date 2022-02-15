@@ -45,6 +45,7 @@ const {
     getHttpsUrlParts,
     overridePencilsDownSeconds,
     PROTOCOL_PREFIX_DRS,
+    secretManagerServiceClient
 } = require('../../martha/martha_v3');
 
 const {
@@ -146,10 +147,14 @@ const postJsonToApiStubMethodName = 'postJsonTo';
 let getJsonFromApiStub;
 const getJsonFromApiMethodName = 'getJsonFrom';
 
+let accessSecretVersionStub;
+const accessSecretVersionMethodName = 'accessSecretVersion';
+
 test.serial.beforeEach(() => {
     sinon.restore(); // If one test fails, the .afterEach() block will not execute, so always clean the slate here
     getJsonFromApiStub = sinon.stub(apiAdapter, getJsonFromApiMethodName);
     postJsonToApiStub = sinon.stub(apiAdapter, postJsonToApiStubMethodName);
+    accessSecretVersionStub = sinon.stub(secretManagerServiceClient, accessSecretVersionMethodName);
 });
 
 test.serial.afterEach(() => {
@@ -171,11 +176,16 @@ test.serial('martha_v3 calls the correct endpoints when only the accessUrl is re
         access_methods: [{ access_id: accessId, access_url: { url: gcsUrl } }]
     } = passportTestResponse;
     const passport = '"I am a passport"';
+    const clientKey = "client key";
+    const clientCert = "client cert";
+
     const drs = drsUrls(config.HOST_PASSPORT_TEST, objectId, accessId);
     const drsAccessUrlResponse = mockGcsAccessUrl(gcsUrl);
     getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(passportTestResponse);
     getJsonFromApiStub.withArgs(ecmUrls('ras').passportUrl, terraAuth).resolves(passport);
-    postJsonToApiStub.withArgs(drs.accessUrl, null, {"passports": [passport]}).resolves(drsAccessUrlResponse);
+    postJsonToApiStub.withArgs(drs.accessUrl, null, {"passports": [passport]}, clientKey, clientCert).resolves(drsAccessUrlResponse);
+    accessSecretVersionStub.withArgs({name: config.rasClientMTLSKeySecretName}).resolves([{payload: {data: clientKey}}]);
+    accessSecretVersionStub.withArgs({name: config.rasClientMTLSCertSecretName}).resolves([{payload: {data: clientCert}}]);
     const response = mockResponse();
     const request = mockRequest({body: {url: drsUri, fields: ['accessUrl']}});
 
