@@ -99,7 +99,7 @@ test('config parseConfigJson should return an empty json in ENV_MOCK', (t) => {
     t.deepEqual(configJson, {});
 });
 
-test('config parseConfigJson should return an empty json for aanswer for the Cromwell dev environment missing temp file in ENV_DEV', (t) => {
+test('config parseConfigJson should return an empty json for a missing temp file in ENV_DEV', (t) => {
     const configPathTmp = tmp.fileSync();
     fs.writeSync(configPathTmp.fd, '{"hello": "world"}');
     configPathTmp.removeCallback(); // Delete the file before calling parseConfigJson
