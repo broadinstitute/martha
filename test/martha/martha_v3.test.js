@@ -624,7 +624,7 @@ test.serial('martha_v3 should return 400 if given a \'url\' with an invalid valu
 
     t.is(response.statusCode, 400);
     t.is(response.body.status, 400);
-    t.is(response.body.response.text, 'Request is invalid. Invalid URL: Not a valid URI');
+    t.is(response.body.response.text, 'Request is invalid. Invalid URL');
 });
 
 test.serial('martha_v3 should return 500 if Data Object resolution fails', async (t) => {

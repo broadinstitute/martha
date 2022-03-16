@@ -161,7 +161,7 @@ test('dataObjectUriToHttps should throw a Error when passed an invalid uri', (t)
         () => dataObjectUriToHttps('A string that is not a valid URI'),
         {
             instanceOf: Error,
-            message: 'Cannot read property \'0\' of null'
+            message: 'Cannot read properties of null (reading \'0\')'
         },
         'Should have thrown error but didnt!'
     );

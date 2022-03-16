@@ -249,7 +249,7 @@ is used.
 
 # Development
 ## Setup
-* Install Node 12, the current LTS
+* Install Node 16, the current LTS
   * Google Cloud Functions (GCF) follow Node LTS releases as described
   [here](https://cloud.google.com/functions/docs/writing/#the_cloud_functions_runtime).
   * **MacOS** - It is recommended that you install Node using [Homebrew](https://brew.sh/), or a version manager like
@@ -263,7 +263,7 @@ ESLint is a tool for identifying and reporting on patterns found in ECMAScript/J
 More information can be found on it's [website](https://eslint.org/).
 
 ### Installation and Usage
-Prerequisites: Node.js (>=12.x) built with SSL support
+Prerequisites: Node.js (>=16.x) built with SSL support
 * Install ESLint using npm or yarn:
   `npm install eslint --save-dev`
   or
