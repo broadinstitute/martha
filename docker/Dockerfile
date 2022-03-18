@@ -1,5 +1,5 @@
 # NOTE: If editing this file then check if cleanup of .trivyignore is needed also!
-FROM node:12.19.0-buster
+FROM node:16.14.0-buster
 
 ## Prepare the image
 ENV DEBIAN_FRONTEND noninteractive
