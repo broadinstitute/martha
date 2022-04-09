@@ -23,7 +23,7 @@
     "cors": "^2.8.5",
     "gtoken": "^5.0.5",
     "json-mask": "^1.0.4",
-    "moment": "^2.29.1",
+    "moment": "^2.29.2",
     "superagent": "^6.1.0"
   },
   "devDependencies": {
