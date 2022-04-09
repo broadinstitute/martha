@@ -29,7 +29,7 @@
   "devDependencies": {
     "ava": "^3.13.0",
     "eslint": "^7.32.0",
-    "minimist": "^1.2.5",
+    "minimist": "^1.2.6",
     "nyc": "^15.1.0",
     "sinon": "^9.2.1",
     "supertest": "^6.0.1",
