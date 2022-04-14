@@ -1,4 +1,4 @@
-Martha Release Checklist
+Martha Release Process
 =========
 
 Martha's release process is documented and tracked through a Jira checklist. 
