@@ -893,23 +893,6 @@ test.serial('martha_v3 parses BDC response correctly', async (t) => {
     sinon.assert.callCount(getJsonFromApiStub, 4);
 });
 
-// BT-236 temporarily cut access token and access endpoint out of the flow
-test.serial('martha_v3 parses BDC staging response correctly', async (t) => {
-    const bond = bondUrls('fence');
-    const { id: objectId, self_uri: drsUri } = bdcDrsResponse;
-    const drs = drsUrls(bdc, objectId);
-    getJsonFromApiStub.withArgs(bond.serviceAccountKeyUrl, terraAuth).resolves(googleSAKeyObject);
-    getJsonFromApiStub.withArgs(drs.objectsUrl, null).resolves(bdcDrsResponse);
-    const response = mockResponse();
-
-    await marthaV3(mockRequest({ body: { 'url': drsUri } }), response);
-
-    t.is(response.statusCode, 200);
-    t.deepEqual(response.body, bdcDrsMarthaResult(googleSAKeyObject, null));
-
-    sinon.assert.callCount(getJsonFromApiStub, 2);
-});
-
 test.serial('martha_v3 parses Anvil response correctly', async (t) => {
     const bond = bondUrls('anvil');
     const { id: objectId, self_uri: drsUri } = anvilDrsResponse;
