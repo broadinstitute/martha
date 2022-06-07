@@ -13,14 +13,15 @@ The service account key used to deploy Martha needs to be rotated every 90 days.
 ```
 vault write secret/dsde/martha/prod/deploy-account.json @[key .json file]
 ```
-5. Disable or delete the existing key.
+5. Disable or delete the existing key (id found on above page). Using your `@firecloud.org` account:
 ```
+gcloud config set project broad-dsde-prod
 gcloud iam service-accounts keys disable [key_id] --iam-account=cloud-functions-account@broad-dsde-prod.iam.gserviceaccount.com
 ```
 6. Go to the [Jenkins prod manual deploy project](https://fcprod-jenkins.dsp-techops.broadinstitute.org/job/martha-manual-deploy/) and re-run the last Martha prod job. This will re-deploy the current version of Martha, verifying that the new service account key works.
 7. Again, [run the full manual test on the prod environment](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng) to make sure Martha still works.
-8. Clone the Jira ticket you've been working on. Update the due date to be 12 weeks (84 days) from today (which gives about a week to respond when the time comes).
-9. Add a slack reminder in `#ftfy-private` to trigger 84 days from today. Make sure to include links to these instructions and the Jira ticket you just created.
+8. Clone the Jira ticket you've been working on, without cloning links or sprint fields. Update the due date to be 12 weeks (84 days) from today (which gives about a week to respond when the time comes).
+9. Add a slack reminder in `#dsp-batch-private` to trigger 84 days from today. Make sure to include links to these instructions and the Jira ticket you just created.
 ```
-/remind #ftfy-private :redalert: Reminder to rotate the service account key for Martha prod deploys. https://github.com/broadinstitute/martha/blob/dev/docs/deployment-key-rotation.md [Link to Jira ticket] :redalert: at 9am in 84 days
+/remind #dsp-batch-private :redalert: Reminder to rotate the service account key for Martha prod deploys. https://github.com/broadinstitute/martha/blob/dev/docs/deployment-key-rotation.md [Link to Jira ticket] :redalert: at 9am in 84 days
 ```
