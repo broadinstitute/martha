@@ -349,7 +349,7 @@ Cromwell development and now also maintains Martha.
 
 * When the latest code passes tests in CircleCI, it is tagged `dev_tests_passed_[timestamp]` where `[timestamp]` is the epoch time when the tag was created.
 
-* [Terra-specific release checklist](docs/release-checklist.md)
+* [Terra-specific release process](docs/release-process.md)
 
 
 **NOTE:** 
