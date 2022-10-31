@@ -4,7 +4,7 @@ Martha Deployment Key Rotation
 The service account key used to deploy Martha needs to be rotated every 90 days.
 
 1. Find the current WX ticket for rotating the deployment SA key. If these instructions were followed, it will be in the Slack notification that led you here. Add it to the current Jira board if it's not already there.
-2. [Run the full manual test on the prod environment](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng). Not strictly necessary, but this is expected to pass and sets a current baseline to avoid surprises if the post-rotation test deploy fails.
+2. [Run the full manual test on the prod environment](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng). This is expected to pass and sets a current baseline to avoid surprises if the post-rotation test deploy fails.
 3. Using your `@firecloud.org` account, [create a new key for the `cloud-functions-account@broad-dsde-prod.iam.gserviceaccount.com` service account](https://console.cloud.google.com/iam-admin/serviceaccounts/details/107440104000315564432/keys?project=broad-dsde-prod).
    1. Click `[ADD KEY]` > `Create new key`
    2. Select the JSON key type
@@ -15,7 +15,7 @@ vault write secret/dsde/martha/prod/deploy-account.json @/path/to/key.json
 ```
 5. Go to the [Jenkins prod manual deploy project](https://fcprod-jenkins.dsp-techops.broadinstitute.org/job/martha-manual-deploy/) and re-run the last Martha prod job. This will re-deploy the current version of Martha, verifying that the new service account key works.
 6. Again, [run the full manual test on the prod environment](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng) to make sure Martha still works.
-7. Disable or delete the old key(s) from [the list](https://console.cloud.google.com/iam-admin/serviceaccounts/details/107440104000315564432/keys?project=broad-dsde-prod). Only the one created today should remain. Using your `@firecloud.org` account:
+7. Delete the old key(s) from [the list](https://console.cloud.google.com/iam-admin/serviceaccounts/details/107440104000315564432/keys?project=broad-dsde-prod). Only the one created today should remain. Using your `@firecloud.org` account:
 ```
 gcloud config set project broad-dsde-prod
 gcloud iam service-accounts keys disable [key_id] --iam-account=cloud-functions-account@broad-dsde-prod.iam.gserviceaccount.com
