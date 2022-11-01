@@ -22,7 +22,7 @@ vault write secret/dsde/martha/prod/deploy-account.json @/path/to/key.json
 7. Again, [run the full manual test on the prod environment](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng) to make sure Martha still works.
 8. Now that we know it works, delete the disabled key(s) from [the list](https://console.cloud.google.com/iam-admin/serviceaccounts/details/107440104000315564432/keys?project=broad-dsde-prod) by selecting the trash can icon. Only the one created today should remain.
 9. Clone the Jira ticket you've been working on, without cloning links or sprint fields. Update the due date to be 12 weeks (84 days) from today (which gives about a week to respond when the time comes).
-10. Add a slack reminder in `#dsp-batch-private` to trigger 84 days from today. Make sure to include links to these instructions and the Jira ticket you just created.
+10. Add a slack reminder in `#dsp-workflows-private` to trigger 84 days from today. Make sure to include links to these instructions and the Jira ticket you just created.
 ```
 /remind #dsp-workflows-private :redalert: Reminder to rotate the service account key for Martha prod deploys. https://github.com/broadinstitute/martha/blob/dev/docs/deployment-key-rotation.md [Link to Jira ticket] :redalert: at 9am in 84 days
 ```
