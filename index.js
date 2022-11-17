@@ -11,10 +11,10 @@ const getSignedUrlV1 = require('./handlers/getSignedUrlV1');
 
 const addSecurityHeaders = (res) => {
     res.set({
-      'Strict-Transport-Security': 'max-age=63072000',
-      CacheControl: 'no-store',
+        'Strict-Transport-Security': 'max-age=63072000',
+        'CacheControl': 'no-store',
     });
-}
+};
 
 exports.martha_v2 = (req, res) => {
     addSecurityHeaders(res);
