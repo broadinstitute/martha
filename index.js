@@ -12,7 +12,7 @@ const getSignedUrlV1 = require('./handlers/getSignedUrlV1');
 const addSecurityHeaders = (res) => {
     res.set({
         'Strict-Transport-Security': 'max-age=63072000',
-        'CacheControl': 'no-store',
+        'Cache-Control': 'no-store',
     });
 };
 
