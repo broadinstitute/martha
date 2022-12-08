@@ -172,7 +172,7 @@ class TerraDataRepoDrsProvider extends DrsProvider {
             MetadataAuth.YES,
             BondProvider.NONE,
             [
-                new AccessMethod(AccessMethodType.GCS, AccessUrlAuth.CURRENT_REQUEST, FetchAccessUrl.YES),
+                new AccessMethod(AccessMethodType.GCS, AccessUrlAuth.CURRENT_REQUEST, FetchAccessUrl.NO),
                 new AccessMethod(AccessMethodType.HTTPS, AccessUrlAuth.CURRENT_REQUEST, FetchAccessUrl.YES) // Used for Azure
             ],
             forceAccessUrl,

@@ -729,7 +729,7 @@ test.serial('martha_v3 does not call Bond or return SA key when the host url is 
     t.deepEqual(response.body, jadeDrsMarthaResult);
     t.falsy(result.googleServiceAccount);
 
-    sinon.assert.callCount(getJsonFromApiStub, 2);
+    sinon.assert.callCount(getJsonFromApiStub, 1);
 });
 
 test.serial('martha_v3 parses response and generates signed URL correctly for an Azure-hosted TDR file', async (t) => {
@@ -994,7 +994,7 @@ test.serial('martha_v3 parses HCA response correctly', async (t) => {
     t.is(response.statusCode, 200);
     t.deepEqual(response.body, hcaDrsMarthaResult);
 
-    sinon.assert.callCount(getJsonFromApiStub, 2);
+    sinon.assert.callCount(getJsonFromApiStub, 1);
 });
 
 const testWithTimeout = (ms, asyncTestFn) => (t) => {
