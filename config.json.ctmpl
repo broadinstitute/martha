@@ -7,6 +7,7 @@
     "bioDataCatalystStagingHost": {{if eq $runContext "fiab"}}"wb-mock-drs-dev.storage.googleapis.com"{{else}}"staging.gen3.biodatacatalyst.nhlbi.nih.gov"{{end}},
     "bioDataCatalystLegacyHost": {{if eq $runContext "fiab"}}"wb-mock-drs-dev.storage.googleapis.com"{{else if eq $environment "prod"}}"gen3.biodatacatalyst.nhlbi.nih.gov"{{else}}"staging.gen3.biodatacatalyst.nhlbi.nih.gov"{{end}},
     "theAnvilHost": {{if eq $runContext "fiab"}}"wb-mock-drs-dev.storage.googleapis.com"{{else if eq $environment "prod"}}"gen3.theanvil.io"{{else}}"staging.theanvil.io"{{end}},
+    "TerraDataRepoHost": {{if eq $runContext "fiab"}}"TBD"{{else if eq $environment "prod"}}"data.terra.bio"{{else}}"staging.data.terra.bio"{{end}},
     "crdcHost": {{if eq $runContext "fiab"}}"wb-mock-drs-dev.storage.googleapis.com"{{else if eq $environment "prod"}}"nci-crdc.datacommons.io"{{else}}"nci-crdc-staging.datacommons.io"{{end}},
     "kidsFirstHost": {{if eq $runContext "fiab"}}"wb-mock-drs-dev.storage.googleapis.com"{{else if eq $environment "prod"}}"data.kidsfirstdrc.org"{{else}}"gen3staging.kidsfirstdrc.org"{{end}},
     "bondBaseUrl": {{if eq $runContext "fiab"}}"https://bond-fiab.{{$dnsDomain}}"{{else}}"https://broad-bond-{{$environment}}.appspot.com"{{end}},

@@ -32,6 +32,7 @@ const PROTOCOL_PREFIX_DRS='/ga4gh/drs/v1/objects';
 const DG_COMPACT_BDC_PROD = 'dg.4503';
 const DG_COMPACT_BDC_STAGING = 'dg.712c';
 const DG_COMPACT_THE_ANVIL = 'dg.anv0';
+const DRS_COMPACT_THE_ANVIL = 'drs.anv0';
 const DG_COMPACT_CRDC = 'dg.4dfc';
 const DG_COMPACT_KIDS_FIRST = 'dg.f82a1a';
 const DG_COMPACT_PASSPORT_TEST = 'dg.test0';
@@ -122,6 +123,7 @@ function expandCibHost(cibHost) {
         case DG_COMPACT_BDC_PROD: return config.bioDataCatalystProdHost;
         case DG_COMPACT_BDC_STAGING: return config.bioDataCatalystStagingHost;
         case DG_COMPACT_THE_ANVIL: return config.theAnvilHost;
+        case DRS_COMPACT_THE_ANVIL: return config.terraDataRepoHost;
         case DG_COMPACT_CRDC: return config.crdcHost;
         case DG_COMPACT_KIDS_FIRST: return config.kidsFirstHost;
         case DG_COMPACT_PASSPORT_TEST: return config.passportTestHost;
@@ -194,17 +196,19 @@ function getHttpsUrlParts(url) {
     Instead of encoding the `/` in the protocol suffix to `%2F` they seem to pass it through just as a `/` in the
     HTTPS URL.
 
+    AnVIL has added a new CID drs.anv0 for data hosted in TDR, see doc here: https://docs.google.com/document/d/1aKlgpmgiK66Y_QV5Tj2LJugJkzSa0EXrubFUg3TGhhs/edit#heading=h.4fw3nl9lcepm
+
     If you update *any* of the below be sure to link to the supporting docs and update the comments above!
      */
 
-    // The many different ways a DOS/DRS may be "compact", in the order that the should be tried
+    // The many different ways a DOS/DRS may be "compact", in the order that they should be tried
     const cibRegExps = [
         // Non-W3C CIB DOS/DRS URIs, where the `dg.abcd` appears more than once
-        /(?:dos|drs):\/\/(?<host>dg\.[0-9a-z-]+)(?<separator>:)\k<host>\/(?<suffix>[^?]*)(?<query>\?(.*))?/i,
+        /(?:dos|drs):\/\/(?<host>(dg|drs)\.[0-9a-z-]+)(?<separator>:)\k<host>\/(?<suffix>[^?]*)(?<query>\?(.*))?/i,
         // Non-W3C CIB DOS/DRS URIs, where the `dg.abcd` is only mentioned once
-        /(?:dos|drs):\/\/(?<host>dg\.[0-9a-z-]+)(?<separator>:)(?<suffix>[^?]*)(?<query>\?(.*))?/i,
+        /(?:dos|drs):\/\/(?<host>(dg|drs)\.[0-9a-z-]+)(?<separator>:)(?<suffix>[^?]*)(?<query>\?(.*))?/i,
         // W3C compatible using a slash separator
-        /(?:dos|drs):\/\/(?<host>dg\.[0-9a-z-]+)(?<separator>\/)(?<suffix>[^?]*)(?<query>\?(.*))?/i,
+        /(?:dos|drs):\/\/(?<host>(dg|drs)\.[0-9a-z-]+)(?<separator>\/)(?<suffix>[^?]*)(?<query>\?(.*))?/i,
     ];
 
     const cibRegExp = cibRegExps.find((cibRegExp) => cibRegExp.exec(url));
