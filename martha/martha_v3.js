@@ -196,7 +196,7 @@ function getHttpsUrlParts(url) {
     Instead of encoding the `/` in the protocol suffix to `%2F` they seem to pass it through just as a `/` in the
     HTTPS URL.
 
-    AnVIL has added a new CID drs.anv0 for data hosted in TDR, see doc here: https://docs.google.com/document/d/1aKlgpmgiK66Y_QV5Tj2LJugJkzSa0EXrubFUg3TGhhs/edit#heading=h.4fw3nl9lcepm
+    AnVIL has added a new CIB drs.anv0 for data hosted in TDR, see doc here: https://docs.google.com/document/d/1aKlgpmgiK66Y_QV5Tj2LJugJkzSa0EXrubFUg3TGhhs/edit#heading=h.4fw3nl9lcepm
 
     If you update *any* of the below be sure to link to the supporting docs and update the comments above!
      */
