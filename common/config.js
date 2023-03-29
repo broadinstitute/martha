@@ -15,6 +15,8 @@ const HOST_BIODATA_CATALYST_PROD = 'gen3.biodatacatalyst.nhlbi.nih.gov';
 const HOST_BIODATA_CATALYST_STAGING = 'staging.gen3.biodatacatalyst.nhlbi.nih.gov';
 const HOST_THE_ANVIL_PROD = 'gen3.theanvil.io';
 const HOST_THE_ANVIL_STAGING = 'staging.theanvil.io';
+const HOST_TERRA_DATA_REPO_PROD = 'data.terra.bio';
+const HOST_TERRA_DATA_REPO_STAGING = 'staging.data.terra.bio';
 const HOST_CRDC_PROD = 'nci-crdc.datacommons.io';
 const HOST_CRDC_STAGING = 'nci-crdc-staging.datacommons.io';
 const HOST_KIDS_FIRST_PROD = 'data.kidsfirstdrc.org';
@@ -120,6 +122,17 @@ function configDefaultsForEnv({marthaEnv, dsdeEnv = dsdeEnvFrom(marthaEnv)}) {
                         return HOST_THE_ANVIL_PROD;
                     default:
                         return HOST_THE_ANVIL_STAGING;
+                }
+            })(),
+        terraDataRepoHost:
+            (() => {
+                switch (marthaEnv) {
+                    case ENV_MOCK:
+                        return HOST_MOCK_DRS;
+                    case ENV_PROD:
+                        return HOST_TERRA_DATA_REPO_PROD;
+                    default:
+                        return HOST_TERRA_DATA_REPO_STAGING;
                 }
             })(),
         crdcHost:
@@ -248,6 +261,8 @@ function removeUndefined(orig) {
  *      or mock DRS for BioData Catalyst, only for use by pre-martha_v3 code!
  * @property {string} theAnvilHost (hostname + port) for calling DRS resolvers (production or staging)
  *      or mock DRS for the AnVIL.
+ * @property {string} terraDataRepoHost (hostname + port) for calling DRS resolvers (production or staging)
+ *      or mock DRS for Terra Data Repo.
  * @property {string} crdcHost (hostname + port) for calling DRS resolvers (production or staging)
  *      or mock DRS for CRDC.
  * @property {string} kidsFirstHost (hostname + port) for calling DRS resolvers (production or staging)
@@ -269,6 +284,8 @@ const configExport = Object.freeze({
     HOST_BIODATA_CATALYST_STAGING,
     HOST_THE_ANVIL_PROD,
     HOST_THE_ANVIL_STAGING,
+    HOST_TERRA_DATA_REPO_PROD,
+    HOST_TERRA_DATA_REPO_STAGING,
     HOST_CRDC_PROD,
     HOST_CRDC_STAGING,
     HOST_KIDS_FIRST_PROD,

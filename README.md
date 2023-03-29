@@ -399,3 +399,4 @@ To build a new Docker image for Martha:
   * Select Cloud Functions from the main (on the left side) menu
   * Find the version of the function you want to check
   * Click the vertical three dots and choose "view logs"
+

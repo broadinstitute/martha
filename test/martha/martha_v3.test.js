@@ -1359,6 +1359,13 @@ test.serial('martha_v3 should parse Data Object uri with the AnVIL prefix dg.ANV
     );
 });
 
+test.serial('martha_v3 should parse Data Object uri with the new AnVIL prefix drs.anv0', (t) => {
+    t.is(
+        determineDrsProviderWrapper('drs://drs.anv0:00008531-03d7-418c-b3d3-b7b22b5381a0'),
+        `https://${config.HOST_TERRA_DATA_REPO_STAGING}/ga4gh/drs/v1/objects/00008531-03d7-418c-b3d3-b7b22b5381a0`,
+    );
+});
+
 test.serial('martha_v3 should parse Data Object uri with the AnVIL prod host', (t) => {
     t.is(
         determineDrsProviderWrapper(`drs://${config.HOST_THE_ANVIL_PROD}/dg.ANV0/00008531-03d7-418c-b3d3-b7b22b5381a0`),
