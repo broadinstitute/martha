@@ -6,8 +6,10 @@ const fs = require('fs');
 const path = require('path');
 
 const ENV_MOCK='mock';
-const ENV_DEV='dev';
 const ENV_PROD='prod';
+const ENV_STAGING='staging';
+const ENV_ALPHA='alpha';
+const ENV_DEV='dev';
 const ENV_CROMWELL_DEV='cromwell-dev';
 
 const HOST_MOCK_DRS='wb-mock-drs-dev.storage.googleapis.com';
@@ -17,11 +19,11 @@ const HOST_THE_ANVIL_PROD = 'gen3.theanvil.io';
 const HOST_THE_ANVIL_STAGING = 'staging.theanvil.io';
 const HOST_TERRA_DATA_REPO_PROD = 'data.terra.bio';
 const HOST_TERRA_DATA_REPO_STAGING = 'staging.data.terra.bio';
+const HOST_TDR_DEV = 'jade.datarepo-dev.broadinstitute.org';
 const HOST_CRDC_PROD = 'nci-crdc.datacommons.io';
 const HOST_CRDC_STAGING = 'nci-crdc-staging.datacommons.io';
 const HOST_KIDS_FIRST_PROD = 'data.kidsfirstdrc.org';
 const HOST_KIDS_FIRST_STAGING = 'gen3staging.kidsfirstdrc.org';
-const HOST_TDR_DEV = 'jade.datarepo-dev.broadinstitute.org';
 const HOST_PASSPORT_TEST = 'ctds-test-env.planx-pla.net';
 
 /**
@@ -131,6 +133,13 @@ function configDefaultsForEnv({marthaEnv, dsdeEnv = dsdeEnvFrom(marthaEnv)}) {
                         return HOST_MOCK_DRS;
                     case ENV_PROD:
                         return HOST_TERRA_DATA_REPO_PROD;
+                    case ENV_STAGING:
+                        return HOST_TERRA_DATA_REPO_STAGING;
+                    case ENV_ALPHA:
+                        return HOST_TERRA_DATA_REPO_STAGING;
+                    case ENV_DEV:
+                    case ENV_CROMWELL_DEV:
+                        return HOST_TDR_DEV;
                     default:
                         return HOST_TERRA_DATA_REPO_STAGING;
                 }
