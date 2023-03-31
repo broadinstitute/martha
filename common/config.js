@@ -134,7 +134,6 @@ function configDefaultsForEnv({marthaEnv, dsdeEnv = dsdeEnvFrom(marthaEnv)}) {
                     case ENV_PROD:
                         return HOST_TERRA_DATA_REPO_PROD;
                     case ENV_STAGING:
-                        return HOST_TERRA_DATA_REPO_STAGING;
                     case ENV_ALPHA:
                         return HOST_TERRA_DATA_REPO_STAGING;
                     case ENV_DEV:
