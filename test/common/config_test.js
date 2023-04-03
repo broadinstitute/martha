@@ -106,7 +106,7 @@ test('configDefaultsFrom should return defaults if the environment does not exis
         terraDataRepoHost: undefined,
         theAnvilHost: 'staging.theanvil.io',
 
-};
+    };
     t.deepEqual(config.configDefaultsForEnv({ marthaEnv: "FAKE_ENV" }), expectedDefaults);
 });
 
