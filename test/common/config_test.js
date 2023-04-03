@@ -87,6 +87,29 @@ test('configDefaultsFrom should get the right answer for the production environm
     t.deepEqual(config.configDefaultsForEnv({ marthaEnv: config.ENV_PROD }), expectedForProduction);
 });
 
+test('configDefaultsFrom should return defaults if the environment does not exist', (t) => {
+    const expectedDefaults = {
+        bioDataCatalystLegacyHost: 'staging.gen3.biodatacatalyst.nhlbi.nih.gov',
+        bioDataCatalystProdHost: 'gen3.biodatacatalyst.nhlbi.nih.gov',
+        bioDataCatalystStagingHost: 'staging.gen3.biodatacatalyst.nhlbi.nih.gov',
+        bondBaseUrl: 'https://broad-bond-fake_env.appspot.com',
+        crdcHost: 'nci-crdc-staging.datacommons.io',
+        externalcredsBaseUrl: 'https://externalcreds.dsde-fake_env.broadinstitute.org',
+        itBondBaseUrl: 'https://bond-fiab.dsde-fake_env.broadinstitute.org:31443',
+        itMarthaBaseUrl: 'https://martha-fiab.dsde-fake_env.broadinstitute.org:32443',
+        kidsFirstHost: 'gen3staging.kidsfirstdrc.org',
+        passportTestHost: 'ctds-test-env.planx-pla.net',
+        rasClientMTLSCertSecretName: 'projects/broad-dsde-FAKE_ENV/secrets/ras-mtls-client-cert/versions/latest',
+        rasClientMTLSKeySecretName: 'projects/broad-dsde-FAKE_ENV/secrets/ras-mtls-client-key/versions/latest',
+        samBaseUrl: 'https://sam.dsde-fake_env.broadinstitute.org',
+        // eslint-disable-next-line no-undefined
+        terraDataRepoHost: undefined,
+        theAnvilHost: 'staging.theanvil.io',
+
+};
+    t.deepEqual(config.configDefaultsForEnv({ marthaEnv: "FAKE_ENV" }), expectedDefaults);
+});
+
 test('config parseConfigJson should parse a temp file in ENV_DEV', (t) => {
     const configPathTmp = tmp.fileSync();
     fs.writeSync(configPathTmp.fd, '{"hello": "world"}');

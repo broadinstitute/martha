@@ -19,6 +19,7 @@ const HOST_THE_ANVIL_PROD = 'gen3.theanvil.io';
 const HOST_THE_ANVIL_STAGING = 'staging.theanvil.io';
 const HOST_TERRA_DATA_REPO_PROD = 'data.terra.bio';
 const HOST_TERRA_DATA_REPO_STAGING = 'staging.data.terra.bio';
+const HOST_TERRA_DATA_REPO_ALPHA = 'alpha.data.terra.bio';
 const HOST_TDR_DEV = 'jade.datarepo-dev.broadinstitute.org';
 const HOST_CRDC_PROD = 'nci-crdc.datacommons.io';
 const HOST_CRDC_STAGING = 'nci-crdc-staging.datacommons.io';
@@ -134,13 +135,14 @@ function configDefaultsForEnv({marthaEnv, dsdeEnv = dsdeEnvFrom(marthaEnv)}) {
                     case ENV_PROD:
                         return HOST_TERRA_DATA_REPO_PROD;
                     case ENV_STAGING:
-                    case ENV_ALPHA:
                         return HOST_TERRA_DATA_REPO_STAGING;
+                    case ENV_ALPHA:
+                        return HOST_TERRA_DATA_REPO_ALPHA;
                     case ENV_DEV:
                     case ENV_CROMWELL_DEV:
                         return HOST_TDR_DEV;
                     default:
-                        return HOST_TERRA_DATA_REPO_STAGING;
+                        console.log(`Unsupported environment: '${marthaEnv}'.`);
                 }
             })(),
         crdcHost:
@@ -294,6 +296,7 @@ const configExport = Object.freeze({
     HOST_THE_ANVIL_STAGING,
     HOST_TERRA_DATA_REPO_PROD,
     HOST_TERRA_DATA_REPO_STAGING,
+    HOST_TERRA_DATA_REPO_ALPHA,
     HOST_TDR_DEV,
     HOST_CRDC_PROD,
     HOST_CRDC_STAGING,
