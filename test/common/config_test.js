@@ -88,7 +88,7 @@ test('configDefaultsFrom should get the right answer for the production environm
 });
 
 test('configDefaultsFrom should get the right answer for the alpha environment', (t) => {
-    const expectedforAlpha = {
+    const expectedForAlpha = {
         bioDataCatalystLegacyHost: 'staging.gen3.biodatacatalyst.nhlbi.nih.gov',
         bioDataCatalystProdHost: 'gen3.biodatacatalyst.nhlbi.nih.gov',
         bioDataCatalystStagingHost: 'staging.gen3.biodatacatalyst.nhlbi.nih.gov',
@@ -99,15 +99,15 @@ test('configDefaultsFrom should get the right answer for the alpha environment',
         itMarthaBaseUrl: 'https://martha-fiab.dsde-alpha.broadinstitute.org:32443',
         kidsFirstHost: 'gen3staging.kidsfirstdrc.org',
         passportTestHost: 'ctds-test-env.planx-pla.net',
-        rasClientMTLSCertSecretName: 'projects/broad-dsde-ALPHA/secrets/ras-mtls-client-cert/versions/latest',
-        rasClientMTLSKeySecretName: 'projects/broad-dsde-ALPHA/secrets/ras-mtls-client-key/versions/latest',
+        rasClientMTLSCertSecretName: 'projects/broad-dsde-alpha/secrets/ras-mtls-client-cert/versions/latest',
+        rasClientMTLSKeySecretName: 'projects/broad-dsde-alpha/secrets/ras-mtls-client-key/versions/latest',
         samBaseUrl: 'https://sam.dsde-alpha.broadinstitute.org',
         // eslint-disable-next-line no-undefined
         terraDataRepoHost: 'data.alpha.envs-terra.bio',
         theAnvilHost: 'staging.theanvil.io',
 
     };
-    t.deepEqual(config.configDefaultsForEnv({ marthaEnv: config.ENV_ALPHA }), expectedforAlpha);
+    t.deepEqual(config.configDefaultsForEnv({ marthaEnv: config.ENV_ALPHA }), expectedForAlpha);
 });
 
 test('configDefaultsFrom should return defaults if the environment does not exist', (t) => {
