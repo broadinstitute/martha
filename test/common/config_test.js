@@ -87,6 +87,29 @@ test('configDefaultsFrom should get the right answer for the production environm
     t.deepEqual(config.configDefaultsForEnv({ marthaEnv: config.ENV_PROD }), expectedForProduction);
 });
 
+test('configDefaultsFrom should get the right answer for the alpha environment', (t) => {
+    const expectedforAlpha = {
+        bioDataCatalystLegacyHost: 'staging.gen3.biodatacatalyst.nhlbi.nih.gov',
+        bioDataCatalystProdHost: 'gen3.biodatacatalyst.nhlbi.nih.gov',
+        bioDataCatalystStagingHost: 'staging.gen3.biodatacatalyst.nhlbi.nih.gov',
+        bondBaseUrl: 'https://broad-bond-alpha.appspot.com',
+        crdcHost: 'nci-crdc-staging.datacommons.io',
+        externalcredsBaseUrl: 'https://externalcreds.dsde-alpha.broadinstitute.org',
+        itBondBaseUrl: 'https://bond-fiab.dsde-alpha.broadinstitute.org:31443',
+        itMarthaBaseUrl: 'https://martha-fiab.dsde-alpha.broadinstitute.org:32443',
+        kidsFirstHost: 'gen3staging.kidsfirstdrc.org',
+        passportTestHost: 'ctds-test-env.planx-pla.net',
+        rasClientMTLSCertSecretName: 'projects/broad-dsde-ALPHA/secrets/ras-mtls-client-cert/versions/latest',
+        rasClientMTLSKeySecretName: 'projects/broad-dsde-ALPHA/secrets/ras-mtls-client-key/versions/latest',
+        samBaseUrl: 'https://sam.dsde-alpha.broadinstitute.org',
+        // eslint-disable-next-line no-undefined
+        terraDataRepoHost: 'data.alpha.envs-terra.bio',
+        theAnvilHost: 'staging.theanvil.io',
+
+    };
+    t.deepEqual(config.configDefaultsForEnv({ marthaEnv: config.ENV_ALPHA }), expectedforAlpha);
+});
+
 test('configDefaultsFrom should return defaults if the environment does not exist', (t) => {
     const expectedDefaults = {
         bioDataCatalystLegacyHost: 'staging.gen3.biodatacatalyst.nhlbi.nih.gov',

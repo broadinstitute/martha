@@ -305,6 +305,7 @@ const configExport = Object.freeze({
     HOST_PASSPORT_TEST,
     ENV_PROD,
     ENV_DEV,
+    ENV_ALPHA,
     ENV_MOCK,
     ENV_CROMWELL_DEV,
     configDefaultsForEnv,
