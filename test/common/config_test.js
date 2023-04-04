@@ -33,7 +33,7 @@ test('configDefaultsFrom should get the right answer for the dev environment', (
         bioDataCatalystStagingHost: config.HOST_BIODATA_CATALYST_STAGING,
         bioDataCatalystLegacyHost: config.HOST_BIODATA_CATALYST_STAGING,
         theAnvilHost: config.HOST_THE_ANVIL_STAGING,
-        terraDataRepoHost: config.HOST_TERRA_DATA_REPO_STAGING,
+        terraDataRepoHost: config.HOST_TDR_DEV,
         crdcHost: config.HOST_CRDC_STAGING,
         kidsFirstHost: config.HOST_KIDS_FIRST_STAGING,
         passportTestHost: config.HOST_PASSPORT_TEST,
@@ -54,7 +54,7 @@ test('configDefaultsFrom should get the right answer for the Cromwell dev enviro
         bioDataCatalystStagingHost: config.HOST_BIODATA_CATALYST_STAGING,
         bioDataCatalystLegacyHost: config.HOST_BIODATA_CATALYST_STAGING,
         theAnvilHost: config.HOST_THE_ANVIL_STAGING,
-        terraDataRepoHost: config.HOST_TERRA_DATA_REPO_STAGING,
+        terraDataRepoHost: config.HOST_TDR_DEV,
         crdcHost: config.HOST_CRDC_STAGING,
         kidsFirstHost: config.HOST_KIDS_FIRST_STAGING,
         passportTestHost: config.HOST_PASSPORT_TEST,
@@ -85,6 +85,52 @@ test('configDefaultsFrom should get the right answer for the production environm
         rasClientMTLSCertSecretName: 'projects/broad-dsde-prod/secrets/ras-mtls-client-cert/versions/latest'
     };
     t.deepEqual(config.configDefaultsForEnv({ marthaEnv: config.ENV_PROD }), expectedForProduction);
+});
+
+test('configDefaultsFrom should get the right answer for the alpha environment', (t) => {
+    const expectedForAlpha = {
+        bioDataCatalystLegacyHost: 'staging.gen3.biodatacatalyst.nhlbi.nih.gov',
+        bioDataCatalystProdHost: 'gen3.biodatacatalyst.nhlbi.nih.gov',
+        bioDataCatalystStagingHost: 'staging.gen3.biodatacatalyst.nhlbi.nih.gov',
+        bondBaseUrl: 'https://broad-bond-alpha.appspot.com',
+        crdcHost: 'nci-crdc-staging.datacommons.io',
+        externalcredsBaseUrl: 'https://externalcreds.dsde-alpha.broadinstitute.org',
+        itBondBaseUrl: 'https://bond-fiab.dsde-alpha.broadinstitute.org:31443',
+        itMarthaBaseUrl: 'https://martha-fiab.dsde-alpha.broadinstitute.org:32443',
+        kidsFirstHost: 'gen3staging.kidsfirstdrc.org',
+        passportTestHost: 'ctds-test-env.planx-pla.net',
+        rasClientMTLSCertSecretName: 'projects/broad-dsde-alpha/secrets/ras-mtls-client-cert/versions/latest',
+        rasClientMTLSKeySecretName: 'projects/broad-dsde-alpha/secrets/ras-mtls-client-key/versions/latest',
+        samBaseUrl: 'https://sam.dsde-alpha.broadinstitute.org',
+        // eslint-disable-next-line no-undefined
+        terraDataRepoHost: 'data.alpha.envs-terra.bio',
+        theAnvilHost: 'staging.theanvil.io',
+
+    };
+    t.deepEqual(config.configDefaultsForEnv({ marthaEnv: config.ENV_ALPHA }), expectedForAlpha);
+});
+
+test('configDefaultsFrom should return defaults if the environment does not exist', (t) => {
+    const expectedDefaults = {
+        bioDataCatalystLegacyHost: 'staging.gen3.biodatacatalyst.nhlbi.nih.gov',
+        bioDataCatalystProdHost: 'gen3.biodatacatalyst.nhlbi.nih.gov',
+        bioDataCatalystStagingHost: 'staging.gen3.biodatacatalyst.nhlbi.nih.gov',
+        bondBaseUrl: 'https://broad-bond-fake_env.appspot.com',
+        crdcHost: 'nci-crdc-staging.datacommons.io',
+        externalcredsBaseUrl: 'https://externalcreds.dsde-fake_env.broadinstitute.org',
+        itBondBaseUrl: 'https://bond-fiab.dsde-fake_env.broadinstitute.org:31443',
+        itMarthaBaseUrl: 'https://martha-fiab.dsde-fake_env.broadinstitute.org:32443',
+        kidsFirstHost: 'gen3staging.kidsfirstdrc.org',
+        passportTestHost: 'ctds-test-env.planx-pla.net',
+        rasClientMTLSCertSecretName: 'projects/broad-dsde-FAKE_ENV/secrets/ras-mtls-client-cert/versions/latest',
+        rasClientMTLSKeySecretName: 'projects/broad-dsde-FAKE_ENV/secrets/ras-mtls-client-key/versions/latest',
+        samBaseUrl: 'https://sam.dsde-fake_env.broadinstitute.org',
+        // eslint-disable-next-line no-undefined
+        terraDataRepoHost: undefined,
+        theAnvilHost: 'staging.theanvil.io',
+
+    };
+    t.deepEqual(config.configDefaultsForEnv({ marthaEnv: "FAKE_ENV" }), expectedDefaults);
 });
 
 test('config parseConfigJson should parse a temp file in ENV_DEV', (t) => {
