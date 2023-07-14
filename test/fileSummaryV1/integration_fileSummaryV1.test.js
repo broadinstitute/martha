@@ -49,7 +49,7 @@ test.before(async () => {
     await postJsonTo(fenceAuthLink, `Bearer ${authorizedToken}`);
 });
 
-test.cb('integration_fileSummaryV1 responds with 400 if a uri is not provided', (t) => {
+test('integration_fileSummaryV1 responds with 400 if a uri is not provided', (t) => {
     supertest
         .post('/fileSummaryV1')
         .set('Content-Type', 'application/json')
@@ -64,7 +64,7 @@ test.cb('integration_fileSummaryV1 responds with 400 if a uri is not provided', 
         });
 });
 
-test.cb('integration_fileSummaryV1 responds with 400 if uri passed is malformed', (t) => {
+test('integration_fileSummaryV1 responds with 400 if uri passed is malformed', (t) => {
     supertest
         .post('/fileSummaryV1')
         .set('Content-Type', 'application/json')
@@ -79,7 +79,7 @@ test.cb('integration_fileSummaryV1 responds with 400 if uri passed is malformed'
         });
 });
 
-test.cb('integration_fileSummaryV1 responds with 401 if uri is valid but no authorization is provided', (t) => {
+test('integration_fileSummaryV1 responds with 401 if uri is valid but no authorization is provided', (t) => {
     supertest
         .post('/fileSummaryV1')
         .set('Content-Type', 'application/json')
@@ -94,7 +94,7 @@ test.cb('integration_fileSummaryV1 responds with 401 if uri is valid but no auth
         });
 });
 
-test.cb('integration_fileSummaryV1 responds with 200 and file metadata but no signed url if Data Object uri is valid but the authorization header does not contain an authorized token', (t) => {
+test('integration_fileSummaryV1 responds with 200 and file metadata but no signed url if Data Object uri is valid but the authorization header does not contain an authorized token', (t) => {
     supertest
         .post('/fileSummaryV1')
         .set('Content-Type', 'application/json')
@@ -111,7 +111,7 @@ test.cb('integration_fileSummaryV1 responds with 200 and file metadata but no si
         });
 });
 
-test.cb('integration_fileSummaryV1 responds with 200, file metadata, and a signed url if Data Object uri is valid and valid authorization is provided', (t) => {
+test('integration_fileSummaryV1 responds with 200, file metadata, and a signed url if Data Object uri is valid and valid authorization is provided', (t) => {
     supertest
         .post('/fileSummaryV1')
         .set('Content-Type', 'application/json')
@@ -128,7 +128,7 @@ test.cb('integration_fileSummaryV1 responds with 200, file metadata, and a signe
         });
 });
 
-test.cb('integration_fileSummaryV1 responds with 502 and unauthorized response if gs uri is valid, but an invalid bearer token is provided', (t) => {
+test('integration_fileSummaryV1 responds with 502 and unauthorized response if gs uri is valid, but an invalid bearer token is provided', (t) => {
     supertest
         .post('/fileSummaryV1')
         .set('Content-Type', 'application/json')
@@ -144,7 +144,7 @@ test.cb('integration_fileSummaryV1 responds with 502 and unauthorized response i
         });
 });
 
-test.cb('integration_fileSummaryV1 responds with 200, file metadata, and a signed url if gs uri is valid and valid authorization is provided', (t) => {
+test('integration_fileSummaryV1 responds with 200, file metadata, and a signed url if gs uri is valid and valid authorization is provided', (t) => {
     supertest
         .post('/fileSummaryV1')
         .set('Content-Type', 'application/json')
