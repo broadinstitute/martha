@@ -19,7 +19,7 @@ const jdrDevTestUrl = 'drs://jade.datarepo-dev.broadinstitute.org/v1_93dc1e76-8f
  * Service Account, we are unable to test martha_v3 without first authenticating that service account with Fence.
  */
 
-test.cb('smoketest_v3 returns error if url passed is malformed', (t) => {
+test('smoketest_v3 returns error if url passed is malformed', (t) => {
     supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
@@ -33,7 +33,7 @@ test.cb('smoketest_v3 returns error if url passed is malformed', (t) => {
         });
 });
 
-test.cb('smoketest_v3 return error if url passed is not valid', (t) => {
+test('smoketest_v3 return error if url passed is not valid', (t) => {
     supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
@@ -47,7 +47,7 @@ test.cb('smoketest_v3 return error if url passed is not valid', (t) => {
         });
 });
 
-test.cb('smoketest_v3 fails when no "authorization" header is provided for public url', (t) => {
+test('smoketest_v3 fails when no "authorization" header is provided for public url', (t) => {
     supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
@@ -61,7 +61,7 @@ test.cb('smoketest_v3 fails when no "authorization" header is provided for publi
         });
 });
 
-test.cb('smoketest_v3 fails when "authorization" header is provided for a public url but the bearer token is invalid', (t) => {
+test('smoketest_v3 fails when "authorization" header is provided for a public url but the bearer token is invalid', (t) => {
     supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
@@ -77,7 +77,7 @@ test.cb('smoketest_v3 fails when "authorization" header is provided for a public
 });
 
 // Even though this test takes few minutes to complete, this test is the only one that talks to Jade Data Repo dev
-test.cb('smoketest_v3 fails when unauthorized user is resolving jade data repo url', (t) => {
+test('smoketest_v3 fails when unauthorized user is resolving jade data repo url', (t) => {
     t.timeout(60*1000);
     supertest
         .post('/martha_v3')

@@ -49,7 +49,7 @@ test.before(async () => {
     await postJsonTo(fenceAuthLink, `Bearer ${authorizedToken}`);
 });
 
-test.cb('integration_v2 responds with Data Object only when no "authorization" header is provided for a public url', (t) => {
+test('integration_v2 responds with Data Object only when no "authorization" header is provided for a public url', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
@@ -65,7 +65,7 @@ test.cb('integration_v2 responds with Data Object only when no "authorization" h
         });
 });
 
-test.cb('integration_v2 responds with Data Object and service account when "authorization" header is provided for a public url', (t) => {
+test('integration_v2 responds with Data Object and service account when "authorization" header is provided for a public url', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
@@ -82,7 +82,7 @@ test.cb('integration_v2 responds with Data Object and service account when "auth
         });
 });
 
-test.cb('integration_v2 fails when "authorization" header is provided for a public url but user is not authed with provider', (t) => {
+test('integration_v2 fails when "authorization" header is provided for a public url but user is not authed with provider', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
@@ -97,7 +97,7 @@ test.cb('integration_v2 fails when "authorization" header is provided for a publ
         });
 });
 
-test.cb('integration_v2 fails when "authorization" header is provided for a public url but the bearer token is invalid', (t) => {
+test('integration_v2 fails when "authorization" header is provided for a public url but the bearer token is invalid', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
@@ -112,7 +112,7 @@ test.cb('integration_v2 fails when "authorization" header is provided for a publ
         });
 });
 
-test.cb('integration_v2 responds with Data Object only when no "authorization" header is provided for a protected url', (t) => {
+test('integration_v2 responds with Data Object only when no "authorization" header is provided for a protected url', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
@@ -128,7 +128,7 @@ test.cb('integration_v2 responds with Data Object only when no "authorization" h
         });
 });
 
-test.cb('integration_v2 responds with Data Object and service account when "authorization" header is provided for a protected url', (t) => {
+test('integration_v2 responds with Data Object and service account when "authorization" header is provided for a protected url', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
@@ -145,7 +145,7 @@ test.cb('integration_v2 responds with Data Object and service account when "auth
         });
 });
 
-test.cb('integration_v2 fails when "authorization" header is provided for a protected url but user is not authed with provider', (t) => {
+test('integration_v2 fails when "authorization" header is provided for a protected url but user is not authed with provider', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
@@ -160,7 +160,7 @@ test.cb('integration_v2 fails when "authorization" header is provided for a prot
         });
 });
 
-test.cb('integration_v2 fails when "authorization" header is provided for a protected url but the bearer token is invalid', (t) => {
+test('integration_v2 fails when "authorization" header is provided for a protected url but the bearer token is invalid', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
@@ -175,7 +175,7 @@ test.cb('integration_v2 fails when "authorization" header is provided for a prot
         });
 });
 
-test.cb('integration_v2 return error if url passed is malformed', (t) => {
+test('integration_v2 return error if url passed is malformed', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
@@ -189,7 +189,7 @@ test.cb('integration_v2 return error if url passed is malformed', (t) => {
         });
 });
 
-test.cb('integration_v2 return error if url passed is not good', (t) => {
+test('integration_v2 return error if url passed is not good', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')

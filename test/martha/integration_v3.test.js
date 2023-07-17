@@ -56,7 +56,7 @@ test.before(async () => {
 
 // Invalid inputs
 
-test.cb('integration_v3 returns error if url passed is malformed', (t) => {
+test('integration_v3 returns error if url passed is malformed', (t) => {
     supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
@@ -70,7 +70,7 @@ test.cb('integration_v3 returns error if url passed is malformed', (t) => {
         });
 });
 
-test.cb('integration_v3 return error if url passed is not good', (t) => {
+test('integration_v3 return error if url passed is not good', (t) => {
     supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
@@ -87,7 +87,7 @@ test.cb('integration_v3 return error if url passed is not good', (t) => {
 
 // Public data guid url
 
-test.cb('integration_v3 fails when no "authorization" header is provided for public url', (t) => {
+test('integration_v3 fails when no "authorization" header is provided for public url', (t) => {
     supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
@@ -101,7 +101,7 @@ test.cb('integration_v3 fails when no "authorization" header is provided for pub
         });
 });
 
-test.cb('integration_v3 succeeds for a public url', (t) => {
+test('integration_v3 succeeds for a public url', (t) => {
     supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
@@ -118,7 +118,7 @@ test.cb('integration_v3 succeeds for a public url', (t) => {
         });
 });
 
-test.cb('integration_v3 fails when "authorization" header is provided for a public url but user is not authed with provider', (t) => {
+test('integration_v3 fails when "authorization" header is provided for a public url but user is not authed with provider', (t) => {
     supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
@@ -133,7 +133,7 @@ test.cb('integration_v3 fails when "authorization" header is provided for a publ
         });
 });
 
-test.cb('integration_v3 fails when "authorization" header is provided for a public url but the bearer token is invalid', (t) => {
+test('integration_v3 fails when "authorization" header is provided for a public url but the bearer token is invalid', (t) => {
     supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
@@ -150,7 +150,7 @@ test.cb('integration_v3 fails when "authorization" header is provided for a publ
 
 // Protected data guid url
 
-test.cb('integration_v3 fails when no "authorization" header is provided for a protected url', (t) => {
+test('integration_v3 fails when no "authorization" header is provided for a protected url', (t) => {
     supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
@@ -164,7 +164,7 @@ test.cb('integration_v3 fails when no "authorization" header is provided for a p
         });
 });
 
-test.cb('integration_v3 succeeds for a protected url', (t) => {
+test('integration_v3 succeeds for a protected url', (t) => {
     supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
@@ -181,7 +181,7 @@ test.cb('integration_v3 succeeds for a protected url', (t) => {
         });
 });
 
-test.cb('integration_v3 fails when "authorization" header is provided for a protected url but user is not authed with provider', (t) => {
+test('integration_v3 fails when "authorization" header is provided for a protected url but user is not authed with provider', (t) => {
     supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
@@ -196,7 +196,7 @@ test.cb('integration_v3 fails when "authorization" header is provided for a prot
         });
 });
 
-test.cb('integration_v3 fails when "authorization" header is provided for a protected url but the bearer token is invalid', (t) => {
+test('integration_v3 fails when "authorization" header is provided for a protected url but the bearer token is invalid', (t) => {
     supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
@@ -213,7 +213,7 @@ test.cb('integration_v3 fails when "authorization" header is provided for a prot
 
 // Jade Data Repo url
 
-test.cb('integration_v3 responds with Data Object for authorized user for jade data repo url', (t) => {
+test('integration_v3 responds with Data Object for authorized user for jade data repo url', (t) => {
     supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
@@ -249,7 +249,7 @@ test.cb('integration_v3 responds with Data Object for authorized user for jade d
         });
 });
 
-test.cb('integration_v3 fails when unauthorized user is resolving jade data repo url', (t) => {
+test('integration_v3 fails when unauthorized user is resolving jade data repo url', (t) => {
     // JDR was returning slowly for this integration test. Give it a bit more time.
     // And someday, when we have performance tests outside of prod, remove the line below! ;)
     t.timeout(60*1000);

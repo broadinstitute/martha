@@ -18,7 +18,7 @@ const supertest = require('supertest')(config.itMarthaBaseUrl);
 // STAGING and PRODUCTION we use dataguids.org.  Our experience so far has been that we are unable to mint new DOS URIs
 // and the testing ones we have been provided have changed over time.  Until we have known/reliable DOS URIs that we can
 // configure in our testing google bucket and with dataguids.org, we need to remove this test
-// test.cb('smoketest_v2 responds with DOS object only when no "authorization" header is provided', (t) => {
+// test('smoketest_v2 responds with DOS object only when no "authorization" header is provided', (t) => {
 //     supertest
 //         .post('/martha_v2')
 //         .set('Content-Type', 'application/json')
@@ -28,7 +28,7 @@ const supertest = require('supertest')(config.itMarthaBaseUrl);
 //         .end(t.end);
 // });
 
-test.cb('smoketest_v2 return error if url passed is malformed', (t) => {
+test('smoketest_v2 return error if url passed is malformed', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
@@ -37,7 +37,7 @@ test.cb('smoketest_v2 return error if url passed is malformed', (t) => {
         .end(t.end);
 });
 
-test.cb('smoketest_v2 return error if url passed is not good', (t) => {
+test('smoketest_v2 return error if url passed is not good', (t) => {
     supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')

@@ -13,7 +13,7 @@ const supertest = require('supertest')(config.itMarthaBaseUrl);
 // Because these smoketests are executed by a Google Service Account, we are unable to test fileSummaryV1Handler (with Authz)
 // without first authenticating that service account with Fence.
 
-test.cb('smoketest_fileSummaryV1 responds with 400 if a uri is not provided', (t) => {
+test('smoketest_fileSummaryV1 responds with 400 if a uri is not provided', (t) => {
     supertest
         .post('/fileSummaryV1')
         .set('Content-Type', 'application/json')
@@ -23,7 +23,7 @@ test.cb('smoketest_fileSummaryV1 responds with 400 if a uri is not provided', (t
         .end(t.end);
 });
 
-test.cb('smoketest_fileSummaryV1 responds with 400 if uri passed is malformed', (t) => {
+test('smoketest_fileSummaryV1 responds with 400 if uri passed is malformed', (t) => {
     supertest
         .post('/fileSummaryV1')
         .set('Content-Type', 'application/json')
@@ -33,7 +33,7 @@ test.cb('smoketest_fileSummaryV1 responds with 400 if uri passed is malformed', 
         .end(t.end);
 });
 
-test.cb('smoketest_fileSummaryV1 responds with 400 if uri is valid but not authorization is provided', (t) => {
+test('smoketest_fileSummaryV1 responds with 400 if uri is valid but not authorization is provided', (t) => {
     supertest
         .post('/fileSummaryV1')
         .set('Content-Type', 'application/json')
