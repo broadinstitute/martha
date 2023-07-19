@@ -19,7 +19,7 @@ test('smoketest_fileSummaryV1 responds with 400 if a uri is not provided', async
         .set('Content-Type', 'application/json')
         .send({ notValid: 'dos://broad-dsp-dos.storage.googleapis.com/dos.json' })
         .expect((response) => t.is(response.statusCode, 400))
-        .expect((response) => t.true(response.text.includes('must specify the URI')))
+        .expect((response) => t.true(response.text.includes('must specify the URI')));
 });
 
 test('smoketest_fileSummaryV1 responds with 400 if uri passed is malformed', async (t) => {
@@ -28,7 +28,7 @@ test('smoketest_fileSummaryV1 responds with 400 if uri passed is malformed', asy
         .set('Content-Type', 'application/json')
         .send({ uri: 'somethingNotValidURL' })
         .expect((response) => t.is(response.statusCode, 400))
-        .expect((response) => t.true(response.text.includes('must specify the URI')))
+        .expect((response) => t.true(response.text.includes('must specify the URI')));
 });
 
 test('smoketest_fileSummaryV1 responds with 400 if uri is valid but not authorization is provided', async (t) => {
@@ -37,5 +37,5 @@ test('smoketest_fileSummaryV1 responds with 400 if uri is valid but not authoriz
         .set('Content-Type', 'application/json')
         .send({ uri: 'dos://broad-dsp-dos.storage.googleapis.com/dos.json' })
         .expect((response) => t.is(response.statusCode, 401))
-        .expect((response) => t.true(response.text.includes('must contain a bearer token')))
+        .expect((response) => t.true(response.text.includes('must contain a bearer token')));
 });
