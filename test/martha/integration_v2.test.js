@@ -8,7 +8,6 @@
 const test = require('ava');
 const config = require('../../common/config');
 const supertest = require('supertest')(config.itMarthaBaseUrl);
-const assert = require('assert');
 const { GoogleToken } = require('gtoken');
 const { postJsonTo } = require('../../common/api_adapter');
 
@@ -55,13 +54,13 @@ test('integration_v2 responds with Data Object only when no "authorization" head
         .set('Content-Type', 'application/json')
         .send({ url: publicFenceUrl })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 200, 'Incorrect status code'); // not using loose equality for now, but if type coercion is wanted use equal instead of strictEqual
-            assert(response.body.dos, 'No Data Object found');
-            assert(!response.body.googleServiceAccount, 'Response should not have a Google Service Account');
+            t.is(response.statusCode, 200, 'Incorrect status code'); // not using loose equality for now, but if type coercion is wanted use equal instead of strictEqual
+            t.assert(response.body.dos, 'No Data Object found');
+            t.assert(!response.body.googleServiceAccount, 'Response should not have a Google Service Account');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
@@ -72,13 +71,13 @@ test('integration_v2 responds with Data Object and service account when "authori
         .set('Authorization', `Bearer ${authorizedToken}`)
         .send({ url: publicFenceUrl })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 200, 'Incorrect status code');
-            assert(response.body.dos, 'No Data Object found');
-            assert(response.body.googleServiceAccount, 'No Google Service Account found');
+            t.is(response.statusCode, 200, 'Incorrect status code');
+            t.assert(response.body.dos, 'No Data Object found');
+            t.assert(response.body.googleServiceAccount, 'No Google Service Account found');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
@@ -89,11 +88,11 @@ test('integration_v2 fails when "authorization" header is provided for a public 
         .set('Authorization', `Bearer ${unauthorizedToken}`)
         .send({ url: publicFenceUrl })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 502, 'User should not be authorized with provider');
+            t.is(response.statusCode, 502, 'User should not be authorized with provider');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
@@ -104,11 +103,11 @@ test('integration_v2 fails when "authorization" header is provided for a public 
         .set('Authorization', `Bearer badToken`)
         .send({ url: publicFenceUrl })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 502, 'Bond should not have authenticated this token');
+            t.is(response.statusCode, 502, 'Bond should not have authenticated this token');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
@@ -118,13 +117,13 @@ test('integration_v2 responds with Data Object only when no "authorization" head
         .set('Content-Type', 'application/json')
         .send({ url: protectedFenceUrl })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 200, 'Incorrect status code');
-            assert(response.body.dos, 'No Data Object found');
-            assert(!response.body.googleServiceAccount, 'Response should not have a Google Service Account');
+            t.is(response.statusCode, 200, 'Incorrect status code');
+            t.assert(response.body.dos, 'No Data Object found');
+            t.assert(!response.body.googleServiceAccount, 'Response should not have a Google Service Account');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
@@ -135,13 +134,13 @@ test('integration_v2 responds with Data Object and service account when "authori
         .set('Authorization', `Bearer ${authorizedToken}`)
         .send({ url: protectedFenceUrl })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 200, 'Incorrect status code');
-            assert(response.body.dos, 'No Data Object found');
-            assert(response.body.googleServiceAccount, 'No Google Service Account found');
+            t.is(response.statusCode, 200, 'Incorrect status code');
+            t.assert(response.body.dos, 'No Data Object found');
+            t.assert(response.body.googleServiceAccount, 'No Google Service Account found');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
@@ -152,11 +151,11 @@ test('integration_v2 fails when "authorization" header is provided for a protect
         .set('Authorization', `Bearer ${unauthorizedToken}`)
         .send({ url: protectedFenceUrl })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 502, 'User should not be authorized with provider');
+            t.is(response.statusCode, 502, 'User should not be authorized with provider');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
@@ -167,11 +166,11 @@ test('integration_v2 fails when "authorization" header is provided for a protect
         .set('Authorization', 'Bearer badToken')
         .send({ url: protectedFenceUrl })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 502, 'Bond should not have authenticated this token');
+            t.is(response.statusCode, 502, 'Bond should not have authenticated this token');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
@@ -181,11 +180,11 @@ test('integration_v2 return error if url passed is malformed', (t) => {
         .set('Content-Type', 'application/json')
         .send({ url: 'somethingNotValidURL' })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 400, 'Incorrect status code');
+            t.is(response.statusCode, 400, 'Incorrect status code');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
@@ -195,10 +194,10 @@ test('integration_v2 return error if url passed is not good', (t) => {
         .set('Content-Type', 'application/json')
         .send({ url: 'dos://broad-dsp-dos-TYPO.storage.googleapis.com/something-that-does-not-exist' })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 502, 'Incorrect status code');
+            t.is(response.statusCode, 502, 'Incorrect status code');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
