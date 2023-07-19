@@ -9,7 +9,6 @@
 const test = require('ava');
 const config = require('../../common/config');
 const supertest = require('supertest')(config.itMarthaBaseUrl);
-const assert = require('assert');
 const { GoogleToken } = require('gtoken');
 const { postJsonTo } = require('../../common/api_adapter');
 
@@ -56,172 +55,172 @@ test.before(async () => {
 
 // Invalid inputs
 
-test('integration_v3 returns error if url passed is malformed', (t) => {
-    supertest
+test('integration_v3 returns error if url passed is malformed', async (t) => {
+    await supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
         .send({ url: 'notAValidURL' })
         .expect((response) => {
-            assert.ok(response.statusCode.toString().match(/4\d\d/), 'Request did not specify the URL of a DRS object');
+            t.assert(response.statusCode.toString().match(/4\d\d/), 'Request did not specify the URL of a DRS object');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
-test('integration_v3 return error if url passed is not good', (t) => {
-    supertest
+test('integration_v3 return error if url passed is not good', async (t) => {
+    await supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${authorizedToken}`)
         .send({ url: 'dos://broad-dsp-dos-TYPO.storage.googleapis.com/something-that-does-not-exist' })
         .expect((response) => {
-            assert.ok(response.statusCode.toString().match(/4\d\d/), 'Incorrect status code');
+            t.assert(response.statusCode.toString().match(/4\d\d/), 'Incorrect status code');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
 // Public data guid url
 
-test('integration_v3 fails when no "authorization" header is provided for public url', (t) => {
-    supertest
+test('integration_v3 fails when no "authorization" header is provided for public url', async (t) => {
+    await supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
         .send({ url: publicFenceUrl })
         .expect((response) => {
-            assert.ok(response.statusCode.toString().match(/4\d\d/), 'Request did not not specify an authorization header');
+            t.assert(response.statusCode.toString().match(/4\d\d/), 'Request did not not specify an authorization header');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
-test('integration_v3 succeeds for a public url', (t) => {
-    supertest
+test('integration_v3 succeeds for a public url', async (t) => {
+    await supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${authorizedToken}`)
         .send({ url: publicFenceUrl })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 200, 'Incorrect status code');
-            assert(response.body.gsUri, 'No gsUri found');
-            assert(response.body.googleServiceAccount, 'No Google Service Account found');
+            t.is(response.statusCode, 200, 'Incorrect status code');
+            t.assert(response.body.gsUri, 'No gsUri found');
+            t.assert(response.body.googleServiceAccount, 'No Google Service Account found');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
-test('integration_v3 fails when "authorization" header is provided for a public url but user is not authed with provider', (t) => {
-    supertest
+test('integration_v3 fails when "authorization" header is provided for a public url but user is not authed with provider', async (t) => {
+    await supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${unauthorizedToken}`)
         .send({ url: publicFenceUrl })
         .expect((response) => {
-            assert.ok(response.statusCode.toString().match(/4\d\d/), 'User should not be authorized with provider');
+            t.assert(response.statusCode.toString().match(/4\d\d/), 'User should not be authorized with provider');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
-test('integration_v3 fails when "authorization" header is provided for a public url but the bearer token is invalid', (t) => {
-    supertest
+test('integration_v3 fails when "authorization" header is provided for a public url but the bearer token is invalid', async (t) => {
+    await supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
         .set('Authorization', 'Bearer badToken')
         .send({ url: publicFenceUrl })
         .expect((response) => {
-            assert.ok(response.statusCode.toString().match(/4\d\d/), 'Bond should not have authenticated this token');
+            t.assert(response.statusCode.toString().match(/4\d\d/), 'Bond should not have authenticated this token');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
 // Protected data guid url
 
-test('integration_v3 fails when no "authorization" header is provided for a protected url', (t) => {
-    supertest
+test('integration_v3 fails when no "authorization" header is provided for a protected url', async (t) => {
+    await supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
         .send({ url: protectedFenceUrl })
         .expect((response) => {
-            assert.ok(response.statusCode.toString().match(/4\d\d/), 'Request did not not specify an authorization header');
+            t.assert(response.statusCode.toString().match(/4\d\d/), 'Request did not not specify an authorization header');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
-test('integration_v3 succeeds for a protected url', (t) => {
-    supertest
+test('integration_v3 succeeds for a protected url', async (t) => {
+    await supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${authorizedToken}`)
         .send({ url: protectedFenceUrl })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 200, 'Incorrect status code');
-            assert(response.body.gsUri, 'No gsUri found');
-            assert(response.body.googleServiceAccount, 'No Google Service Account found');
+            t.is(response.statusCode, 200, 'Incorrect status code');
+            t.assert(response.body.gsUri, 'No gsUri found');
+            t.assert(response.body.googleServiceAccount, 'No Google Service Account found');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
-test('integration_v3 fails when "authorization" header is provided for a protected url but user is not authed with provider', (t) => {
-    supertest
+test('integration_v3 fails when "authorization" header is provided for a protected url but user is not authed with provider', async (t) => {
+    await supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${unauthorizedToken}`)
         .send({ url: protectedFenceUrl })
         .expect((response) => {
-            assert.ok(response.statusCode.toString().match(/4\d\d/), 'User should not be authorized with provider');
+            t.assert(response.statusCode.toString().match(/4\d\d/), 'User should not be authorized with provider');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
-test('integration_v3 fails when "authorization" header is provided for a protected url but the bearer token is invalid', (t) => {
-    supertest
+test('integration_v3 fails when "authorization" header is provided for a protected url but the bearer token is invalid', async (t) => {
+    await supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
         .set('Authorization', 'Bearer badToken')
         .send({ url: protectedFenceUrl })
         .expect((response) => {
-            assert.ok(response.statusCode.toString().match(/4\d\d/), 'Bond should not have authenticated this token');
+            t.assert(response.statusCode.toString().match(/4\d\d/), 'Bond should not have authenticated this token');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
 // Jade Data Repo url
 
-test('integration_v3 responds with Data Object for authorized user for jade data repo url', (t) => {
-    supertest
+test('integration_v3 responds with Data Object for authorized user for jade data repo url', async (t) => {
+    await supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${authorizedToken}`)
         .send({ url: jdrDevTestUrl })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 200, 'Incorrect status code');
-            assert.deepStrictEqual(
+            t.is(response.statusCode, 200, 'Incorrect status code');
+            t.deepEqual(
                 response.body,
                 {
                     contentType: 'application/octet-stream',
@@ -243,17 +242,17 @@ test('integration_v3 responds with Data Object for authorized user for jade data
                 }
             );
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
-test('integration_v3 fails when unauthorized user is resolving jade data repo url', (t) => {
+test('integration_v3 fails when unauthorized user is resolving jade data repo url', async (t) => {
     // JDR was returning slowly for this integration test. Give it a bit more time.
     // And someday, when we have performance tests outside of prod, remove the line below! ;)
     t.timeout(60*1000);
-    supertest
+    await supertest
         .post('/martha_v3')
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${unauthorizedToken}`)
@@ -261,10 +260,10 @@ test('integration_v3 fails when unauthorized user is resolving jade data repo ur
         .expect((response) => {
             // Use this after 2021-05-01. Give 403 some burn in time and make sure that response code has settled.
             // assert.strictEqual(response.statusCode, 403, 'This user should be unauthorized in Jade Data Repo');
-            assert.ok([403, 500].includes(response.statusCode), 'This user should be unauthorized in Jade Data Repo');
+            t.assert([403, 500].includes(response.statusCode), 'This user should be unauthorized in Jade Data Repo');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });

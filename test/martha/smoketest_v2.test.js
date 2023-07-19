@@ -28,20 +28,22 @@ const supertest = require('supertest')(config.itMarthaBaseUrl);
 //         .end(t.end);
 // });
 
-test('smoketest_v2 return error if url passed is malformed', (t) => {
-    supertest
+test('smoketest_v2 return error if url passed is malformed', async (t) => {
+    await supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
         .send({ url: 'somethingNotValidURL' })
-        .expect(400)
-        .end(t.end);
+        .expect((response) => {
+            t.is(response.statusCode, 400, 'The malformed url should result in an error');
+        });
 });
 
-test('smoketest_v2 return error if url passed is not good', (t) => {
-    supertest
+test('smoketest_v2 return error if url passed is not good', async (t) => {
+    await supertest
         .post('/martha_v2')
         .set('Content-Type', 'application/json')
         .send({ url: 'dos://broad-dsp-dos-TYPO.storage.googleapis.com/something-that-does-not-exist' })
-        .expect(502)
-        .end(t.end);
+        .expect((response) => {
+            t.is(response.statusCode, 502, 'a valid url that does not exist should result in an error');
+        });
 });

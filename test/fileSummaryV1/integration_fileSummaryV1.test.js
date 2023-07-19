@@ -8,7 +8,6 @@
 const test = require('ava');
 const config = require('../../common/config');
 const supertest = require('supertest')(config.itMarthaBaseUrl);
-const assert = require('assert');
 const { GoogleToken } = require('gtoken');
 const { postJsonTo } = require('../../common/api_adapter');
 
@@ -49,114 +48,114 @@ test.before(async () => {
     await postJsonTo(fenceAuthLink, `Bearer ${authorizedToken}`);
 });
 
-test('integration_fileSummaryV1 responds with 400 if a uri is not provided', (t) => {
-    supertest
+test('integration_fileSummaryV1 responds with 400 if a uri is not provided', async (t) => {
+    await supertest
         .post('/fileSummaryV1')
         .set('Content-Type', 'application/json')
         .send({ notValid: dataObjectUri })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 400, 'Incorrect status code');
-            assert(response.text.includes('must specify the URI'), 'Received the wrong error message');
+            t.is(response.statusCode, 400, 'Incorrect status code');
+            t.assert(response.text.includes('must specify the URI'), 'Received the wrong error message');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
-test('integration_fileSummaryV1 responds with 400 if uri passed is malformed', (t) => {
-    supertest
+test('integration_fileSummaryV1 responds with 400 if uri passed is malformed', async (t) => {
+    await supertest
         .post('/fileSummaryV1')
         .set('Content-Type', 'application/json')
         .send({ uri: 'somethingNotValidURL' })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 400, 'Incorrect status code');
-            assert(response.text.includes('must specify the URI'), 'Received the wrong error message');
+            t.is(response.statusCode, 400, 'Incorrect status code');
+            t.assert(response.text.includes('must specify the URI'), 'Received the wrong error message');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
-test('integration_fileSummaryV1 responds with 401 if uri is valid but no authorization is provided', (t) => {
-    supertest
+test('integration_fileSummaryV1 responds with 401 if uri is valid but no authorization is provided', async (t) => {
+    await supertest
         .post('/fileSummaryV1')
         .set('Content-Type', 'application/json')
         .send({ uri: dataObjectUri })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 401, 'Incorrect status code');
-            assert(response.text.includes('must contain a bearer token'), 'Received the wrong error message');
+            t.is(response.statusCode, 401, 'Incorrect status code');
+            t.assert(response.text.includes('must contain a bearer token'), 'Received the wrong error message');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
-test('integration_fileSummaryV1 responds with 200 and file metadata but no signed url if Data Object uri is valid but the authorization header does not contain an authorized token', (t) => {
-    supertest
+test('integration_fileSummaryV1 responds with 200 and file metadata but no signed url if Data Object uri is valid but the authorization header does not contain an authorized token', async (t) => {
+    await supertest
         .post('/fileSummaryV1')
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${unauthorizedToken}`)
         .send({ uri: dataObjectUri })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 200, 'Incorrect status code');
-            assert(response.body.bucket, 'fileSummary did not return metadata');
-            assert(!response.body.signedUrl, 'fileSummary returned a signed url but it should not have');
+            t.is(response.statusCode, 200, 'Incorrect status code');
+            t.assert(response.body.bucket, 'fileSummary did not return metadata');
+            t.assert(!response.body.signedUrl, 'fileSummary returned a signed url but it should not have');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
-test('integration_fileSummaryV1 responds with 200, file metadata, and a signed url if Data Object uri is valid and valid authorization is provided', (t) => {
-    supertest
+test('integration_fileSummaryV1 responds with 200, file metadata, and a signed url if Data Object uri is valid and valid authorization is provided', async (t) => {
+    await supertest
         .post('/fileSummaryV1')
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${authorizedToken}`)
         .send({ uri: dataObjectUri })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 200, 'Incorrect status code');
-            assert(response.body.bucket, 'fileSummary did not return metadata');
-            assert(response.body.signedUrl, 'fileSummary did not return a signed url');
+            t.is(response.statusCode, 200, 'Incorrect status code');
+            t.assert(response.body.bucket, 'fileSummary did not return metadata');
+            t.assert(response.body.signedUrl, 'fileSummary did not return a signed url');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
-test('integration_fileSummaryV1 responds with 502 and unauthorized response if gs uri is valid, but an invalid bearer token is provided', (t) => {
-    supertest
+test('integration_fileSummaryV1 responds with 502 and unauthorized response if gs uri is valid, but an invalid bearer token is provided', async (t) => {
+    await supertest
         .post('/fileSummaryV1')
         .set('Content-Type', 'application/json')
         .set('Authorization', 'Bearer badToken')
         .send({ uri: gsUri })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 502, 'Incorrect status code');
-            assert.strictEqual(response.body.status, 401, 'Response should have been unauthorized');
+            t.is(response.statusCode, 502, 'Incorrect status code');
+            t.is(response.body.status, 401, 'Response should have been unauthorized');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
 
-test('integration_fileSummaryV1 responds with 200, file metadata, and a signed url if gs uri is valid and valid authorization is provided', (t) => {
-    supertest
+test('integration_fileSummaryV1 responds with 200, file metadata, and a signed url if gs uri is valid and valid authorization is provided', async (t) => {
+    await supertest
         .post('/fileSummaryV1')
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${authorizedToken}`)
         .send({ uri: gsUri })
         .expect((response) => {
-            assert.strictEqual(response.statusCode, 200, 'Incorrect status code');
-            assert(response.body.bucket, 'fileSummary did not return metadata');
-            assert(response.body.signedUrl, 'fileSummary did not return a signed url');
+            t.is(response.statusCode, 200, 'Incorrect status code');
+            t.assert(response.body.bucket, 'fileSummary did not return metadata');
+            t.assert(response.body.signedUrl, 'fileSummary did not return a signed url');
         })
-        .end((error, response) => {
-            if (error) { t.log(response.body); }
-            t.end(error);
+        .catch((error) => {
+            t.log(error.response.body);
+            t.falsy(error);
         });
 });
