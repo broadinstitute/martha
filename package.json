@@ -10,7 +10,7 @@
     "smoketest_v2": "ava -m smoketest_v2*",
     "smoketest_v3": "ava --timeout 10m --match smoketest_v3*",
     "smoketest_fileSummaryV1": "ava -m smoketest_fileSummaryV1*",
-    "integration": "ava --timeout 10m --match integration*",
+    "integration": "ava --timeout 10m --match integration_v2* && ava --timeout 10m --match integration_v3*",
     "integration_v2": "ava -m integration_v2*",
     "integration_v3": "ava --timeout 10m --match integration_v3*",
     "integration_fileSummaryV1": "ava -m integration_fileSummaryV1*",
