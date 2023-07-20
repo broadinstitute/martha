@@ -10,7 +10,7 @@ const test = require('ava');
 const config = require('../../common/config');
 const supertest = require('supertest')(config.itMarthaBaseUrl);
 const { GoogleToken } = require('gtoken');
-const { postJsonTo } = require('../../common/api_adapter');
+const { postJsonTo, getJsonFrom } = require('../../common/api_adapter');
 
 let unauthorizedToken;
 let authorizedToken;
@@ -27,6 +27,11 @@ const authorizedEmail = `hermione.owner@${emailDomain}`;
 
 const publicFenceUrl = 'dos://dg.4503/preview_dos.json';
 const protectedFenceUrl = 'dos://dg.4503/65e4cd14-f549-4a7f-ad0c-d29212ff6e46';
+const getFenceAuthUrl =
+    `${myBondBaseUrl}/api/link/v1/fence/authorization-url` +
+    '?scopes=openid' +
+    '&scopes=google_credentials' +
+    '&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback';
 const fenceAuthLink =
     `${myBondBaseUrl}/api/link/v1/fence/oauthcode` +
     '?oauthcode=IgnoredByMockProvider' +
@@ -34,7 +39,6 @@ const fenceAuthLink =
 
 // Dev Jade Data Repo url. Snapshot id is 93dc1e76-8f1c-4949-8f9b-07a087f3ce7b
 const jdrDevTestUrl = 'drs://jade.datarepo-dev.broadinstitute.org/v1_93dc1e76-8f1c-4949-8f9b-07a087f3ce7b_8b07563a-542f-4b5c-9e00-e8fe6b1861de';
-
 
 test.before(async () => {
     unauthorizedToken = (await new GoogleToken({
@@ -50,7 +54,10 @@ test.before(async () => {
         scope: scopes
     }).getToken()).access_token;
 
-    await postJsonTo(fenceAuthLink, `Bearer ${authorizedToken}`);
+    const response = await getJsonFrom(getFenceAuthUrl, `Bearer ${authorizedToken}`);
+    const url = new URL(response.url);
+    const nonce = url.searchParams.get('state');
+    await postJsonTo(`${fenceAuthLink}&state=${nonce}`, `Bearer ${authorizedToken}`);
 });
 
 // Invalid inputs
