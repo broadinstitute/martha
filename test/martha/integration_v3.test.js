@@ -265,9 +265,7 @@ test('integration_v3 fails when unauthorized user is resolving jade data repo ur
         .set('Authorization', `Bearer ${unauthorizedToken}`)
         .send({ url: jdrDevTestUrl })
         .expect((response) => {
-            // Use this after 2021-05-01. Give 403 some burn in time and make sure that response code has settled.
-            // assert.strictEqual(response.statusCode, 403, 'This user should be unauthorized in Jade Data Repo');
-            t.assert([403, 500].includes(response.statusCode), 'This user should be unauthorized in Jade Data Repo');
+            t.assert(response.statusCode.toString().match(/4\d\d/), 'This user should be unauthorized in Jade Data Repo');
         })
         .catch((error) => {
             t.log(error.response.body);
