@@ -39,42 +39,6 @@ jobs:
           name: Check for git secrets
           command: git secrets --scan-history
 
-  lint:
-    <<: *job_defaults
-    docker:
-      - image: cimg/node:16.14.0
-
-    steps:
-      - checkout
-      - run:
-          name: Run ESLint
-          command: |
-            npm install
-            npx eslint .
-
-  test:
-    <<: *job_defaults
-    docker:
-      - image: cimg/node:16.14.0
-
-    steps:
-      - checkout
-      - <<: *run_env_setup
-      - <<: *run_secret_setup
-      - run:
-          name: Setup npm
-          command: |
-            npm ci
-            sudo npm install -g codecov
-      - run:
-          name: Run tests
-          command: npm test
-      - run:
-          name: Upload codecov
-          command: |
-            npm run report-coverage
-            codecov
-
   tag:
     <<: *job_defaults
     docker:
@@ -134,17 +98,9 @@ jobs:
 
 workflows:
   version: 2
-  test-and-tag:
+  tag-release:
     jobs:
       - secrets:
-          filters:
-            <<: *git_tags
-      - lint:
-          filters:
-            <<: *git_tags
-      - test:
-          requires:
-            - secrets
           filters:
             <<: *git_tags
       - build-image:
@@ -154,8 +110,6 @@ workflows:
             <<: *git_tags
       - tag:
           requires:
-            - lint
-            - test
             - build-image
           filters:
             branches:

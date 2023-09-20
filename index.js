@@ -4,10 +4,8 @@
  */
 
 const corsMiddleware = require('cors')();
-const { marthaV2Handler } = require('./martha/martha_v2');
-const { marthaV3Handler } = require('./martha/martha_v3');
-const { fileSummaryV1Handler } = require('./fileSummaryV1/fileSummaryV1');
-const getSignedUrlV1 = require('./handlers/getSignedUrlV1');
+const axios = require('axios').default;
+const {drshubUrl} = require("./common/config");
 
 const addSecurityHeaders = (res) => {
     res.set({
@@ -16,24 +14,44 @@ const addSecurityHeaders = (res) => {
     });
 };
 
+function sendDrsHubRequest(req, res, url) {
+    return axios.post(url, req.body, {
+        headers: {
+            "authorization": req.headers.authorization,
+            "Content-Type": "application/json",
+        }
+    })
+        .then((response) => {
+            return res.status(response.status).send(response.data);
+        })
+        .catch((error) => {
+            console.log(error.response.data);
+            return res.status(error.response.status).send(error.response.data);
+        });
+}
+
 exports.martha_v2 = (req, res) => {
-    addSecurityHeaders(res);
-    corsMiddleware(req, res, () => marthaV2Handler(req, res));
+    res.status(299).send(`You are attempting to use a deprecated API, please switch to using ${drshubUrl}.`);
+};
+
+exports.fileSummaryV1 = (req, res) => {
+    res.status(299).send(`You are attempting to use a deprecated API, please switch to using ${drshubUrl}.`);
 };
 
 exports.martha_v3 = (req, res) => {
     addSecurityHeaders(res);
-    corsMiddleware(req, res, () => marthaV3Handler(req, res));
-};
-
-exports.fileSummaryV1 = (req, res) => {
-    addSecurityHeaders(res);
-    corsMiddleware(req, res, () => fileSummaryV1Handler(req, res));
+    corsMiddleware(req, res, () => {
+        const url=`${drshubUrl}/api/v4/drs/resolve`;
+        return sendDrsHubRequest(req, res, url);
+    });
 };
 
 exports.getSignedUrlV1 = (req, res) => {
     addSecurityHeaders(res);
-    corsMiddleware(req, res, () => getSignedUrlV1(req, res));
+    corsMiddleware(req, res, () => {
+        const url=`${drshubUrl}/api/v4/gcs/getSignedUrl`;
+        return sendDrsHubRequest(req, res, url);
+    });
 };
 
 /*
