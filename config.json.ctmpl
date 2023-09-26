@@ -10,7 +10,7 @@
     "TerraDataRepoHost": {{if eq $runContext "fiab"}}"wb-mock-drs-dev.storage.googleapis.com"{{else if eq $environment "prod"}}"data.terra.bio"{{else}}"staging.data.terra.bio"{{end}},
     "crdcHost": {{if eq $runContext "fiab"}}"wb-mock-drs-dev.storage.googleapis.com"{{else if eq $environment "prod"}}"nci-crdc.datacommons.io"{{else}}"nci-crdc-staging.datacommons.io"{{end}},
     "kidsFirstHost": {{if eq $runContext "fiab"}}"wb-mock-drs-dev.storage.googleapis.com"{{else if eq $environment "prod"}}"data.kidsfirstdrc.org"{{else}}"gen3staging.kidsfirstdrc.org"{{end}},
-    "bondBaseUrl": {{if eq $runContext "fiab"}}"https://bond-fiab.{{$dnsDomain}}"{{else}}"https://bond.dsde-{{$environment}}.broadinstitute.org"{{end}},
+    "bondBaseUrl": {{if eq $runContext "fiab"}}"https://bond-fiab.{{$dnsDomain}}"{{else if eq $environment "prod"}}"https://broad-bond-{{$environment}}.appspot.com"{{else}}"https://bond.dsde-{{$environment}}.broadinstitute.org"{{end}},
     "samBaseUrl": {{if eq $runContext "fiab"}}"https://sam-fiab.{{$dnsDomain}}"{{else}}"https://sam.dsde-{{$environment}}.broadinstitute.org"{{end}}
 }
 {{end}}{{end}}{{end}}
