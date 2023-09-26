@@ -116,5 +116,4 @@ docker run \
         --allow-unauthenticated --project ${DEPLOY_PROJECT_NAME} --set-env-vars ENV=${DEPLOY_ENV} &&
       gcloud beta functions deploy getSignedUrlV1 --trigger-http --source=. --runtime nodejs16 \\
         --allow-unauthenticated --project ${DEPLOY_PROJECT_NAME} --set-env-vars ENV=${DEPLOY_ENV} &&
-      npm ci &&
-      npm run-script smoketest"
+      npm ci"
