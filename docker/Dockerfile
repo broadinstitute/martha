@@ -10,15 +10,15 @@ RUN apt-get update \
 # Install the Google Cloud SDK
 # Deployment still uses this image and requires gcloud.
 # Unlike Google's former functions-emulator, Google's functions-framework does not use gcloud.
+# Pinning google-cloud-sdk at 441.0.0 because later versions do not support Python 3.7
 ENV HOME /
-RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.zip \
-    && unzip google-cloud-sdk.zip \
-    && rm google-cloud-sdk.zip
+RUN wget https://storage.googleapis.com/cloud-sdk-release/google-cloud-cli-441.0.0-linux-x86_64.tar.gz -O google-cloud-sdk.tar.gz \
+    && tar -xf google-cloud-sdk.tar.gz \
+    && rm google-cloud-sdk.tar.gz
 ENV PATH /google-cloud-sdk/bin:$PATH
 
-# Update gcloud and install beta components (needed to get Google Cloud Functions Support)
-RUN gcloud components update --quiet \
-    && gcloud components install beta --quiet
+# Install beta components (needed to get Google Cloud Functions Support)
+RUN gcloud components install beta --quiet
 
 # Home directory for Martha code
 RUN mkdir /martha
